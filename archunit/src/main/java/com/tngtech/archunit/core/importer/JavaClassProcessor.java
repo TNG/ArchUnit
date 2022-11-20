@@ -417,12 +417,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void visitInvokeDynamicInsn(
-                final String name,
-                final String descriptor,
-                final Handle bootstrapMethodHandle,
-                final Object... bootstrapMethodArguments
-        ) {
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isLambdaMetafactory(bootstrapMethodHandle.getOwner())) {
                 Object methodHandleCandidate = bootstrapMethodArguments[1];
                 if (isAsmMethodHandle(methodHandleCandidate)) {
@@ -640,12 +635,12 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public AnnotationVisitor visitAnnotation(final String name, String desc) {
+        public AnnotationVisitor visitAnnotation(String name, String desc) {
             return new AnnotationProcessor(addAnnotationAsProperty(name, this.annotationBuilder), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
-        public AnnotationVisitor visitArray(final String name) {
+        public AnnotationVisitor visitArray(String name) {
             return new AnnotationArrayProcessor(new AnnotationArrayContext() {
                 @Override
                 public String getDeclaringAnnotationTypeName() {
@@ -670,11 +665,11 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, JavaAnnotationBuilder> annotations, final int index) {
+    private static TakesAnnotationBuilder addAnnotationAtIndex(SetMultimap<Integer, JavaAnnotationBuilder> annotations, int index) {
         return annotation -> annotations.put(index, annotation);
     }
 
-    private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final JavaAnnotationBuilder annotationBuilder) {
+    private static TakesAnnotationBuilder addAnnotationAsProperty(String name, JavaAnnotationBuilder annotationBuilder) {
         return builder -> annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
     }
 
@@ -716,7 +711,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void visitEnum(String name, final String desc, final String value) {
+        public void visitEnum(String name, String desc, String value) {
             setDerivedComponentType(JavaEnumConstant.class);
             values.add(handleAnnotationEnumProperty(desc, value, declarationHandler));
         }
@@ -856,7 +851,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public final void visit(String name, Object input) {
-            final Object value = JavaClassDescriptorImporter.importAsmTypeIfPossible(input);
+            Object value = JavaClassDescriptorImporter.importAsmTypeIfPossible(input);
             if (value instanceof JavaClassDescriptor) {
                 visitClass(name, (JavaClassDescriptor) value);
             } else {

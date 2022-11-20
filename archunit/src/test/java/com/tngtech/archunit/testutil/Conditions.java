@@ -10,7 +10,7 @@ public final class Conditions {
     private Conditions() {
     }
 
-    public static <T> Condition<Iterable<? extends T>> containing(final Condition<T> condition) {
+    public static <T> Condition<Iterable<? extends T>> containing(Condition<T> condition) {
         return new Condition<Iterable<? extends T>>() {
             @Override
             public boolean matches(Iterable<? extends T> value) {
@@ -23,7 +23,7 @@ public final class Conditions {
         }.as("containing an element that " + condition.description());
     }
 
-    public static Condition<JavaCodeUnit> codeUnitWithSignature(final String name, final Class<?>... parameters) {
+    public static Condition<JavaCodeUnit> codeUnitWithSignature(String name, Class<?>... parameters) {
         return new Condition<JavaCodeUnit>() {
             @Override
             public boolean matches(JavaCodeUnit value) {

@@ -200,7 +200,7 @@ public interface JavaClassDescriptor {
                 if (obj == null || getClass() != obj.getClass()) {
                     return false;
                 }
-                final JavaClassDescriptor other = (JavaClassDescriptor) obj;
+                JavaClassDescriptor other = (JavaClassDescriptor) obj;
                 return Objects.equals(this.getFullyQualifiedClassName(), other.getFullyQualifiedClassName());
             }
 

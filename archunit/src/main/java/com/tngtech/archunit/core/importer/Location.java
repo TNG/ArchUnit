@@ -168,7 +168,7 @@ public abstract class Location {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Location other = (Location) obj;
+        Location other = (Location) obj;
         return Objects.equals(this.uri, other.uri);
     }
 
@@ -375,8 +375,8 @@ public abstract class Location {
             return getAllFilesBeneath(rootFile.toPath());
         }
 
-        private List<NormalizedResourceName> getAllFilesBeneath(final Path root) throws IOException {
-            final ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
+        private List<NormalizedResourceName> getAllFilesBeneath(Path root) throws IOException {
+            ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {

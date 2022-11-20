@@ -58,7 +58,7 @@ public class SelectedClassResolverFromClasspathTest {
                 .isTrue();
     }
 
-    private URI uriFor(final Class<?> clazz) {
+    private URI uriFor(Class<?> clazz) {
         return argThat(argument -> argument.toString().contains(clazz.getSimpleName()));
     }
 

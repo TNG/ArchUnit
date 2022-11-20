@@ -65,7 +65,7 @@ class ExtensionIntegrationTest {
         assertThat(ExampleExtension.getEvaluatedRuleEvents()).isEmpty();
     }
 
-    private static Condition<Object> containingEntry(final String propKey, final String propValue) {
+    private static Condition<Object> containingEntry(String propKey, String propValue) {
         return new Condition<Object>(String.format("containing entry {%s=%s}", propKey, propValue)) {
             @Override
             public boolean matches(Object value) {

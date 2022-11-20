@@ -83,7 +83,7 @@ public final class Source {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Source other = (Source) obj;
+        Source other = (Source) obj;
         return Objects.equals(this.uri, other.uri)
                 && Objects.equals(this.md5sum, other.md5sum);
     }
@@ -151,7 +151,7 @@ public final class Source {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final Md5sum other = (Md5sum) obj;
+            Md5sum other = (Md5sum) obj;
             return Arrays.equals(this.md5Bytes, other.md5Bytes)
                     && Objects.equals(this.text, other.text);
         }

@@ -55,7 +55,7 @@ class JavaClassMembers {
             .addAll(getAllConstructors())
             .build());
 
-    JavaClassMembers(final JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
+    JavaClassMembers(JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
         this.owner = owner;
         this.fields = fields;
         this.methods = methods;

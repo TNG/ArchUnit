@@ -259,7 +259,7 @@ public class PlantUmlArchConditionTest {
         return assertThat(result.getFailureReport().getDetails());
     }
 
-    private Condition<List<? extends String>> lineMatching(final String pattern) {
+    private Condition<List<? extends String>> lineMatching(String pattern) {
         return new Condition<List<? extends String>>(String.format("line matching '%s'", pattern)) {
             @Override
             public boolean matches(List<? extends String> lines) {

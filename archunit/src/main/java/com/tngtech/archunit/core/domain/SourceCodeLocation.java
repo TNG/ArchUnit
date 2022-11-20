@@ -110,7 +110,7 @@ public final class SourceCodeLocation {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final SourceCodeLocation other = (SourceCodeLocation) obj;
+        SourceCodeLocation other = (SourceCodeLocation) obj;
         return Objects.equals(this.sourceClass, other.sourceClass)
                 && Objects.equals(this.lineNumber, other.lineNumber);
     }

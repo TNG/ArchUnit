@@ -35,7 +35,7 @@ public class NewConfigurationEvent {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final NewConfigurationEvent other = (NewConfigurationEvent) obj;
+        NewConfigurationEvent other = (NewConfigurationEvent) obj;
         return Objects.equals(this.properties, other.properties);
     }
 

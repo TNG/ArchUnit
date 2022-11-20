@@ -153,7 +153,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
             return and(Function.identity());
         }
 
-        static <T> AddMode<T> and(final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+        static <T> AddMode<T> and(Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
             return new AddMode<T>() {
                 @Override
                 ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
@@ -163,7 +163,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
             };
         }
 
-        static <T> AddMode<T> or(final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
+        static <T> AddMode<T> or(Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
             return new AddMode<T>() {
                 @Override
                 ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
@@ -176,7 +176,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
         abstract ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other);
     }
 
-    static <T> Function<ArchCondition<T>, ArchCondition<T>> prependDescription(final String prefix) {
+    static <T> Function<ArchCondition<T>, ArchCondition<T>> prependDescription(String prefix) {
         return input -> input.as(prefix + " " + input.getDescription());
     }
 }

@@ -123,7 +123,7 @@ public final class DependencyRules {
         }
 
         @Override
-        public void check(final JavaClass clazz, final ConditionEvents events) {
+        public void check(JavaClass clazz, ConditionEvents events) {
             for (Dependency dependency : clazz.getDirectDependenciesFromSelf()) {
                 boolean dependencyOnUpperPackage = isDependencyOnUpperPackage(dependency.getOriginClass(), dependency.getTargetClass());
                 events.add(new SimpleConditionEvent(dependency, dependencyOnUpperPackage, dependency.getDescription()));

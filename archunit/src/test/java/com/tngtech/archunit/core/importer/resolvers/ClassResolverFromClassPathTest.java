@@ -73,12 +73,12 @@ public class ClassResolverFromClassPathTest {
 
     @Test
     @UseDataProvider("urls_with_spaces")
-    public void is_resilient_against_wrongly_encoded_ClassLoader_resource_URLs(final URL urlReturnedByClassLoader, URI expectedUriDerivedFromUrl) {
+    public void is_resilient_against_wrongly_encoded_ClassLoader_resource_URLs(URL urlReturnedByClassLoader, URI expectedUriDerivedFromUrl) {
         // it seems like some OSGI ClassLoaders incorrectly return URLs with unencoded spaces.
         // This lead to `url.toURI()` throwing an exception -> https://github.com/TNG/ArchUnit/issues/683
         verifyUrlCannotBeConvertedToUriInTheCurrentForm(urlReturnedByClassLoader);
 
-        final JavaClass expectedJavaClass = importClassWithContext(Object.class);
+        JavaClass expectedJavaClass = importClassWithContext(Object.class);
         when(uriImporter.tryImport(expectedUriDerivedFromUrl)).thenReturn(Optional.of(expectedJavaClass));
 
         Optional<JavaClass> resolvedClass = withMockedContextClassLoader(classLoaderMock -> {
@@ -103,7 +103,7 @@ public class ClassResolverFromClassPathTest {
         }
     }
 
-    private void verifyUrlCannotBeConvertedToUriInTheCurrentForm(final URL url) {
+    private void verifyUrlCannotBeConvertedToUriInTheCurrentForm(URL url) {
         assertThatThrownBy(url::toURI).isInstanceOf(URISyntaxException.class);
     }
 }

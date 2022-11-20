@@ -37,7 +37,7 @@ public interface HasModifiers {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasModifiers> modifier(final JavaModifier modifier) {
+        public static DescribedPredicate<HasModifiers> modifier(JavaModifier modifier) {
             return new ModifierPredicate(modifier);
         }
 

@@ -167,7 +167,7 @@ public class UrlSourceTest {
         return Joiner.on(File.separator).join(parts);
     }
 
-    private WrittenJarFile writeJarWithManifestClasspathAttribute(final File folder, String identifier, ManifestClasspathEntry... additionalClasspathManifestClasspathEntries) {
+    private WrittenJarFile writeJarWithManifestClasspathAttribute(File folder, String identifier, ManifestClasspathEntry... additionalClasspathManifestClasspathEntries) {
         Set<ManifestClasspathEntry> classpathManifestEntries = union(createManifestClasspathEntries(identifier), ImmutableSet.copyOf(additionalClasspathManifestClasspathEntries));
         String jarFileName = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, Joiner.on(" ").join(classpathManifestEntries.stream().map(resolveTo(folder)).collect(toSet())))
@@ -175,7 +175,7 @@ public class UrlSourceTest {
         return new WrittenJarFile(Paths.get(jarFileName), classpathManifestEntries);
     }
 
-    private Function<ManifestClasspathEntry, String> resolveTo(final File folder) {
+    private Function<ManifestClasspathEntry, String> resolveTo(File folder) {
         return manifestClasspathEntry -> manifestClasspathEntry.create(folder);
     }
 

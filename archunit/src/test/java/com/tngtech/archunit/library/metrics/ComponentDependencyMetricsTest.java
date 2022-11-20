@@ -129,7 +129,7 @@ public class ComponentDependencyMetricsTest {
 
     @Test
     public void rejects_requesting_metrics_of_unknown_component() {
-        final ComponentDependencyMetrics metrics = ArchitectureMetrics.componentDependencyMetrics(MetricsComponents.of());
+        ComponentDependencyMetrics metrics = ArchitectureMetrics.componentDependencyMetrics(MetricsComponents.of());
 
         List<ThrowingCallable> callables = ImmutableList.of(
                 () -> metrics.getEfferentCoupling("unknown"),

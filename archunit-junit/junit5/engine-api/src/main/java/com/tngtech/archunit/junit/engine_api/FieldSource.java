@@ -62,7 +62,7 @@ public final class FieldSource implements TestSource {
 		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
-        final FieldSource other = (FieldSource) obj;
+        FieldSource other = (FieldSource) obj;
         return Objects.equals(this.javaClass, other.javaClass)
                 && Objects.equals(this.fieldName, other.fieldName);
     }

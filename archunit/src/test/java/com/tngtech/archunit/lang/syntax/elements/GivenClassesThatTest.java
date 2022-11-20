@@ -932,7 +932,7 @@ public class GivenClassesThatTest {
         }
 
         public List<T> on(Class<?>... toCheck) {
-            final List<T> result = new ArrayList<>();
+            List<T> result = new ArrayList<>();
             JavaClasses classes = importClassesWithContext(toCheck);
             ArchCondition<T> condition = new ArchCondition<T>("ignored") {
                 @Override

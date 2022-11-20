@@ -167,7 +167,7 @@ public class PlantUmlParserTest {
     @Test
     @UseDataProvider("color_testcases")
     public void parses_various_colored_components(String color) {
-        final File diagramFile = TestDiagram.in(temporaryFolder)
+        File diagramFile = TestDiagram.in(temporaryFolder)
                 .component("SomeComponent").withColor(color).withStereoTypes("..stereotype..")
                 .write();
 

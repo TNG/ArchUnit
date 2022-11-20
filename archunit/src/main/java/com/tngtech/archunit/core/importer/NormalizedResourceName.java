@@ -80,7 +80,7 @@ class NormalizedResourceName {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final NormalizedResourceName other = (NormalizedResourceName) obj;
+        NormalizedResourceName other = (NormalizedResourceName) obj;
         return Objects.equals(this.resourceName, other.resourceName);
     }
 

@@ -59,7 +59,7 @@ public final class FieldSelector implements DiscoverySelector {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final FieldSelector other = (FieldSelector) obj;
+        FieldSelector other = (FieldSelector) obj;
         return Objects.equals(this.clazz, other.clazz)
                 && Objects.equals(this.field, other.field);
     }

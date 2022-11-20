@@ -122,8 +122,8 @@ public interface ClassResolver {
             }
         }
 
-        private ClassResolverProvider createProvider(final Class<?> resolverClass, final List<String> args) {
-            final Optional<Constructor<?>> listConstructor = tryGetListConstructor(resolverClass);
+        private ClassResolverProvider createProvider(Class<?> resolverClass, List<String> args) {
+            Optional<Constructor<?>> listConstructor = tryGetListConstructor(resolverClass);
             if (listConstructor.isPresent()) {
                 return new ClassResolverProvider(instantiationException(listConstructor.get(), args)) {
                     @Override
@@ -139,7 +139,7 @@ public interface ClassResolver {
         }
 
         private Function<Exception, ClassResolverConfigurationException> instantiationException(
-                final Constructor<?> constructor, final List<String> args) {
+                Constructor<?> constructor, List<String> args) {
 
             return cause -> ClassResolverConfigurationException.onInstantiation(constructor, args, cause);
         }
@@ -152,8 +152,8 @@ public interface ClassResolver {
             }
         }
 
-        private ClassResolverProvider tryCreateResolverProviderForDefaultConstructor(final Class<?> resolverClass, final List<String> args) {
-            final Constructor<?> defaultConstructor;
+        private ClassResolverProvider tryCreateResolverProviderForDefaultConstructor(Class<?> resolverClass, List<String> args) {
+            Constructor<?> defaultConstructor;
             try {
                 defaultConstructor = accessibleConstructor(resolverClass);
             } catch (NoSuchMethodException e) {

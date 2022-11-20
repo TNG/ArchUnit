@@ -62,7 +62,7 @@ public class ReflectionUtilsTest {
                         field(OtherInterface.class, "OTHER_CONSTANT"));
     }
 
-    private Predicate<Member> named(final String name) {
+    private Predicate<Member> named(String name) {
         return input -> input.getName().equals(name);
     }
 

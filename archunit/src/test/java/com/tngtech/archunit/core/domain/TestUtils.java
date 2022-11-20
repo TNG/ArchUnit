@@ -85,7 +85,7 @@ public class TestUtils {
 
     public static JavaClasses importClassesWithContext(Class<?>... classes) {
         JavaClasses importedHierarchy = importHierarchies(classes);
-        final List<String> classNames = formatNamesOf(classes);
+        List<String> classNames = formatNamesOf(classes);
         return importedHierarchy.that(new DescribedPredicate<JavaClass>("") {
             @Override
             public boolean test(JavaClass input) {

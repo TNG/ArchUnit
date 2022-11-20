@@ -448,7 +448,7 @@ public class GivenMembersTest {
         };
     }
 
-    static DescribedPredicate<JavaMember> areNoFieldsWithType(final Class<?> type) {
+    static DescribedPredicate<JavaMember> areNoFieldsWithType(Class<?> type) {
         return new DescribedPredicate<JavaMember>("are no fields with type " + type.getSimpleName()) {
             @Override
             public boolean test(JavaMember member) {
@@ -457,7 +457,7 @@ public class GivenMembersTest {
         };
     }
 
-    static ArchCondition<JavaMember> beAnnotatedWith(final Class<? extends Annotation> annotationType) {
+    static ArchCondition<JavaMember> beAnnotatedWith(Class<? extends Annotation> annotationType) {
         return new ArchCondition<JavaMember>("be annotated with @%s", annotationType.getSimpleName()) {
             @Override
             public void check(JavaMember member, ConditionEvents events) {

@@ -141,7 +141,7 @@ public final class FreezingArchRule implements ArchRule {
 
     private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResultLineBreakAdapter result) {
         log.debug("Found frozen result for rule '{}'", delegate.getDescription());
-        final List<String> knownViolations = store.getViolations(delegate);
+        List<String> knownViolations = store.getViolations(delegate);
         CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
         removeObsoleteViolationsFromStore(categorizedViolations);
         return filterOutKnownViolations(result, categorizedViolations.getKnownActualViolations());
@@ -155,7 +155,7 @@ public final class FreezingArchRule implements ArchRule {
         }
     }
 
-    private EvaluationResult filterOutKnownViolations(EvaluationResultLineBreakAdapter result, final Set<String> knownActualViolations) {
+    private EvaluationResult filterOutKnownViolations(EvaluationResultLineBreakAdapter result, Set<String> knownActualViolations) {
         log.debug("Filtering out known violations: {}", knownActualViolations);
         return result.filterDescriptionsMatching(violation -> !knownActualViolations.contains(violation));
     }
@@ -293,7 +293,7 @@ public final class FreezingArchRule implements ArchRule {
             return result.getPriority();
         }
 
-        EvaluationResult filterDescriptionsMatching(final Predicate<String> predicate) {
+        EvaluationResult filterDescriptionsMatching(Predicate<String> predicate) {
             return result.filterDescriptionsMatching(input -> predicate.test(ensureUnixLineBreaks(input)));
         }
     }

@@ -162,7 +162,7 @@ public final class ProxyRules {
      * </p>
      */
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> directly_call_other_methods_declared_in_the_same_class_that(final DescribedPredicate<? super MethodCallTarget> predicate) {
+    public static ArchCondition<JavaClass> directly_call_other_methods_declared_in_the_same_class_that(DescribedPredicate<? super MethodCallTarget> predicate) {
         return new ArchCondition<JavaClass>("directly call other methods declared in the same class that " + predicate.getDescription()) {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {

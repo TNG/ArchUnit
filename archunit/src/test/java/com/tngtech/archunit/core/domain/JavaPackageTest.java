@@ -239,7 +239,7 @@ public class JavaPackageTest {
     public void visits_classes() {
         JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class, File.class, Serializable.class, Security.class);
 
-        final List<JavaClass> visitedClasses = new ArrayList<>();
+        List<JavaClass> visitedClasses = new ArrayList<>();
         defaultPackage.traversePackageTree(startsWith("S"), visitedClasses::add);
 
         assertThatTypes(visitedClasses).contain(String.class, Serializable.class, Security.class);
@@ -252,7 +252,7 @@ public class JavaPackageTest {
     public void visits_packages() {
         JavaPackage defaultPackage = importDefaultPackage(Object.class, Annotation.class, File.class, Security.class);
 
-        final List<JavaPackage> visitedPackages = new ArrayList<>();
+        List<JavaPackage> visitedPackages = new ArrayList<>();
         defaultPackage.traversePackageTree(nameContains(".lang"), visitedPackages::add);
 
         assertThatPackages(visitedPackages).containPackagesOf(Object.class, Annotation.class);
@@ -420,7 +420,7 @@ public class JavaPackageTest {
     @Test
     public void test_getPackageInfo() {
         JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
-        final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.getPackageInfo()).isNotNull();
 
@@ -452,8 +452,8 @@ public class JavaPackageTest {
 
     @Test
     public void test_getAnnotationOfType_type() {
-        final JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
-        final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class)).isInstanceOf(PackageLevelAnnotation.class);
 
@@ -466,8 +466,8 @@ public class JavaPackageTest {
 
     @Test
     public void test_getAnnotationOfType_typeName() {
-        final JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
-        final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThatType(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class.getName())
                 .getRawType()).matches(PackageLevelAnnotation.class);
@@ -577,7 +577,7 @@ public class JavaPackageTest {
         return HasName.Predicates.nameMatching(".*" + quote(infix) + ".*");
     }
 
-    private DescribedPredicate<JavaClass> startsWith(final String prefix) {
+    private DescribedPredicate<JavaClass> startsWith(String prefix) {
         return GET_SIMPLE_NAME.is(new DescribedPredicate<String>("starts with '%s'", prefix) {
             @Override
             public boolean test(String input) {

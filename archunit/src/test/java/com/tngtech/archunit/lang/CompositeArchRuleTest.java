@@ -130,7 +130,7 @@ public class CompositeArchRuleTest {
         return createArchRuleWithSatisfied(false);
     }
 
-    private static ArchRule createArchRuleWithSatisfied(final boolean satisfied) {
+    private static ArchRule createArchRuleWithSatisfied(boolean satisfied) {
         return ArchRule.Factory.create(new AbstractClassesTransformer<JavaClass>("irrelevant") {
             @Override
             public Iterable<JavaClass> doTransform(JavaClasses collection) {

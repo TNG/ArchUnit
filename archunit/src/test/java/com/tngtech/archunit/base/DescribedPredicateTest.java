@@ -273,7 +273,7 @@ public class DescribedPredicateTest {
                 .accepts(ImmutableList.of());
     }
 
-    private Function<Object, Integer> constant(final int integer) {
+    private Function<Object, Integer> constant(int integer) {
         return input -> integer;
     }
 

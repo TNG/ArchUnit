@@ -262,28 +262,28 @@ public final class ArchRuleDefinition {
         }
 
         @PublicAPI(usage = ACCESS)
-        public GivenClass theClass(final Class<?> clazz) {
+        public GivenClass theClass(Class<?> clazz) {
             return theClass(clazz.getName());
         }
 
         @PublicAPI(usage = ACCESS)
-        public GivenClass theClass(final String className) {
+        public GivenClass theClass(String className) {
             ClassesTransformer<JavaClass> theClass = theClassTransformer(className);
             return new GivenClassInternal(priority, theClass, Function.identity());
         }
 
         @PublicAPI(usage = ACCESS)
-        public GivenClass noClass(final Class<?> clazz) {
+        public GivenClass noClass(Class<?> clazz) {
             return noClass(clazz.getName());
         }
 
         @PublicAPI(usage = ACCESS)
-        public GivenClass noClass(final String className) {
+        public GivenClass noClass(String className) {
             ClassesTransformer<JavaClass> noClass = theClassTransformer(className).as("no class " + className);
             return new GivenClassInternal(priority, noClass, ArchRuleDefinition.negateCondition());
         }
 
-        private ClassesTransformer<JavaClass> theClassTransformer(final String className) {
+        private ClassesTransformer<JavaClass> theClassTransformer(String className) {
             return new AbstractClassesTransformer<JavaClass>("the class " + className) {
                 @Override
                 public Iterable<JavaClass> doTransform(JavaClasses classes) {

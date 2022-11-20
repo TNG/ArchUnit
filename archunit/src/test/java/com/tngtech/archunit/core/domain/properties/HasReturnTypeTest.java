@@ -70,11 +70,11 @@ public class HasReturnTypeTest {
                 .as("result of GET_RAW_RETURN_TYPE").isEqualTo(expectedType);
     }
 
-    private HasReturnType newHasReturnType(final JavaClass rawReturnType) {
+    private HasReturnType newHasReturnType(JavaClass rawReturnType) {
         return newHasReturnType(rawReturnType, rawReturnType);
     }
 
-    private HasReturnType newHasReturnType(final JavaType genericReturnType, final JavaClass rawReturnType) {
+    private HasReturnType newHasReturnType(JavaType genericReturnType, JavaClass rawReturnType) {
         return new HasReturnType() {
 
             @Override

@@ -39,7 +39,7 @@ public abstract class JavaCodeUnitReference<T extends CodeUnitReferenceTarget> e
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaCodeUnitReference<?>> target(final DescribedPredicate<? super CodeUnitReferenceTarget> predicate) {
+        public static DescribedPredicate<JavaCodeUnitReference<?>> target(DescribedPredicate<? super CodeUnitReferenceTarget> predicate) {
             return new TargetPredicate<>(predicate);
         }
     }

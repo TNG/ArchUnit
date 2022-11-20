@@ -181,7 +181,7 @@ class RawAccessRecord {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final TargetInfo other = (TargetInfo) obj;
+            TargetInfo other = (TargetInfo) obj;
             return Objects.equals(this.owner, other.owner) &&
                     Objects.equals(this.name, other.name) &&
                     Objects.equals(this.desc, other.desc);

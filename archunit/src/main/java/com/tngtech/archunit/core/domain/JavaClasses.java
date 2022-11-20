@@ -164,7 +164,7 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final JavaClasses other = (JavaClasses) obj;
+        JavaClasses other = (JavaClasses) obj;
         return Objects.equals(this.classes.keySet(), other.classes.keySet())
                 && Objects.equals(this.description, other.description);
     }

@@ -47,7 +47,7 @@ class ParsedDependency {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ParsedDependency other = (ParsedDependency) obj;
+        ParsedDependency other = (ParsedDependency) obj;
         return Objects.equals(this.origin, other.origin)
                 && Objects.equals(this.target, other.target);
     }

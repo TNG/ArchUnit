@@ -198,17 +198,17 @@ public class LakosMetricsTest {
                 this.ccd = ccd;
             }
 
-            Builder acd(final double acd) {
+            Builder acd(double acd) {
                 this.acd = acd;
                 return this;
             }
 
-            Builder racd(final double racd) {
+            Builder racd(double racd) {
                 this.racd = racd;
                 return this;
             }
 
-            ExpectedMetrics nccd(final double nccd) {
+            ExpectedMetrics nccd(double nccd) {
                 this.nccd = nccd;
                 return new ExpectedMetrics(this);
             }

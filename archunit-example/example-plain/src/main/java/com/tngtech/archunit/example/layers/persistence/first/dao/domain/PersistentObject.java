@@ -31,7 +31,7 @@ public class PersistentObject {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final PersistentObject other = (PersistentObject) obj;
+        PersistentObject other = (PersistentObject) obj;
         return Objects.equals(this.id, other.id);
     }
 }

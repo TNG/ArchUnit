@@ -76,7 +76,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
                     && importOptions.include(Location.of(file));
         }
 
-        private Supplier<InputStream> newInputStreamSupplierFor(final Path file) {
+        private Supplier<InputStream> newInputStreamSupplierFor(Path file) {
             return new InputStreamSupplier() {
                 @Override
                 InputStream getInputStream() throws IOException {
@@ -108,16 +108,16 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
             }
         }
 
-        private Predicate<JarEntry> classFilesBeneath(final NormalizedResourceName prefix) {
+        private Predicate<JarEntry> classFilesBeneath(NormalizedResourceName prefix) {
             return input -> input.getName().startsWith(prefix.toEntryName())
                     && FileToImport.isRelevant(input.getName());
         }
 
-        private Function<JarEntry, ClassFileInJar> toClassFilesInJarOf(final JarURLConnection connection) {
+        private Function<JarEntry, ClassFileInJar> toClassFilesInJarOf(JarURLConnection connection) {
             return input -> new ClassFileInJar(connection, input);
         }
 
-        private Predicate<ClassFileInJar> by(final ImportOptions importOptions) {
+        private Predicate<ClassFileInJar> by(ImportOptions importOptions) {
             return input -> input.isIncludedIn(importOptions);
         }
 

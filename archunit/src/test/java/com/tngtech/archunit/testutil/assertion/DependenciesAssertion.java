@@ -68,13 +68,13 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         return this;
     }
 
-    public DependenciesAssertion contain(final ExpectedDependencies expectedDependencies) {
+    public DependenciesAssertion contain(ExpectedDependencies expectedDependencies) {
         matchExpectedDependencies(expectedDependencies)
                 .assertNoMissingDependencies();
         return this;
     }
 
-    public DependenciesAssertion containOnly(final ExpectedDependencies expectedDependencies) {
+    public DependenciesAssertion containOnly(ExpectedDependencies expectedDependencies) {
         ExpectedDependenciesMatchResult result = matchExpectedDependencies(expectedDependencies);
         result.assertNoMissingDependencies();
         result.assertAllDependenciesMatched();
@@ -84,7 +84,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     private ExpectedDependenciesMatchResult matchExpectedDependencies(ExpectedDependencies expectedDependencies) {
         List<Dependency> rest = newArrayList(actual);
         List<ExpectedDependency> missingDependencies = new ArrayList<>();
-        for (final ExpectedDependency expectedDependency : expectedDependencies) {
+        for (ExpectedDependency expectedDependency : expectedDependencies) {
             if (rest.stream().noneMatch(expectedDependency::matches)) {
                 missingDependencies.add(expectedDependency);
             }

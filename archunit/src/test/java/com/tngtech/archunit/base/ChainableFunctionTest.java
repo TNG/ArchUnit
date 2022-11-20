@@ -26,7 +26,7 @@ public class ChainableFunctionTest {
                 .accepts("8");
     }
 
-    private DescribedPredicate<Integer> greaterThan(final int number) {
+    private DescribedPredicate<Integer> greaterThan(int number) {
         return new DescribedPredicate<Integer>("greater than " + number) {
             @Override
             public boolean test(Integer input) {
@@ -44,7 +44,7 @@ public class ChainableFunctionTest {
         };
     }
 
-    private ChainableFunction<Integer, Integer> plus(final int number) {
+    private ChainableFunction<Integer, Integer> plus(int number) {
         return new ChainableFunction<Integer, Integer>() {
             @Override
             public Integer apply(Integer input) {

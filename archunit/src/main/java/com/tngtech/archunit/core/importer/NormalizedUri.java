@@ -66,7 +66,7 @@ class NormalizedUri {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final NormalizedUri other = (NormalizedUri) obj;
+        NormalizedUri other = (NormalizedUri) obj;
         return Objects.equals(this.uri, other.uri);
     }
 

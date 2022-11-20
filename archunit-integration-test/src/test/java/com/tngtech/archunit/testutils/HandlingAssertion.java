@@ -80,7 +80,7 @@ class HandlingAssertion {
 
     private Set<String> evaluateFieldAccesses(EvaluationResult result) {
         Set<String> errorMessages = new HashSet<>();
-        final Set<ExpectedRelation> left = new HashSet<>(this.expectedFieldAccesses);
+        Set<ExpectedRelation> left = new HashSet<>(this.expectedFieldAccesses);
         result.handleViolations((Collection<JavaFieldAccess> violatingObjects, String message) ->
                 errorMessages.addAll(removeExpectedAccesses(violatingObjects, left)));
         return union(errorMessages, errorMessagesFrom(left));
@@ -88,7 +88,7 @@ class HandlingAssertion {
 
     private Set<String> evaluateMethodCalls(EvaluationResult result) {
         Set<String> errorMessages = new HashSet<>();
-        final Set<ExpectedRelation> left = new HashSet<>(expectedMethodCalls);
+        Set<ExpectedRelation> left = new HashSet<>(expectedMethodCalls);
         result.handleViolations((Collection<JavaMethodCall> violatingObjects, String message) ->
                 errorMessages.addAll(removeExpectedAccesses(violatingObjects, left)));
         return union(errorMessages, errorMessagesFrom(left));
@@ -96,7 +96,7 @@ class HandlingAssertion {
 
     private Set<String> evaluateConstructorCalls(EvaluationResult result) {
         Set<String> errorMessages = new HashSet<>();
-        final Set<ExpectedRelation> left = new HashSet<>(expectedConstructorCalls);
+        Set<ExpectedRelation> left = new HashSet<>(expectedConstructorCalls);
         result.handleViolations((Collection<JavaConstructorCall> violatingObjects, String message) ->
                 errorMessages.addAll(removeExpectedAccesses(violatingObjects, left)));
         return union(errorMessages, errorMessagesFrom(left));
@@ -104,7 +104,7 @@ class HandlingAssertion {
 
     private Set<String> evaluateCalls(EvaluationResult result) {
         Set<String> errorMessages = new HashSet<>();
-        final Set<ExpectedRelation> left = new HashSet<>(Sets.union(expectedConstructorCalls, expectedMethodCalls));
+        Set<ExpectedRelation> left = new HashSet<>(Sets.union(expectedConstructorCalls, expectedMethodCalls));
         result.handleViolations((Collection<JavaCall<?>> violatingObjects, String message) ->
                 errorMessages.addAll(removeExpectedAccesses(violatingObjects, left)));
         return union(errorMessages, errorMessagesFrom(left));
@@ -112,7 +112,7 @@ class HandlingAssertion {
 
     private Set<String> evaluateAccesses(EvaluationResult result) {
         Set<String> errorMessages = new HashSet<>();
-        final Set<ExpectedRelation> left = new HashSet<ExpectedRelation>() {
+        Set<ExpectedRelation> left = new HashSet<ExpectedRelation>() {
             {
                 addAll(expectedConstructorCalls);
                 addAll(expectedMethodCalls);
@@ -126,7 +126,7 @@ class HandlingAssertion {
 
     private Set<String> evaluateDependencies(EvaluationResult result) {
         Set<String> errorMessages = new HashSet<>();
-        final Set<ExpectedRelation> left = new HashSet<>(expectedDependencies);
+        Set<ExpectedRelation> left = new HashSet<>(expectedDependencies);
         result.handleViolations((Collection<Dependency> violatingObjects, String message) ->
                 errorMessages.addAll(removeExpectedAccesses(violatingObjects, left)));
         return union(errorMessages, errorMessagesFrom(left));

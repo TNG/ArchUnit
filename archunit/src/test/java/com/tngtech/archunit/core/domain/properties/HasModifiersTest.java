@@ -16,7 +16,7 @@ public class HasModifiersTest {
                 .hasDescription("modifier PRIVATE");
     }
 
-    private static HasModifiers hasModifiers(final JavaModifier... modifiers) {
+    private static HasModifiers hasModifiers(JavaModifier... modifiers) {
         return () -> ImmutableSet.copyOf(modifiers);
     }
 }

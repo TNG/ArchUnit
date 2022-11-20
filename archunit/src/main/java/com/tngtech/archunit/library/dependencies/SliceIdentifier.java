@@ -60,7 +60,7 @@ public final class SliceIdentifier {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final SliceIdentifier other = (SliceIdentifier) obj;
+        SliceIdentifier other = (SliceIdentifier) obj;
         return Objects.equals(this.parts, other.parts);
     }
 

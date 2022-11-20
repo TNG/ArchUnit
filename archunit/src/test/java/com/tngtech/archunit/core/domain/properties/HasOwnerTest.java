@@ -25,7 +25,7 @@ public class HasOwnerTest {
         assertThat(Get.<String>owner().apply(hasOwner)).isEqualTo("owner");
     }
 
-    private DescribedPredicate<String> startsWith(final String prefix) {
+    private DescribedPredicate<String> startsWith(String prefix) {
         return new DescribedPredicate<String>("starts with " + prefix) {
             @Override
             public boolean test(String input) {
@@ -34,7 +34,7 @@ public class HasOwnerTest {
         };
     }
 
-    private <T> HasOwner<T> hasOwner(final T owner) {
+    private <T> HasOwner<T> hasOwner(T owner) {
         return () -> owner;
     }
 }

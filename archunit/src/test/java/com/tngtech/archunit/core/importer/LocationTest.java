@@ -160,7 +160,7 @@ public class LocationTest {
         return NormalizedResourceName.from(parentFolder.relativize(absolutePath).toString());
     }
 
-    private Condition<Object> elementWithSubstring(final String substring) {
+    private Condition<Object> elementWithSubstring(String substring) {
         return new Condition<Object>(String.format("element with substring '%s'", substring)) {
             @Override
             public boolean matches(Object value) {

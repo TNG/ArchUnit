@@ -155,12 +155,12 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaAccess<?>> targetOwner(final DescribedPredicate<? super JavaClass> predicate) {
+        public static DescribedPredicate<JavaAccess<?>> targetOwner(DescribedPredicate<? super JavaClass> predicate) {
             return target(Get.<JavaClass>owner().is(predicate));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {
+        public static DescribedPredicate<JavaAccess<?>> target(DescribedPredicate<? super AccessTarget> predicate) {
             return new TargetPredicate<>(predicate);
         }
 

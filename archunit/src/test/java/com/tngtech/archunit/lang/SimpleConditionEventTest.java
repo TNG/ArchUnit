@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SimpleConditionEventTest {
     @Test
     public void passes_corresponding_object_as_single_element_collection_with_message() {
-        final List<String> messages = new ArrayList<>();
+        List<String> messages = new ArrayList<>();
         ConditionEvent.Handler handler = (correspondingObjects, message) ->
                 messages.add(getOnlyElement(correspondingObjects) + ": " + message);
 

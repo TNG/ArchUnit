@@ -32,7 +32,7 @@ public class TestLogRecorder {
             }
         };
         appender.start();
-        final LoggerContext ctx = getLoggerContext();
+        LoggerContext ctx = getLoggerContext();
         LoggerConfig loggerConfig = ctx.getConfiguration().getLoggerConfig(loggerClass.getName());
         oldLevel = loggerConfig.getLevel();
         loggerConfig.setLevel(level);
@@ -49,7 +49,7 @@ public class TestLogRecorder {
             return;
         }
 
-        final LoggerContext ctx = getLoggerContext();
+        LoggerContext ctx = getLoggerContext();
         LoggerConfig loggerConfig = ctx.getConfiguration().getLoggerConfig(loggerClass.getName());
         loggerConfig.setLevel(oldLevel);
         loggerConfig.removeAppender(APPENDER_NAME);
