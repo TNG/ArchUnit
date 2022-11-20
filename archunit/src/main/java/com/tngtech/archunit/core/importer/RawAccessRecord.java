@@ -230,7 +230,7 @@ class RawAccessRecord implements RawCodeUnitDependency<RawAccessRecord.TargetInf
         }
     }
 
-    abstract static class BaseBuilder<ACCESS extends RawAccessRecord, SELF extends BaseBuilder<ACCESS, SELF>> implements RawCodeUnitDependencyBuilder<ACCESS, TargetInfo> {
+    abstract static class BaseBuilder<ACCESS extends RawAccessRecord, SELF extends BaseBuilder<ACCESS, SELF>> implements RawCodeUnitDependencyBuilder<ACCESS, TargetInfo, SELF> {
         CodeUnit caller;
         TargetInfo target;
         int lineNumber = -1;

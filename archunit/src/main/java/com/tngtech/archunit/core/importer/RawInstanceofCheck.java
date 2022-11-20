@@ -63,7 +63,7 @@ class RawInstanceofCheck implements RawCodeUnitDependency<JavaClassDescriptor> {
                 .toString();
     }
 
-    static class Builder implements RawCodeUnitDependencyBuilder<RawInstanceofCheck, JavaClassDescriptor> {
+    static class Builder implements RawCodeUnitDependencyBuilder<RawInstanceofCheck, JavaClassDescriptor, Builder> {
         private RawAccessRecord.CodeUnit origin;
         private JavaClassDescriptor target;
         private int lineNumber;

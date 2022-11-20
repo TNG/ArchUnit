@@ -17,14 +17,18 @@ package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
-interface RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY extends RawCodeUnitDependency<TARGET>, TARGET> {
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withOrigin(CodeUnit origin);
+interface RawCodeUnitDependencyBuilder<
+        CODE_UNIT_DEPENDENCY extends RawCodeUnitDependency<TARGET>,
+        TARGET,
+        SELF extends RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET, SELF>
+        > {
+    SELF withOrigin(CodeUnit origin);
 
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withTarget(TARGET target);
+    SELF withTarget(TARGET target);
 
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withLineNumber(int lineNumber);
+    SELF withLineNumber(int lineNumber);
 
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withDeclaredInLambda(boolean declaredInLambda);
+    SELF withDeclaredInLambda(boolean declaredInLambda);
 
     CODE_UNIT_DEPENDENCY build();
 }
