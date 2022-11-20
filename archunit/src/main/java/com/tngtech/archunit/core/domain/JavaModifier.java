@@ -64,16 +64,37 @@ public enum JavaModifier {
         this.asmAccessFlag = asmAccessFlag;
     }
 
+    /**
+     * @deprecated This seems like an unnecessary API for users of ArchUnit, but limits us to do internal refactorings.
+     * If you think you need this API, please reach out to us on GitHub by creating an issue at
+     * <a href="https://github.com/TNG/ArchUnit/issues">https://github.com/TNG/ArchUnit/issues</a>.
+     * Otherwise, at some point in the future we will remove this API without any replacement.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static Set<JavaModifier> getModifiersForClass(int asmAccess) {
         return getModifiersFor(ApplicableType.CLASS, asmAccess);
     }
 
+    /**
+     * @deprecated This seems like an unnecessary API for users of ArchUnit, but limits us to do internal refactorings.
+     * If you think you need this API, please reach out to us on GitHub by creating an issue at
+     * <a href="https://github.com/TNG/ArchUnit/issues">https://github.com/TNG/ArchUnit/issues</a>.
+     * Otherwise, at some point in the future we will remove this API without any replacement.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static Set<JavaModifier> getModifiersForField(int asmAccess) {
         return getModifiersFor(ApplicableType.FIELD, asmAccess);
     }
 
+    /**
+     * @deprecated This seems like an unnecessary API for users of ArchUnit, but limits us to do internal refactorings.
+     * If you think you need this API, please reach out to us on GitHub by creating an issue at
+     * <a href="https://github.com/TNG/ArchUnit/issues">https://github.com/TNG/ArchUnit/issues</a>.
+     * Otherwise, at some point in the future we will remove this API without any replacement.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static Set<JavaModifier> getModifiersForMethod(int asmAccess) {
         return getModifiersFor(ApplicableType.METHOD, asmAccess);
