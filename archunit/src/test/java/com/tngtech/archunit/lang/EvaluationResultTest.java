@@ -75,7 +75,7 @@ public class EvaluationResultTest {
                 new SimpleConditionEvent(ImmutableList.of("yet another message"), false, "not expected"),
                 new SimpleConditionEvent(ImmutableSet.of("second message"), false, "also expected"));
 
-        final Set<String> actual = new HashSet<>();
+        Set<String> actual = new HashSet<>();
         result.handleViolations((Collection<Set<String>> violatingObject, String message) ->
                 actual.add(getOnlyElement(getOnlyElement(violatingObject)) + ": " + message));
 
@@ -119,7 +119,7 @@ public class EvaluationResultTest {
                 SimpleConditionEvent.violated(new CorrectType("handle type"), "I'm violated and correct type"),
                 SimpleConditionEvent.violated(new CorrectSubtype("handle sub type"), "I'm violated and correct sub type"));
 
-        final Set<String> handledFailures = new HashSet<>();
+        Set<String> handledFailures = new HashSet<>();
         result.handleViolations((Collection<CorrectType> violatingObjects, String message) ->
                 handledFailures.add(Joiner.on(", ").join(violatingObjects) + ": " + message));
 
@@ -204,7 +204,7 @@ public class EvaluationResultTest {
         return result;
     }
 
-    private HasDescription hasDescription(final String description) {
+    private HasDescription hasDescription(String description) {
         return () -> description;
     }
 

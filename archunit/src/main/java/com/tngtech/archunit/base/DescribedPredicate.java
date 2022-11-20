@@ -68,15 +68,15 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new AsPredicate<>(this, description, params);
     }
 
-    public DescribedPredicate<T> and(final DescribedPredicate<? super T> other) {
+    public DescribedPredicate<T> and(DescribedPredicate<? super T> other) {
         return new AndPredicate<>(this, other);
     }
 
-    public DescribedPredicate<T> or(final DescribedPredicate<? super T> other) {
+    public DescribedPredicate<T> or(DescribedPredicate<? super T> other) {
         return new OrPredicate<>(this, other);
     }
 
-    public <F> DescribedPredicate<F> onResultOf(final Function<? super F, ? extends T> function) {
+    public <F> DescribedPredicate<F> onResultOf(Function<? super F, ? extends T> function) {
         return new OnResultOfPredicate<>(this, function);
     }
 
@@ -129,27 +129,27 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     };
 
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> equalTo(final T object) {
+    public static <T> DescribedPredicate<T> equalTo(T object) {
         return new EqualToPredicate<>(object);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <T extends Comparable<T>> DescribedPredicate<T> lessThan(final T value) {
+    public static <T extends Comparable<T>> DescribedPredicate<T> lessThan(T value) {
         return new LessThanPredicate<>(value);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <T extends Comparable<T>> DescribedPredicate<T> greaterThan(final T value) {
+    public static <T extends Comparable<T>> DescribedPredicate<T> greaterThan(T value) {
         return new GreaterThanPredicate<>(value);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <T extends Comparable<T>> DescribedPredicate<T> lessThanOrEqualTo(final T value) {
+    public static <T extends Comparable<T>> DescribedPredicate<T> lessThanOrEqualTo(T value) {
         return new LessThanOrEqualToPredicate<>(value);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <T extends Comparable<T>> DescribedPredicate<T> greaterThanOrEqualTo(final T value) {
+    public static <T extends Comparable<T>> DescribedPredicate<T> greaterThanOrEqualTo(T value) {
         return new GreaterThanOrEqualToPredicate<>(value);
     }
 
@@ -162,7 +162,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * Same as {@link #not(DescribedPredicate)} but with a different description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<T> doesNot(DescribedPredicate<? super T> predicate) {
         return not(predicate).as("does not %s", predicate.getDescription()).forSubtype();
     }
 
@@ -170,7 +170,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * Same as {@link #not(DescribedPredicate)} but with a different description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> doNot(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<T> doNot(DescribedPredicate<? super T> predicate) {
         return not(predicate).as("do not %s", predicate.getDescription()).forSubtype();
     }
 
@@ -180,7 +180,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> not(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<T> not(DescribedPredicate<? super T> predicate) {
         return new NotPredicate<>(predicate);
     }
 
@@ -253,7 +253,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<Optional<T>> optionalContains(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<Optional<T>> optionalContains(DescribedPredicate<? super T> predicate) {
         return new OptionalContainsPredicate<>(predicate);
     }
 
@@ -271,7 +271,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<Iterable<? extends T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<Iterable<? extends T>> anyElementThat(DescribedPredicate<? super T> predicate) {
         return new AnyElementPredicate<>(predicate);
     }
 
@@ -282,7 +282,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<Iterable<T>> allElements(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<Iterable<T>> allElements(DescribedPredicate<? super T> predicate) {
         return new AllElementsPredicate<>(predicate);
     }
 

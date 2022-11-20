@@ -121,7 +121,7 @@ class ReflectionUtils {
         throw (T) throwable;
     }
 
-    static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
+    static Predicate<AnnotatedElement> withAnnotation(Class<? extends Annotation> annotationType) {
         return input -> input.isAnnotationPresent(annotationType);
     }
 }

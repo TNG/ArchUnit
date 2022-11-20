@@ -64,7 +64,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
 
     @Override
     public Statement classBlock(RunNotifier notifier) {
-        final Statement statement = super.classBlock(notifier);
+        Statement statement = super.classBlock(notifier);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {

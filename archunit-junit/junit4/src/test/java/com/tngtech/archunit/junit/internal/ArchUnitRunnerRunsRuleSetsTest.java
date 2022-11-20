@@ -201,7 +201,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     // extractingResultOf(..) only looks for public methods
-    private Extractor<Object, Object> resultOf(final String methodName) {
+    private Extractor<Object, Object> resultOf(String methodName) {
         return input -> {
             Collection<Method> candidates = getAllMethods(input.getClass(), method -> method.getName().equals(methodName));
             checkState(!candidates.isEmpty(),

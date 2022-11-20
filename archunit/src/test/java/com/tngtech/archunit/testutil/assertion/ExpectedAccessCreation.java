@@ -31,15 +31,15 @@ public class ExpectedAccessCreation {
             this.originCodeUnitName = originCodeUnitName;
         }
 
-        public ExpectedAccessCondition to(final Class<?> targetClass, final String targetName) {
+        public ExpectedAccessCondition to(Class<?> targetClass, String targetName) {
             return new ExpectedAccessCondition(originClass, originCodeUnitName, targetClass, targetName);
         }
 
-        public ExpectedFieldAccessCondition toField(AccessType accessType, final Class<?> targetClass, final String targetName) {
+        public ExpectedFieldAccessCondition toField(AccessType accessType, Class<?> targetClass, String targetName) {
             return new ExpectedFieldAccessCondition(originClass, originCodeUnitName, accessType, targetClass, targetName);
         }
 
-        public ExpectedConstructorCallCondition toConstructor(final Class<?> targetClass, final Class<?>... paramTypes) {
+        public ExpectedConstructorCallCondition toConstructor(Class<?> targetClass, Class<?>... paramTypes) {
             return new ExpectedConstructorCallCondition(originClass, originCodeUnitName, targetClass, formatNamesOf(paramTypes));
         }
     }

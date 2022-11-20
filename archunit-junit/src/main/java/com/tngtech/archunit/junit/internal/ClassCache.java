@@ -149,7 +149,7 @@ class ClassCache {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final LocationsKey other = (LocationsKey) obj;
+            LocationsKey other = (LocationsKey) obj;
             return Objects.equals(this.importOptionTypes, other.importOptionTypes)
                     && Objects.equals(this.locations, other.locations);
         }

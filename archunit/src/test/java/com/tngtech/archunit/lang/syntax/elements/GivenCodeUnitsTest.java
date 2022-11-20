@@ -278,7 +278,7 @@ public class GivenCodeUnitsTest {
         assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
-    static DescribedPredicate<List<JavaClass>> oneParameterOfType(final Class<?> type) {
+    static DescribedPredicate<List<JavaClass>> oneParameterOfType(Class<?> type) {
         return new DescribedPredicate<List<JavaClass>>("one parameter of type " + type.getName()) {
             @Override
             public boolean test(List<JavaClass> input) {

@@ -169,7 +169,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Slice other = (Slice) obj;
+        Slice other = (Slice) obj;
         return Objects.equals(this.matchingGroups, other.matchingGroups);
     }
 

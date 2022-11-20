@@ -38,8 +38,8 @@ public class MessageAssertionChain {
         return links.stream().map(Link::getDescription).collect(joining(lineSeparator()));
     }
 
-    static Link matchesLine(final String pattern) {
-        final Pattern p = Pattern.compile(pattern);
+    static Link matchesLine(String pattern) {
+        Pattern p = Pattern.compile(pattern);
         return new Link() {
             @Override
             public Result filterMatching(List<String> lines) {
@@ -61,7 +61,7 @@ public class MessageAssertionChain {
     }
 
     static Link containsLine(String text, Object... args) {
-        final String expectedLine = String.format(text, args);
+        String expectedLine = String.format(text, args);
         return new Link() {
             @Override
             public Result filterMatching(List<String> lines) {
@@ -79,7 +79,7 @@ public class MessageAssertionChain {
 
     static Link containsText(String text, Object... args) {
         String expectedText = String.format(text, args);
-        final List<String> expectedLines = Splitter.on(lineSeparator()).splitToList(expectedText);
+        List<String> expectedLines = Splitter.on(lineSeparator()).splitToList(expectedText);
         return new Link() {
             @Override
             public Result filterMatching(List<String> lines) {
@@ -115,10 +115,10 @@ public class MessageAssertionChain {
         return "Lines were >>>>>>>>" + lineSeparator() + Joiner.on(lineSeparator()).join(lines) + lineSeparator() + "<<<<<<<<";
     }
 
-    static Link containsConsecutiveLines(final List<String> expectedLines) {
+    static Link containsConsecutiveLines(List<String> expectedLines) {
         checkArgument(!expectedLines.isEmpty(), "Asserting zero consecutive lines makes no sense");
-        final String linesDescription = Joiner.on(lineSeparator()).join(expectedLines);
-        final String description = "Message contains consecutive lines " + lineSeparator() + linesDescription;
+        String linesDescription = Joiner.on(lineSeparator()).join(expectedLines);
+        String description = "Message contains consecutive lines " + lineSeparator() + linesDescription;
 
         return new Link() {
             @Override

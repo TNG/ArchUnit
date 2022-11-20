@@ -39,8 +39,8 @@ public class SliceRuleTest {
 
     @DataProvider
     public static Object[][] cycle_limits() {
-        final int totalNumberOfCycles = getNumberOfCyclesInCompleteGraph(7);
-        final int halfOfTotal = totalNumberOfCycles / 2;
+        int totalNumberOfCycles = getNumberOfCyclesInCompleteGraph(7);
+        int halfOfTotal = totalNumberOfCycles / 2;
         return $$(
                 $(new Runnable() {
                     @Override
@@ -178,13 +178,13 @@ public class SliceRuleTest {
         return slices().matching("nothing_because_there_is_no_capture_group").should().beFreeOfCycles();
     }
 
-    private List<String> filterLinesMatching(String text, final String regex) {
+    private List<String> filterLinesMatching(String text, String regex) {
         return Splitter.on(lineSeparator()).splitToList(text).stream()
                 .filter(input -> input.matches(".*(" + regex + ").*"))
                 .collect(toList());
     }
 
-    private Condition<List<? extends String>> subStringsPerLine(final String... substrings) {
+    private Condition<List<? extends String>> subStringsPerLine(String... substrings) {
         return new Condition<List<? extends String>>("substrings per line " + Arrays.asList(substrings)) {
             @Override
             public boolean matches(List<? extends String> lines) {

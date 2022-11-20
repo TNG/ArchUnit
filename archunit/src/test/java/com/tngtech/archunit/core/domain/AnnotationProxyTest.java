@@ -294,7 +294,7 @@ public class AnnotationProxyTest {
     }
 
     // NOTE: We do not want this value to be treated as a string by the formatter, and e.g. quoted -> Object
-    private Object subAnnotationFormatter(final AnnotationPropertiesFormatter formatter, final String value) {
+    private Object subAnnotationFormatter(AnnotationPropertiesFormatter formatter, String value) {
         return new Object() {
             @Override
             public String toString() {
@@ -396,7 +396,7 @@ public class AnnotationProxyTest {
         return stream(subAnnotations).map(SubAnnotation::value).collect(toList());
     }
 
-    private Condition<String> matching(final Class<?> annotationType, final Map<String, String> properties) {
+    private Condition<String> matching(Class<?> annotationType, Map<String, String> properties) {
         return new Condition<String>("matching " + properties) {
             @Override
             public boolean matches(String value) {

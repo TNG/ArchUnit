@@ -59,7 +59,7 @@ final class Edge<T, ATTACHMENT> {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Edge<?, ?> other = (Edge<?, ?>) obj;
+        Edge<?, ?> other = (Edge<?, ?>) obj;
         return Objects.equals(this.from, other.from)
                 && Objects.equals(this.to, other.to);
     }

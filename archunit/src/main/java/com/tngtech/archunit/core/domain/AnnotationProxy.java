@@ -364,7 +364,7 @@ class AnnotationProxy {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final MethodKey other = (MethodKey) obj;
+            MethodKey other = (MethodKey) obj;
             return Objects.equals(this.name, other.name)
                     && Objects.equals(this.paramTypeNames, other.paramTypeNames);
         }

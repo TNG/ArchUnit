@@ -124,7 +124,7 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ThrowsDeclaration<?> other = (ThrowsDeclaration<?>) obj;
+        ThrowsDeclaration<?> other = (ThrowsDeclaration<?>) obj;
         return Objects.equals(this.getLocation(), other.getLocation())
                 && Objects.equals(this.type, other.type);
     }

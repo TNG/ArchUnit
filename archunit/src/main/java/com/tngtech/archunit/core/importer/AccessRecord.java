@@ -290,7 +290,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static Supplier<JavaCodeUnit> createOriginSupplier(final CodeUnit origin, final ImportedClasses classes) {
+        private static Supplier<JavaCodeUnit> createOriginSupplier(CodeUnit origin, ImportedClasses classes) {
             return Suppliers.memoize(() -> origin.resolveFrom(classes));
         }
 

@@ -112,12 +112,12 @@ public final class DomainBuilders {
         JavaEnumConstantBuilder() {
         }
 
-        JavaEnumConstantBuilder withDeclaringClass(final JavaClass declaringClass) {
+        JavaEnumConstantBuilder withDeclaringClass(JavaClass declaringClass) {
             this.declaringClass = declaringClass;
             return this;
         }
 
-        JavaEnumConstantBuilder withName(final String name) {
+        JavaEnumConstantBuilder withName(String name) {
             this.name = name;
             return this;
         }
@@ -369,7 +369,7 @@ public final class DomainBuilders {
         }
 
         @Override
-        JavaMethod construct(JavaMethodBuilder builder, final ImportedClasses importedClasses) {
+        JavaMethod construct(JavaMethodBuilder builder, ImportedClasses importedClasses) {
             return DomainObjectCreationContext.createJavaMethod(builder, createAnnotationDefaultValue);
         }
     }
@@ -554,7 +554,7 @@ public final class DomainBuilders {
         abstract static class ValueBuilder {
             abstract <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses);
 
-            static ValueBuilder fromPrimitiveProperty(final Object value) {
+            static ValueBuilder fromPrimitiveProperty(Object value) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses unused) {
@@ -563,7 +563,7 @@ public final class DomainBuilders {
                 };
             }
 
-            public static ValueBuilder fromEnumProperty(final JavaClassDescriptor enumType, final String value) {
+            public static ValueBuilder fromEnumProperty(JavaClassDescriptor enumType, String value) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
@@ -576,7 +576,7 @@ public final class DomainBuilders {
                 };
             }
 
-            static ValueBuilder fromClassProperty(final JavaClassDescriptor value) {
+            static ValueBuilder fromClassProperty(JavaClassDescriptor value) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
@@ -585,7 +585,7 @@ public final class DomainBuilders {
                 };
             }
 
-            static ValueBuilder fromAnnotationProperty(final JavaAnnotationBuilder builder) {
+            static ValueBuilder fromAnnotationProperty(JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
@@ -624,7 +624,7 @@ public final class DomainBuilders {
 
             abstract String getFinishedName(String name);
 
-            JavaTypeFinisher after(final JavaTypeFinisher other) {
+            JavaTypeFinisher after(JavaTypeFinisher other) {
                 return new JavaTypeFinisher() {
                     @Override
                     JavaType finish(JavaType input, ImportedClasses classes) {
@@ -960,17 +960,17 @@ public final class DomainBuilders {
         private JavaAccessBuilder() {
         }
 
-        SELF withOrigin(final JavaCodeUnit origin) {
+        SELF withOrigin(JavaCodeUnit origin) {
             this.origin = origin;
             return self();
         }
 
-        SELF withTarget(final TARGET target) {
+        SELF withTarget(TARGET target) {
             this.target = target;
             return self();
         }
 
-        SELF withLineNumber(final int lineNumber) {
+        SELF withLineNumber(int lineNumber) {
             this.lineNumber = lineNumber;
             return self();
         }
@@ -1009,7 +1009,7 @@ public final class DomainBuilders {
         JavaFieldAccessBuilder() {
         }
 
-        JavaFieldAccessBuilder withAccessType(final AccessType accessType) {
+        JavaFieldAccessBuilder withAccessType(AccessType accessType) {
             this.accessType = accessType;
             return this;
         }
@@ -1075,12 +1075,12 @@ public final class DomainBuilders {
             this.createTarget = createTarget;
         }
 
-        SELF withOwner(final JavaClass owner) {
+        SELF withOwner(JavaClass owner) {
             this.owner = owner;
             return self();
         }
 
-        SELF withName(final String name) {
+        SELF withName(String name) {
             this.name = name;
             return self();
         }
@@ -1122,7 +1122,7 @@ public final class DomainBuilders {
             super(DomainObjectCreationContext::createFieldAccessTarget);
         }
 
-        FieldAccessTargetBuilder withType(final JavaClass type) {
+        FieldAccessTargetBuilder withType(JavaClass type) {
             this.type = type;
             return this;
         }
@@ -1147,12 +1147,12 @@ public final class DomainBuilders {
             super(createTarget);
         }
 
-        CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET> withParameters(final List<JavaClass> parameters) {
+        CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET> withParameters(List<JavaClass> parameters) {
             this.parameters = parameters;
             return self();
         }
 
-        CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET> withReturnType(final JavaClass returnType) {
+        CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET> withReturnType(JavaClass returnType) {
             this.returnType = returnType;
             return self();
         }

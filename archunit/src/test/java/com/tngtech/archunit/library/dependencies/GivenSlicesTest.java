@@ -75,7 +75,7 @@ public class GivenSlicesTest {
         return slices().matching(TEST_CLASSES_PACKAGE + ".(*)..");
     }
 
-    private DescribedPredicate<Slice> descriptionMatching(final String regex) {
+    private DescribedPredicate<Slice> descriptionMatching(String regex) {
         return new DescribedPredicate<Slice>("description matching '%s'", regex) {
             @Override
             public boolean test(Slice input) {
@@ -85,7 +85,7 @@ public class GivenSlicesTest {
     }
 
     private Set<Slice> getSlicesMatchedByFilter(GivenConjunction<Slice> givenSlices) {
-        final Set<Slice> matched = new HashSet<>();
+        Set<Slice> matched = new HashSet<>();
         givenSlices.should(new ArchCondition<Slice>("") {
             @Override
             public void check(Slice item, ConditionEvents events) {

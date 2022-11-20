@@ -200,7 +200,7 @@ public class ArchRuleTest {
         };
     }
 
-    private ArchCondition<JavaClass> conditionThatReportsErrors(final String... messages) {
+    private ArchCondition<JavaClass> conditionThatReportsErrors(String... messages) {
         return new ArchCondition<JavaClass>("not have errors " + Joiner.on(", ").join(messages)) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
@@ -211,7 +211,7 @@ public class ArchRuleTest {
         };
     }
 
-    private static ArchCondition<JavaClass> addFixedNumberOfViolations(final int number) {
+    private static ArchCondition<JavaClass> addFixedNumberOfViolations(int number) {
         return new ArchCondition<JavaClass>("be violated exactly %d times", number) {
             @Override
             public void check(JavaClass item, ConditionEvents events) {

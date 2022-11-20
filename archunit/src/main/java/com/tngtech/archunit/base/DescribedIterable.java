@@ -30,7 +30,7 @@ public interface DescribedIterable<T> extends Iterable<T>, HasDescription {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static <T> DescribedIterable<T> iterable(final Iterable<T> iterable, final String description) {
+        public static <T> DescribedIterable<T> iterable(Iterable<T> iterable, String description) {
             return new DescribedIterable<T>() {
                 @Override
                 public String getDescription() {

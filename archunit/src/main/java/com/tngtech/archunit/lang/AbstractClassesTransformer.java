@@ -44,7 +44,7 @@ public abstract class AbstractClassesTransformer<T> implements ClassesTransforme
     public abstract Iterable<T> doTransform(JavaClasses collection);
 
     @Override
-    public final ClassesTransformer<T> that(final DescribedPredicate<? super T> predicate) {
+    public final ClassesTransformer<T> that(DescribedPredicate<? super T> predicate) {
         return new AbstractClassesTransformer<T>(description + " that " + predicate.getDescription()) {
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {

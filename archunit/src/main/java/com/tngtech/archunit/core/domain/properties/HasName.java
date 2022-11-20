@@ -113,7 +113,7 @@ public interface HasName {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> name(final String name) {
+        public static DescribedPredicate<HasName> name(String name) {
             return new NameEqualsPredicate(name);
         }
 
@@ -121,22 +121,22 @@ public interface HasName {
          * Matches names against a regular expression.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> nameMatching(final String regex) {
+        public static DescribedPredicate<HasName> nameMatching(String regex) {
             return new NameMatchingPredicate(regex);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> nameStartingWith(final String prefix) {
+        public static DescribedPredicate<HasName> nameStartingWith(String prefix) {
             return new NameStartingWithPredicate(prefix);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> nameContaining(final String infix) {
+        public static DescribedPredicate<HasName> nameContaining(String infix) {
             return new NameContainingPredicate(infix);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> nameEndingWith(final String postfix) {
+        public static DescribedPredicate<HasName> nameEndingWith(String postfix) {
             return new NameEndingWithPredicate(postfix);
         }
 

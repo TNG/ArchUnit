@@ -268,7 +268,7 @@ public class ImportTestUtils {
         return javaClass;
     }
 
-    private static ImportContext simulateImportContext(final Class<?> inputClass, final ImportedTestClasses importedClasses) {
+    private static ImportContext simulateImportContext(Class<?> inputClass, ImportedTestClasses importedClasses) {
         return new ImportContextStub() {
             @Override
             public Set<JavaField> createFields(JavaClass owner) {

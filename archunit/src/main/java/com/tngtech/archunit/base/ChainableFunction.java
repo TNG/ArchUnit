@@ -23,7 +23,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class ChainableFunction<F, T> implements Function<F, T> {
-    public <E> ChainableFunction<E, T> after(final Function<? super E, ? extends F> function) {
+    public <E> ChainableFunction<E, T> after(Function<? super E, ? extends F> function) {
         return new ChainableFunction<E, T>() {
             @Override
             public T apply(E input) {
@@ -32,7 +32,7 @@ public abstract class ChainableFunction<F, T> implements Function<F, T> {
         };
     }
 
-    public <U> ChainableFunction<F, U> then(final Function<? super T, ? extends U> function) {
+    public <U> ChainableFunction<F, U> then(Function<? super T, ? extends U> function) {
         return new ChainableFunction<F, U>() {
             @Override
             public U apply(F input) {

@@ -61,7 +61,7 @@ class OrCondition<T> extends JoinCondition<T> {
         }
 
         @Override
-        public void handleWith(final Handler handler) {
+        public void handleWith(Handler handler) {
             handler.handle(singleton(correspondingObject), createMessage());
         }
     }

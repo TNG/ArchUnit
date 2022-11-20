@@ -69,23 +69,23 @@ public interface HasParameterTypes {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final Class<?>... types) {
+        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(Class<?>... types) {
             return rawParameterTypes(formatNamesOf(types));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final String... types) {
+        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(String... types) {
             return rawParameterTypes(ImmutableList.copyOf(types));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final List<String> typeNames) {
+        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(List<String> typeNames) {
             return new RawParameterTypesPredicate(equalTo(typeNames).onResultOf(GET_NAMES)
                     .as("[%s]", formatMethodParameterTypeNames(typeNames)));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final DescribedPredicate<? super List<JavaClass>> predicate) {
+        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
             return new RawParameterTypesPredicate(predicate);
         }
 

@@ -43,7 +43,7 @@ public class SlicesIsolationTest {
                 .check(classes);
     }
 
-    private static DescribedPredicate<Slice> containDescription(final String descriptionPart) {
+    private static DescribedPredicate<Slice> containDescription(String descriptionPart) {
         return new DescribedPredicate<Slice>("contain description '%s'", descriptionPart) {
             @Override
             public boolean test(Slice input) {

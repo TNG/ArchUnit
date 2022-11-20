@@ -46,7 +46,7 @@ public final class SliceDependency implements HasDescription {
         this.target = target;
     }
 
-    private SortedSet<Dependency> filterTarget(Iterable<Dependency> dependenciesToConsider, final Slice target) {
+    private SortedSet<Dependency> filterTarget(Iterable<Dependency> dependenciesToConsider, Slice target) {
         return stream(dependenciesToConsider.spliterator(), false)
                 .filter(input -> target.contains(input.getTargetClass()))
                 .collect(toCollection(TreeSet::new));
@@ -92,7 +92,7 @@ public final class SliceDependency implements HasDescription {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final SliceDependency other = (SliceDependency) obj;
+        SliceDependency other = (SliceDependency) obj;
         return Objects.equals(this.origin, other.origin)
                 && Objects.equals(this.target, other.target);
     }

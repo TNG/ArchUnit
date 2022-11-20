@@ -107,7 +107,7 @@ abstract class JoinCondition<T> extends ArchCondition<T> {
         }
 
         List<String> getUniqueLinesOfViolations() {
-            final Set<String> result = new TreeSet<>();
+            Set<String> result = new TreeSet<>();
             for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
                 for (ConditionEvent event : evaluation.events.getViolating()) {
                     result.addAll(event.getDescriptionLines());

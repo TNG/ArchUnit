@@ -85,7 +85,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         return this;
     }
 
-    public JavaAnnotationAssertion hasNoExplicitlyDeclaredProperty(final String propertyName) {
+    public JavaAnnotationAssertion hasNoExplicitlyDeclaredProperty(String propertyName) {
         String description = annotationPropertyDescription("String", propertyName);
         assertThat(actual.hasExplicitlyDeclaredProperty(propertyName))
                 .as(description + " has explicitly declared value")
@@ -204,7 +204,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final SimpleTypeReference other = (SimpleTypeReference) obj;
+            SimpleTypeReference other = (SimpleTypeReference) obj;
             return Objects.equals(this.typeName, other.typeName);
         }
 
@@ -244,7 +244,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final SimpleEnumConstantReference other = (SimpleEnumConstantReference) obj;
+            SimpleEnumConstantReference other = (SimpleEnumConstantReference) obj;
             return Objects.equals(this.type, other.type)
                     && Objects.equals(this.name, other.name);
         }
@@ -266,12 +266,12 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
     public static class AnnotationPropertyAssertion {
         private final List<Consumer<JavaAnnotationAssertion>> executeAssertions = new ArrayList<>();
 
-        public AnnotationPropertyAssertion withAnnotationType(final Class<? extends Annotation> annotationType) {
+        public AnnotationPropertyAssertion withAnnotationType(Class<? extends Annotation> annotationType) {
             executeAssertions.add(assertion -> assertion.hasType(annotationType));
             return this;
         }
 
-        public AnnotationPropertyAssertion withClassProperty(final String propertyName, final Class<?> propertyValue) {
+        public AnnotationPropertyAssertion withClassProperty(String propertyName, Class<?> propertyValue) {
             executeAssertions.add(assertion -> assertion.hasClassProperty(propertyName, propertyValue));
             return this;
         }

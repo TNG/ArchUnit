@@ -544,16 +544,16 @@ public class FreezingArchRuleTest {
             return new RuleCreator(description, new ArrayList<>(), textModifier);
         }
 
-        RuleCreator withViolations(final String... messages) {
+        RuleCreator withViolations(String... messages) {
             List<ViolatedEvent> newEvents = Arrays.stream(messages).map(ViolatedEvent::new).collect(toList());
             return new RuleCreator(description, newEvents, textModifier);
         }
 
-        RuleCreator withViolations(final ViolatedEvent... events) {
+        RuleCreator withViolations(ViolatedEvent... events) {
             return new RuleCreator(description, ImmutableList.copyOf(events), textModifier);
         }
 
-        RuleCreator withStringReplace(final String toReplace, final String replaceWith) {
+        RuleCreator withStringReplace(String toReplace, String replaceWith) {
             return new RuleCreator(description, events, input -> input.replace(toReplace, replaceWith));
         }
 

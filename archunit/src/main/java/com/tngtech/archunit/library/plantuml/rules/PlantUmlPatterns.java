@@ -73,7 +73,7 @@ class PlantUmlPatterns {
         return new PlantUmlComponentMatcher(input);
     }
 
-    private Predicate<String> matches(final Pattern pattern) {
+    private Predicate<String> matches(Pattern pattern) {
         return input -> pattern.matcher(input).matches();
     }
 

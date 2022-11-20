@@ -435,7 +435,7 @@ public final class Architectures {
         }
 
         private abstract static class AllClassesAreContainedInArchitectureCheck {
-            abstract Optional<EvaluationResult> evaluate(final JavaClasses classes, final LayerDefinitions layerDefinitions);
+            abstract Optional<EvaluationResult> evaluate(JavaClasses classes, LayerDefinitions layerDefinitions);
 
             static class Enabled extends AllClassesAreContainedInArchitectureCheck {
                 private final DescribedPredicate<? super JavaClass> ignorePredicate;
@@ -444,7 +444,7 @@ public final class Architectures {
                     this.ignorePredicate = ignorePredicate;
                 }
 
-                Optional<EvaluationResult> evaluate(final JavaClasses classes, final LayerDefinitions layerDefinitions) {
+                Optional<EvaluationResult> evaluate(JavaClasses classes, LayerDefinitions layerDefinitions) {
                     return Optional.of(classes().should(beContainedInLayers(layerDefinitions)).evaluate(classes));
                 }
 
@@ -469,7 +469,7 @@ public final class Architectures {
             }
         }
 
-        private static ArchCondition<JavaClass> notBeEmptyFor(final LayeredArchitecture.LayerDefinition layerDefinition) {
+        private static ArchCondition<JavaClass> notBeEmptyFor(LayeredArchitecture.LayerDefinition layerDefinition) {
             return new LayerShouldNotBeEmptyCondition(layerDefinition);
         }
 
@@ -477,7 +477,7 @@ public final class Architectures {
             private final LayeredArchitecture.LayerDefinition layerDefinition;
             private boolean empty = true;
 
-            LayerShouldNotBeEmptyCondition(final LayeredArchitecture.LayerDefinition layerDefinition) {
+            LayerShouldNotBeEmptyCondition(LayeredArchitecture.LayerDefinition layerDefinition) {
                 super("not be empty");
                 this.layerDefinition = layerDefinition;
             }
@@ -514,7 +514,7 @@ public final class Architectures {
                 return containsPredicateFor(layerDefinitions.keySet());
             }
 
-            DescribedPredicate<JavaClass> containsPredicateFor(final Collection<String> layerNames) {
+            DescribedPredicate<JavaClass> containsPredicateFor(Collection<String> layerNames) {
                 DescribedPredicate<JavaClass> result = alwaysFalse();
                 for (LayerDefinition definition : get(layerNames)) {
                     result = result.or(definition.containsPredicate());
@@ -705,7 +705,7 @@ public final class Architectures {
              * @return {@link DependencySettings dependency settings} to be used when checking for violations of the layered architecture
              */
             @PublicAPI(usage = ACCESS)
-            public LayeredArchitecture consideringOnlyDependenciesInAnyPackage(String packageIdentifier, final String... furtherPackageIdentifiers) {
+            public LayeredArchitecture consideringOnlyDependenciesInAnyPackage(String packageIdentifier, String... furtherPackageIdentifiers) {
                 String[] packageIdentifiers = Stream.concat(Stream.of(packageIdentifier), Stream.of(furtherPackageIdentifiers)).toArray(String[]::new);
                 return new LayeredArchitecture(setToConsideringOnlyDependenciesInAnyPackage(packageIdentifiers));
             }

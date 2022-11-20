@@ -45,7 +45,7 @@ class PlantUmlComponentDependency {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final PlantUmlComponentDependency other = (PlantUmlComponentDependency) obj;
+        PlantUmlComponentDependency other = (PlantUmlComponentDependency) obj;
         return Objects.equals(this.origin, other.origin)
                 && Objects.equals(this.target, other.target);
     }

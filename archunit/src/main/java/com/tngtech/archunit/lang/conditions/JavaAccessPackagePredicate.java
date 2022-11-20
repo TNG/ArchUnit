@@ -53,7 +53,7 @@ class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
             this.getPackageName = getPackageName;
         }
 
-        JavaAccessPackagePredicate matching(final String... packageIdentifiers) {
+        JavaAccessPackagePredicate matching(String... packageIdentifiers) {
             return new JavaAccessPackagePredicate(packageIdentifiers, getPackageName);
         }
     }

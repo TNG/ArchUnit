@@ -93,12 +93,12 @@ public final class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaFieldAccess> accessType(final AccessType accessType) {
+        public static DescribedPredicate<JavaFieldAccess> accessType(AccessType accessType) {
             return new AccessTypePredicate(accessType);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
+        public static DescribedPredicate<JavaFieldAccess> target(DescribedPredicate<? super FieldAccessTarget> predicate) {
             return new TargetPredicate<>(predicate);
         }
 

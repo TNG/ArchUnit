@@ -3,7 +3,7 @@ package com.tngtech.archunit.core.importer.testexamples.innerclassimport;
 @SuppressWarnings("unused")
 public class ClassWithInnerClass {
     void callInsideOfAnonymous() {
-        final CalledClass calledClass = null;
+        CalledClass calledClass = null;
 
         new CanBeCalled() {
             @Override
@@ -14,7 +14,7 @@ public class ClassWithInnerClass {
     }
 
     void callInsideOfLocalClass() {
-        final CalledClass calledClass = null;
+        CalledClass calledClass = null;
 
         class LocalCaller {
             void call() {

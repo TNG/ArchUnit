@@ -50,7 +50,7 @@ public class HasParameterTypesTest {
                 .hasDescription("raw parameter types some text");
     }
 
-    private HasParameterTypes newHasParameterTypes(final Class<?>... parameters) {
+    private HasParameterTypes newHasParameterTypes(Class<?>... parameters) {
         return new HasParameterTypes() {
 
             @Override

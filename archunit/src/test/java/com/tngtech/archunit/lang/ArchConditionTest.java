@@ -76,7 +76,7 @@ public class ArchConditionTest {
 
         ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(2, events);
-        final List<HandledViolation> handledViolations = new ArrayList<>();
+        List<HandledViolation> handledViolations = new ArrayList<>();
         evaluationResultOf(events).handleViolations((Collection<Integer> violatingObjects, String message) ->
                 handledViolations.add(new HandledViolation(violatingObjects, message)));
 
@@ -120,7 +120,7 @@ public class ArchConditionTest {
 
         ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(1, events);
-        final List<HandledViolation> handledViolations = new ArrayList<>();
+        List<HandledViolation> handledViolations = new ArrayList<>();
         evaluationResultOf(events).handleViolations((Collection<Integer> violatingObjects, String message) ->
                 handledViolations.add(new HandledViolation(violatingObjects, message)));
 
@@ -269,10 +269,10 @@ public class ArchConditionTest {
                 .haveOneViolationMessageContaining(String.format("Class <%s> true some description", Object.class.getName()));
     }
 
-    private ArchCondition<Integer> greaterThan(final int... numbers) {
+    private ArchCondition<Integer> greaterThan(int... numbers) {
         return new ArchCondition<Integer>("greater than " + Arrays.toString(numbers)) {
             @Override
-            public void check(final Integer item, ConditionEvents events) {
+            public void check(Integer item, ConditionEvents events) {
                 for (int number : numbers) {
                     events.add(greaterThanEvent(item, number));
                 }
@@ -284,10 +284,10 @@ public class ArchConditionTest {
         return new EvaluationResult(() -> "irrelevant", events, MEDIUM);
     }
 
-    private ArchCondition<Integer> endsWith(final int number) {
+    private ArchCondition<Integer> endsWith(int number) {
         return new ArchCondition<Integer>("ends with " + number) {
             @Override
-            public void check(final Integer item, ConditionEvents events) {
+            public void check(Integer item, ConditionEvents events) {
                 boolean matches = item.toString().endsWith(Integer.toString(number));
                 events.add(new SimpleConditionEvent(item, matches,
                         item + (matches ? " ends with " : " does not end with ") + number));
@@ -364,7 +364,7 @@ public class ArchConditionTest {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final HandledViolation other = (HandledViolation) obj;
+            HandledViolation other = (HandledViolation) obj;
             return Objects.equals(this.objects, other.objects)
                     && Objects.equals(this.message, other.message);
         }

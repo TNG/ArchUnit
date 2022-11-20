@@ -39,7 +39,7 @@ public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaCodeUni
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaCall<?>> target(final DescribedPredicate<? super CodeUnitCallTarget> predicate) {
+        public static DescribedPredicate<JavaCall<?>> target(DescribedPredicate<? super CodeUnitCallTarget> predicate) {
             return new TargetPredicate<>(predicate);
         }
     }

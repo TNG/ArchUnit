@@ -59,7 +59,7 @@ interface UrlSource extends Iterable<URL> {
         private static final String BOOT_CLASS_PATH_PROPERTY_NAME = "sun.boot.class.path";
 
         static UrlSource iterable(Iterable<URL> urls) {
-            final Iterable<URL> uniqueUrls = unique(urls);
+            Iterable<URL> uniqueUrls = unique(urls);
             return new UrlSource() {
                 @Override
                 public Iterator<URL> iterator() {

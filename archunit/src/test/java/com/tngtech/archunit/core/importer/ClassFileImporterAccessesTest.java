@@ -830,7 +830,7 @@ public class ClassFileImporterAccessesTest {
         // we test that the second recorded block is not cleared out by accident when the first block is closed
         @SuppressWarnings({"unused", "ConstantConditions", "TryFinallyCanBeTryWithResources", "UnnecessaryReturnStatement"})
         class SomeClass {
-            private void method(final int first, final boolean second) {
+            private void method(int first, boolean second) {
                 try {
                     Socket client = new Socket("", 0);
                     BufferedReader reader = new BufferedReader(null);
@@ -1291,7 +1291,7 @@ public class ClassFileImporterAccessesTest {
         return getOnlyElement(getByCaller(calls, caller));
     }
 
-    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final JavaConstructor target) {
+    private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, JavaConstructor target) {
         return getBy(calls, (Predicate<JavaAccess<?>>) input -> targetFrom(target).getFullName().equals(input.getTarget().getFullName()));
     }
 
@@ -1299,19 +1299,19 @@ public class ClassFileImporterAccessesTest {
         return getByTargetOwner(calls, targetOwner.getName());
     }
 
-    private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, final String targetOwnerName) {
+    private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, String targetOwnerName) {
         return getBy(calls, targetOwnerNameEquals(targetOwnerName));
     }
 
-    private Predicate<JavaAccess<?>> targetOwnerNameEquals(final String targetFqn) {
+    private Predicate<JavaAccess<?>> targetOwnerNameEquals(String targetFqn) {
         return input -> targetFqn.equals(input.getTarget().getOwner().getName());
     }
 
-    private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, final JavaClass targetOwner) {
+    private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, JavaClass targetOwner) {
         return getBy(calls, input -> targetOwner.equals(input.getTarget().getOwner()));
     }
 
-    private <T extends HasOwner<JavaCodeUnit>> Set<T> getByCaller(Set<T> calls, final JavaCodeUnit caller) {
+    private <T extends HasOwner<JavaCodeUnit>> Set<T> getByCaller(Set<T> calls, JavaCodeUnit caller) {
         return getBy(calls, input -> caller.equals(input.getOwner()));
     }
 

@@ -142,7 +142,7 @@ public class JavaClassTest {
         }
 
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
-        final JavaClass nonArrayType = method.getRawReturnType();
+        JavaClass nonArrayType = method.getRawReturnType();
 
         assertThat(nonArrayType.isArray()).isFalse();
         assertThat(nonArrayType.tryGetComponentType()).isEmpty();
@@ -428,7 +428,7 @@ public class JavaClassTest {
 
     @Test
     public void getCodeUnitWithParameterTypes() {
-        final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+        JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
         assertIllegalArgumentException("childMethod", () -> clazz.getCodeUnitWithParameterTypes("childMethod"));
         assertIllegalArgumentException("childMethod", () -> clazz.getCodeUnitWithParameterTypes("childMethod", Object.class));
@@ -446,7 +446,7 @@ public class JavaClassTest {
 
     @Test
     public void tryGetCodeUnitWithParameterTypes() {
-        final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+        JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
         assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.singletonList(String.class)).get())
                 .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
@@ -1976,7 +1976,7 @@ public class JavaClassTest {
         return members.stream().filter(it -> !it.getOwner().isEquivalentTo(Object.class)).collect(toSet());
     }
 
-    private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
+    private JavaClass getOnlyClassSettingField(JavaClasses classes, String fieldName) {
         return getOnlyElement(classes.that(new DescribedPredicate<JavaClass>("") {
             @Override
             public boolean test(JavaClass input) {
@@ -2053,7 +2053,7 @@ public class JavaClassTest {
             };
         }
 
-        Condition<Dependency> toClassEquivalentTo(final Class<?> clazz) {
+        Condition<Dependency> toClassEquivalentTo(Class<?> clazz) {
             return new Condition<Dependency>("any dependency to class " + clazz.getName()) {
                 @Override
                 public boolean matches(Dependency value) {
@@ -2062,7 +2062,7 @@ public class JavaClassTest {
             };
         }
 
-        Condition<Dependency> fromClassEquivalentTo(final Class<?> clazz) {
+        Condition<Dependency> fromClassEquivalentTo(Class<?> clazz) {
             return new Condition<Dependency>("any dependency from class " + clazz.getName()) {
                 @Override
                 public boolean matches(Dependency value) {
@@ -2114,7 +2114,7 @@ public class JavaClassTest {
                     targetDescription = target.getSimpleName() + "." + targetName;
                 }
 
-                Condition<Dependency> inLineNumber(final int lineNumber) {
+                Condition<Dependency> inLineNumber(int lineNumber) {
                     return new Condition<Dependency>(String.format(
                             "%s %s %s in line %d", originDescription, descriptionPart, targetDescription, lineNumber)) {
                         @Override
@@ -2163,7 +2163,7 @@ public class JavaClassTest {
         private Set<DescribedPredicate<JavaClass>> assignable = new HashSet<>();
         private Class<?> firstType;
 
-        public FromEvaluation from(final Class<?> type) {
+        public FromEvaluation from(Class<?> type) {
             firstType = type;
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
             assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable from") {
@@ -2175,7 +2175,7 @@ public class JavaClassTest {
             return new FromEvaluation();
         }
 
-        public ToEvaluation to(final Class<?> type) {
+        public ToEvaluation to(Class<?> type) {
             firstType = type;
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
             assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable to") {

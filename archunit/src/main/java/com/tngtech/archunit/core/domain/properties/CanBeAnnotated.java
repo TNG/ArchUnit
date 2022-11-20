@@ -107,7 +107,7 @@ public interface CanBeAnnotated {
          * @param annotationType The type of the annotation to check for
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
+        public static DescribedPredicate<CanBeAnnotated> annotatedWith(Class<? extends Annotation> annotationType) {
             checkAnnotationHasReasonableRetention(annotationType);
 
             return annotatedWith(annotationType.getName());
@@ -132,7 +132,7 @@ public interface CanBeAnnotated {
          * @see #annotatedWith(Class)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> annotatedWith(final String annotationTypeName) {
+        public static DescribedPredicate<CanBeAnnotated> annotatedWith(String annotationTypeName) {
             DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
             return annotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
@@ -143,7 +143,7 @@ public interface CanBeAnnotated {
          * @param predicate Qualifies matching annotations
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> annotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        public static DescribedPredicate<CanBeAnnotated> annotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
             return new AnnotatedPredicate(predicate);
         }
 
@@ -172,7 +172,7 @@ public interface CanBeAnnotated {
          * @param annotationType The type of the annotation to check for
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final Class<? extends Annotation> annotationType) {
+        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(Class<? extends Annotation> annotationType) {
             checkAnnotationHasReasonableRetention(annotationType);
 
             return metaAnnotatedWith(annotationType.getName());
@@ -182,7 +182,7 @@ public interface CanBeAnnotated {
          * @see #metaAnnotatedWith(Class)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final String annotationTypeName) {
+        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(String annotationTypeName) {
             DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
             return metaAnnotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
@@ -198,7 +198,7 @@ public interface CanBeAnnotated {
          * @param predicate Qualifies matching annotations
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
             return new MetaAnnotatedPredicate(predicate);
         }
 
@@ -256,7 +256,7 @@ public interface CanBeAnnotated {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static <A extends Annotation> Function<JavaAnnotation<?>, A> toAnnotationOfType(final Class<A> type) {
+        public static <A extends Annotation> Function<JavaAnnotation<?>, A> toAnnotationOfType(Class<A> type) {
             return input -> input.as(type);
         }
     }

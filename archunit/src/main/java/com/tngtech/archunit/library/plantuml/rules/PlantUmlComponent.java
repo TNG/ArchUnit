@@ -79,7 +79,7 @@ class PlantUmlComponent {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final PlantUmlComponent other = (PlantUmlComponent) obj;
+        PlantUmlComponent other = (PlantUmlComponent) obj;
         return Objects.equals(this.componentName, other.componentName)
                 && Objects.equals(this.stereotypes, other.stereotypes)
                 && Objects.equals(this.alias, other.alias);

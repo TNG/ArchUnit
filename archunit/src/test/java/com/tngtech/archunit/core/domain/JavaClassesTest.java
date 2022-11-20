@@ -112,7 +112,7 @@ public class JavaClassesTest {
                 .hasMessage("JavaClasses do not contain JavaClass of type %s", String.class.getName());
     }
 
-    private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {
+    private DescribedPredicate<JavaClass> haveTheNameOf(Class<?> clazz) {
         return new DescribedPredicate<JavaClass>("have the name " + clazz.getSimpleName()) {
             @Override
             public boolean test(JavaClass input) {

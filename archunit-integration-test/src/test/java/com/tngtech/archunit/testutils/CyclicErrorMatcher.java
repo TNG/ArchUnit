@@ -58,7 +58,7 @@ public class CyclicErrorMatcher implements MessageAssertionChain.Link {
 
     @Override
     public MessageAssertionChain.Link.Result filterMatching(List<String> lines) {
-        final Result.Builder builder = new Result.Builder()
+        Result.Builder builder = new Result.Builder()
                 .containsText(cycleText());
 
         for (String sliceName : details.asMap().keySet()) {

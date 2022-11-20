@@ -48,28 +48,28 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
 
         @PublicAPI(usage = ACCESS)
         @SafeVarargs
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final Class<? extends Throwable>... types) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(Class<? extends Throwable>... types) {
             return throwsClauseWithTypes(formatNamesOf(types));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final String... typeNames) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(String... typeNames) {
             return throwsClauseWithTypes(ImmutableList.copyOf(typeNames));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final List<String> typeNames) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(List<String> typeNames) {
             return throwsClause(equalTo(typeNames).onResultOf(ThrowsClause.Functions.GET_TYPES.then(GET_NAMES))
                     .as("[%s]", formatThrowsDeclarationTypeNames(typeNames)));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(final Class<? extends Throwable> type) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(Class<? extends Throwable> type) {
             return throwsClauseContainingType(type.getName());
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(final String typeName) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(String typeName) {
             return throwsClauseContainingType(name(typeName).as(typeName));
         }
 
@@ -80,7 +80,7 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClause(final DescribedPredicate<? super ThrowsClause<?>> predicate) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClause(DescribedPredicate<? super ThrowsClause<?>> predicate) {
             return new ThrowsTypesPredicate(predicate);
         }
 

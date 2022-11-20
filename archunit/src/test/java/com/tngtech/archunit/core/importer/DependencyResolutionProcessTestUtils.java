@@ -23,13 +23,13 @@ import static java.util.Collections.singleton;
 
 public class DependencyResolutionProcessTestUtils {
 
-    static JavaClasses importClassesWithOnlyGenericTypeResolution(final Class<?>... classes) {
+    static JavaClasses importClassesWithOnlyGenericTypeResolution(Class<?>... classes) {
         return ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(
                 MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE
         ).importClasses(classes);
     }
 
-    static JavaClass importClassWithOnlyGenericTypeResolution(final Class<?> clazz) {
+    static JavaClass importClassWithOnlyGenericTypeResolution(Class<?> clazz) {
         return importClassesWithOnlyGenericTypeResolution(clazz).get(clazz);
     }
 
@@ -50,11 +50,11 @@ public class DependencyResolutionProcessTestUtils {
             return new ImporterWithAdjustedResolutionRuns(singleton(propertyName), Optional.of(number));
         }
 
-        JavaClass importClass(final Class<?> clazz) {
+        JavaClass importClass(Class<?> clazz) {
             return importClasses(clazz).get(clazz);
         }
 
-        public JavaClasses importClasses(final Class<?>... classes) {
+        public JavaClasses importClasses(Class<?>... classes) {
             return resetConfigurationAround(() -> {
                 ImporterWithAdjustedResolutionRuns.this.setAllIterationsToZeroExcept(propertyNames);
                 return new ClassFileImporter().importClasses(classes);

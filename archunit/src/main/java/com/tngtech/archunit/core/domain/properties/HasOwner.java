@@ -54,7 +54,7 @@ public interface HasOwner<T> {
             }
 
             @PublicAPI(usage = ACCESS)
-            public static <T> DescribedPredicate<HasOwner<T>> owner(final DescribedPredicate<? super T> predicate) {
+            public static <T> DescribedPredicate<HasOwner<T>> owner(DescribedPredicate<? super T> predicate) {
                 return new OwnerPredicate<>(predicate);
             }
         }
