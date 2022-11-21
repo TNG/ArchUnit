@@ -110,7 +110,7 @@ public class SlicesShouldTest {
         return new ViolationsAssertion(rule.evaluate(classes));
     }
 
-    private DescribedPredicate<JavaClass> classIn(final String packageRegex) {
+    private DescribedPredicate<JavaClass> classIn(String packageRegex) {
         return new DescribedPredicate<JavaClass>("class in " + packageRegex) {
             @Override
             public boolean test(JavaClass input) {

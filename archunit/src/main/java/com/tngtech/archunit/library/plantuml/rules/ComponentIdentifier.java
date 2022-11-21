@@ -52,7 +52,7 @@ class ComponentIdentifier {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ComponentIdentifier other = (ComponentIdentifier) obj;
+        ComponentIdentifier other = (ComponentIdentifier) obj;
         return Objects.equals(this.componentName, other.componentName)
                 && Objects.equals(this.alias, other.alias);
     }

@@ -85,7 +85,7 @@ public class TestUtils {
 
     public static JavaClasses importClassesWithContext(Class<?>... classes) {
         JavaClasses importedHierarchy = importHierarchies(classes);
-        final List<String> classNames = formatNamesOf(classes);
+        List<String> classNames = formatNamesOf(classes);
         return importedHierarchy.that(new DescribedPredicate<JavaClass>("") {
             @Override
             public boolean test(JavaClass input) {
@@ -166,7 +166,7 @@ public class TestUtils {
             ImportContext context = mock(ImportContext.class);
             Set<JavaMethodCall> calls = targets.stream().map(target -> newMethodCall(method, target, lineNumber)).collect(toSet());
             when(context.createMethodCallsFor(eq(method), anySet())).thenReturn(ImmutableSet.copyOf(calls));
-            method.completeAccessesFrom(context);
+            method.completeFrom(context);
             return getCallToTarget(methodCallTarget);
         }
 
@@ -190,7 +190,7 @@ public class TestUtils {
                     .thenReturn(ImmutableSet.of(
                             newFieldAccess(method, target, lineNumber, accessType)
                     ));
-            method.completeAccessesFrom(context);
+            method.completeFrom(context);
         }
     }
 

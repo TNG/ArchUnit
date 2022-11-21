@@ -17,7 +17,7 @@ public class CodeUnitAccessAssertion
         super((JavaCodeUnitAccess) call);
     }
 
-    public CodeUnitAccessAssertion isTo(final JavaCodeUnit target) {
+    public CodeUnitAccessAssertion isTo(JavaCodeUnit target) {
         return isTo(new Condition<AccessTarget.CodeUnitAccessTarget>("method " + target.getFullName()) {
             @Override
             public boolean matches(AccessTarget.CodeUnitAccessTarget codeUnitAccessTarget) {
@@ -28,7 +28,7 @@ public class CodeUnitAccessAssertion
         });
     }
 
-    public CodeUnitAccessAssertion isTo(final Class<?> codeUnitOwner) {
+    public CodeUnitAccessAssertion isTo(Class<?> codeUnitOwner) {
         return isTo(new Condition<AccessTarget.CodeUnitAccessTarget>() {
             @Override
             public boolean matches(AccessTarget.CodeUnitAccessTarget target) {
@@ -37,7 +37,7 @@ public class CodeUnitAccessAssertion
         });
     }
 
-    public CodeUnitAccessAssertion isTo(final String codeUnitName, final Class<?>... parameterTypes) {
+    public CodeUnitAccessAssertion isTo(String codeUnitName, Class<?>... parameterTypes) {
         return isTo(new Condition<AccessTarget.CodeUnitAccessTarget>("code unit " + codeUnitName + "(" + formatNamesOf(parameterTypes) + ")") {
             @Override
             public boolean matches(AccessTarget.CodeUnitAccessTarget target) {
@@ -47,7 +47,7 @@ public class CodeUnitAccessAssertion
         });
     }
 
-    public CodeUnitAccessAssertion isTo(Class<?> targetClass, String codeUnitName, final Class<?>... parameterTypes) {
+    public CodeUnitAccessAssertion isTo(Class<?> targetClass, String codeUnitName, Class<?>... parameterTypes) {
         return isTo(targetClass).isTo(codeUnitName, parameterTypes);
     }
 
@@ -65,7 +65,7 @@ public class CodeUnitAccessAssertion
         return this;
     }
 
-    private Condition<TryCatchBlock> caughtThrowableOfType(final Class<? extends Throwable> expectedThrowable) {
+    private Condition<TryCatchBlock> caughtThrowableOfType(Class<? extends Throwable> expectedThrowable) {
         return new Condition<TryCatchBlock>("caught throwable of type " + expectedThrowable.getSimpleName()) {
             @Override
             public boolean matches(TryCatchBlock tryCatchBlock) {

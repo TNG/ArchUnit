@@ -110,7 +110,7 @@ public class ClassAccessesFieldConditionTest {
             return parts;
         }
 
-        SELF accessInfo(final AccessInfo accessInfo) {
+        SELF accessInfo(AccessInfo accessInfo) {
             this.accessInfo = accessInfo;
             return self();
         }

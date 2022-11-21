@@ -55,7 +55,7 @@ class JavaClassMembers {
             .addAll(getAllConstructors())
             .build());
 
-    JavaClassMembers(final JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
+    JavaClassMembers(JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
         this.owner = owner;
         this.fields = fields;
         this.methods = methods;
@@ -318,9 +318,9 @@ class JavaClassMembers {
         }
     }
 
-    void completeAccessesFrom(ImportContext context) {
+    void completeFrom(ImportContext context) {
         for (JavaCodeUnit codeUnit : codeUnits) {
-            codeUnit.completeAccessesFrom(context);
+            codeUnit.completeFrom(context);
         }
     }
 

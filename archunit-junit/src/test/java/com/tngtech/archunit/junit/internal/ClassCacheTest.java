@@ -246,7 +246,7 @@ public class ClassCacheTest {
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 
-    private static Condition<Iterable<? extends Location>> locationContaining(final String part) {
+    private static Condition<Iterable<? extends Location>> locationContaining(String part) {
         return new Condition<Iterable<? extends Location>>() {
             @Override
             public boolean matches(Iterable<? extends Location> locations) {

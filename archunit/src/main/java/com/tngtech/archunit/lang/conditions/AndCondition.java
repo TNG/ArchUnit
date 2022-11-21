@@ -54,7 +54,7 @@ class AndCondition<T> extends JoinCondition<T> {
         }
 
         @Override
-        public void handleWith(final ConditionEvent.Handler handler) {
+        public void handleWith(ConditionEvent.Handler handler) {
             for (ConditionWithEvents<T> condition : evaluatedConditions) {
                 condition.getEvents().getViolating().forEach(event -> event.handleWith(handler));
             }

@@ -48,7 +48,7 @@ class JavaClassDiagramAssociation {
         }
     }
 
-    Set<String> getTargetPackageIdentifiers(final JavaClass javaClass) {
+    Set<String> getTargetPackageIdentifiers(JavaClass javaClass) {
         ImmutableSet.Builder<String> result = ImmutableSet.builder();
         for (PlantUmlComponent target : getComponentOf(javaClass).getDependencies()) {
             result.addAll(getPackageIdentifiersFromComponentOf(target));
@@ -68,7 +68,7 @@ class JavaClassDiagramAssociation {
         return result.build();
     }
 
-    private PlantUmlComponent getComponentOf(final JavaClass javaClass) {
+    private PlantUmlComponent getComponentOf(JavaClass javaClass) {
         return getOnlyElement(getAssociatedComponents(javaClass));
     }
 

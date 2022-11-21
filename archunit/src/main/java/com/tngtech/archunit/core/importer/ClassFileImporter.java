@@ -334,7 +334,7 @@ public final class ClassFileImporter {
         }
     }
 
-    private ClassFileSource unify(final List<ClassFileSource> sources) {
+    private ClassFileSource unify(List<ClassFileSource> sources) {
         return Iterables.concat(sources)::iterator;
     }
 }

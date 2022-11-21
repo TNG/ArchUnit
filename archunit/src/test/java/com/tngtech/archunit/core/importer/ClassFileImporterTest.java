@@ -921,7 +921,7 @@ public class ClassFileImporterTest {
         Files.copy(Paths.get(uriOf(clazz)), new File(targetFolder, clazz.getSimpleName() + ".class").toPath());
     }
 
-    private Condition<CodeUnitAccessTarget> targetWithFullName(final String name) {
+    private Condition<CodeUnitAccessTarget> targetWithFullName(String name) {
         return new Condition<CodeUnitAccessTarget>(String.format("target with name '%s'", name)) {
             @Override
             public boolean matches(CodeUnitAccessTarget value) {
@@ -930,7 +930,7 @@ public class ClassFileImporterTest {
         };
     }
 
-    private static ImportOption importOnly(final Class<?>... classes) {
+    private static ImportOption importOnly(Class<?>... classes) {
         return location -> stream(classes).anyMatch(c -> location.contains(urlOf(c).getFile()));
     }
 }

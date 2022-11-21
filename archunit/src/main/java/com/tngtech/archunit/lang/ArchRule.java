@@ -125,7 +125,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
     @Internal
     class Factory {
-        public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
+        public static <T> ArchRule create(ClassesTransformer<T> classesTransformer, ArchCondition<T> condition, Priority priority) {
             return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.empty(), AllowEmptyShould.AS_CONFIGURED);
         }
 

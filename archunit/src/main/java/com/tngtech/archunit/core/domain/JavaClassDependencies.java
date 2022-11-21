@@ -247,8 +247,8 @@ class JavaClassDependencies {
     }
 
     private <T extends HasDescription & HasAnnotations<?>> Stream<Dependency> annotationDependencies(T annotated) {
-        final Stream.Builder<Dependency> addToStream = Stream.builder();
-        for (final JavaAnnotation<?> annotation : annotated.getAnnotations()) {
+        Stream.Builder<Dependency> addToStream = Stream.builder();
+        for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
             Dependency.tryCreateFromAnnotation(annotation).forEach(addToStream);
             annotation.accept(new DefaultParameterVisitor() {
                 @Override

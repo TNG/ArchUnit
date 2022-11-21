@@ -288,7 +288,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Dependency other = (Dependency) obj;
+        Dependency other = (Dependency) obj;
         return Objects.equals(this.originClass, other.originClass)
                 && Objects.equals(this.targetClass, other.targetClass)
                 && Objects.equals(this.lineNumber, other.lineNumber)
@@ -372,7 +372,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<Dependency> dependencyOrigin(final DescribedPredicate<? super JavaClass> predicate) {
+        public static DescribedPredicate<Dependency> dependencyOrigin(DescribedPredicate<? super JavaClass> predicate) {
             return Functions.GET_ORIGIN_CLASS.is(predicate).as("origin " + predicate.getDescription());
         }
 
@@ -387,7 +387,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<Dependency> dependencyTarget(final DescribedPredicate<? super JavaClass> predicate) {
+        public static DescribedPredicate<Dependency> dependencyTarget(DescribedPredicate<? super JavaClass> predicate) {
             return Functions.GET_TARGET_CLASS.is(predicate).as("target " + predicate.getDescription());
         }
     }

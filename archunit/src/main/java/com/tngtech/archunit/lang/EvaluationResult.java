@@ -129,7 +129,7 @@ public final class EvaluationResult {
     public final <T> void handleViolations(ViolationHandler<T> violationHandler, T... __ignored_parameter_to_reify_type__) {
         Class<T> correspondingObjectType = componentTypeOf(__ignored_parameter_to_reify_type__);
         ConditionEvent.Handler eventHandler = convertToEventHandler(correspondingObjectType, violationHandler);
-        for (final ConditionEvent event : violations) {
+        for (ConditionEvent event : violations) {
             event.handleWith(eventHandler);
         }
     }
@@ -189,7 +189,7 @@ public final class EvaluationResult {
         return patterns.isEmpty() ? violations : filterEvents(violations, notMatchedByAny(patterns));
     }
 
-    private static Predicate<String> notMatchedByAny(final Set<Pattern> patterns) {
+    private static Predicate<String> notMatchedByAny(Set<Pattern> patterns) {
         return message -> {
             String normalizedMessage = message.replaceAll("\r*\n", " ");
             return patterns.stream().noneMatch(pattern -> pattern.matcher(normalizedMessage).matches());

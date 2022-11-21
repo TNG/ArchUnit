@@ -34,6 +34,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.ImportContext;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -51,6 +52,7 @@ import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
@@ -71,7 +73,9 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.compl
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericSuperclass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeParameters;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.importer.DomainBuilders.buildAnnotations;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
@@ -88,6 +92,8 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodReferenceTarget>> processedMethodReferenceRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, ReferencedClassObject> processedReferencedClassObjects = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, InstanceofCheck> processedInstanceofChecks = HashMultimap.create();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
@@ -98,7 +104,7 @@ class ClassGraphCreator implements ImportContext {
     JavaClasses complete() {
         dependencyResolutionProcess.resolve(classes);
         completeClasses();
-        completeAccesses();
+        completeCodeUnitDependencies();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
     }
 
@@ -114,7 +120,7 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
-    private void completeAccesses() {
+    private void completeCodeUnitDependencies() {
         importRecord.forEachRawFieldAccessRecord(record ->
                 tryProcess(record, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords));
         importRecord.forEachRawMethodCallRecord(record ->
@@ -125,6 +131,8 @@ class ClassGraphCreator implements ImportContext {
                 tryProcess(record, AccessRecord.Factory.forMethodReferenceRecord(), processedMethodReferenceRecords));
         importRecord.forEachRawConstructorReferenceRecord(record ->
                 tryProcess(record, AccessRecord.Factory.forConstructorReferenceRecord(), processedConstructorReferenceRecords));
+        importRecord.forEachRawReferencedClassObject(this::processReferencedClassObject);
+        importRecord.forEachRawInstanceofCheck(this::processInstanceofCheck);
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
@@ -134,6 +142,28 @@ class ClassGraphCreator implements ImportContext {
 
         T processed = factory.create(rawRecord, classes);
         processedAccessRecords.put(processed.getOrigin(), processed);
+    }
+
+    private void processReferencedClassObject(RawReferencedClassObject rawReferencedClassObject) {
+        JavaCodeUnit origin = rawReferencedClassObject.getOrigin().resolveFrom(classes);
+        ReferencedClassObject referencedClassObject = createReferencedClassObject(
+                origin,
+                classes.getOrResolve(rawReferencedClassObject.getClassName()),
+                rawReferencedClassObject.getLineNumber(),
+                rawReferencedClassObject.isDeclaredInLambda()
+        );
+        processedReferencedClassObjects.put(origin, referencedClassObject);
+    }
+
+    private void processInstanceofCheck(RawInstanceofCheck rawInstanceofCheck) {
+        JavaCodeUnit origin = rawInstanceofCheck.getOrigin().resolveFrom(classes);
+        InstanceofCheck instanceofCheck = createInstanceofCheck(
+                origin,
+                classes.getOrResolve(rawInstanceofCheck.getTarget().getFullyQualifiedClassName()),
+                rawInstanceofCheck.getLineNumber(),
+                rawInstanceofCheck.isDeclaredInLambda()
+        );
+        processedInstanceofChecks.put(origin, instanceofCheck);
     }
 
     @Override
@@ -332,6 +362,16 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
         return importRecord.getTryCatchBlockBuildersFor(codeUnit);
+    }
+
+    @Override
+    public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit) {
+        return ImmutableSet.copyOf(processedReferencedClassObjects.get(codeUnit));
+    }
+
+    @Override
+    public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit) {
+        return ImmutableSet.copyOf(processedInstanceofChecks.get(codeUnit));
     }
 
     @Override

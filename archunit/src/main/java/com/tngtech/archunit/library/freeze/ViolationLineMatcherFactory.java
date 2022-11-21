@@ -97,7 +97,7 @@ class ViolationLineMatcherFactory {
             }
 
             private int findStartIndexOfNextRelevantPart() {
-                final int startOfIgnoredPart = end + 1;
+                int startOfIgnoredPart = end + 1;
                 int indexOfNonDigit = findIndexOfNextNonDigitChar(startOfIgnoredPart);
                 if (str.charAt(end) == ':') {
                     boolean foundNumber = indexOfNonDigit > startOfIgnoredPart;

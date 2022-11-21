@@ -16,6 +16,7 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -34,6 +35,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
@@ -266,7 +268,7 @@ public class ImportTestUtils {
         return javaClass;
     }
 
-    private static ImportContext simulateImportContext(final Class<?> inputClass, final ImportedTestClasses importedClasses) {
+    private static ImportContext simulateImportContext(Class<?> inputClass, ImportedTestClasses importedClasses) {
         return new ImportContextStub() {
             @Override
             public Set<JavaField> createFields(JavaClass owner) {
@@ -426,6 +428,16 @@ public class ImportTestUtils {
 
         @Override
         public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 

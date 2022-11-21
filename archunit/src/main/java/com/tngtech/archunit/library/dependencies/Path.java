@@ -111,7 +111,7 @@ class Path<T, ATTACHMENT> {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Path<?, ?> other = (Path<?, ?>) obj;
+        Path<?, ?> other = (Path<?, ?>) obj;
         return Objects.equals(this.edges, other.edges);
     }
 

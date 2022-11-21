@@ -3,6 +3,7 @@ package com.tngtech.archunit.testutil.assertion;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import org.assertj.core.api.AbstractIterableAssert;
@@ -28,6 +29,10 @@ public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<Refe
         return new ReferencedClassObjectsAssertion(ImmutableSet.copyOf(iterable));
     }
 
+    public void containReferencedClassObjects(ExpectedReferencedClassObject... expectedReferencedClassObjects) {
+        containReferencedClassObjects(ImmutableList.copyOf(expectedReferencedClassObjects));
+    }
+
     public void containReferencedClassObjects(Iterable<ExpectedReferencedClassObject> expectedReferencedClassObjects) {
         Set<ExpectedReferencedClassObject> unmatchedClassObjects = stream(expectedReferencedClassObjects.spliterator(), false)
                 .filter(expected -> actual.stream().noneMatch(expected))
@@ -48,15 +53,25 @@ public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<Refe
     public static class ExpectedReferencedClassObject implements Predicate<ReferencedClassObject> {
         private final Class<?> type;
         private final int lineNumber;
+        private final boolean declaredInLambda;
 
         private ExpectedReferencedClassObject(Class<?> type, int lineNumber) {
+            this(type, lineNumber, false);
+        }
+
+        private ExpectedReferencedClassObject(Class<?> type, int lineNumber, boolean declaredInLambda) {
             this.type = type;
             this.lineNumber = lineNumber;
+            this.declaredInLambda = declaredInLambda;
+        }
+
+        public ExpectedReferencedClassObject declaredInLambda() {
+            return new ExpectedReferencedClassObject(type, lineNumber, true);
         }
 
         @Override
         public boolean test(ReferencedClassObject input) {
-            return input.getValue().isEquivalentTo(type) && input.getLineNumber() == lineNumber;
+            return input.getValue().isEquivalentTo(type) && input.getLineNumber() == lineNumber && input.isDeclaredInLambda() == declaredInLambda;
         }
 
         @Override
@@ -64,6 +79,7 @@ public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<Refe
             return toStringHelper(this)
                     .add("type", type)
                     .add("lineNumber", lineNumber)
+                    .add("declaredInLambda", declaredInLambda)
                     .toString();
         }
     }

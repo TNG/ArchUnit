@@ -114,8 +114,8 @@ public class ArchUnitExtensionLoaderTest {
         return "Loaded " + ArchUnitExtension.class.getSimpleName() + " with id '" + identifier + "'";
     }
 
-    private Condition<Throwable> containingWord(final String word) {
-        final Pattern wordPattern = Pattern.compile(" " + quote(word) + "[: ]");
+    private Condition<Throwable> containingWord(String word) {
+        Pattern wordPattern = Pattern.compile(" " + quote(word) + "[: ]");
         return new Condition<Throwable>(String.format("containing word '%s'", word)) {
             @Override
             public boolean matches(Throwable value) {

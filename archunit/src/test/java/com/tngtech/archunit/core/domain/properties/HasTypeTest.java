@@ -50,7 +50,7 @@ public class HasTypeTest {
         assertThatType(GET_RAW_TYPE.apply(newHasType(String.class))).matches(String.class);
     }
 
-    private HasType newHasType(final Class<?> owner) {
+    private HasType newHasType(Class<?> owner) {
         return new HasType() {
 
             @Override

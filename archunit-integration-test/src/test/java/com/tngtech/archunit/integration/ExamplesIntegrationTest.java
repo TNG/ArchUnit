@@ -1263,8 +1263,8 @@ class ExamplesIntegrationTest {
 
     }
 
-    private static MessageAssertionChain.Link classesContaining(final Class<?>... classes) {
-        final String expectedLine = String.format("there is/are %d element(s) in %s", classes.length, formatNamesOf(classes));
+    private static MessageAssertionChain.Link classesContaining(Class<?>... classes) {
+        String expectedLine = String.format("there is/are %d element(s) in %s", classes.length, formatNamesOf(classes));
         return new MessageAssertionChain.Link() {
             @Override
             public Result filterMatching(List<String> lines) {

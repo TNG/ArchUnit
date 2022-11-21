@@ -135,12 +135,12 @@ public final class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependencies(final Class<?> origin, final Class<?> target) {
+    public PlantUmlArchCondition ignoreDependencies(Class<?> origin, Class<?> target) {
         return ignoreDependencies(origin.getName(), target.getName());
     }
 
     @PublicAPI(usage = ACCESS)
-    public PlantUmlArchCondition ignoreDependencies(final String origin, final String target) {
+    public PlantUmlArchCondition ignoreDependencies(String origin, String target) {
         return ignoreDependencies(
                 GET_ORIGIN_CLASS.is(name(origin)).and(GET_TARGET_CLASS.is(name(target)))
                         .as("ignoring dependencies from %s to %s", origin, target));
@@ -307,8 +307,8 @@ public final class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          * e.g. '<code>com.myapp..</code>'.
          */
         @PublicAPI(usage = ACCESS)
-        public static Configuration consideringOnlyDependenciesInAnyPackage(String packageIdentifier, final String... furtherPackageIdentifiers) {
-            final List<String> packageIdentifiers = FluentIterable.from(singleton(packageIdentifier))
+        public static Configuration consideringOnlyDependenciesInAnyPackage(String packageIdentifier, String... furtherPackageIdentifiers) {
+            List<String> packageIdentifiers = FluentIterable.from(singleton(packageIdentifier))
                     .append(furtherPackageIdentifiers)
                     .toList();
 

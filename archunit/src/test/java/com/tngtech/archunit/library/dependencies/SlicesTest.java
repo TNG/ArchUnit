@@ -122,7 +122,7 @@ public class SlicesTest {
         return Optional.empty();
     }
 
-    private SliceAssignment assignmentOfJavaLangAndUtil(final String description) {
+    private SliceAssignment assignmentOfJavaLangAndUtil(String description) {
         return new SliceAssignment() {
             @Override
             public String getDescription() {

@@ -83,11 +83,11 @@ public class ArchUnitArchitectureTest {
         return classIsResolvedViaReflection().and(not(explicitlyAllowedUsage));
     }
 
-    private static DescribedPredicate<JavaAccess<?>> contextIsAnnotatedWith(final Class<? extends Annotation> annotationType) {
+    private static DescribedPredicate<JavaAccess<?>> contextIsAnnotatedWith(Class<? extends Annotation> annotationType) {
         return origin(With.owner(withAnnotation(annotationType)));
     }
 
-    private static DescribedPredicate<JavaClass> withAnnotation(final Class<? extends Annotation> annotationType) {
+    private static DescribedPredicate<JavaClass> withAnnotation(Class<? extends Annotation> annotationType) {
         return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getName()) {
             @Override
             public boolean test(JavaClass input) {

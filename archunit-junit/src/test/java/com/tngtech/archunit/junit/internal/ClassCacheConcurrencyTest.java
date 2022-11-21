@@ -67,7 +67,7 @@ public class ClassCacheConcurrencyTest {
         verifyNoMoreInteractions(classFileImporter);
     }
 
-    private Runnable repeatGetClassesToAnalyze(final int times) {
+    private Runnable repeatGetClassesToAnalyze(int times) {
         return () -> {
             for (int j = 0; j < times; j++) {
                 cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()),

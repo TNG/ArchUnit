@@ -66,7 +66,7 @@ final class ReverseDependencies {
         this.directDependenciesToClass = createDirectDependenciesToClassSupplier(creation.allDependencies);
     }
 
-    private static Supplier<SetMultimap<JavaClass, Dependency>> createDirectDependenciesToClassSupplier(final List<JavaClassDependencies> allDependencies) {
+    private static Supplier<SetMultimap<JavaClass, Dependency>> createDirectDependenciesToClassSupplier(List<JavaClassDependencies> allDependencies) {
         return Suppliers.memoize(() -> {
             ImmutableSetMultimap.Builder<JavaClass, Dependency> result = ImmutableSetMultimap.builder();
             for (JavaClassDependencies dependencies : allDependencies) {
@@ -221,7 +221,7 @@ final class ReverseDependencies {
         }
 
         private void registerAnnotations(JavaClass clazz) {
-            for (final JavaAnnotation<?> annotation : findAnnotations(clazz)) {
+            for (JavaAnnotation<?> annotation : findAnnotations(clazz)) {
                 annotationTypeDependencies.put(annotation.getRawType(), annotation);
                 annotation.accept(new JavaAnnotation.DefaultParameterVisitor() {
                     @Override
@@ -277,7 +277,7 @@ final class ReverseDependencies {
         @Override
         public Set<ACCESS> load(MEMBER member) {
             ImmutableSet.Builder<ACCESS> result = ImmutableSet.builder();
-            for (final JavaClass javaClass : getPossibleTargetClassesForAccess(member.getOwner())) {
+            for (JavaClass javaClass : getPossibleTargetClassesForAccess(member.getOwner())) {
                 for (ACCESS access : this.accessesToSelf.get(javaClass)) {
                     Optional<? extends JavaMember> target = access.getTarget().resolveMember();
                     if (target.isPresent() && target.get().equals(member)) {

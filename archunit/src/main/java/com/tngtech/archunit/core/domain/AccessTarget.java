@@ -153,7 +153,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isAnnotatedWith(final String annotationTypeName) {
+    public boolean isAnnotatedWith(String annotationTypeName) {
         return resolveMember().isPresent() && resolveMember().get().isAnnotatedWith(annotationTypeName);
     }
 
@@ -166,7 +166,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return resolveMember().isPresent() && resolveMember().get().isAnnotatedWith(predicate);
     }
 
@@ -188,7 +188,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isMetaAnnotatedWith(final String annotationTypeName) {
+    public boolean isMetaAnnotatedWith(String annotationTypeName) {
         return resolveMember().isPresent() && resolveMember().get().isMetaAnnotatedWith(annotationTypeName);
     }
 
@@ -201,7 +201,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return resolveMember().isPresent() && resolveMember().get().isMetaAnnotatedWith(predicate);
     }
 
@@ -218,7 +218,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final AccessTarget other = (AccessTarget) obj;
+        AccessTarget other = (AccessTarget) obj;
         return Objects.equals(this.fullName, other.fullName);
     }
 

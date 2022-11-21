@@ -46,7 +46,7 @@ class Alias {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Alias other = (Alias) obj;
+        Alias other = (Alias) obj;
         return Objects.equals(this.value, other.value);
     }
 

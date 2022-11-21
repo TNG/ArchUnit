@@ -20,32 +20,82 @@ import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class RawInstanceofCheck {
+class RawInstanceofCheck implements RawCodeUnitDependency<JavaClassDescriptor> {
+    private final RawAccessRecord.CodeUnit origin;
     private final JavaClassDescriptor target;
     private final int lineNumber;
+    private final boolean declaredInLambda;
 
-    private RawInstanceofCheck(JavaClassDescriptor target, int lineNumber) {
+    private RawInstanceofCheck(RawAccessRecord.CodeUnit origin, JavaClassDescriptor target, int lineNumber, boolean declaredInLambda) {
+        this.origin = checkNotNull(origin);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
+        this.declaredInLambda = declaredInLambda;
     }
 
-    static RawInstanceofCheck from(JavaClassDescriptor target, int lineNumber) {
-        return new RawInstanceofCheck(target, lineNumber);
+    @Override
+    public RawAccessRecord.CodeUnit getOrigin() {
+        return origin;
     }
 
-    JavaClassDescriptor getTarget() {
+    @Override
+    public JavaClassDescriptor getTarget() {
         return target;
     }
 
-    int getLineNumber() {
+    @Override
+    public int getLineNumber() {
         return lineNumber;
+    }
+
+    @Override
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
     }
 
     @Override
     public String toString() {
         return toStringHelper(this)
+                .add("origin", origin)
                 .add("target", target)
                 .add("lineNumber", lineNumber)
+                .add("declaredInLambda", declaredInLambda)
                 .toString();
+    }
+
+    static class Builder implements RawCodeUnitDependencyBuilder<RawInstanceofCheck, JavaClassDescriptor> {
+        private RawAccessRecord.CodeUnit origin;
+        private JavaClassDescriptor target;
+        private int lineNumber;
+        private boolean declaredInLambda;
+
+        @Override
+        public RawInstanceofCheck.Builder withOrigin(RawAccessRecord.CodeUnit origin) {
+            this.origin = origin;
+            return this;
+        }
+
+        @Override
+        public RawInstanceofCheck.Builder withTarget(JavaClassDescriptor target) {
+            this.target = target;
+            return this;
+        }
+
+        @Override
+        public RawInstanceofCheck.Builder withLineNumber(int lineNumber) {
+            this.lineNumber = lineNumber;
+            return this;
+        }
+
+        @Override
+        public RawInstanceofCheck.Builder withDeclaredInLambda(boolean declaredInLambda) {
+            this.declaredInLambda = declaredInLambda;
+            return this;
+        }
+
+        @Override
+        public RawInstanceofCheck build() {
+            return new RawInstanceofCheck(origin, target, lineNumber, declaredInLambda);
+        }
     }
 }

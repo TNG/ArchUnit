@@ -110,7 +110,7 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ThrowsClause<?> other = (ThrowsClause<?>) obj;
+        ThrowsClause<?> other = (ThrowsClause<?>) obj;
         return Objects.equals(this.location, other.location)
                 && Objects.equals(this.getTypes(), other.getTypes());
     }

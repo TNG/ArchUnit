@@ -74,7 +74,7 @@ public class HasThrowsClauseTest {
     }
 
     @SafeVarargs
-    private final HasThrowsClause<?> newHasThrowsClause(final Class<? extends Throwable>... throwsDeclarations) {
+    private final HasThrowsClause<?> newHasThrowsClause(Class<? extends Throwable>... throwsDeclarations) {
         return new HasThrowsClause() {
             @Override
             public ThrowsClause<?> getThrowsClause() {

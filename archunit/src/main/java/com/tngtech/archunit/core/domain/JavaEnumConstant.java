@@ -60,7 +60,7 @@ public final class JavaEnumConstant {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final JavaEnumConstant other = (JavaEnumConstant) obj;
+        JavaEnumConstant other = (JavaEnumConstant) obj;
         return Objects.equals(this.declaringClass, other.declaringClass)
                 && Objects.equals(this.name, other.name);
     }

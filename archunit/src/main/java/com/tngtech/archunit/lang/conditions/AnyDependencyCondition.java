@@ -36,7 +36,7 @@ public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<D
 
     AnyDependencyCondition(
             String description,
-            final DescribedPredicate<? super Dependency> predicate,
+            DescribedPredicate<? super Dependency> predicate,
             Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies) {
 
         this(description, predicate, javaClassToRelevantDependencies, alwaysFalse());
@@ -44,7 +44,7 @@ public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<D
 
     private AnyDependencyCondition(
             String description,
-            final DescribedPredicate<? super Dependency> conditionPredicate,
+            DescribedPredicate<? super Dependency> conditionPredicate,
             Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies,
             DescribedPredicate<Dependency> ignorePredicate) {
 

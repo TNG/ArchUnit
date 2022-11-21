@@ -18,7 +18,7 @@ public class AccessToFieldAssertion extends BaseAccessAssertion<AccessToFieldAss
         return new AccessToFieldAssertion(access);
     }
 
-    public AccessToFieldAssertion isTo(final String name) {
+    public AccessToFieldAssertion isTo(String name) {
         return isTo(new Condition<FieldAccessTarget>("field with name '" + name + "'") {
             @Override
             public boolean matches(FieldAccessTarget fieldAccessTarget) {
@@ -27,7 +27,7 @@ public class AccessToFieldAssertion extends BaseAccessAssertion<AccessToFieldAss
         });
     }
 
-    public AccessToFieldAssertion isTo(final Class<?> owner, final String name) {
+    public AccessToFieldAssertion isTo(Class<?> owner, String name) {
         return isTo(new Condition<FieldAccessTarget>("field " + owner.getName() + "." + name) {
             @Override
             public boolean matches(FieldAccessTarget fieldAccessTarget) {

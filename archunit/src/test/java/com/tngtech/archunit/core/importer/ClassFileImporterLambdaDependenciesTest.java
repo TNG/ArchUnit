@@ -1,5 +1,7 @@
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
+import java.io.FilterInputStream;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -7,6 +9,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -16,6 +19,9 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.CheckingInstanceofFromLambda;
+import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjectsFromLambda;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -28,17 +34,21 @@ import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporterTestUtils.isLambdaMethodName;
-import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
+import static com.tngtech.archunit.testutil.Assertions.assertThatInstanceofChecks;
+import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
+import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
+import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
+import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.stream.Collectors.toSet;
 
 @RunWith(DataProviderRunner.class)
-public class ClassFileImporterLambdaAccessesTest {
+public class ClassFileImporterLambdaDependenciesTest {
     @Test
     public void imports_method_call_from_lambda_without_parameter() {
         class Target {
@@ -508,6 +518,28 @@ public class ClassFileImporterLambdaAccessesTest {
         assertThat(accesses.stream().filter(a -> a.getOrigin().getName().contains("Direct")))
                 .isNotEmpty()
                 .allMatch(javaAccess -> !javaAccess.isDeclaredInLambda());
+    }
+
+    @Test
+    public void imports_referenced_class_object_in_lambda() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ReferencingClassObjectsFromLambda.class);
+        Set<ReferencedClassObject> referencedClassObjects = classes.get(ReferencingClassObjectsFromLambda.class).getReferencedClassObjects();
+
+        assertThatReferencedClassObjects(referencedClassObjects).containReferencedClassObjects(
+                referencedClassObject(FilterInputStream.class, 10).declaredInLambda(),
+                referencedClassObject(File.class, 14).declaredInLambda()
+        );
+    }
+
+    @Test
+    public void imports_instanceof_checks_in_lambda() {
+        JavaClasses classes = new ClassFileImporter().importClasses(CheckingInstanceofFromLambda.class);
+        Set<InstanceofCheck> instanceofChecks = classes.get(CheckingInstanceofFromLambda.class).getInstanceofChecks();
+
+        assertThatInstanceofChecks(instanceofChecks).containInstanceofChecks(
+                instanceofCheck(FilterInputStream.class, 11).declaredInLambda(),
+                instanceofCheck(File.class, 15).declaredInLambda()
+        );
     }
 
     private Condition<JavaMethod> syntheticLambdaMethods() {

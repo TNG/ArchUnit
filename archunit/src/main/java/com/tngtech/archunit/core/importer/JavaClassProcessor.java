@@ -71,7 +71,6 @@ import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERS
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isAsmMethodHandle;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
-import static com.tngtech.archunit.core.importer.RawInstanceofCheck.from;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -373,7 +372,7 @@ class JavaClassProcessor extends ClassVisitor {
         public void visitLdcInsn(Object value) {
             if (JavaClassDescriptorImporter.isAsmType(value)) {
                 JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(value);
-                codeUnitBuilder.addReferencedClassObject(RawReferencedClassObject.from(type, actualLineNumber));
+                accessHandler.handleReferencedClassObject(type, actualLineNumber);
                 declarationHandler.onDeclaredClassObject(type.getFullyQualifiedClassName());
             }
         }
@@ -401,7 +400,7 @@ class JavaClassProcessor extends ClassVisitor {
         public void visitTypeInsn(int opcode, String type) {
             if (opcode == Opcodes.INSTANCEOF) {
                 JavaClassDescriptor instanceOfCheckType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
-                codeUnitBuilder.addInstanceOfCheck(from(instanceOfCheckType, actualLineNumber));
+                accessHandler.handleInstanceofCheck(instanceOfCheckType, actualLineNumber);
                 declarationHandler.onDeclaredInstanceofCheck(instanceOfCheckType.getFullyQualifiedClassName());
             }
         }
@@ -417,12 +416,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void visitInvokeDynamicInsn(
-                final String name,
-                final String descriptor,
-                final Handle bootstrapMethodHandle,
-                final Object... bootstrapMethodArguments
-        ) {
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isLambdaMetafactory(bootstrapMethodHandle.getOwner())) {
                 Object methodHandleCandidate = bootstrapMethodArguments[1];
                 if (isAsmMethodHandle(methodHandleCandidate)) {
@@ -540,6 +534,10 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleLambdaInstruction(String owner, String name, String desc);
 
+        void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber);
+
+        void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -574,6 +572,14 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleLambdaInstruction(String owner, String name, String desc) {
+            }
+
+            @Override
+            public void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber) {
+            }
+
+            @Override
+            public void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber) {
             }
 
             @Override
@@ -640,12 +646,12 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public AnnotationVisitor visitAnnotation(final String name, String desc) {
+        public AnnotationVisitor visitAnnotation(String name, String desc) {
             return new AnnotationProcessor(addAnnotationAsProperty(name, this.annotationBuilder), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
-        public AnnotationVisitor visitArray(final String name) {
+        public AnnotationVisitor visitArray(String name) {
             return new AnnotationArrayProcessor(new AnnotationArrayContext() {
                 @Override
                 public String getDeclaringAnnotationTypeName() {
@@ -670,11 +676,11 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, JavaAnnotationBuilder> annotations, final int index) {
+    private static TakesAnnotationBuilder addAnnotationAtIndex(SetMultimap<Integer, JavaAnnotationBuilder> annotations, int index) {
         return annotation -> annotations.put(index, annotation);
     }
 
-    private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final JavaAnnotationBuilder annotationBuilder) {
+    private static TakesAnnotationBuilder addAnnotationAsProperty(String name, JavaAnnotationBuilder annotationBuilder) {
         return builder -> annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
     }
 
@@ -716,7 +722,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void visitEnum(String name, final String desc, final String value) {
+        public void visitEnum(String name, String desc, String value) {
             setDerivedComponentType(JavaEnumConstant.class);
             values.add(handleAnnotationEnumProperty(desc, value, declarationHandler));
         }
@@ -856,7 +862,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public final void visit(String name, Object input) {
-            final Object value = JavaClassDescriptorImporter.importAsmTypeIfPossible(input);
+            Object value = JavaClassDescriptorImporter.importAsmTypeIfPossible(input);
             if (value instanceof JavaClassDescriptor) {
                 visitClass(name, (JavaClassDescriptor) value);
             } else {

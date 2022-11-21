@@ -242,7 +242,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         @Override
-        public Slices.Transformer that(final DescribedPredicate<? super Slice> predicate) {
+        public Slices.Transformer that(DescribedPredicate<? super Slice> predicate) {
             String newDescription = this.predicate.joinDescription(getDescription(), predicate.getDescription());
             return new Transformer(sliceAssignment, newDescription, namingPattern, this.predicate.add(predicate));
         }

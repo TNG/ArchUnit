@@ -116,7 +116,7 @@ public class JavaCodeUnitTest {
 
     @Test
     public void falls_back_to_creating_parameters_with_only_generic_types_if_match_between_raw_types_and_generic_types_cannot_be_made() {
-        final List<String> nonConstant = newArrayList(getClass().getName());
+        List<String> nonConstant = newArrayList(getClass().getName());
         class LocalClassReferencingNonConstantFromOuterScope {
             @SuppressWarnings("unused")
             LocalClassReferencingNonConstantFromOuterScope(List<String> someParameterizedType) {
@@ -262,7 +262,7 @@ public class JavaCodeUnitTest {
             }
         }
 
-        final JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+        JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
                 .getMethod("method", String.class).getParameters().get(0);
 
         SomeParameterAnnotation annotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class);
@@ -284,7 +284,7 @@ public class JavaCodeUnitTest {
             }
         }
 
-        final JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+        JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
                 .getMethod("method", String.class).getParameters().get(0);
 
         assertThat(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class).get()).isInstanceOf(SomeParameterAnnotation.class);

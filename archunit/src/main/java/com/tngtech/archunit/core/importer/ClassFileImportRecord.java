@@ -84,6 +84,8 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
+    private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
+    private final Set<RawInstanceofCheck> rawInstanceofChecks = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
 
@@ -217,13 +219,13 @@ class ClassFileImportRecord {
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {
-        if (!isSyntheticEnumSwitchMapFieldName(record.target.name)) {
+        if (!isSyntheticEnumSwitchMapFieldName(record.getTarget().name)) {
             rawFieldAccessRecords.add(record);
         }
     }
 
     void registerMethodCall(RawAccessRecord record) {
-        if (isSyntheticAccessMethodName(record.target.name)) {
+        if (isSyntheticAccessMethodName(record.getTarget().name)) {
             syntheticPrivateAccessRecorder.registerSyntheticMethodInvocation(record);
         } else {
             rawMethodCallRecords.add(record);
@@ -244,6 +246,14 @@ class ClassFileImportRecord {
 
     void registerLambdaInvocation(RawAccessRecord record) {
         syntheticLambdaAccessRecorder.registerSyntheticMethodInvocation(record);
+    }
+
+    void registerReferencedClassObject(RawReferencedClassObject referencedClassObject) {
+        rawReferencedClassObjects.add(referencedClassObject);
+    }
+
+    void registerInstanceofCheck(RawInstanceofCheck instanceofCheck) {
+        rawInstanceofChecks.add(instanceofCheck);
     }
 
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
@@ -281,9 +291,23 @@ class ClassFileImportRecord {
         ).forEach(doWithRecord);
     }
 
-    private <ACCESS extends RawAccessRecord> Stream<ACCESS> fixSyntheticOrigins(
+    void forEachRawReferencedClassObject(Consumer<RawReferencedClassObject> doWithReferencedClassObject) {
+        fixSyntheticOrigins(
+                rawReferencedClassObjects, COPY_RAW_REFERENCED_CLASS_OBJECT,
+                syntheticLambdaAccessRecorder
+        ).forEach(doWithReferencedClassObject);
+    }
+
+    void forEachRawInstanceofCheck(Consumer<RawInstanceofCheck> doWithInstanceofCheck) {
+        fixSyntheticOrigins(
+                rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK,
+                syntheticLambdaAccessRecorder
+        ).forEach(doWithInstanceofCheck);
+    }
+
+    private <ACCESS extends RawCodeUnitDependency<?>> Stream<ACCESS> fixSyntheticOrigins(
             Set<ACCESS> rawAccessRecordsIncludingSyntheticAccesses,
-            Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> createAccessWithNewOrigin,
+            Function<ACCESS, ? extends RawCodeUnitDependencyBuilder<ACCESS, ?>> createAccessWithNewOrigin,
             SyntheticAccessRecorder... syntheticAccessRecorders
     ) {
 
@@ -303,25 +327,32 @@ class ClassFileImportRecord {
     }
 
     private static final Function<RawAccessRecord, RawAccessRecord.Builder> COPY_RAW_ACCESS_RECORD =
-            access -> new RawAccessRecord.Builder()
-                    .withCaller(access.caller)
-                    .withTarget(access.target)
-                    .withLineNumber(access.lineNumber)
-                    .withDeclaredInLambda(access.declaredInLambda);
+            access -> copyInto(new RawAccessRecord.Builder(), access);
 
     private static final Function<RawAccessRecord.ForField, RawAccessRecord.ForField.Builder> COPY_RAW_FIELD_ACCESS_RECORD =
-            access -> new RawAccessRecord.ForField.Builder()
-                    .withCaller(access.caller)
-                    .withAccessType(access.accessType)
-                    .withTarget(access.target)
-                    .withLineNumber(access.lineNumber)
-                    .withDeclaredInLambda(access.declaredInLambda);
+            access -> copyInto(new RawAccessRecord.ForField.Builder(), access)
+                    .withAccessType(access.accessType);
+
+    private static final Function<RawReferencedClassObject, RawReferencedClassObject.Builder> COPY_RAW_REFERENCED_CLASS_OBJECT =
+            referencedClassObject -> copyInto(new RawReferencedClassObject.Builder(), referencedClassObject);
+
+    private static final Function<RawInstanceofCheck, RawInstanceofCheck.Builder> COPY_RAW_INSTANCEOF_CHECK =
+            instanceofCheck -> copyInto(new RawInstanceofCheck.Builder(), instanceofCheck);
+
+    private static <TARGET, BUILDER extends RawCodeUnitDependencyBuilder<?, TARGET>> BUILDER copyInto(BUILDER builder, RawCodeUnitDependency<TARGET> referencedClassObject) {
+        builder
+                .withOrigin(referencedClassObject.getOrigin())
+                .withTarget(referencedClassObject.getTarget())
+                .withLineNumber(referencedClassObject.getLineNumber())
+                .withDeclaredInLambda(referencedClassObject.isDeclaredInLambda());
+        return builder;
+    }
 
     private static SyntheticAccessRecorder createSyntheticLambdaAccessRecorder() {
         return new SyntheticAccessRecorder(
                 codeUnit -> isLambdaMethodName(codeUnit.getName()),
                 (accessBuilder, newOrigin) -> accessBuilder
-                        .withCaller(newOrigin)
+                        .withOrigin(newOrigin)
                         .withDeclaredInLambda(true)
         );
     }
@@ -329,7 +360,7 @@ class ClassFileImportRecord {
     private static SyntheticAccessRecorder createSyntheticPrivateAccessRecorder() {
         return new SyntheticAccessRecorder(
                 codeUnit -> isSyntheticAccessMethodName(codeUnit.getName()),
-                RawAccessRecord.BaseBuilder::withCaller
+                RawCodeUnitDependencyBuilder::withOrigin
         );
     }
 
@@ -377,54 +408,51 @@ class ClassFileImportRecord {
     private static class SyntheticAccessRecorder {
         private final SetMultimap<String, RawAccessRecord> rawSyntheticMethodInvocationRecordsByTarget = HashMultimap.create();
         private final Predicate<CodeUnit> isSyntheticOrigin;
-        private final BiConsumer<RawAccessRecord.BaseBuilder<?, ?>, CodeUnit> fixOrigin;
+        private final BiConsumer<RawCodeUnitDependencyBuilder<?, ?>, CodeUnit> fixOrigin;
 
         SyntheticAccessRecorder(
                 Predicate<CodeUnit> isSyntheticOrigin,
-                BiConsumer<RawAccessRecord.BaseBuilder<?, ?>, CodeUnit> fixOrigin
+                BiConsumer<RawCodeUnitDependencyBuilder<?, ?>, CodeUnit> fixOrigin
         ) {
             this.isSyntheticOrigin = isSyntheticOrigin;
             this.fixOrigin = fixOrigin;
         }
 
         void registerSyntheticMethodInvocation(RawAccessRecord record) {
-            rawSyntheticMethodInvocationRecordsByTarget.put(getMemberKey(record.target), record);
+            rawSyntheticMethodInvocationRecordsByTarget.put(getMemberKey(record.getTarget()), record);
         }
 
-        <ACCESS extends RawAccessRecord> Set<ACCESS> fixSyntheticAccess(
+        <ACCESS extends RawCodeUnitDependency<?>> Set<ACCESS> fixSyntheticAccess(
                 ACCESS access,
-                Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> copyAccess
+                Function<ACCESS, ? extends RawCodeUnitDependencyBuilder<ACCESS, ?>> copyAccess
         ) {
-            return isSyntheticOrigin.test(access.caller)
+            return isSyntheticOrigin.test(access.getOrigin())
                     ? replaceOriginByFixedOrigin(access, copyAccess)
                     : singleton(access);
         }
 
-        private <ACCESS extends RawAccessRecord> Set<ACCESS> replaceOriginByFixedOrigin(
+        private <ACCESS extends RawCodeUnitDependency<?>> Set<ACCESS> replaceOriginByFixedOrigin(
                 ACCESS accessFromSyntheticMethod,
-                Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> copyAccess
+                Function<ACCESS, ? extends RawCodeUnitDependencyBuilder<ACCESS, ?>> copyAccess
         ) {
             Set<ACCESS> result = findNonSyntheticOriginOf(accessFromSyntheticMethod)
                     .map(accessWithCorrectOrigin -> {
-                        RawAccessRecord.BaseBuilder<ACCESS, ?> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
-                        fixOrigin.accept(copiedBuilder, accessWithCorrectOrigin.caller);
+                        RawCodeUnitDependencyBuilder<ACCESS, ?> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
+                        fixOrigin.accept(copiedBuilder, accessWithCorrectOrigin.getOrigin());
                         return copiedBuilder.build();
                     })
                     .collect(toSet());
 
             if (result.isEmpty()) {
-                log.warn("Could not find matching origin for synthetic method {}.{}|{}",
-                        accessFromSyntheticMethod.target.getDeclaringClassName(),
-                        accessFromSyntheticMethod.target.name,
-                        accessFromSyntheticMethod.target.getDescriptor());
+                log.warn("Could not find matching origin for synthetic method {}", accessFromSyntheticMethod);
             }
 
             return result;
         }
 
-        private <ACCESS extends RawAccessRecord> Stream<RawAccessRecord> findNonSyntheticOriginOf(ACCESS access) {
-            return isSyntheticOrigin.test(access.caller)
-                    ? rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(access.caller)).stream().flatMap(this::findNonSyntheticOriginOf)
+        private <ACCESS extends RawCodeUnitDependency<?>> Stream<RawCodeUnitDependency<?>> findNonSyntheticOriginOf(ACCESS access) {
+            return isSyntheticOrigin.test(access.getOrigin())
+                    ? rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(access.getOrigin())).stream().flatMap(this::findNonSyntheticOriginOf)
                     : Stream.of(access);
         }
     }

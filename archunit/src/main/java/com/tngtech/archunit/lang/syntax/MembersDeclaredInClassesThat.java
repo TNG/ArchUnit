@@ -443,7 +443,7 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
     }
 
     @Override
-    public CONJUNCTION belongToAnyOf(final Class<?>... classes) {
+    public CONJUNCTION belongToAnyOf(Class<?>... classes) {
         return givenWith(JavaClass.Predicates.belongToAnyOf(classes));
     }
 

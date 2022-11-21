@@ -40,7 +40,7 @@ public class FailureDisplayFormatFactoryTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private HasDescription hasDescription(final String description) {
+    private HasDescription hasDescription(String description) {
         return () -> description;
     }
 }

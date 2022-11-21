@@ -22,7 +22,7 @@ public class JavaCallQuery {
         return that(hasOrigin(source));
     }
 
-    public JavaMethodCall inLineNumber(final int lineNumber) {
+    public JavaMethodCall inLineNumber(int lineNumber) {
         Set<JavaMethodCall> matchingCalls = that(hasLine(lineNumber)).calls;
         assertThat(matchingCalls).as("matching calls in line number " + lineNumber).isNotEmpty();
         return matchingCalls.iterator().next();
@@ -32,15 +32,15 @@ public class JavaCallQuery {
         return new JavaCallQuery(calls.stream().filter(predicate).collect(toSet()));
     }
 
-    public static JavaCallQuery methodCallTo(final JavaMethod method) {
+    public static JavaCallQuery methodCallTo(JavaMethod method) {
         return new JavaCallQuery(method.getCallsOfSelf());
     }
 
-    private static Predicate<JavaMethodCall> hasLine(final int lineNumber) {
+    private static Predicate<JavaMethodCall> hasLine(int lineNumber) {
         return input -> input.getLineNumber() == lineNumber;
     }
 
-    private static Predicate<JavaMethodCall> hasOrigin(final JavaCodeUnit origin) {
+    private static Predicate<JavaMethodCall> hasOrigin(JavaCodeUnit origin) {
         return input -> origin.equals(input.getOrigin());
     }
 }

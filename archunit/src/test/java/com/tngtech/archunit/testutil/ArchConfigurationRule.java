@@ -13,12 +13,12 @@ public class ArchConfigurationRule extends ExternalResource {
     private boolean beforeHasBeenExecuted = false;
     private final List<Runnable> configurationInitializers = new ArrayList<>();
 
-    public ArchConfigurationRule resolveAdditionalDependenciesFromClassPath(final boolean enabled) {
+    public ArchConfigurationRule resolveAdditionalDependenciesFromClassPath(boolean enabled) {
         addConfigurationInitializer(() -> ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(enabled));
         return this;
     }
 
-    public ArchConfigurationRule setFailOnEmptyShould(final boolean allowEmptyShould) {
+    public ArchConfigurationRule setFailOnEmptyShould(boolean allowEmptyShould) {
         addConfigurationInitializer(() -> ArchConfiguration.get().setProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, String.valueOf(allowEmptyShould)));
         return this;
     }

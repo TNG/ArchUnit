@@ -59,7 +59,7 @@ public class ClassFileSourceTest {
 
     @Test
     @UseDataProvider("expected_classes")
-    public void classes_in_JAR_are_filtered(Set<String> givenEntries, ImportOptions importOptions, final Set<String> expectedIncluded) {
+    public void classes_in_JAR_are_filtered(Set<String> givenEntries, ImportOptions importOptions, Set<String> expectedIncluded) {
         TestJarFile testJarFile = new TestJarFile();
         for (String entry : givenEntries) {
             testJarFile.withEntry(entry);
@@ -74,7 +74,7 @@ public class ClassFileSourceTest {
     @Test
     @UseDataProvider("expected_classes")
     public void classes_from_file_path_are_filtered(
-            Set<String> givenFiles, ImportOptions importOptions, final Set<String> expectedIncluded) throws IOException {
+            Set<String> givenFiles, ImportOptions importOptions, Set<String> expectedIncluded) throws IOException {
 
         File dir = tempDir.newFolder();
         for (String file : givenFiles) {
@@ -172,7 +172,7 @@ public class ClassFileSourceTest {
                 .hasSameElementsAs(expectedIncluded);
     }
 
-    private static ImportOptions locationContains(final String part) {
+    private static ImportOptions locationContains(String part) {
         return new ImportOptions().with(location -> location.contains(part));
     }
 

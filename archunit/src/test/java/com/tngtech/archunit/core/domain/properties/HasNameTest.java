@@ -74,11 +74,11 @@ public class HasNameTest {
                 .as(input + " =~ " + regex);
     }
 
-    private HasName newHasName(final String name) {
+    private HasName newHasName(String name) {
         return newHasNameAndFullName(name, "full " + name);
     }
 
-    private HasName.AndFullName newHasNameAndFullName(final String name, final String fullName) {
+    private HasName.AndFullName newHasNameAndFullName(String name, String fullName) {
         return new HasName.AndFullName() {
             @Override
             public String getName() {

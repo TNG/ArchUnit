@@ -624,7 +624,7 @@ public class CodeUnitsShouldTest {
                         quote(CONSTRUCTOR_ONE_ARG)));
     }
 
-    private static DescribedPredicate<JavaCodeUnit> doNotHaveParametersOfType(final Class<?> type) {
+    private static DescribedPredicate<JavaCodeUnit> doNotHaveParametersOfType(Class<?> type) {
         return new DescribedPredicate<JavaCodeUnit>("do not have parameters of type " + type.getSimpleName()) {
             @Override
             public boolean test(JavaCodeUnit codeUnit) {

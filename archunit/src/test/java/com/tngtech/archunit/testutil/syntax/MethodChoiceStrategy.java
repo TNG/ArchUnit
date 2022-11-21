@@ -37,7 +37,7 @@ public class MethodChoiceStrategy {
         return new MethodChoiceStrategy(ignorePredicate.or(methodWithName(string)));
     }
 
-    private Predicate<Method> methodWithName(final String methodName) {
+    private Predicate<Method> methodWithName(String methodName) {
         return input -> input.getName().equals(methodName);
     }
 
@@ -137,7 +137,7 @@ public class MethodChoiceStrategy {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final MethodKey other = (MethodKey) obj;
+            MethodKey other = (MethodKey) obj;
             return Objects.equals(this.name, other.name)
                     && Objects.equals(this.parameterTypes, other.parameterTypes);
         }

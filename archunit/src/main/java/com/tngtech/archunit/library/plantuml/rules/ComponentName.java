@@ -43,7 +43,7 @@ class ComponentName {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ComponentName other = (ComponentName) obj;
+        ComponentName other = (ComponentName) obj;
         return Objects.equals(this.value, other.value);
     }
 

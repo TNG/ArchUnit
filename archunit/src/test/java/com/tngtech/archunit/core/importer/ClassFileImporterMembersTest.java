@@ -36,13 +36,14 @@ import com.tngtech.archunit.core.importer.testexamples.fieldimport.ClassWithStri
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInConstructor;
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInMethod;
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInStaticInitializer;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksMultipleInstanceofs;
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.InstanceofChecked;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithMultipleMethods;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObjectVoidAndIntIntSerializableMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithThrowingMethod;
 import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjects;
-import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
+import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.ExpectedReferencedClassObject;
 import org.assertj.core.util.Objects;
 import org.junit.Test;
 
@@ -61,11 +62,13 @@ import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getC
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getFields;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getMethods;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatInstanceofChecks;
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
 import static com.tngtech.archunit.testutil.Assertions.assertThatThrowsClause;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
+import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 import static java.util.stream.Collectors.toSet;
 
@@ -267,11 +270,11 @@ public class ClassFileImporterMembersTest {
     public void imports_referenced_class_objects() {
         JavaClass javaClass = new ClassFileImporter().importClass(ReferencingClassObjects.class);
 
-        Set<ReferencedClassObjectsAssertion.ExpectedReferencedClassObject> expectedInConstructor =
+        Set<ExpectedReferencedClassObject> expectedInConstructor =
                 ImmutableSet.of(referencedClassObject(File.class, 19), referencedClassObject(Path.class, 19));
-        Set<ReferencedClassObjectsAssertion.ExpectedReferencedClassObject> expectedInMethod =
+        Set<ExpectedReferencedClassObject> expectedInMethod =
                 ImmutableSet.of(referencedClassObject(FileSystem.class, 22), referencedClassObject(Charset.class, 22));
-        Set<ReferencedClassObjectsAssertion.ExpectedReferencedClassObject> expectedInStaticInitializer =
+        Set<ExpectedReferencedClassObject> expectedInStaticInitializer =
                 ImmutableSet.of(referencedClassObject(FilterInputStream.class, 16), referencedClassObject(Buffer.class, 16));
 
         assertThatReferencedClassObjects(javaClass.getConstructor().getReferencedClassObjects())
@@ -286,6 +289,22 @@ public class ClassFileImporterMembersTest {
         assertThatReferencedClassObjects(javaClass.getReferencedClassObjects())
                 .hasSize(6)
                 .containReferencedClassObjects(concat(expectedInConstructor, expectedInMethod, expectedInStaticInitializer));
+    }
+
+    @Test
+    public void imports_instanceof_checks() {
+        assertThatInstanceofChecks(new ClassFileImporter().importClass(ChecksInstanceofInConstructor.class).getConstructor(Object.class).getInstanceofChecks())
+                .containInstanceofChecks(instanceofCheck(InstanceofChecked.class, 6));
+        assertThatInstanceofChecks(new ClassFileImporter().importClass(ChecksInstanceofInMethod.class).getMethod("method", Object.class).getInstanceofChecks())
+                .containInstanceofChecks(instanceofCheck(InstanceofChecked.class, 6));
+        assertThatInstanceofChecks(new ClassFileImporter().importClass(ChecksInstanceofInStaticInitializer.class).getStaticInitializer().get().getInstanceofChecks())
+                .containInstanceofChecks(instanceofCheck(InstanceofChecked.class, 6));
+        assertThatInstanceofChecks(new ClassFileImporter().importClass(ChecksMultipleInstanceofs.class).getInstanceofChecks())
+                .hasSize(3)
+                .containInstanceofChecks(
+                        instanceofCheck(InstanceofChecked.class, 6),
+                        instanceofCheck(InstanceofChecked.class, 10),
+                        instanceofCheck(InstanceofChecked.class, 15));
     }
 
     @Test
@@ -348,6 +367,10 @@ public class ClassFileImporterMembersTest {
                 .map(instanceofCheck -> instanceofCheck.getOwner().getOwner())
                 .collect(toSet());
 
-        assertThatTypes(origins).matchInAnyOrder(ChecksInstanceofInMethod.class, ChecksInstanceofInConstructor.class, ChecksInstanceofInStaticInitializer.class);
+        assertThatTypes(origins).matchInAnyOrder(
+                ChecksInstanceofInMethod.class,
+                ChecksInstanceofInConstructor.class,
+                ChecksInstanceofInStaticInitializer.class,
+                ChecksMultipleInstanceofs.class);
     }
 }

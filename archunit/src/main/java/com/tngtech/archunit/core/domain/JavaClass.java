@@ -1388,7 +1388,7 @@ public final class JavaClass
     }
 
     @PublicAPI(usage = ACCESS)
-    public boolean isAssignableTo(final String typeName) {
+    public boolean isAssignableTo(String typeName) {
         return isAssignableTo(GET_NAME.is(equalTo(typeName)));
     }
 
@@ -1467,12 +1467,12 @@ public final class JavaClass
         completionProcess.markGenericInterfacesComplete();
     }
 
-    void completeMembers(final ImportContext context) {
+    void completeMembers(ImportContext context) {
         members = JavaClassMembers.create(this, context);
         completionProcess.markMembersComplete();
     }
 
-    void completeAnnotations(final ImportContext context) {
+    void completeAnnotations(ImportContext context) {
         annotations = context.createAnnotations(this);
         members.completeAnnotations(context);
         completionProcess.markAnnotationsComplete();
@@ -1480,7 +1480,7 @@ public final class JavaClass
 
     JavaClassDependencies completeFrom(ImportContext context) {
         completeComponentType(context);
-        members.completeAccessesFrom(context);
+        members.completeFrom(context);
         javaClassDependencies = new JavaClassDependencies(this);
         return javaClassDependencies;
     }
@@ -2142,27 +2142,27 @@ public final class JavaClass
         };
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> type(final Class<?> type) {
+        public static DescribedPredicate<JavaClass> type(Class<?> type) {
             return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("type " + type.getName());
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> simpleName(final String name) {
+        public static DescribedPredicate<JavaClass> simpleName(String name) {
             return equalTo(name).onResultOf(GET_SIMPLE_NAME).as("simple name '%s'", name);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> simpleNameStartingWith(final String prefix) {
+        public static DescribedPredicate<JavaClass> simpleNameStartingWith(String prefix) {
             return new SimpleNameStartingWithPredicate(prefix);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> simpleNameContaining(final String infix) {
+        public static DescribedPredicate<JavaClass> simpleNameContaining(String infix) {
             return new SimpleNameContainingPredicate(infix);
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> simpleNameEndingWith(final String suffix) {
+        public static DescribedPredicate<JavaClass> simpleNameEndingWith(String suffix) {
             return new SimpleNameEndingWithPredicate(suffix);
         }
 
@@ -2179,7 +2179,7 @@ public final class JavaClass
          * @see #assignableFrom(Class)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
+        public static DescribedPredicate<JavaClass> assignableTo(Class<?> type) {
             return assignableTo(type.getName());
         }
 
@@ -2196,7 +2196,7 @@ public final class JavaClass
          * @see #assignableTo(Class)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
+        public static DescribedPredicate<JavaClass> assignableFrom(Class<?> type) {
             return assignableFrom(type.getName());
         }
 
@@ -2204,7 +2204,7 @@ public final class JavaClass
          * Same as {@link #assignableTo(Class)} but takes a fully qualified class name as an argument instead of a class object.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> assignableTo(final String typeName) {
+        public static DescribedPredicate<JavaClass> assignableTo(String typeName) {
             return assignableTo(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
@@ -2212,7 +2212,7 @@ public final class JavaClass
          * Same as {@link #assignableFrom(Class)} but takes a fully qualified class name as an argument instead of a class object.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> assignableFrom(final String typeName) {
+        public static DescribedPredicate<JavaClass> assignableFrom(String typeName) {
             return assignableFrom(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
@@ -2227,7 +2227,7 @@ public final class JavaClass
          * @see #assignableFrom(DescribedPredicate)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> assignableTo(final DescribedPredicate<? super JavaClass> predicate) {
+        public static DescribedPredicate<JavaClass> assignableTo(DescribedPredicate<? super JavaClass> predicate) {
             return new AssignableToPredicate(predicate);
         }
 
@@ -2242,7 +2242,7 @@ public final class JavaClass
          * @see #assignableTo(DescribedPredicate)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> assignableFrom(final DescribedPredicate<? super JavaClass> predicate) {
+        public static DescribedPredicate<JavaClass> assignableFrom(DescribedPredicate<? super JavaClass> predicate) {
             return new AssignableFromPredicate(predicate);
         }
 
@@ -2259,7 +2259,7 @@ public final class JavaClass
          * @see #assignableTo(Class)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> implement(final Class<?> type) {
+        public static DescribedPredicate<JavaClass> implement(Class<?> type) {
             if (!type.isInterface()) {
                 throw new InvalidSyntaxUsageException(String.format(
                         "implement(type) can only ever be true, if type is an interface, but type %s is not. "
@@ -2272,7 +2272,7 @@ public final class JavaClass
          * Same as {@link #implement(Class)} but takes a fully qualified class name as an argument instead of a class object.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> implement(final String typeName) {
+        public static DescribedPredicate<JavaClass> implement(String typeName) {
             return implement(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
@@ -2285,7 +2285,7 @@ public final class JavaClass
          * @see #assignableTo(DescribedPredicate)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> implement(final DescribedPredicate<? super JavaClass> predicate) {
+        public static DescribedPredicate<JavaClass> implement(DescribedPredicate<? super JavaClass> predicate) {
             DescribedPredicate<JavaClass> selfIsImplementation = not(INTERFACES);
             DescribedPredicate<JavaClass> interfacePredicate = predicate.<JavaClass>forSubtype().and(INTERFACES);
             return selfIsImplementation.and(assignableTo(interfacePredicate))
@@ -2302,7 +2302,7 @@ public final class JavaClass
          * tested {@link JavaClass} matches the identifier
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> resideInAPackage(final String packageIdentifier) {
+        public static DescribedPredicate<JavaClass> resideInAPackage(String packageIdentifier) {
             return resideInAnyPackage(new String[]{packageIdentifier},
                     String.format("reside in a package '%s'", packageIdentifier));
         }
@@ -2311,13 +2311,13 @@ public final class JavaClass
          * @see #resideInAPackage(String)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
+        public static DescribedPredicate<JavaClass> resideInAnyPackage(String... packageIdentifiers) {
             return resideInAnyPackage(packageIdentifiers,
                     String.format("reside in any package [%s]", joinSingleQuoted(packageIdentifiers)));
         }
 
-        private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
-            final Set<PackageMatcher> packageMatchers = stream(packageIdentifiers).map(PackageMatcher::of).collect(toSet());
+        private static DescribedPredicate<JavaClass> resideInAnyPackage(String[] packageIdentifiers, String description) {
+            Set<PackageMatcher> packageMatchers = stream(packageIdentifiers).map(PackageMatcher::of).collect(toSet());
             return new PackageMatchesPredicate(packageMatchers, description);
         }
 
@@ -2337,7 +2337,7 @@ public final class JavaClass
          * @see JavaClass#isEquivalentTo(Class)
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> equivalentTo(final Class<?> clazz) {
+        public static DescribedPredicate<JavaClass> equivalentTo(Class<?> clazz) {
             return new EquivalentToPredicate(clazz);
         }
 

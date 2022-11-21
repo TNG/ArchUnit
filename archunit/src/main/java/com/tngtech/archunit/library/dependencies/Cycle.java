@@ -70,7 +70,7 @@ class Cycle<T, ATTACHMENT> {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Cycle<?, ?> other = (Cycle<?, ?>) obj;
+        Cycle<?, ?> other = (Cycle<?, ?>) obj;
         return Objects.equals(this.path.getSetOfEdges(), other.path.getSetOfEdges());
     }
 
