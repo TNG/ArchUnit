@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
@@ -58,7 +57,6 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.RecordComponentVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,6 +112,7 @@ class JavaClassProcessor extends ClassVisitor {
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
         boolean opCodeForAnnotationIsPresent = (access & Opcodes.ACC_ANNOTATION) != 0;
+        boolean opCodeForRecordIsPresent = (access & Opcodes.ACC_RECORD) != 0;
         Optional<String> superclassName = getSuperclassName(superName, opCodeForInterfaceIsPresent);
         LOG.trace("Found superclass {} on class '{}'", superclassName.orElse(null), name);
 
@@ -123,7 +122,8 @@ class JavaClassProcessor extends ClassVisitor {
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withEnum(opCodeForEnumIsPresent)
                 .withAnnotation(opCodeForAnnotationIsPresent)
-                .withModifiers(JavaModifier.getModifiersForClass(access));
+                .withModifiers(JavaModifier.getModifiersForClass(access))
+                .withRecord(opCodeForRecordIsPresent);
 
         className = descriptor.getFullyQualifiedClassName();
         declarationHandler.onNewClass(className, superclassName, interfaceNames);
@@ -151,21 +151,6 @@ class JavaClassProcessor extends ClassVisitor {
         if (!importAborted() && source != null) {
             javaClassBuilder.withSourceFileName(source);
         }
-    }
-
-    @Override
-    public RecordComponentVisitor visitRecordComponent(String name, String descriptor, String signature) {
-        javaClassBuilder.withRecord(true);
-
-        // Records are implicitly static and final (compare JLS 8.10 Record Declarations)
-        // Thus we ensure that those modifiers are always present (the access flag in visit(..) does not contain STATIC)
-        ImmutableSet<JavaModifier> recordModifiers = ImmutableSet.<JavaModifier>builder()
-                .addAll(javaClassBuilder.getModifiers())
-                .add(JavaModifier.STATIC, JavaModifier.FINAL)
-                .build();
-        javaClassBuilder.withModifiers(recordModifiers);
-
-        return super.visitRecordComponent(name, descriptor, signature);
     }
 
     @Override

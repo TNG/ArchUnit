@@ -4,21 +4,33 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
+@RunWith(DataProviderRunner.class)
 public class ClassFileImporterRecordsTest {
+    @DataProvider
+    public static Object[][] imports_record() {
+        record SimpleRecord(String component1, int component2) {
+        }
+        record EmptyRecord() {
+        }
+        return testForEach(SimpleRecord.class, EmptyRecord.class);
+    }
 
     @Test
-    public void imports_simple_record() {
-        record RecordToImport(String component1, int component2) {
-        }
-
-        JavaClass javaClass = new ClassFileImporter().importClasses(RecordToImport.class, Record.class).get(RecordToImport.class);
+    @UseDataProvider
+    public void imports_record(Class<?> recordToImport) {
+        JavaClass javaClass = new ClassFileImporter().importClasses(recordToImport, Record.class).get(recordToImport);
 
         assertThat(javaClass)
-                .matches(RecordToImport.class)
+                .matches(recordToImport)
                 .hasRawSuperclassMatching(Record.class)
                 .hasNoInterfaces()
                 .isInterface(false)

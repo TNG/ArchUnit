@@ -9,8 +9,10 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 public class ImporterRules {
@@ -18,7 +20,22 @@ public class ImporterRules {
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =
             noClasses().that().resideInAPackage("..core.domain..")
-                    .should().accessClassesThat(belong_to_the_import_context());
+                    .should().dependOnClassesThat(belong_to_the_import_context());
+
+    @ArchTest
+    public static final ArchRule asm_is_only_used_in_importer_or_JavaClassDescriptor =
+            noClasses()
+                    .that(
+                            resideOutsideOfPackage("..core.importer..")
+                                    .and(doNot(belongToAnyOf(JavaClassDescriptor.class
+                                            // Conceptually there are also dependencies from JavaModifier to ASM.
+                                            // However, at the moment all those are inlined by the compiler (primitives).
+                                            // Whenever we get the chance to break the public API
+                                            // we should remove the dependencies from JavaModifier to ASM.
+                                            // Those dependencies crept in by accident at some point because the design was convenient.
+                                    )))
+                    )
+                    .should().dependOnClassesThat().resideInAPackage("org.objectweb..");
 
     @ArchTest
     public static final ArchRule ASM_type_is_only_accessed_within_JavaClassDescriptor_or_JavaClassDescriptorImporter =
