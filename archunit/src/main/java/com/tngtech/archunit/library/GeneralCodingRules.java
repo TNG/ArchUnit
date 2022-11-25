@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -39,6 +40,7 @@ import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.originOwner
 import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
@@ -46,6 +48,7 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessTargetWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
@@ -498,4 +501,15 @@ public final class GeneralCodingRules {
     public static final ArchRule ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE =
             noClasses().should().callConstructor(AssertionError.class /* without detailMessage */)
                     .because("assertions should have a detail message");
+
+    /**
+     * A rule checking that no class accesses {@link Deprecated} members (i.e. calls methods or constructors, or accesses fields)
+     * or in other ways depends on {@link Deprecated} classes.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchRule DEPRECATED_API_SHOULD_NOT_BE_USED =
+            noClasses()
+                    .should(accessTargetWhere(JavaAccess.Predicates.target(annotatedWith(Deprecated.class))).as("access @Deprecated members"))
+                    .orShould(dependOnClassesThat(annotatedWith(Deprecated.class)).as("depend on @Deprecated classes"))
+                    .because("there should be a better alternative");
 }
