@@ -21,13 +21,36 @@ class NormalizedResourceName {
     private final String resourceName;
 
     private NormalizedResourceName(String resourceName) {
-        this.resourceName = resourceName
-                // normalize Windows backslashes
-                .replace('\\', '/')
-                // remove leading slashes
-                .replaceAll("^/*", "")
-                // remove trailing slashes
-                .replaceAll("/*$", "");
+        this.resourceName = normalizeName(resourceName);
+    }
+
+    private String normalizeName(String resourceName) {
+        // normalize Windows backslashes
+        resourceName = resourceName.replace('\\', '/');
+        // remove leading slashes
+        resourceName = removeLeadingSlashes(resourceName);
+        // remove trailing slashes
+        return removeTrailingSlashes(resourceName);
+    }
+
+    private String removeLeadingSlashes(String s) {
+        int index;
+        for (index = 0; index < s.length(); index++) {
+            if (s.charAt(index) != '/') {
+                break;
+            }
+        }
+        return s.substring(index);
+    }
+
+    private String removeTrailingSlashes(String s) {
+        int index;
+        for (index = s.length() - 1; index >= 0; index--) {
+            if (s.charAt(index) != '/') {
+                break;
+            }
+        }
+        return s.substring(0, index + 1);
     }
 
     static NormalizedResourceName from(String resourceName) {
@@ -44,7 +67,7 @@ class NormalizedResourceName {
 
     private boolean isAncestorPath(NormalizedResourceName prefix) {
         return resourceName.startsWith(prefix.resourceName) &&
-                resourceName.substring(prefix.resourceName.length()).startsWith("/");
+                resourceName.startsWith("/", prefix.resourceName.length());
     }
 
     /**
