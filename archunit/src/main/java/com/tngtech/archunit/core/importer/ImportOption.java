@@ -56,6 +56,17 @@ public interface ImportOption {
                 return onlyIncludeTests.includes(location);
             }
         },
+        /**
+         * @see DoNotIncludeGradleTestFixtures
+         */
+        DO_NOT_INCLUDE_TEST_FIXTURES {
+            private final DoNotIncludeGradleTestFixtures doNotIncludeGradleTestFixtures = new DoNotIncludeGradleTestFixtures();
+
+            @Override
+            public boolean includes(Location location) {
+                return doNotIncludeGradleTestFixtures.includes(location);
+            }
+        },
         DO_NOT_INCLUDE_JARS {
             private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
 
@@ -129,6 +140,23 @@ public interface ImportOption {
         @Override
         public boolean includes(Location location) {
             return TEST_LOCATION.test(location);
+        }
+    }
+
+    /**
+     * Best effort {@link ImportOption} to omit checking test fixtures defined by the
+     * <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Gradle Test Fixtures Plugin</a>.<br>
+     * NOTE: This excludes all class files residing in some directory
+     * ../build/classes/../testFixtures/.. or some JAR matching ../build/libs/..-test-fixtures.jar
+     * (the former as it would be added from the file system to the classpath, the latter as it would be added as a JAR library to the classpath)
+     */
+    final class DoNotIncludeGradleTestFixtures implements ImportOption {
+        private static final Pattern TEST_FIXTURES_FILE_PATH_PATTERN = Pattern.compile(".*/build/classes/.*/testFixtures/.*");
+        private static final Pattern TEST_FIXTURES_JAR_PATH_PATTERN = Pattern.compile(".*/build/libs/.*-test-fixtures.jar!.*");
+
+        @Override
+        public boolean includes(Location location) {
+            return !location.matches(TEST_FIXTURES_FILE_PATH_PATTERN) && !location.matches(TEST_FIXTURES_JAR_PATH_PATTERN);
         }
     }
 
