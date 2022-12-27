@@ -1,9 +1,9 @@
-package com.tngtech.archunit.example.plantuml.importer;
+package com.tngtech.archunit.example.shopping.importer;
 
-import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
-import com.tngtech.archunit.example.plantuml.customer.Customer;
-import com.tngtech.archunit.example.plantuml.xml.processor.XmlProcessor;
-import com.tngtech.archunit.example.plantuml.xml.types.XmlTypes;
+import com.tngtech.archunit.example.shopping.catalog.ProductCatalog;
+import com.tngtech.archunit.example.shopping.customer.Customer;
+import com.tngtech.archunit.example.shopping.xml.processor.XmlProcessor;
+import com.tngtech.archunit.example.shopping.xml.types.XmlTypes;
 
 public class ProductImport {
     public ProductCatalog productCatalog;

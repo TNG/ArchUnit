@@ -1,10 +1,10 @@
-package com.tngtech.archunit.example.plantuml.order;
+package com.tngtech.archunit.example.shopping.order;
 
 import java.util.Set;
 
-import com.tngtech.archunit.example.plantuml.address.Address;
-import com.tngtech.archunit.example.plantuml.customer.Customer;
-import com.tngtech.archunit.example.plantuml.product.Product;
+import com.tngtech.archunit.example.shopping.address.Address;
+import com.tngtech.archunit.example.shopping.customer.Customer;
+import com.tngtech.archunit.example.shopping.product.Product;
 
 public class Order {
     public Customer customer;

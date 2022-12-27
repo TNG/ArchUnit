@@ -1,9 +1,9 @@
-package com.tngtech.archunit.example.plantuml.catalog;
+package com.tngtech.archunit.example.shopping.catalog;
 
 import java.util.Set;
 
-import com.tngtech.archunit.example.plantuml.order.Order;
-import com.tngtech.archunit.example.plantuml.product.Product;
+import com.tngtech.archunit.example.shopping.order.Order;
+import com.tngtech.archunit.example.shopping.product.Product;
 
 public class ProductCatalog {
     private Set<Product> allProducts;

@@ -1,7 +1,7 @@
-package com.tngtech.archunit.example.plantuml.product;
+package com.tngtech.archunit.example.shopping.product;
 
-import com.tngtech.archunit.example.plantuml.customer.Customer;
-import com.tngtech.archunit.example.plantuml.order.Order;
+import com.tngtech.archunit.example.shopping.customer.Customer;
+import com.tngtech.archunit.example.shopping.order.Order;
 
 public class Product {
     public Customer customer;

@@ -1,7 +1,7 @@
-package com.tngtech.archunit.example.plantuml.customer;
+package com.tngtech.archunit.example.shopping.customer;
 
-import com.tngtech.archunit.example.plantuml.address.Address;
-import com.tngtech.archunit.example.plantuml.order.Order;
+import com.tngtech.archunit.example.shopping.address.Address;
+import com.tngtech.archunit.example.shopping.order.Order;
 
 public class Customer {
     private Address address;
