@@ -29,21 +29,25 @@ public class ArchRuleCheckAssertion {
         }
     }
 
+    public ArchRuleCheckAssertion hasViolationContaining(String part, Object... args) {
+        String expectedPart = String.format(part, args);
+        assertThat(evaluationResult.getFailureReport().getDetails())
+                .as("violation details (should have some detail containing '%s')", expectedPart)
+                .anyMatch(detail -> detail.contains(expectedPart));
+        return this;
+    }
+
     public ArchRuleCheckAssertion hasViolationMatching(String regex) {
-        for (String detail : evaluationResult.getFailureReport().getDetails()) {
-            if (detail.matches(regex)) {
-                return this;
-            }
-        }
-        throw new AssertionError(String.format("No violation matches '%s'", regex));
+        assertThat(evaluationResult.getFailureReport().getDetails())
+                .as("violation details (should have some detail matching '%s')", regex)
+                .anyMatch(detail -> detail.matches(regex));
+        return this;
     }
 
     public ArchRuleCheckAssertion hasNoViolationMatching(String regex) {
-        for (String detail : evaluationResult.getFailureReport().getDetails()) {
-            if (detail.matches(regex)) {
-                throw new AssertionError(String.format("Violation matches '%s'", regex));
-            }
-        }
+        assertThat(evaluationResult.getFailureReport().getDetails())
+                .as("violation details (should not have any detail matching '%s')", regex)
+                .noneMatch(detail -> detail.matches(regex));
         return this;
     }
 
