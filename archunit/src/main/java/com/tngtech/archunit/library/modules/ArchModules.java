@@ -1,0 +1,307 @@
+/*
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.tngtech.archunit.library.modules;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Function;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ForwardingCollection;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.PackageMatcher;
+import com.tngtech.archunit.library.dependencies.Slices;
+import com.tngtech.archunit.library.modules.ArchModule.Identifier;
+
+import static com.google.common.base.Functions.toStringFunction;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Multimaps.asMap;
+import static com.google.common.collect.Multimaps.toMultimap;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
+import static com.tngtech.archunit.library.modules.ArchModule.Identifier.ignore;
+import static java.util.Collections.singleton;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toMap;
+
+/**
+ * A collection of {@link ArchModule "architectural modules"}. This class provides a convenient API to partition the {@link JavaClass classes}
+ * of a code base into (cohesive) modules and assert properties of these modules, e.g. their dependencies to each other or dependencies
+ * not contained in any of the constructed modules.<br>
+ * This class provides several entry points to create {@link ArchModule modules} from a set of {@link JavaClass classes}:<br>
+ * <ul>
+ *     <li>{@link #defineBy(Function)} - the most generic/flexible API</li>
+ *     <li>{@link #defineByPackages(String)} - an API similar to {@link Slices#matching(String)}</li>
+ * </ul>
+ */
+@PublicAPI(usage = ACCESS)
+public final class ArchModules extends ForwardingCollection<ArchModule> {
+    private final Map<Identifier, ArchModule> modulesByIdentifier;
+    private final Map<String, ArchModule> modulesByName;
+
+    private ArchModules(Set<ArchModule> modules) {
+        this.modulesByIdentifier = groupBy(modules, ArchModule::getIdentifier, "identifier");
+        this.modulesByName = groupBy(modules, ArchModule::getName, "name");
+
+        SetMultimap<ArchModule.Identifier, ModuleDependency> moduleDependenciesByOrigin = HashMultimap.create();
+        modules.forEach(it -> moduleDependenciesByOrigin.putAll(it.getIdentifier(), createModuleDependencies(it, modules)));
+
+        SetMultimap<ArchModule.Identifier, ModuleDependency> moduleDependenciesByTarget = HashMultimap.create();
+        moduleDependenciesByOrigin.values()
+                .forEach(moduleDependency -> moduleDependenciesByTarget.put(moduleDependency.getTarget().getIdentifier(), moduleDependency));
+
+        modules.forEach(it -> it.setModuleDependencies(moduleDependenciesByOrigin.get(it.getIdentifier()), moduleDependenciesByTarget.get(it.getIdentifier())));
+    }
+
+    private static <KEY> Map<KEY, ArchModule> groupBy(
+            Set<ArchModule> modules,
+            Function<ArchModule, KEY> getKey, String keyName
+    ) {
+        Map<KEY, Collection<ArchModule>> modulesByKey = modules.stream().collect(toMultimap(getKey, identity(), HashMultimap::create)).asMap();
+        SortedSet<KEY> duplicateKeys = modulesByKey.entrySet().stream()
+                .filter(it -> it.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .collect(toCollection(TreeSet::new));
+
+        if (!duplicateKeys.isEmpty()) {
+            throw new IllegalArgumentException(String.format("Found multiple modules with the same %s: %s", keyName, duplicateKeys));
+        }
+
+        return modulesByKey.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, entry -> getOnlyElement(entry.getValue())));
+    }
+
+    private ImmutableSet<ModuleDependency> createModuleDependencies(ArchModule origin, Set<ArchModule> modules) {
+        ImmutableSet.Builder<ModuleDependency> moduleDependencies = ImmutableSet.builder();
+        for (ArchModule target : Sets.difference(modules, singleton(origin))) {
+            ModuleDependency.tryCreate(origin, target).ifPresent(moduleDependencies::add);
+        }
+        return moduleDependencies.build();
+    }
+
+    @Override
+    protected Collection<ArchModule> delegate() {
+        return modulesByIdentifier.values();
+    }
+
+    /**
+     * @param identifier The (textual) parts of an {@link ArchModule.Identifier}.
+     * @return The contained {@link ArchModule} having an {@link ArchModule.Identifier} comprised of the passed {@code identifier} parts.
+     *         This method will throw an exception if no matching {@link ArchModule} is contained.
+     */
+    @PublicAPI(usage = ACCESS)
+    public ArchModule getByIdentifier(String... identifier) {
+        return tryGetByIdentifier(identifier).orElseThrow(() ->
+                new IllegalArgumentException(String.format("There is no %s with identifier %s", ArchModule.class.getSimpleName(), Arrays.toString(identifier))));
+    }
+
+    /**
+     * @param identifier The (textual) parts of an {@link ArchModule.Identifier}.
+     * @return The contained {@link ArchModule} having an {@link ArchModule.Identifier} comprised of the passed {@code identifier} parts,
+     *         or {@link Optional#empty()} if no matching {@link ArchModule} is contained.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<ArchModule> tryGetByIdentifier(String... identifier) {
+        return Optional.ofNullable(modulesByIdentifier.get(Identifier.from(identifier)));
+    }
+
+    /**
+     * @param name The name of an {@link ArchModule}
+     * @return A contained {@link ArchModule} with the passed {@link ArchModule#getName() name}.
+     *         This method will throw an exception if no matching {@link ArchModule} is contained.
+     * @see #tryGetByName(String)
+     */
+    @PublicAPI(usage = ACCESS)
+    public ArchModule getByName(String name) {
+        return tryGetByName(name).orElseThrow(() ->
+                new IllegalArgumentException(String.format("There is no %s with name %s", ArchModule.class.getSimpleName(), name)));
+    }
+
+    /**
+     * @param name The name of an {@link ArchModule}
+     * @return A contained {@link ArchModule} with the passed {@link ArchModule#getName() name},
+     *         or {@link Optional#empty()} if no matching {@link ArchModule} is contained.
+     * @see #getByName(String)
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<ArchModule> tryGetByName(String name) {
+        return Optional.ofNullable(modulesByName.get(name));
+    }
+
+    /**
+     * @return The names of all {@link ArchModule modules} contained within these {@link ArchModules}
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<String> getNames() {
+        return modulesByName.keySet().stream().map(toStringFunction()).collect(toImmutableSet());
+    }
+
+    /**
+     * Entrypoint to create {@link ArchModules} by partitioning a set of {@link JavaClass classes} into specific packages
+     * matching the supplied {@code packageIdentifier} interpreted as {@link PackageMatcher}.<br>
+     *
+     * Partitioning is done according to capturing groups. For example
+     * <p>
+     * Suppose there are three classes:<br><br>
+     * {@code com.example.module.one.SomeClass}<br>
+     * {@code com.example.module.one.AnotherClass}<br>
+     * {@code com.example.module.two.YetAnotherClass}<br><br>
+     * If modules are created by specifying<br><br>
+     * {@code ArchModules.defineByPackages("..module.(*)..").modularize(javaClasses)}<br><br>
+     * then the result will be two {@link ArchModule modules}, the {@link ArchModule module} where the capturing group is 'one'
+     * and the {@link ArchModule module} where the capturing group is 'two'. The first {@link ArchModule module} will have
+     * an {@link ArchModule.Identifier} consisting of the single string {@code "one"}, while the latter will have
+     * an {@link ArchModule.Identifier} consisting of the single string {@code "two"}.
+     * If multiple packages would be matched, e.g. by {@code "..module.(*).(*).."}, the respective {@link ArchModule.Identifier}
+     * would contain the two matched (sub-)package names as its {@link ArchModule.Identifier#getPart(int) parts}.
+     * </p>
+     *
+     * @param packageIdentifier A {@link PackageMatcher package identifier}
+     * @return A fluent API to further customize how to create {@link ArchModules}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static Creator defineByPackages(String packageIdentifier) {
+        return defineBy(identifierByPackage(packageIdentifier));
+    }
+
+    private static Function<JavaClass, Identifier> identifierByPackage(String packageIdentifier) {
+        PackageMatcher packageMatcher = PackageMatcher.of(packageIdentifier);
+        return javaClass -> {
+            Optional<PackageMatcher.Result> result = packageMatcher.match(javaClass.getPackageName());
+            return result.map(TO_GROUPS).map(Identifier::from).orElse(ignore());
+        };
+    }
+
+    /**
+     * Entrypoint to create {@link ArchModules} by a generic mapping function {@link JavaClass} -> {@link ArchModule.Identifier}.
+     * All {@link JavaClass classes} that are mapped to the same {@link ArchModule.Identifier} will end up in the same
+     * {@link ArchModule}.<br>
+     *
+     * A simple example would be the {@code identifierFunction}
+     * <pre><code>
+     * javaClass -> ArchModule.Identifier.from(javaClass.getPackageName())
+     * </code></pre>
+     * This would then create one {@link ArchModule} for each full package name and each {@link JavaClass} would
+     * be contained in the {@link ArchModule} where the {@link ArchModule.Identifier} coincides with the class's full package name.
+     *
+     * @param identifierFunction A function defining how each {@link JavaClass} is mapped to the respective {@link ArchModule.Identifier}
+     * @return A fluent API to further customize how to create {@link ArchModules}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static Creator defineBy(Function<JavaClass, Identifier> identifierFunction) {
+        return new Creator(checkNotNull(identifierFunction));
+    }
+
+    /**
+     * An element of the fluent API to create {@link ArchModules}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final class Creator {
+        private final Function<JavaClass, Identifier> identifierFunction;
+        private final Function<Identifier, String> deriveNameFunction;
+
+        private Creator(Function<JavaClass, Identifier> identifierFunction) {
+            this(identifierFunction, DEFAULT_NAMING_STRATEGY);
+        }
+
+        private Creator(Function<JavaClass, Identifier> identifierFunction, Function<Identifier, String> deriveNameFunction) {
+            this.identifierFunction = checkNotNull(identifierFunction);
+            this.deriveNameFunction = checkNotNull(deriveNameFunction);
+        }
+
+        /**
+         * Allows to customize each {@link ArchModule} {@link ArchModule#getName() name} by specifying a string pattern
+         * that defines how to derive the name from the {@link ArchModule.Identifier}.<br>
+         * In particular, the passed {@code namingPattern} may contain numbered placeholders like <code>${1}</code>
+         * to refer to parts from the {@link ArchModule.Identifier}. It may also contain the special placeholder
+         * <code>$@</code> to refer to the colon-joined form of the identifier.<br>
+         * Suppose the {@link ArchModule.Identifier} is {@code ["customer", "creation"]}, then the name could be derived as
+         * <pre><code>
+         * "Module[${1}/${2}]" -> would yield the name "Module[customer/creation]"
+         * "Module[$@]         -> would yield the name "Module[customer:creation]"
+         * </code></pre>
+         * Note that the derived name must be unique between all {@link ArchModule modules}.
+         *
+         * @param namingPattern A string naming pattern deriving the {@link ArchModule} {@link ArchModule#getName() name} from
+         *                      the {@link ArchModule.Identifier}
+         * @return A fluent API to further customize how to create {@link ArchModules}
+         */
+        @PublicAPI(usage = ACCESS)
+        public Creator deriveNameFromPattern(String namingPattern) {
+            return new Creator(identifierFunction, identifier -> {
+                String result = namingPattern.replace("$@", joinIdentifier(identifier));
+                for (int i = 1; i <= identifier.getNumberOfParts(); i++) {
+                    result = result
+                            .replace("$" + i, identifier.getPart(i))
+                            .replace("${" + i + "}", identifier.getPart(i));
+                }
+                return result;
+            });
+        }
+
+        /**
+         * Derives {@link ArchModules} from the passed {@link JavaClasses} via the specified modularization strategy
+         * by the fluent API (e.g. by package identifier or by generic mapping function). In particular,
+         * the passed {@link JavaClasses} will be partitioned and sorted into matching instances of {@link ArchModule}.
+         *
+         * @param classes The classes to modularize
+         * @return An instance of {@link ArchModules} containing individual {@link ArchModule}s which in turn contain the partitioned classes
+         */
+        @PublicAPI(usage = ACCESS)
+        public ArchModules modularize(JavaClasses classes) {
+            SetMultimap<Identifier, JavaClass> classesByIdentifier = groupClassesByIdentifier(classes);
+
+            Set<ArchModule> modules = new HashSet<>();
+            asMap(classesByIdentifier).forEach((identifier, containedClasses) -> {
+                String name = deriveNameFunction.apply(identifier);
+                modules.add(new ArchModule(identifier, name, containedClasses));
+            });
+            return new ArchModules(modules);
+        }
+
+        private SetMultimap<Identifier, JavaClass> groupClassesByIdentifier(JavaClasses classes) {
+            SetMultimap<Identifier, JavaClass> classesByIdentifier = HashMultimap.create();
+            for (JavaClass javaClass : classes) {
+                Identifier identifier = identifierFunction.apply(javaClass);
+                if (identifier.shouldBeConsidered()) {
+                    classesByIdentifier.put(identifier, javaClass);
+                }
+            }
+            return classesByIdentifier;
+        }
+
+        private static final Function<Identifier, String> DEFAULT_NAMING_STRATEGY = Creator::joinIdentifier;
+
+        private static String joinIdentifier(Identifier identifier) {
+            return Joiner.on(":").join(identifier);
+        }
+    }
+}
