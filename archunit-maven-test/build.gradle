@@ -95,9 +95,10 @@ task initializeMavenTest {
 }
 
 def mavenCommand = { String... params ->
+    def allParams = ['--batch-mode', '--no-transfer-progress'] + params.toList()
     OperatingSystem.current().isWindows() ?
-            ['cmd', '/c', 'mvnw.cmd'] + params.toList() :
-            ['./mvnw'] + params.toList()
+            ['cmd', '/c', 'mvnw.cmd'] + allParams :
+            ['./mvnw'] + allParams
 }
 
 def addMavenTest = { IntegrationTestConfig config ->
