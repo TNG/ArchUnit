@@ -15,19 +15,20 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.importer.DomainBuilders;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -123,6 +124,12 @@ public final class JavaMethod extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Method <" + getFullName() + ">";
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isOverridden() {
+        Method method = methodSupplier.get();
+        return Arrays.asList(method.getDeclaringClass().getSuperclass().getDeclaredMethods()).contains(method);
     }
 
     @ResolvesTypesViaReflection
