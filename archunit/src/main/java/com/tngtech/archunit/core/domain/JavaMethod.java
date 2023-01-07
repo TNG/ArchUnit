@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,8 +128,8 @@ public final class JavaMethod extends JavaCodeUnit {
 
     @PublicAPI(usage = ACCESS)
     public boolean isOverridden() {
-        Method method = methodSupplier.get();
-        return Arrays.asList(method.getDeclaringClass().getSuperclass().getDeclaredMethods()).contains(method);
+        Class<?>[] reflectedParameters = reflect(getRawParameterTypes());
+        return Arrays.stream(reflect().getDeclaringClass().getSuperclass().getDeclaredMethods()).anyMatch(superMethod -> superMethod.getName().equals(getName()) && Arrays.equals(superMethod.getParameterTypes(), reflectedParameters));
     }
 
     @ResolvesTypesViaReflection
