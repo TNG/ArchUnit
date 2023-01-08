@@ -15,13 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
-import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.ResolvesTypesViaReflection;
-import com.tngtech.archunit.base.Suppliers;
-import com.tngtech.archunit.core.importer.DomainBuilders;
-
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +22,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.ResolvesTypesViaReflection;
+import com.tngtech.archunit.base.Suppliers;
+import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

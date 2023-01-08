@@ -5,8 +5,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 public class JavaMethodTest {
     @Test
