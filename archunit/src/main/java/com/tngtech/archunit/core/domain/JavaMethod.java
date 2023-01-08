@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -127,7 +128,7 @@ public final class JavaMethod extends JavaCodeUnit {
 
     @PublicAPI(usage = ACCESS)
     public boolean isOverridden() {
-        return getOwner().getAllRawSuperclasses().stream()
+        return Stream.concat(getOwner().getAllRawSuperclasses().stream(), getOwner().getAllRawInterfaces().stream())
                 .map(JavaClass::getAllMethods)
                 .flatMap(Set<JavaMethod>::stream)
                 .anyMatch(superMethod -> superMethod.getName().equals(getName()) && superMethod.getParameterTypes().equals(getParameterTypes()));
