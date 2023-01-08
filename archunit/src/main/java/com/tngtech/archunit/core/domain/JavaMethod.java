@@ -130,7 +130,7 @@ public final class JavaMethod extends JavaCodeUnit {
         return getOwner().getAllRawSuperclasses().stream()
                 .map(JavaClass::getAllMethods)
                 .flatMap(Set<JavaMethod>::stream)
-                .anyMatch(superMethod -> superMethod.getName().equals(getName()) && superMethod.getParameters().equals(getParameters()));
+                .anyMatch(superMethod -> superMethod.getName().equals(getName()) && superMethod.getParameterTypes().equals(getParameterTypes()));
     }
 
     @ResolvesTypesViaReflection
