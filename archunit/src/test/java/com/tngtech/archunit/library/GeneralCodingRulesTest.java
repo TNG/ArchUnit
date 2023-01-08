@@ -12,6 +12,9 @@ import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.d
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.defaultsuffix.subdir.ImplementationClassWithWrongTestClassPackageTest;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.library.GeneralCodingRules.ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE;
+import static com.tngtech.archunit.library.GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED;
 import static com.tngtech.archunit.library.GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 
@@ -80,4 +83,101 @@ public class GeneralCodingRulesTest {
                 );
     }
 
+    @Test
+    public void ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE_should_fail_on_assert_without_detail_message() {
+        @SuppressWarnings("unused")
+        class InvalidAssertions {
+            void f(int x) {
+                assert x > 0;
+            }
+
+            void f() {
+                throw new AssertionError();
+            }
+        }
+        assertThatRule(ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE)
+                .checking(new ClassFileImporter().importClasses(InvalidAssertions.class))
+                .hasViolations(2)
+                .hasViolationContaining("Method <%s.f(int)> calls constructor <%s.<init>()>",
+                        InvalidAssertions.class.getName(), AssertionError.class.getName())
+                .hasViolationContaining("Method <%s.f()> calls constructor <%s.<init>()>",
+                        InvalidAssertions.class.getName(), AssertionError.class.getName());
+    }
+
+    @Test
+    public void ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE_should_accept_assert_with_detail_message() {
+        @SuppressWarnings("unused")
+        class ValidAssertions {
+            void f(int x) {
+                assert x > 0 : "argument should be positive";
+            }
+
+            void f() {
+                throw new AssertionError("f() should not be called");
+            }
+        }
+        assertThatRule(ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE)
+                .checking(new ClassFileImporter().importClasses(ValidAssertions.class))
+                .hasNoViolation();
+    }
+
+    @Test
+    public void DEPRECATED_API_SHOULD_NOT_BE_USED_should_fail_on_call_to_deprecated_method() {
+        @SuppressWarnings("DeprecatedIsStillUsed")
+        class ClassWithDeprecatedMembers {
+            @Deprecated
+            int target;
+
+            @Deprecated
+            ClassWithDeprecatedMembers() {
+            }
+
+            @Deprecated
+            void target() {
+            }
+        }
+        @SuppressWarnings("DeprecatedIsStillUsed")
+        @Deprecated
+        class DeprecatedClass {
+            int target;
+
+            void target() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class Origin {
+            @DeprecatedAnnotation
+            void origin() {
+                ClassWithDeprecatedMembers instanceOfClassWithDeprecatedMembers = new ClassWithDeprecatedMembers();
+                instanceOfClassWithDeprecatedMembers.target++;
+                instanceOfClassWithDeprecatedMembers.target();
+                DeprecatedClass instanceOfDeprecatedClass = new DeprecatedClass();
+                instanceOfDeprecatedClass.target++;
+                instanceOfDeprecatedClass.target();
+                Class<?> deprecatedClass = DeprecatedClass.class;
+            }
+        }
+
+        String innerClassConstructor = CONSTRUCTOR_NAME + "(" + GeneralCodingRulesTest.class.getName() + ")";
+        String violatingMethod = "Method <" + Origin.class.getName() + ".origin()>";
+        assertThatRule(DEPRECATED_API_SHOULD_NOT_BE_USED)
+                .hasDescriptionContaining("no classes should access @Deprecated members or should depend on @Deprecated classes, because there should be a better alternative")
+                .checking(new ClassFileImporter().importClasses(Origin.class, ClassWithDeprecatedMembers.class, DeprecatedClass.class))
+                .hasViolations(10)
+                .hasViolationContaining("%s calls constructor <%s.%s>", violatingMethod, ClassWithDeprecatedMembers.class.getName(), innerClassConstructor)
+                .hasViolationContaining("%s gets field <%s.target>", violatingMethod, ClassWithDeprecatedMembers.class.getName())
+                .hasViolationContaining("%s sets field <%s.target>", violatingMethod, ClassWithDeprecatedMembers.class.getName())
+                .hasViolationContaining("%s calls method <%s.target()>", violatingMethod, ClassWithDeprecatedMembers.class.getName())
+                .hasViolationContaining("%s calls constructor <%s.%s>", violatingMethod, DeprecatedClass.class.getName(), innerClassConstructor)
+                .hasViolationContaining("%s gets field <%s.target>", violatingMethod, DeprecatedClass.class.getName())
+                .hasViolationContaining("%s sets field <%s.target>", violatingMethod, DeprecatedClass.class.getName())
+                .hasViolationContaining("%s calls method <%s.target()>", violatingMethod, DeprecatedClass.class.getName())
+                .hasViolationContaining("%s is annotated with <%s>", violatingMethod, DeprecatedAnnotation.class.getName())
+                .hasViolationContaining("%s references class object <%s>", violatingMethod, DeprecatedClass.class.getName());
+    }
+
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    private @interface DeprecatedAnnotation {
+    }
 }
