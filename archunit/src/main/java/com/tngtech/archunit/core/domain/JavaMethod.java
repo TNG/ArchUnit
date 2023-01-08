@@ -23,7 +23,6 @@ import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -128,8 +127,10 @@ public final class JavaMethod extends JavaCodeUnit {
 
     @PublicAPI(usage = ACCESS)
     public boolean isOverridden() {
-        Class<?>[] reflectedParameters = reflect(getRawParameterTypes());
-        return Arrays.stream(reflect().getDeclaringClass().getSuperclass().getDeclaredMethods()).anyMatch(superMethod -> superMethod.getName().equals(getName()) && Arrays.equals(superMethod.getParameterTypes(), reflectedParameters));
+        return getOwner().getAllRawSuperclasses().stream()
+                .map(JavaClass::getAllMethods)
+                .flatMap(Set<JavaMethod>::stream)
+                .anyMatch(superMethod -> superMethod.getName().equals(getName()) && superMethod.getParameters().equals(getParameters()));
     }
 
     @ResolvesTypesViaReflection

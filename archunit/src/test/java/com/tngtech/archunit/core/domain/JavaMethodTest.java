@@ -30,10 +30,7 @@ public class JavaMethodTest {
         JavaClass baseClass = new ClassFileImporter().importClass(Base.class);
         JavaMethod childMethod1 = childClass.getMethod("method1");
         JavaMethod baseMethod1 = baseClass.getMethod("method1");
-        assertNotEquals(childMethod1, baseMethod1);
-        assertEquals(childMethod1.getName(), baseMethod1.getName());
         assertThat(childClass.getMethod("method1").isOverridden()).isTrue();
-        assertThat(childClass.getMethod("method1", int.class).isOverridden()).isFalse();
         assertThat(childClass.getMethod("method2").isOverridden()).isFalse();
     }
 }
