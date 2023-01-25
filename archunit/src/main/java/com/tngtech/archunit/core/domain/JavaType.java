@@ -15,12 +15,29 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.lang.reflect.Type;
+
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Represents a general Java type. This can e.g. be a class like {@code java.lang.String}, a parameterized type
+ * like {@code List<String>} or a type variable like {@code T}.<br>
+ * Besides having a {@link HasName#getName() name} and offering the possibility to being converted to an
+ * {@link #toErasure() erasure} (which is then always {@link JavaClass a raw class object}) {@link JavaType} doesn't offer
+ * an extensive API. Instead, users can check a {@link JavaType} for being an instance of a concrete subtype
+ * (like {@link JavaTypeVariable}) and then cast it to the respective subclass
+ * (same as with {@link Type} of the Java Reflection API).
+ *
+ * @see JavaClass
+ * @see JavaParameterizedType
+ * @see JavaTypeVariable
+ * @see JavaWildcardType
+ * @see JavaGenericArrayType
+ */
 @PublicAPI(usage = ACCESS)
 public interface JavaType extends HasName {
     /**
