@@ -88,7 +88,7 @@ class ViolationStoreFactory {
             storeFolder = new File(path);
             ensureExistence(storeFolder);
             File storedRulesFile = getStoredRulesFile();
-            log.info("Initializing {} at {}", TextFileBasedViolationStore.class.getSimpleName(), storedRulesFile.getAbsolutePath());
+            log.trace("Initializing {} at {}", TextFileBasedViolationStore.class.getSimpleName(), storedRulesFile.getAbsolutePath());
             storedRules = new FileSyncedProperties(storedRulesFile);
             checkInitialization(storedRules.initializationSuccessful(), "Cannot create rule store at %s", storedRulesFile.getAbsolutePath());
         }
@@ -120,7 +120,7 @@ class ViolationStoreFactory {
 
         @Override
         public void save(ArchRule rule, List<String> violations) {
-            log.debug("Storing evaluated rule '{}' with {} violations: {}", rule.getDescription(), violations.size(), violations);
+            log.trace("Storing evaluated rule '{}' with {} violations: {}", rule.getDescription(), violations.size(), violations);
             if (!storeUpdateAllowed) {
                 throw new StoreUpdateFailedException(String.format(
                         "Updating frozen violations is disabled (enable by configuration %s.%s=true)",
@@ -155,7 +155,7 @@ class ViolationStoreFactory {
             String ruleFileName;
             if (storedRules.containsKey(rule.getDescription())) {
                 ruleFileName = storedRules.getProperty(rule.getDescription());
-                log.debug("Rule '{}' is already stored in file {}", rule.getDescription(), ruleFileName);
+                log.trace("Rule '{}' is already stored in file {}", rule.getDescription(), ruleFileName);
             } else {
                 ruleFileName = createNewRuleId(rule).toString();
             }
@@ -164,7 +164,7 @@ class ViolationStoreFactory {
 
         private UUID createNewRuleId(ArchRule rule) {
             UUID ruleId = UUID.randomUUID();
-            log.debug("Assigning new ID {} to rule '{}'", ruleId, rule.getDescription());
+            log.trace("Assigning new ID {} to rule '{}'", ruleId, rule.getDescription());
             storedRules.setProperty(rule.getDescription(), ruleId.toString());
             return ruleId;
         }
@@ -174,7 +174,7 @@ class ViolationStoreFactory {
             String ruleDetailsFileName = storedRules.getProperty(rule.getDescription());
             checkArgument(ruleDetailsFileName != null, "No rule stored with description '%s'", rule.getDescription());
             List<String> result = readLines(ruleDetailsFileName);
-            log.debug("Retrieved stored rule '{}' with {} violations: {}", rule.getDescription(), result.size(), result);
+            log.trace("Retrieved stored rule '{}' with {} violations: {}", rule.getDescription(), result.size(), result);
             return result;
         }
 

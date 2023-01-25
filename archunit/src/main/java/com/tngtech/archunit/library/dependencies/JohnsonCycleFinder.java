@@ -119,7 +119,7 @@ class JohnsonCycleFinder {
         private boolean maxNumberOfCyclesReached = false;
 
         private Result() {
-            log.debug("Maximum number of cycles to detect is set to {}; "
+            log.trace("Maximum number of cycles to detect is set to {}; "
                             + "this limit can be adapted using the `archunit.properties` value `{}=xxx`",
                     configuration.getMaxNumberOfCyclesToDetect(), MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME);
         }
