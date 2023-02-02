@@ -174,7 +174,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
 
         private EventRecorder() {
-            log.debug("Maximum number of dependencies to report per edge is set to {}; "
+            log.trace("Maximum number of dependencies to report per edge is set to {}; "
                             + "this limit can be adapted using the `archunit.properties` value `{}=xxx`",
                     cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge(), MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME);
         }

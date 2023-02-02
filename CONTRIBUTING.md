@@ -33,13 +33,35 @@ To submit a contribution, please follow the following workflow:
 ### Commits
 
 Commit messages should be clear and fully elaborate the context and the reason of a change.
-If your commit refers to an issue, please post-fix it with the issue number, e.g.
+Each commit message should follow the following conventions:
+
+* it may use markdown to improve readability on GitHub
+* it must start with a title
+  * less than 70 characters
+  * starting lowercase
+  * written in imperative style as to complete the statement "if applied this commit will" (e.g. "fix race condition when loading import plugins")
+* if the commit is not trivial the title should be followed by a body
+  * separated from the title by a blank line
+  * explaining all necessary context and reasons for the change
+* if your commit refers to an issue, please post-fix it with the issue number, e.g. `Issue: #123` or `Resolves: #123`
+
+A full example:
 
 ```
-Issue: #123
+report classes contained in multiple PlantUML components as violation
+
+So far when checking an `ArchRule` based on `PlantUmlArchCondition` we were throwing an exception
+if a class was contained in multiple diagram components. 
+This causes problems for legacy code bases where some classes might violate the conventions
+in such a way, which should be frozen as violations to be iteratively fixed. 
+But throwing a `ComponentIntersectionException` prevents any such approach. 
+We thus replace the `ComponentIntersectionException` by a regular rule violation that can be treated
+like any other violation of the architecture and in particular be frozen via `FreezingArchRule`.
+
+Resolves: #960
 ```
 
-Furthermore, commits should be signed off according to the [DCO](DCO).
+Furthermore, commits must be signed off according to the [DCO](DCO).
 
 ### Pull Requests
 

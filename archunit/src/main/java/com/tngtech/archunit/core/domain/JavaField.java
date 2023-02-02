@@ -50,10 +50,6 @@ public final class JavaField extends JavaMember implements HasType {
         return getOwner().getName() + "." + getName();
     }
 
-    /**
-     * Note: This is still work in progress and thus does not support generic types at the moment.
-     *       In the future the result can possibly also be a {@link JavaParameterizedType} or {@link JavaTypeVariable}
-     */
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getType() {
