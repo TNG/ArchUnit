@@ -29,13 +29,14 @@ import com.tngtech.archunit.base.ForwardingSet;
 import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static java.util.Collections.emptyList;
 
 /**
@@ -53,20 +54,20 @@ import static java.util.Collections.emptyList;
  * To create {@link ArchModule}s please refer to {@link ArchModules}.
  */
 @PublicAPI(usage = ACCESS)
-public final class ArchModule extends ForwardingSet<JavaClass> implements HasName {
+public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends ForwardingSet<JavaClass> implements HasName {
     private final Identifier identifier;
-    private final ArchModule.Name name;
+    private final DESCRIPTOR descriptor;
     private final Set<JavaClass> classes;
     private final Set<Dependency> classDependenciesFromSelf;
     // resolving backwards dependencies is done lazily in JavaClass, so we don't trigger it eagerly here either
     private final Supplier<Set<Dependency>> classDependenciesToSelf;
-    private Set<ModuleDependency> moduleDependenciesFromSelf;
-    private Set<ModuleDependency> moduleDependenciesToSelf;
+    private Set<ModuleDependency<DESCRIPTOR>> moduleDependenciesFromSelf;
+    private Set<ModuleDependency<DESCRIPTOR>> moduleDependenciesToSelf;
     private Set<Dependency> undefinedDependencies;
 
-    ArchModule(Identifier identifier, String name, Set<JavaClass> classes) {
+    ArchModule(Identifier identifier, DESCRIPTOR descriptor, Set<JavaClass> classes) {
         this.identifier = checkNotNull(identifier);
-        this.name = Name.from(name);
+        this.descriptor = checkNotNull(descriptor);
         this.classes = ImmutableSet.copyOf(classes);
         classDependenciesFromSelf = classes.stream()
                 .flatMap(clazz -> clazz.getDirectDependenciesFromSelf().stream())
@@ -79,13 +80,13 @@ public final class ArchModule extends ForwardingSet<JavaClass> implements HasNam
                 .collect(toImmutableSet()));
     }
 
-    void setModuleDependencies(Set<ModuleDependency> moduleDependenciesFromSelf, Set<ModuleDependency> moduleDependenciesToSelf) {
+    void setModuleDependencies(Set<ModuleDependency<DESCRIPTOR>> moduleDependenciesFromSelf, Set<ModuleDependency<DESCRIPTOR>> moduleDependenciesToSelf) {
         this.moduleDependenciesFromSelf = ImmutableSet.copyOf(moduleDependenciesFromSelf);
         this.moduleDependenciesToSelf = ImmutableSet.copyOf(moduleDependenciesToSelf);
         this.undefinedDependencies = ImmutableSet.copyOf(Sets.difference(classDependenciesFromSelf, toClassDependencies(moduleDependenciesFromSelf)));
     }
 
-    private Set<Dependency> toClassDependencies(Set<ModuleDependency> moduleDependencies) {
+    private Set<Dependency> toClassDependencies(Set<ModuleDependency<DESCRIPTOR>> moduleDependencies) {
         return moduleDependencies.stream().flatMap(it -> it.toClassDependencies().stream()).collect(toImmutableSet());
     }
 
@@ -108,7 +109,15 @@ public final class ArchModule extends ForwardingSet<JavaClass> implements HasNam
     @Override
     @PublicAPI(usage = ACCESS)
     public String getName() {
-        return name.value;
+        return descriptor.getName();
+    }
+
+    /**
+     * @return The {@link ArchModule.Descriptor} of this {@link ArchModule}
+     */
+    @PublicAPI(usage = ACCESS)
+    public DESCRIPTOR getDescriptor() {
+        return descriptor;
     }
 
     /**
@@ -134,7 +143,7 @@ public final class ArchModule extends ForwardingSet<JavaClass> implements HasNam
      *         equals this {@link ArchModule}.
      */
     @PublicAPI(usage = ACCESS)
-    public Set<ModuleDependency> getModuleDependenciesFromSelf() {
+    public Set<ModuleDependency<DESCRIPTOR>> getModuleDependenciesFromSelf() {
         return moduleDependenciesFromSelf;
     }
 
@@ -143,7 +152,7 @@ public final class ArchModule extends ForwardingSet<JavaClass> implements HasNam
      *         equals this {@link ArchModule}.
      */
     @PublicAPI(usage = ACCESS)
-    public Set<ModuleDependency> getModuleDependenciesToSelf() {
+    public Set<ModuleDependency<DESCRIPTOR>> getModuleDependenciesToSelf() {
         return moduleDependenciesToSelf;
     }
 
@@ -168,7 +177,7 @@ public final class ArchModule extends ForwardingSet<JavaClass> implements HasNam
         if (!super.equals(obj)) {
             return false;
         }
-        final ArchModule other = (ArchModule) obj;
+        final ArchModule<?> other = (ArchModule<?>) obj;
         return Objects.equals(this.identifier, other.identifier);
     }
 
@@ -271,38 +280,28 @@ public final class ArchModule extends ForwardingSet<JavaClass> implements HasNam
         }
     }
 
-    private static final class Name {
-        private final String value;
+    /**
+     * Contains meta-information for an {@link ArchModule}. By default, this meta-information
+     * only contains the {@link ArchModule#getName() module name}, but it can be freely extended by users
+     * to transport more meta-information (e.g. allowed dependencies) when modularizing {@link JavaClasses}
+     * into {@link ArchModules}.
+     */
+    @PublicAPI(usage = INHERITANCE)
+    public interface Descriptor {
+        /**
+         * @return The name of the respective {@link ArchModule} described by this {@link Descriptor}
+         */
+        String getName();
 
-        private Name(String value) {
-            checkArgument(!isNullOrEmpty(value), "Module name must not be null or empty");
-            this.value = value;
-        }
-
-        static Name from(String value) {
-            return new Name(value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(value);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final Name other = (Name) obj;
-            return Objects.equals(this.value, other.value);
-        }
-
-        @Override
-        public String toString() {
-            return value;
+        /**
+         * Creates a default {@link Descriptor} only containing the passed {@code name} as {@link Descriptor#getName()}.
+         *
+         * @param name The name of the described {@link ArchModule}
+         * @return A {@link Descriptor} carrying the passed {@code name}
+         */
+        @PublicAPI(usage = ACCESS)
+        static Descriptor create(final String name) {
+            return () -> name;
         }
     }
 }

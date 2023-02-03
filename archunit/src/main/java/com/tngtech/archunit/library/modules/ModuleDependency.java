@@ -35,12 +35,12 @@ import static java.util.stream.Collectors.joining;
  * {@link Dependency#getTargetClass() target class} resides in the {@link #getTarget() target module}.
  */
 @PublicAPI(usage = ACCESS)
-public final class ModuleDependency implements HasDescription {
-    private final ArchModule origin;
-    private final ArchModule target;
+public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> implements HasDescription {
+    private final ArchModule<DESCRIPTOR> origin;
+    private final ArchModule<DESCRIPTOR> target;
     private final Set<Dependency> classDependencies;
 
-    private ModuleDependency(ArchModule origin, ArchModule target, Set<Dependency> classDependencies) {
+    private ModuleDependency(ArchModule<DESCRIPTOR> origin, ArchModule<DESCRIPTOR> target, Set<Dependency> classDependencies) {
         this.origin = origin;
         this.target = target;
         this.classDependencies = classDependencies;
@@ -50,7 +50,7 @@ public final class ModuleDependency implements HasDescription {
      * @return The {@link ArchModule module} where this dependency originates from
      */
     @PublicAPI(usage = ACCESS)
-    public ArchModule getOrigin() {
+    public ArchModule<DESCRIPTOR> getOrigin() {
         return origin;
     }
 
@@ -58,7 +58,7 @@ public final class ModuleDependency implements HasDescription {
      * @return The {@link ArchModule module} that this dependency targets
      */
     @PublicAPI(usage = ACCESS)
-    public ArchModule getTarget() {
+    public ArchModule<DESCRIPTOR> getTarget() {
         return target;
     }
 
@@ -98,7 +98,7 @@ public final class ModuleDependency implements HasDescription {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        ModuleDependency other = (ModuleDependency) obj;
+        ModuleDependency<?> other = (ModuleDependency<?>) obj;
         return Objects.equals(this.origin.getIdentifier(), other.origin.getIdentifier())
                 && Objects.equals(this.target.getIdentifier(), other.target.getIdentifier());
     }
@@ -111,14 +111,14 @@ public final class ModuleDependency implements HasDescription {
                 '}';
     }
 
-    static Optional<ModuleDependency> tryCreate(ArchModule origin, ArchModule target) {
+    static <D extends ArchModule.Descriptor> Optional<ModuleDependency<D>> tryCreate(ArchModule<D> origin, ArchModule<D> target) {
         Set<Dependency> classDependencies = filterDependenciesBetween(origin, target);
         return !classDependencies.isEmpty()
-                ? Optional.of(new ModuleDependency(origin, target, classDependencies))
+                ? Optional.of(new ModuleDependency<>(origin, target, classDependencies))
                 : Optional.empty();
     }
 
-    private static Set<Dependency> filterDependenciesBetween(ArchModule origin, ArchModule target) {
+    private static Set<Dependency> filterDependenciesBetween(ArchModule<?> origin, ArchModule<?> target) {
         return origin.getClassDependenciesFromSelf().stream()
                 .filter(dependency -> target.contains(dependency.getTargetClass().getBaseComponentType()))
                 .collect(toImmutableSet());
