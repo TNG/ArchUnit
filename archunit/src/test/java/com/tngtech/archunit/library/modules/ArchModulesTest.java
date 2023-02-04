@@ -1,5 +1,6 @@
 package com.tngtech.archunit.library.modules;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +13,9 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.modules.ArchModule.Identifier;
+import com.tngtech.archunit.library.modules.testexamples.MyModule;
+import com.tngtech.archunit.library.modules.testexamples.annotation_with_custom_name.MyModuleWithCustomName;
+import com.tngtech.archunit.library.modules.testexamples.annotation_with_custom_name.module1.ModuleOneDescriptorCustomName;
 import com.tngtech.archunit.library.modules.testexamples.valid.module1.FirstClassInModule1;
 import com.tngtech.archunit.library.modules.testexamples.valid.module1.ModuleOneDescriptor;
 import com.tngtech.archunit.library.modules.testexamples.valid.module1.SecondClassInModule1;
@@ -231,7 +235,88 @@ public class ArchModulesTest {
                         .modularize(invalidExamples)
         )
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("modules from root classes would overlap")
+                .hasMessageContaining("modules would overlap")
+                .hasMessageContaining(
+                        com.tngtech.archunit.library.modules.testexamples.invalid.overlapping_root_classes.ModuleOneDescriptor.class.getPackage().getName())
+                .hasMessageContaining(
+                        com.tngtech.archunit.library.modules.testexamples.invalid.overlapping_root_classes.child.ModuleTwoDescriptor.class.getPackage().getName());
+    }
+
+    @Test
+    public void allows_defining_modules_by_annotations() {
+        ArchModules<AnnotationDescriptor<MyModule>> modules = ArchModules
+                .defineByAnnotation(MyModule.class)
+                .modularize(testExamples);
+
+        ArchModule<AnnotationDescriptor<MyModule>> module = modules.getByIdentifier(ModuleOneDescriptor.class.getPackage().getName());
+
+        String expectedModuleName = ModuleOneDescriptor.class.getAnnotation(MyModule.class).name();
+        assertThat(module.getName()).isEqualTo(expectedModuleName);
+        assertThat(module.getDescriptor().getAnnotation().name()).isEqualTo(expectedModuleName);
+
+        assertThatTypes(module).matchInAnyOrder(
+                ModuleOneDescriptor.class,
+                FirstClassInModule1.class,
+                SecondClassInModule1.class,
+                FirstClassInSubModule11.class,
+                SecondClassInSubModule11.class,
+                FirstClassInSubModule12.class,
+                SecondClassInSubModule12.class);
+    }
+
+    @Test
+    public void rejects_defining_modules_by_annotations_when_name_property_can_not_be_derived() {
+        JavaClasses classes = new ClassFileImporter().importPackages(getExamplePackage("annotation_with_custom_name"));
+
+        assertInvalidAnnotationDefinitionByDefaultNameProperty(MyModuleWithCustomName.class, classes);
+    }
+
+    @Test
+    public void rejects_defining_modules_by_annotations_when_name_property_has_incompatible_type() {
+        @AnnotationWithIncompatibleNameProperty(name = 42)
+        class RootClassWithIncompatibleAnnotation {
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(AnnotationWithIncompatibleNameProperty.class, RootClassWithIncompatibleAnnotation.class);
+
+        assertInvalidAnnotationDefinitionByDefaultNameProperty(AnnotationWithIncompatibleNameProperty.class, classes);
+    }
+
+    private static void assertInvalidAnnotationDefinitionByDefaultNameProperty(Class<? extends Annotation> annotationType, JavaClasses classes) {
+        assertThatThrownBy(
+                () -> ArchModules
+                        .defineByAnnotation(annotationType)
+                        .modularize(classes)
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("@" + annotationType.getSimpleName() + ".name()")
+                .hasMessageContaining("Supplied annotation must provide a method 'String name()'")
+                .hasMessageContaining("defineByAnnotation(annotationType, nameFunction)");
+    }
+
+    @Test
+    public void allows_defining_modules_by_annotations_with_customized_name_property() {
+        JavaClasses invalidExamples = new ClassFileImporter().importPackages(getExamplePackage("annotation_with_custom_name"));
+
+        ArchModules<AnnotationDescriptor<MyModuleWithCustomName>> modules = ArchModules
+                .defineByAnnotation(MyModuleWithCustomName.class, MyModuleWithCustomName::customName)
+                .modularize(invalidExamples);
+
+        ArchModule<?> module = modules.getByIdentifier(ModuleOneDescriptorCustomName.class.getPackage().getName());
+
+        String expectedModuleName = ModuleOneDescriptorCustomName.class.getAnnotation(MyModuleWithCustomName.class).customName();
+        assertThat(module.getName()).isEqualTo(expectedModuleName);
+    }
+
+    @Test
+    public void rejects_overlapping_modules_by_annotations() {
+        JavaClasses invalidExamples = new ClassFileImporter().importPackages(getExamplePackage("invalid"));
+
+        assertThatThrownBy(
+                () -> ArchModules
+                        .defineByAnnotation(MyModule.class)
+                        .modularize(invalidExamples)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("modules would overlap")
                 .hasMessageContaining(
                         com.tngtech.archunit.library.modules.testexamples.invalid.overlapping_root_classes.ModuleOneDescriptor.class.getPackage().getName())
                 .hasMessageContaining(
@@ -474,5 +559,9 @@ public class ArchModulesTest {
         JavaClass getDescriptorClass() {
             return descriptorClass;
         }
+    }
+
+    private @interface AnnotationWithIncompatibleNameProperty {
+        int name();
     }
 }

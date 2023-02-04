@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.library.modules;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,6 +41,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.PackageMatcher;
 import com.tngtech.archunit.library.dependencies.Slices;
 import com.tngtech.archunit.library.modules.ArchModule.Identifier;
+import com.tngtech.archunit.library.modules.ArchModules.Creator.WithGenericDescriptor;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,6 +67,8 @@ import static java.util.stream.Collectors.toMap;
  *     <li>{@link #defineBy(IdentifierAssociation)} - the most generic/flexible API</li>
  *     <li>{@link #defineByPackages(String)} - an API similar to {@link Slices#matching(String)}</li>
  *     <li>{@link #defineByRootClasses(Predicate)} - an API that derives modules from the packages of some specific classes</li>
+ *     <li>{@link #defineByAnnotation(Class)} - a convenience API for {@link #defineByRootClasses(Predicate)}
+ *         that picks the relevant classes by looking for an annotation</li>
  * </ul>
  */
 @PublicAPI(usage = ACCESS)
@@ -236,6 +241,67 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
     }
 
     /**
+     * Same as {@link #defineByAnnotation(Class, Function)}, but the name will be automatically derived from the {@code name}
+     * attribute of the respective annotation. I.e. to use this method the respective annotation must provide a name like in the following example:
+     * <pre><code>
+     *{@literal @}SomeExample(name = "Example Module")
+     * class SomeClass {}
+     * </code></pre>
+     * In case the respective {@code annotationType} doesn't offer a name attribute like this please refer to {@link #defineByAnnotation(Class, Function)} instead.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <A extends Annotation> WithGenericDescriptor<AnnotationDescriptor<A>> defineByAnnotation(Class<A> annotationType) {
+        return defineByAnnotation(annotationType, input -> {
+            try {
+                return (String) input.annotationType().getMethod("name").invoke(input);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassCastException e) {
+                String message = String.format(
+                        "Could not invoke @%s.name() -> Supplied annotation must provide a method 'String name()'. "
+                                + "Otherwise use defineByAnnotation(annotationType, nameFunction).", input.annotationType().getSimpleName());
+                throw new IllegalArgumentException(message, e);
+            }
+        });
+    }
+
+    /**
+     * Entrypoint to create {@link ArchModules} by partitioning a set of {@link JavaClass classes} into packages
+     * defined by "root classes" containing annotations of the given {@code annotationType}.
+     * This is basically a convenience function for {@link #defineByRootClasses(Predicate)} where the {@link Predicate}
+     * exactly identifies classes carrying the passed {@code annotationType} and the annotation will be carried
+     * forward into the derived {@link ArchModule}s by the derived {@link AnnotationDescriptor}.<br>
+     * <br>
+     * Take for example the following three classes:<br><br>
+     * {@code @SomeAnnotation com.example.module.one.SomeClass}<br>
+     * {@code com.example.module.one.AnotherClass}<br>
+     * {@code @SomeAnnotation com.example.module.two.YetAnotherClass}<br><br>
+     * Then
+     * <pre><code>
+     * ArchModules.defineByAnnotation(SomeAnnotation.class).modularize(javaClasses)
+     * </code></pre>
+     * would pick the classes {@code SomeClass} and {@code YetAnotherClass}, since they are annotated with {@code SomeAnnotation},
+     * and derive the {@link ArchModules} from their packages. This in turn would put {@code SomeClass} and {@code AnotherClass}
+     * in the same {@link ArchModule} derived from {@code SomeClass}. The final {@link ArchModule} would have a
+     * {@link ArchModule#getDescriptor() descriptor} of type {@link AnnotationDescriptor} from which the specific {@link Annotation}
+     * (i.e. instance of {@code @SomeAnnotation}) on {@code SomeClass} or {@code YetAnotherClass} could be obtained.
+     * <br>
+     * As with {@link #defineByRootClasses(Predicate)} users of this method must make sure that packages of the classes
+     * annotated with the given {@code annotationType} don't overlap.
+     *
+     * @param annotationType The type of {@link Annotation} defining which {@link JavaClass} is a root class
+     * @param nameFunction A function determining how to derive the {@link ArchModule#getName() module name} from the respective annotation
+     * @return A fluent API to further customize how to create {@link ArchModules}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <A extends Annotation> WithGenericDescriptor<AnnotationDescriptor<A>> defineByAnnotation(Class<A> annotationType, Function<A, String> nameFunction) {
+        return defineByRootClasses(it -> it.isAnnotatedWith(annotationType))
+                .describeModuleByRootClass((__, rootClass) -> {
+                            A annotation = rootClass.getAnnotationOfType(annotationType);
+                            return new AnnotationDescriptor<>(nameFunction.apply(annotation), annotation);
+                        }
+                );
+    }
+
+    /**
      * Entrypoint to create {@link ArchModules} by a generic mapping function {@link JavaClass} -> {@link ArchModule.Identifier}.
      * All {@link JavaClass classes} that are mapped to the same {@link ArchModule.Identifier} will end up in the same
      * {@link ArchModule}.<br>
@@ -360,7 +426,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
                     packageToIdentifier.keySet().forEach(pkg -> {
                         if (packagesOverlap(pkg, rootClass.getPackageName())) {
                             throw new IllegalArgumentException(String.format(
-                                    "modules from root classes would overlap in '%s' and '%s'", pkg, rootClass.getPackageName()));
+                                    "modules would overlap in '%s' and '%s'", pkg, rootClass.getPackageName()));
                         }
                     });
                     Identifier identifier = Identifier.from(rootClass.getPackageName());
