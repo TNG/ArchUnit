@@ -19,7 +19,7 @@ import static java.util.regex.Pattern.quote;
 public class ExpectedDependency implements ExpectedRelation {
     private final Class<?> origin;
     private final Class<?> target;
-    private String dependencyPattern;
+    private final String dependencyPattern;
 
     private ExpectedDependency(Class<?> origin, Class<?> target, String dependencyPattern) {
         this.origin = origin;
@@ -80,6 +80,14 @@ public class ExpectedDependency implements ExpectedRelation {
                 genericParameterTypes[0]);
     }
 
+    public static AnnotationDependencyCreator annotatedPackageInfo(String packageName) {
+        try {
+            return new AnnotationDependencyCreator(Class.forName(packageName + ".package-info"));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
         return new AnnotationDependencyCreator(clazz);
     }
@@ -102,6 +110,11 @@ public class ExpectedDependency implements ExpectedRelation {
 
     public static MemberDependencyCreator constructor(Class<?> owner) {
         return new MemberDependencyCreator(owner, CONSTRUCTOR_NAME);
+    }
+
+    @Override
+    public void addTo(HandlingAssertion assertion) {
+        assertion.byDependency(this);
     }
 
     @Override

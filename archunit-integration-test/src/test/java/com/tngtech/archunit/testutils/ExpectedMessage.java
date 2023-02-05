@@ -4,7 +4,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-class ExpectedMessage implements MessageAssertionChain.Link {
+public class ExpectedMessage implements MessageAssertionChain.Link {
     private final String expectedMessage;
 
     ExpectedMessage(String expectedMessage) {
@@ -21,5 +21,9 @@ class ExpectedMessage implements MessageAssertionChain.Link {
     @Override
     public String getDescription() {
         return "Message: " + expectedMessage;
+    }
+
+    public static ExpectedMessage violation(String message) {
+        return new ExpectedMessage(message);
     }
 }

@@ -23,7 +23,6 @@ import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
@@ -113,13 +112,11 @@ public class PublicAPIRules {
     public static final ArchRule only_entry_point_and_syntax_interfaces_should_be_public =
             classes()
                     .that().resideInAPackage("..syntax..")
-                    .and().haveNameNotMatching(".*" + ArchRuleDefinition.class.getSimpleName() + ".*")
+                    .and().haveNameNotMatching(".*RuleDefinition.*")
                     .and().areNotInterfaces()
                     .and().areNotAnnotatedWith(Internal.class)
                     .should().notBePublic()
-                    .as(String.format(
-                            "Only %s and interfaces within the ArchUnit syntax (..syntax..) should be public",
-                            ArchRuleDefinition.class.getSimpleName()));
+                    .as("Only RuleDefinitions and interfaces within the ArchUnit syntax (..syntax..) should be public");
 
     @ArchTest
     public static final ArchRule parameters_of_public_API_are_public =

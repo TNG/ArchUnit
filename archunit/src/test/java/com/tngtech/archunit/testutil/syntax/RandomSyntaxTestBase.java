@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import com.google.common.base.CaseFormat;
@@ -312,6 +314,17 @@ public abstract class RandomSyntaxTestBase {
                                 new Parameter(new String[]{"one", "two"}, "['one', 'two']");
                     }
                 })
+                .add(new SpecificParameterProvider(Object[].class) {
+                    @Override
+                    Parameter get(String methodName, TypeToken<?> type) {
+                        return new Parameter(new Object[]{"one", "two"}, "[one, two]");
+                    }
+
+                    @Override
+                    boolean canHandle(Class<?> type) {
+                        return supportedType == type; // only use this when the type is really Object[] and not for more specific subtypes
+                    }
+                })
                 .add(new SpecificParameterProvider(Class.class) {
                     @Override
                     Parameter get(String methodName, TypeToken<?> type) {
@@ -378,7 +391,7 @@ public abstract class RandomSyntaxTestBase {
                     return provider.get(methodName, type);
                 }
             }
-            throw new RuntimeException("Parameter type " + type + " is not supported yet");
+            throw new RuntimeException("Parameter type " + type + " of method " + methodName + " is not supported yet");
         }
 
         private abstract static class SpecificParametersProvider {
@@ -388,7 +401,7 @@ public abstract class RandomSyntaxTestBase {
         }
 
         private abstract static class SpecificParameterProvider {
-            private final Class<?> supportedType;
+            protected final Class<?> supportedType;
 
             SpecificParameterProvider(Class<?> supportedType) {
                 this.supportedType = supportedType;
@@ -600,6 +613,32 @@ public abstract class RandomSyntaxTestBase {
         @Override
         public String toString() {
             return getClass().getSimpleName() + "{/" + search + "/" + replacement + "/}";
+        }
+    }
+
+    protected static class ReplaceEverythingSoFar implements DescriptionReplacement {
+        private final Pattern pattern;
+        private final String replaceWith;
+
+        public ReplaceEverythingSoFar(String pattern, String replaceWith) {
+            this.pattern = Pattern.compile(pattern);
+            this.replaceWith = replaceWith;
+        }
+
+        @Override
+        public boolean applyTo(String currentToken, List<String> currentDescription) {
+            Matcher matcher = pattern.matcher(currentToken);
+            if (matcher.matches()) {
+                currentDescription.clear();
+                currentDescription.add(matcher.replaceAll(replaceWith));
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{/" + pattern + "/" + replaceWith + "/}";
         }
     }
 }

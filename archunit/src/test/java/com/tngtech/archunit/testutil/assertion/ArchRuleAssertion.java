@@ -11,6 +11,11 @@ public class ArchRuleAssertion extends AbstractObjectAssert<ArchRuleAssertion, A
         super(rule, ArchRuleAssertion.class);
     }
 
+    public ArchRuleAssertion hasDescription(String description) {
+        assertThat(actual.getDescription()).isEqualTo(description);
+        return this;
+    }
+
     public ArchRuleAssertion hasDescriptionContaining(String descriptionPart) {
         assertThat(actual.getDescription()).contains(descriptionPart);
         return this;

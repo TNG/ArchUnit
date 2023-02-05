@@ -15,8 +15,6 @@ import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedCall;
-import com.tngtech.archunit.testutils.ExpectedAccess.ExpectedFieldAccess;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;
@@ -47,19 +45,19 @@ class HandlingAssertion {
         this.expectedDependencies = expectedDependencies;
     }
 
-    void by(ExpectedFieldAccess access) {
+    void byFieldAccess(ExpectedRelation access) {
         expectedFieldAccesses.add(access);
     }
 
-    void by(ExpectedCall call) {
-        if (call.isToConstructor()) {
-            expectedConstructorCalls.add(call);
-        } else {
-            expectedMethodCalls.add(call);
-        }
+    void byConstructorCall(ExpectedRelation call) {
+        expectedConstructorCalls.add(call);
     }
 
-    void by(ExpectedDependency inheritance) {
+    void byMethodCall(ExpectedRelation call) {
+        expectedMethodCalls.add(call);
+    }
+
+    void byDependency(ExpectedRelation inheritance) {
         expectedDependencies.add(inheritance);
     }
 

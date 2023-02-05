@@ -341,21 +341,24 @@ public class ExpectedTestFailures {
 
         void by(ExpectedAccess.ExpectedFieldAccess access) {
             expectedViolation.by(access);
-            handlingAssertion.by(access);
+            access.addTo(handlingAssertion);
         }
 
         void by(ExpectedAccess.ExpectedCall call) {
             expectedViolation.by(call);
-            handlingAssertion.by(call);
+            call.addTo(handlingAssertion);
         }
 
         void by(ExpectedDependency inheritance) {
             expectedViolation.by(inheritance);
-            handlingAssertion.by(inheritance);
+            inheritance.addTo(handlingAssertion);
         }
 
         void by(MessageAssertionChain.Link assertion) {
             expectedViolation.by(assertion);
+            if (assertion instanceof ExpectedRelation) {
+                ((ExpectedRelation) assertion).addTo(handlingAssertion);
+            }
         }
 
         ExpectedViolationToAssign copy() {
