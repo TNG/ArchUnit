@@ -36,6 +36,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.ensureUnixLineBreaks;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
@@ -44,7 +45,7 @@ import static java.util.stream.Collectors.toList;
  * A text file based implementation of a {@link ViolationStore}.<br>
  * This {@link ViolationStore} will store the violations of every single {@link FreezingArchRule} in a dedicated file.<br>
  * It will keep an index of all stored rules as well as a mapping to the individual rule violation files in the same folder.<br>
- * The layout within the configured store folder will look like:
+ * By default, the layout within the configured store folder will look like:
  * <pre><code>
  * storeFolder
  *   |-- stored.rules (the index file of all stored rules)
@@ -52,6 +53,8 @@ import static java.util.stream.Collectors.toList;
  *   |-- 2186b43a-c24c-417d-bd96-547e2dfdba1c (another rule violation file)
  *   |-- ... (more rule violation files for every rule that has been stored so far)
  * </code></pre>
+ * To adjust the strategy how the individual rule violation files are named use the constructor
+ * {@link TextFileBasedViolationStore#TextFileBasedViolationStore(RuleViolationFileNameStrategy) TextFileBasedViolationStore(RuleViolationFileNameStrategy)}.<br>
  * This {@link ViolationStore} can be configured through the following properties:
  * <pre><code>
  * default.path=...               # string: the path of the folder where violation files will be stored
@@ -72,10 +75,30 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "default.allowStoreUpdate";
     private static final String ALLOW_STORE_UPDATE_DEFAULT = "true";
 
+    private final RuleViolationFileNameStrategy ruleViolationFileNameStrategy;
+
     private boolean storeCreationAllowed;
     private boolean storeUpdateAllowed;
     private File storeFolder;
     private FileSyncedProperties storedRules;
+
+    /**
+     * Creates a standard {@link TextFileBasedViolationStore} that names rule violation files by random {@link UUID}s
+     *
+     * @see #TextFileBasedViolationStore(RuleViolationFileNameStrategy)
+     */
+    public TextFileBasedViolationStore() {
+        this(__ -> UUID.randomUUID().toString());
+    }
+
+    /**
+     * Creates a {@link TextFileBasedViolationStore} with a custom strategy for rule violation file naming
+     *
+     * @param ruleViolationFileNameStrategy controls how the rule violation file name is derived from the rule description
+     */
+    public TextFileBasedViolationStore(RuleViolationFileNameStrategy ruleViolationFileNameStrategy) {
+        this.ruleViolationFileNameStrategy = ruleViolationFileNameStrategy;
+    }
 
     @Override
     public void initialize(Properties properties) {
@@ -149,21 +172,18 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     }
 
     private String ensureRuleFileName(ArchRule rule) {
+        String ruleDescription = rule.getDescription();
+
         String ruleFileName;
-        if (storedRules.containsKey(rule.getDescription())) {
-            ruleFileName = storedRules.getProperty(rule.getDescription());
-            log.trace("Rule '{}' is already stored in file {}", rule.getDescription(), ruleFileName);
+        if (storedRules.containsKey(ruleDescription)) {
+            ruleFileName = storedRules.getProperty(ruleDescription);
+            log.trace("Rule '{}' is already stored in file {}", ruleDescription, ruleFileName);
         } else {
-            ruleFileName = createNewRuleId(rule).toString();
+            ruleFileName = ruleViolationFileNameStrategy.createRuleFileName(ruleDescription);
+            log.trace("Assigning new file {} to rule '{}'", ruleFileName, ruleDescription);
+            storedRules.setProperty(ruleDescription, ruleFileName);
         }
         return ruleFileName;
-    }
-
-    private UUID createNewRuleId(ArchRule rule) {
-        UUID ruleId = UUID.randomUUID();
-        log.trace("Assigning new ID {} to rule '{}'", ruleId, rule.getDescription());
-        storedRules.setProperty(rule.getDescription(), ruleId.toString());
-        return ruleId;
     }
 
     @Override
@@ -243,5 +263,24 @@ public final class TextFileBasedViolationStore implements ViolationStore {
                 throw new StoreUpdateFailedException(e);
             }
         }
+    }
+
+    /**
+     * Allows to adjust the rule violation file names of {@link TextFileBasedViolationStore}
+     *
+     * @see #TextFileBasedViolationStore(RuleViolationFileNameStrategy)
+     */
+    @FunctionalInterface
+    @PublicAPI(usage = INHERITANCE)
+    public interface RuleViolationFileNameStrategy {
+        /**
+         * Returns the file name to store violations of an {@link ArchRule}, possibly based on the rule description.<br>
+         * The returned names <b>must</b> be sufficiently unique from any others;
+         * as long as the descriptions themselves are unique, this can be achieved by sanitizing the description into some sort of file name.
+         *
+         * @param ruleDescription The description of the {@link ArchRule} to store
+         * @return The file name the respective rule violation file will have (see {@link TextFileBasedViolationStore})
+         */
+        String createRuleFileName(String ruleDescription);
     }
 }
