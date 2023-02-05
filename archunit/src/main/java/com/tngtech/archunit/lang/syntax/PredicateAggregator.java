@@ -16,6 +16,7 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -40,6 +41,10 @@ public final class PredicateAggregator<T> {
 
     public boolean isPresent() {
         return predicate.isPresent();
+    }
+
+    public <V> Optional<V> map(Function<DescribedPredicate<T>, V> function) {
+        return predicate.map(function);
     }
 
     public DescribedPredicate<T> get() {

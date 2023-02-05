@@ -54,9 +54,7 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
     }
 
     ClassesTransformer<T> finishedClassesTransformer() {
-        ClassesTransformer<T> completeTransformation = relevantObjectsPredicates.isPresent() ?
-                classesTransformer.that(relevantObjectsPredicates.get()) :
-                classesTransformer;
+        ClassesTransformer<T> completeTransformation = relevantObjectsPredicates.map(classesTransformer::that).orElse(classesTransformer);
         return overriddenDescription.isPresent() ?
                 completeTransformation.as(overriddenDescription.get()) :
                 completeTransformation;
