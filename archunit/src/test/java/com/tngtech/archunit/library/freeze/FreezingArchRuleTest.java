@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(DataProviderRunner.class)
 public class FreezingArchRuleTest {
 
+    private static final String STORE_PROPERTY_NAME = "freeze.store";
     private static final String STORE_DEFAULT_PATH_PROPERTY_NAME = "freeze.store.default.path";
     private static final String ALLOW_STORE_CREATION_PROPERTY_NAME = "freeze.store.default.allowStoreCreation";
     private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "freeze.store.default.allowStoreUpdate";
@@ -311,7 +312,7 @@ public class FreezingArchRuleTest {
 
     @Test
     public void allows_to_customize_ViolationStore_by_configuration() {
-        ArchConfiguration.get().setProperty("freeze.store", TestViolationStore.class.getName());
+        ArchConfiguration.get().setProperty(STORE_PROPERTY_NAME, TestViolationStore.class.getName());
         ArchConfiguration.get().setProperty("freeze.store.first.property", "first value");
         ArchConfiguration.get().setProperty("freeze.store.second.property", "second value");
         ArchConfiguration.get().setProperty("freeze.unrelated", "unrelated value");
@@ -482,6 +483,21 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void allows_to_adjust_default_store_file_names_via_delegation() throws IOException {
+        // GIVEN
+        File storeFolder = useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(STORE_PROPERTY_NAME, MyTextFileBasedViolationStore.class.getName());
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+
+        // WHEN
+        ArchRule rule = rule("some rule").withViolations("irrelevant").create();
+        freeze(rule).check(importClasses(getClass()));
+
+        // THEN
+        assertThat(storeFolder.list()).contains("some rule" + MyTextFileBasedViolationStore.FILE_NAME_SUFFIX);
+    }
+
+    @Test
     public void violations_ignored_by_archunit_ignore_patterns_are_omitted_from_the_store() throws IOException {
         Path ignoreFile = null;
         try {
@@ -516,9 +532,10 @@ public class FreezingArchRuleTest {
                 .hasNoViolation();
     }
 
-    private void useTemporaryDefaultStorePath() throws IOException {
+    private File useTemporaryDefaultStorePath() throws IOException {
         File folder = temporaryFolder.newFolder();
         ArchConfiguration.get().setProperty(STORE_DEFAULT_PATH_PROPERTY_NAME, folder.getAbsolutePath());
+        return folder;
     }
 
     private static RuleCreator rule(String description) {
@@ -626,6 +643,14 @@ public class FreezingArchRuleTest {
             private StoredRule(List<String> violations) {
                 this.violations = violations;
             }
+        }
+    }
+
+    static class MyTextFileBasedViolationStore extends ViolationStore.Delegate {
+        static final String FILE_NAME_SUFFIX = " test";
+
+        MyTextFileBasedViolationStore() {
+            super(new TextFileBasedViolationStore(description -> description + FILE_NAME_SUFFIX));
         }
     }
 
