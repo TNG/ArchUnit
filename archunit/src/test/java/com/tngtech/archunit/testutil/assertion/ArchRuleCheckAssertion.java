@@ -100,7 +100,7 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
-    public ArchRuleCheckAssertion hasViolations(int numberOfViolations) {
+    public ArchRuleCheckAssertion hasNumberOfViolations(int numberOfViolations) {
         assertThat(evaluationResult.getFailureReport().getDetails()).as("number of violation").hasSize(numberOfViolations);
         return this;
     }
