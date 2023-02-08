@@ -1,9 +1,18 @@
 class VersionSpec {
+    private static final SortedSet<JavaVersion> LTS_VERSIONS_SORTED_ASCENDING = [
+            JavaVersion.VERSION_1_8,
+            JavaVersion.VERSION_11,
+            JavaVersion.VERSION_17
+    ] as SortedSet
+
     JavaVersion desiredJdkVersion
     JavaVersion desiredSourceCompatibility
 
-    VersionSpec withLowerVersionBound(JavaVersion version) {
-        new VersionSpec(desiredJdkVersion: [desiredJdkVersion, version].max(), desiredSourceCompatibility: [desiredSourceCompatibility, version].max())
+    VersionSpec withLowerLtsVersionBoundCompatibleWith(JavaVersion version) {
+        JavaVersion ltsVersion = version == null
+                ? LTS_VERSIONS_SORTED_ASCENDING.first()
+                : LTS_VERSIONS_SORTED_ASCENDING.find { it.isCompatibleWith(version) }
+        new VersionSpec(desiredJdkVersion: [desiredJdkVersion, ltsVersion].max(), desiredSourceCompatibility: [desiredSourceCompatibility, ltsVersion].max())
     }
 
     JavaLanguageVersion getDesiredJavaLanguageVersion() {
@@ -24,7 +33,7 @@ VersionSpec createVersionSpec() {
 }
 
 afterEvaluate {
-    VersionSpec versionSpec = createVersionSpec().withLowerVersionBound(findProperty('minimumJavaVersion') as JavaVersion)
+    VersionSpec versionSpec = createVersionSpec().withLowerLtsVersionBoundCompatibleWith(findProperty('minimumJavaVersion') as JavaVersion)
     println "Project ${project.name} configured: ${versionSpec.describe()}"
 
     def getMinTaskJavaVersion = { Task task -> task.hasProperty('minimumJavaVersion') ? task.property('minimumJavaVersion') as JavaVersion : null }
@@ -39,7 +48,7 @@ afterEvaluate {
     targetCompatibility = versionSpec.desiredSourceCompatibility
 
     tasks.withType(JavaCompile) { Task task ->
-        VersionSpec taskVersionSpec = versionSpec.withLowerVersionBound(getMinTaskJavaVersion(task))
+        VersionSpec taskVersionSpec = versionSpec.withLowerLtsVersionBoundCompatibleWith(getMinTaskJavaVersion(task))
         println "Task ${task.name} configured: ${taskVersionSpec.describe()}"
 
         sourceCompatibility = taskVersionSpec.desiredSourceCompatibility
@@ -51,7 +60,7 @@ afterEvaluate {
     }
 
     tasks.withType(Test) { Task task ->
-        VersionSpec taskVersionSpec = versionSpec.withLowerVersionBound(getMinTaskJavaVersion(task))
+        VersionSpec taskVersionSpec = versionSpec.withLowerLtsVersionBoundCompatibleWith(getMinTaskJavaVersion(task))
         println "Task ${task.name} runs with Java version: ${taskVersionSpec.desiredJdkVersion}"
 
         javaLauncher = javaToolchains.launcherFor {

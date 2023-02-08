@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,4 +72,37 @@ public interface ViolationStore {
      * @return The lines of violations currently stored for the passed {@link ArchRule}
      */
     List<String> getViolations(ArchRule rule);
+
+    /**
+     * A simple delegate for a {@link ViolationStore} to allow adjusting the behavior of another
+     * {@link ViolationStore} by delegation (e.g. {@link TextFileBasedViolationStore})
+     */
+    @PublicAPI(usage = INHERITANCE)
+    class Delegate implements ViolationStore {
+        private final ViolationStore delegate;
+
+        public Delegate(ViolationStore delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void initialize(Properties properties) {
+            delegate.initialize(properties);
+        }
+
+        @Override
+        public boolean contains(ArchRule rule) {
+            return delegate.contains(rule);
+        }
+
+        @Override
+        public void save(ArchRule rule, List<String> violations) {
+            delegate.save(rule, violations);
+        }
+
+        @Override
+        public List<String> getViolations(ArchRule rule) {
+            return delegate.getViolations(rule);
+        }
+    }
 }

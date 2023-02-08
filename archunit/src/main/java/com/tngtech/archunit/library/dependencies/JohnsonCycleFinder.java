@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ class JohnsonCycleFinder {
         private boolean maxNumberOfCyclesReached = false;
 
         private Result() {
-            log.debug("Maximum number of cycles to detect is set to {}; "
+            log.trace("Maximum number of cycles to detect is set to {}; "
                             + "this limit can be adapted using the `archunit.properties` value `{}=xxx`",
                     configuration.getMaxNumberOfCyclesToDetect(), MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME);
         }

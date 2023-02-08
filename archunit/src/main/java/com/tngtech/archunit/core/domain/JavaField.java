@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,6 @@ public final class JavaField extends JavaMember implements HasType {
         return getOwner().getName() + "." + getName();
     }
 
-    /**
-     * Note: This is still work in progress and thus does not support generic types at the moment.
-     *       In the future the result can possibly also be a {@link JavaParameterizedType} or {@link JavaTypeVariable}
-     */
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getType() {

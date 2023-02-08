@@ -10,7 +10,6 @@ import java.util.Properties;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.library.freeze.ViolationStoreFactory.TextFileBasedViolationStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

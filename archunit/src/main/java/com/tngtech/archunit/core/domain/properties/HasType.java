@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -29,9 +30,21 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 @PublicAPI(usage = ACCESS)
 public interface HasType {
 
+    /**
+     * @return The (possibly generic) {@link JavaType} of this object. Refer to the documentation of {@link JavaType}
+     *         for further information.
+     * @see #getRawType()
+     */
     @PublicAPI(usage = ACCESS)
     JavaType getType();
 
+    /**
+     * @return The raw type of this object. This is effectively the same as calling
+     *         {@link #getType()}.{@link JavaType#toErasure() toErasure()}. E.g. given a {@link JavaParameterizedType}
+     *         {@code java.util.List<String>} the raw type (i.e. type erasure) would be the
+     *         {@link JavaClass} {@code java.util.List}.
+     * @see #getType()
+     */
     @PublicAPI(usage = ACCESS)
     JavaClass getRawType();
 

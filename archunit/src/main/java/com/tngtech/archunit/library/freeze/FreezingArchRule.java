@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,13 +134,13 @@ public final class FreezingArchRule implements ArchRule {
     }
 
     private EvaluationResult storeViolationsAndReturnSuccess(EvaluationResultLineBreakAdapter result) {
-        log.debug("No results present for rule '{}'. Freezing rule result...", delegate.getDescription());
+        log.trace("No results present for rule '{}'. Freezing rule result...", delegate.getDescription());
         store.save(delegate, result.getViolations());
         return new EvaluationResult(delegate, result.getPriority());
     }
 
     private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResultLineBreakAdapter result) {
-        log.debug("Found frozen result for rule '{}'", delegate.getDescription());
+        log.trace("Found frozen result for rule '{}'", delegate.getDescription());
         List<String> knownViolations = store.getViolations(delegate);
         CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
         removeObsoleteViolationsFromStore(categorizedViolations);
@@ -149,14 +149,14 @@ public final class FreezingArchRule implements ArchRule {
 
     private void removeObsoleteViolationsFromStore(CategorizedViolations categorizedViolations) {
         List<String> solvedViolations = categorizedViolations.getStoredSolvedViolations();
-        log.debug("Removing {} obsolete violations from store: {}", solvedViolations.size(), solvedViolations);
+        log.trace("Removing {} obsolete violations from store: {}", solvedViolations.size(), solvedViolations);
         if (!solvedViolations.isEmpty()) {
             store.save(delegate, categorizedViolations.getStoredUnsolvedViolations());
         }
     }
 
     private EvaluationResult filterOutKnownViolations(EvaluationResultLineBreakAdapter result, Set<String> knownActualViolations) {
-        log.debug("Filtering out known violations: {}", knownActualViolations);
+        log.trace("Filtering out known violations: {}", knownActualViolations);
         return result.filterDescriptionsMatching(violation -> !knownActualViolations.contains(violation));
     }
 

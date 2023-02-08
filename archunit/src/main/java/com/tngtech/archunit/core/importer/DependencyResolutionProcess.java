@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,7 +124,7 @@ class DependencyResolutionProcess {
     }
 
     private void logConfiguration() {
-        log.debug("Automatically resolving transitive class dependencies with the following configuration:{}{}{}{}{}{}",
+        log.trace("Automatically resolving transitive class dependencies with the following configuration:{}{}{}{}{}{}",
                 formatConfigProperty(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME, maxRunsForMemberTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME, maxRunsForAccessesToTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME, maxRunsForSupertypes),

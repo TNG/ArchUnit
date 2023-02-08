@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 TNG Technology Consulting GmbH
+ * Copyright 2014-2023 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
 
         private EventRecorder() {
-            log.debug("Maximum number of dependencies to report per edge is set to {}; "
+            log.trace("Maximum number of dependencies to report per edge is set to {}; "
                             + "this limit can be adapted using the `archunit.properties` value `{}=xxx`",
                     cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge(), MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME);
         }
