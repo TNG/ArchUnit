@@ -231,44 +231,8 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * @return A fluent API to further customize how to create {@link ArchModules}
      */
     @PublicAPI(usage = ACCESS)
-    public static Creator defineByRootClasses(Predicate<? super JavaClass> rootClassPredicate) {
-        return defineBy(identifierByRootClass(rootClassPredicate));
-    }
-
-    private static IdentifierAssociation identifierByRootClass(Predicate<? super JavaClass> rootClassPredicate) {
-        return new IdentifierAssociation() {
-            private final Map<String, Identifier> packageToIdentifier = new HashMap<>();
-
-            @Override
-            public void init(Collection<JavaClass> allClasses) {
-                allClasses.stream().filter(rootClassPredicate).forEach(rootClass -> {
-                    packageToIdentifier.keySet().forEach(pkg -> {
-                        if (packagesOverlap(pkg, rootClass.getPackageName())) {
-                            throw new IllegalArgumentException(String.format(
-                                    "modules from root classes would overlap in '%s' and '%s'", pkg, rootClass.getPackageName()));
-                        }
-                    });
-                    packageToIdentifier.put(rootClass.getPackageName(), Identifier.from(rootClass.getPackageName()));
-                });
-            }
-
-            private boolean packagesOverlap(String firstPackageName, String secondPackageName) {
-                return packageContains(firstPackageName, secondPackageName) || packageContains(secondPackageName, firstPackageName);
-            }
-
-            private boolean packageContains(String parentPackage, String childPackage) {
-                return childPackage.equals(parentPackage) || childPackage.startsWith(parentPackage + ".");
-            }
-
-            @Override
-            public Identifier associate(JavaClass javaClass) {
-                return packageToIdentifier.entrySet().stream()
-                        .filter(it -> packageContains(it.getKey(), javaClass.getPackageName()))
-                        .findFirst()
-                        .map(Map.Entry::getValue)
-                        .orElse(Identifier.ignore());
-            }
-        };
+    public static CreatorByRootClass defineByRootClasses(Predicate<? super JavaClass> rootClassPredicate) {
+        return CreatorByRootClass.from(rootClassPredicate);
     }
 
     /**
@@ -334,10 +298,105 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
     }
 
     /**
+     * A more convenient {@link DescriptorCreator} tailored to the case that we
+     * {@link #defineByRootClasses(Predicate) define our modules by root classes}. Allows to derive the specific {@link ArchModule.Descriptor}
+     * directly from the root class that induced the respective {@link ArchModule}.
+     *
+     * @param <DESCRIPTOR> A specific subtype of {@link ArchModule.Descriptor}
+     */
+    @FunctionalInterface
+    @PublicAPI(usage = INHERITANCE)
+    public interface RootClassDescriptorCreator<DESCRIPTOR extends ArchModule.Descriptor> {
+
+        /**
+         * @param identifier The {@link ArchModule.Identifier} of the respective {@link ArchModule}
+         * @param rootClass The {@link JavaClass root class} from which the respective {@link ArchModule} was derived
+         * @return A specific instance of a subtype of {@link ArchModule.Descriptor}
+         */
+        DESCRIPTOR create(Identifier identifier, JavaClass rootClass);
+    }
+
+    /**
      * An element of the fluent API to create {@link ArchModules}
      */
     @PublicAPI(usage = ACCESS)
-    public static final class Creator {
+    public static class CreatorByRootClass extends Creator {
+        private final RootClassIdentifierAssociation identifierAssociation;
+
+        private CreatorByRootClass(RootClassIdentifierAssociation identifierAssociation) {
+            super(identifierAssociation);
+            this.identifierAssociation = identifierAssociation;
+        }
+
+        /**
+         * Allows to derive the {@link ArchModule.Descriptor} from the {@link JavaClass root class} that induced the respective {@link ArchModule}.
+         *
+         * @param descriptorCreator A function describing how to derive the {@link ArchModule.Descriptor} from the respective
+         *                          {@link ArchModule.Identifier} and {@link JavaClass root class}
+         * @param <D>               The specific subtype of {@link ArchModule.Descriptor}
+         * @return A fluent API to further customize how to create {@link ArchModules}
+         */
+        @PublicAPI(usage = ACCESS)
+        public <D extends ArchModule.Descriptor> WithGenericDescriptor<D> describeModuleByRootClass(RootClassDescriptorCreator<D> descriptorCreator) {
+            return describeBy((identifier, __) -> descriptorCreator.create(identifier, identifierAssociation.getRootClassOf(identifier)));
+        }
+
+        static CreatorByRootClass from(Predicate<? super JavaClass> rootClassPredicate) {
+            return new CreatorByRootClass(new RootClassIdentifierAssociation(rootClassPredicate));
+        }
+
+        private static class RootClassIdentifierAssociation implements IdentifierAssociation {
+            private final Map<String, Identifier> packageToIdentifier = new HashMap<>();
+            private final Map<Identifier, JavaClass> identifierToRootClass = new HashMap<>();
+            private final Predicate<? super JavaClass> rootClassPredicate;
+
+            private RootClassIdentifierAssociation(Predicate<? super JavaClass> rootClassPredicate) {
+                this.rootClassPredicate = rootClassPredicate;
+            }
+
+            @Override
+            public void init(Collection<JavaClass> allClasses) {
+                allClasses.stream().filter(rootClassPredicate).forEach(rootClass -> {
+                    packageToIdentifier.keySet().forEach(pkg -> {
+                        if (packagesOverlap(pkg, rootClass.getPackageName())) {
+                            throw new IllegalArgumentException(String.format(
+                                    "modules from root classes would overlap in '%s' and '%s'", pkg, rootClass.getPackageName()));
+                        }
+                    });
+                    Identifier identifier = Identifier.from(rootClass.getPackageName());
+                    packageToIdentifier.put(rootClass.getPackageName(), identifier);
+                    identifierToRootClass.put(identifier, rootClass);
+                });
+            }
+
+            private boolean packagesOverlap(String firstPackageName, String secondPackageName) {
+                return packageContains(firstPackageName, secondPackageName) || packageContains(secondPackageName, firstPackageName);
+            }
+
+            private boolean packageContains(String parentPackage, String childPackage) {
+                return childPackage.equals(parentPackage) || childPackage.startsWith(parentPackage + ".");
+            }
+
+            @Override
+            public Identifier associate(JavaClass javaClass) {
+                return packageToIdentifier.entrySet().stream()
+                        .filter(it -> packageContains(it.getKey(), javaClass.getPackageName()))
+                        .findFirst()
+                        .map(Map.Entry::getValue)
+                        .orElse(Identifier.ignore());
+            }
+
+            JavaClass getRootClassOf(Identifier identifier) {
+                return identifierToRootClass.get(identifier);
+            }
+        }
+    }
+
+    /**
+     * An element of the fluent API to create {@link ArchModules}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static class Creator {
         private final IdentifierAssociation identifierAssociation;
         private final Function<Identifier, String> deriveNameFunction;
 

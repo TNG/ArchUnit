@@ -239,13 +239,29 @@ public class ArchModulesTest {
     }
 
     @Test
-    public void allows_customizing_modules_defined_by_root_classes() {
+    public void allows_customizing_modules_defined_by_root_classes_from_all_classes_of_the_module() {
         ArchModules<TestModuleDescriptor> modules = ArchModules
                 .defineByRootClasses(javaClass -> javaClass.getSimpleName().endsWith("Descriptor"))
                 .describeBy((__, containedClasses) -> {
                     JavaClass descriptorClass = containedClasses.stream()
                             .filter(it -> it.getSimpleName().endsWith("Descriptor"))
                             .collect(onlyElement());
+                    String name = getValue(descriptorClass.getField("name").reflect());
+                    return new TestModuleDescriptor(name, descriptorClass);
+                })
+                .modularize(testExamples);
+
+        ArchModule<TestModuleDescriptor> module = modules.getByIdentifier(ModuleOneDescriptor.class.getPackage().getName());
+
+        assertThat(module.getName()).isEqualTo(ModuleOneDescriptor.name);
+        assertThat(module.getDescriptor().getDescriptorClass().getName()).isEqualTo(ModuleOneDescriptor.class.getName());
+    }
+
+    @Test
+    public void allows_customizing_modules_defined_by_root_classes_directly_from_root_class() {
+        ArchModules<TestModuleDescriptor> modules = ArchModules
+                .defineByRootClasses(javaClass -> javaClass.getSimpleName().endsWith("Descriptor"))
+                .describeModuleByRootClass((__, descriptorClass) -> {
                     String name = getValue(descriptorClass.getField("name").reflect());
                     return new TestModuleDescriptor(name, descriptorClass);
                 })
