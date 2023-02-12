@@ -192,27 +192,15 @@ public abstract class RandomSyntaxTestBase {
 
     private static class PartialStep extends Step {
         private static final int LOW_NUMBER_OF_LEFT_STEPS = 5;
-        private static final ParameterProvider parameterProvider = new ParameterProvider();
 
-        final Parameters parameters;
+        private final Parameters parameters;
 
         PartialStep(ExpectedDescription expectedDescription, MethodCallChain methodCallChain) {
-            this(expectedDescription, methodCallChain, getParametersFor(methodCallChain.getNextMethodCandidate()));
-        }
-
-        private PartialStep(
-                ExpectedDescription expectedDescription,
-                MethodCallChain methodCallChain,
-                Parameters parameters) {
-
             super(expectedDescription, methodCallChain);
-            this.parameters = parameters;
-            expectedDescription.add(getDescription());
-        }
-
-        private static Parameters getParametersFor(Method method) {
+            Method method = methodCallChain.getNextMethodCandidate();
             List<TypeToken<?>> tokens = stream(method.getGenericParameterTypes()).map(TypeToken::of).collect(toList());
-            return parameterProvider.get(method.getName(), tokens);
+            this.parameters = new ParameterProvider().get(method.getName(), tokens);
+            expectedDescription.add(getDescription());
         }
 
         @Override
