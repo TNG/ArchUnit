@@ -16,14 +16,13 @@
 package com.tngtech.archunit.library.modules.syntax;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ClassesTransformer;
-import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ArchModules;
 
@@ -31,49 +30,61 @@ import static java.util.stream.Collectors.toList;
 
 class ModulesTransformer<D extends ArchModule.Descriptor> implements ClassesTransformer<ArchModule<D>> {
     private final Function<JavaClasses, ArchModules<D>> transformFunction;
-    private final PredicateAggregator<ArchModule<D>> predicateAggregator;
-    private final Optional<String> description;
+    private final Predicate<ArchModule<D>> predicate;
+    private final String description;
 
     ModulesTransformer(Function<JavaClasses, ArchModules<D>> transformFunction) {
-        this(transformFunction, new PredicateAggregator<>(), Optional.empty());
+        this(transformFunction, __ -> true, "modules");
     }
 
     private ModulesTransformer(
             Function<JavaClasses, ArchModules<D>> transformFunction,
-            PredicateAggregator<ArchModule<D>> predicateAggregator,
-            Optional<String> description
+            Predicate<ArchModule<D>> predicate,
+            String description
     ) {
         this.transformFunction = transformFunction;
-        this.predicateAggregator = predicateAggregator;
+        this.predicate = predicate;
         this.description = description;
     }
 
     @Override
     public DescribedIterable<ArchModule<D>> transform(JavaClasses classes) {
-        Collection<ArchModule<D>> modules = transformFunction.apply(classes).stream().filter(predicateAggregator).collect(toList());
-        return DescribedIterable.From.iterable(modules, getDescription());
+        Collection<ArchModule<D>> modules = transformFunction.apply(classes).stream().filter(predicate).collect(toList());
+        return DescribedIterable.From.iterable(modules, description);
     }
 
     @Override
     public ModulesTransformer<D> that(DescribedPredicate<? super ArchModule<D>> predicate) {
-        return new ModulesTransformer<>(transformFunction, predicateAggregator.add(predicate), description);
+        return new ModulesTransformer<>(
+                transformFunction,
+                predicate.forSubtype(),
+                description + " that " + predicate.getDescription()
+        );
     }
 
     ModulesTransformer<D> and(DescribedPredicate<? super ArchModule<D>> predicate) {
-        return new ModulesTransformer<>(transformFunction, predicateAggregator.thatANDs().add(predicate), description);
+        return new ModulesTransformer<>(
+                transformFunction,
+                x -> this.predicate.test(x) && predicate.test(x),
+                description + " and " + predicate.getDescription()
+        );
     }
 
     ModulesTransformer<D> or(DescribedPredicate<? super ArchModule<D>> predicate) {
-        return new ModulesTransformer<>(transformFunction, predicateAggregator.thatORs().add(predicate), description);
+        return new ModulesTransformer<>(
+                transformFunction,
+                x -> this.predicate.test(x) || predicate.test(x),
+                description + " or " + predicate.getDescription()
+        );
     }
 
     @Override
     public ModulesTransformer<D> as(String description) {
-        return new ModulesTransformer<>(transformFunction, predicateAggregator, Optional.of(description));
+        return new ModulesTransformer<>(transformFunction, predicate, description);
     }
 
     @Override
     public String getDescription() {
-        return description.orElse("modules") + predicateAggregator.map(it -> " that " + it.getDescription()).orElse("");
+        return description;
     }
 }

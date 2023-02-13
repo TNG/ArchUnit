@@ -4,13 +4,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.library.modules.syntax.DescriptorFunction;
 import com.tngtech.archunit.library.modules.syntax.GivenModules;
+import com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope;
 import com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition;
+import com.tngtech.archunit.testutil.syntax.Parameter;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxSeed;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxTestBase;
+import com.tngtech.archunit.testutil.syntax.SingleParameterProvider;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
@@ -52,9 +56,27 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
     private static List<List<?>> createRandomRulesForSeeds(RandomSyntaxSeed<GivenModules<?>>... seeds) {
         return Arrays.stream(seeds)
                 .map(seed -> RandomSyntaxTestBase.createRandomRules(
-                        seed,
-                        chooseAllArchUnitSyntaxMethods(),
-                        new ReplaceEverythingSoFar("as '([^']+)'.*", "$1")))
+                        RandomRulesBlueprint
+                                .seed(seed)
+                                .methodChoiceStrategy(chooseAllArchUnitSyntaxMethods().exceptMethodsWithName("ignoreDependency"))
+                                .parameterProviders(new SingleParameterProvider(ModuleDependencyScope.class) {
+                                    @Override
+                                    public Parameter get(String methodName, TypeToken<?> type) {
+                                        ModuleDependencyScope dependencyScope = randomElement(
+                                                ModuleDependencyScope.consideringAllDependencies(),
+                                                ModuleDependencyScope.consideringOnlyDependenciesBetweenModules(),
+                                                ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage("..test..")
+                                        );
+                                        return new Parameter(dependencyScope, dependencyScope.getDescription());
+                                    }
+
+                                    @SafeVarargs
+                                    private final <T> T randomElement(T... elements) {
+                                        return elements[random.nextInt(elements.length)];
+                                    }
+                                })
+                                .descriptionReplacements(new ReplaceEverythingSoFar("as '([^']+)'.*", "$1")))
+                )
                 .flatMap(Collection::stream)
                 .collect(toList());
     }

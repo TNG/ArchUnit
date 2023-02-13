@@ -60,7 +60,7 @@ public class GivenModulesTest {
         return DescribedPredicate.describe("", predicate);
     }
 
-    private static GivenModules<ArchModule.Descriptor> modulesByClassName() {
+    static GivenModules<ArchModule.Descriptor> modulesByClassName() {
         return modules().definedBy(getClassName()).derivingModule(fromClassName());
     }
 

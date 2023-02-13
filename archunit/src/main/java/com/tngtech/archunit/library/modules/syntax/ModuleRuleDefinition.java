@@ -25,7 +25,6 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ArchModules;
@@ -128,8 +127,13 @@ public final class ModuleRuleDefinition {
         }
 
         @Override
-        public GivenConjunction<ArchModule<DESCRIPTOR>> that(DescribedPredicate<? super ArchModule<DESCRIPTOR>> predicate) {
+        public GivenModulesConjunction<DESCRIPTOR> that(DescribedPredicate<? super ArchModule<DESCRIPTOR>> predicate) {
             return newGivenModules().that(predicate);
+        }
+
+        @Override
+        public ModulesShould<DESCRIPTOR> should() {
+            return newGivenModules().should();
         }
 
         @Override
@@ -186,8 +190,13 @@ public final class ModuleRuleDefinition {
         }
 
         @Override
-        public GivenConjunction<ArchModule<ArchModule.Descriptor>> that(DescribedPredicate<? super ArchModule<ArchModule.Descriptor>> predicate) {
+        public GivenModulesConjunction<ArchModule.Descriptor> that(DescribedPredicate<? super ArchModule<ArchModule.Descriptor>> predicate) {
             return newGivenModules().that(predicate);
+        }
+
+        @Override
+        public ModulesShould<ArchModule.Descriptor> should() {
+            return newGivenModules().should();
         }
 
         @Override

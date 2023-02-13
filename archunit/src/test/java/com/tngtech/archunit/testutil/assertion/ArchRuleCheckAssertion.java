@@ -44,6 +44,14 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
+    public ArchRuleCheckAssertion hasNoViolationContaining(String part, Object... args) {
+        String expectedPart = String.format(part, args);
+        assertThat(evaluationResult.getFailureReport().getDetails())
+                .as("violation details (should not have any detail containing '%s')", expectedPart)
+                .noneMatch(detail -> detail.contains(expectedPart));
+        return this;
+    }
+
     public ArchRuleCheckAssertion hasNoViolationMatching(String regex) {
         assertThat(evaluationResult.getFailureReport().getDetails())
                 .as("violation details (should not have any detail matching '%s')", regex)

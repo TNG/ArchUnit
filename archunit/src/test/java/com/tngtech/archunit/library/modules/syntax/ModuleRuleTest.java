@@ -14,7 +14,10 @@ import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.one
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.two.ClassTwo;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesBetweenModules;
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 
@@ -100,6 +103,21 @@ public class ModuleRuleTest {
         )
                 .checking(new ClassFileImporter().importClasses(ClassOne.class, ClassTwo.class))
                 .hasOnlyViolations(ClassOne.class.getSimpleName(), ClassTwo.class.getSimpleName());
+    }
+
+    @Test
+    public void ignoring_dependencies_can_be_applied_before_other_methods() {
+        assertThatRule(
+                modules()
+                        .definedByAnnotation(TestAnnotation.class)
+                        .should().respectTheirAllowedDependencies(alwaysFalse(), consideringOnlyDependenciesBetweenModules())
+                        .ignoreDependency(equivalentTo(ClassOne.class), alwaysTrue())
+                        .because("reason")
+                        .as("description")
+                        .allowEmptyShould(false)
+        )
+                .checking(new ClassFileImporter().importPackagesOf(ClassOne.class, ClassTwo.class))
+                .hasNoViolation();
     }
 
     private static <D extends ArchModule.Descriptor> ArchCondition<ArchModule<D>> reportAllAsViolations(Function<ArchModule<D>, String> reportModule) {

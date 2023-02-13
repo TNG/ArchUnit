@@ -5,9 +5,11 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -50,6 +52,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.util.Lists.newArrayList;
 
 public class PublicAPIRules {
@@ -115,8 +118,25 @@ public class PublicAPIRules {
                     .and().haveNameNotMatching(".*RuleDefinition.*")
                     .and().areNotInterfaces()
                     .and().areNotAnnotatedWith(Internal.class)
+                    .and(are(not(onlyUsedAsPublicApiParameter())))
                     .should().notBePublic()
                     .as("Only RuleDefinitions and interfaces within the ArchUnit syntax (..syntax..) should be public");
+
+    private static DescribedPredicate<JavaClass> onlyUsedAsPublicApiParameter() {
+        return DescribedPredicate.describe("only used as public API parameter", clazz -> {
+            Set<Dependency> dependenciesFromPublicClasses = clazz.getDirectDependenciesToSelf().stream()
+                    .filter(d -> d.getOriginClass().getModifiers().contains(PUBLIC))
+                    .collect(toSet());
+            long numberOfMethodParameterDependencies = dependenciesFromPublicClasses.stream()
+                    .map(Dependency::getOriginClass)
+                    .distinct()
+                    .flatMap(originClass -> originClass.getMethods().stream())
+                    .flatMap(method -> method.getRawParameterTypes().stream())
+                    .filter(parameterType -> parameterType.equals(clazz))
+                    .count();
+            return dependenciesFromPublicClasses.size() == numberOfMethodParameterDependencies;
+        });
+    }
 
     @ArchTest
     public static final ArchRule parameters_of_public_API_are_public =

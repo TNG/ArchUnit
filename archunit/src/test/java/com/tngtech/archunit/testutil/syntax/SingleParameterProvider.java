@@ -2,10 +2,10 @@ package com.tngtech.archunit.testutil.syntax;
 
 import com.google.common.reflect.TypeToken;
 
-abstract class SingleParameterProvider {
+public abstract class SingleParameterProvider {
     protected final Class<?> supportedType;
 
-    SingleParameterProvider(Class<?> supportedType) {
+    public SingleParameterProvider(Class<?> supportedType) {
         this.supportedType = supportedType;
     }
 
@@ -13,5 +13,5 @@ abstract class SingleParameterProvider {
         return supportedType.isAssignableFrom(type);
     }
 
-    abstract Parameter get(String methodName, TypeToken<?> type);
+    public abstract Parameter get(String methodName, TypeToken<?> type);
 }
