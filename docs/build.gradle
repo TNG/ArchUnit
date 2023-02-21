@@ -24,7 +24,7 @@ asciidoctor {
     asciidoctorj {
         modules {
             diagram.use()
-            diagram.version '1.5.16'
+            diagram.version '2.2.4'
         }
     }
 }
