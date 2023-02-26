@@ -15,13 +15,17 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
+import java.util.function.Function;
+
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.library.cycle_detection.rules.CycleArchCondition;
 import com.tngtech.archunit.library.dependencies.syntax.GivenNamedSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
@@ -83,7 +87,13 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
     @Override
     public SliceRule beFreeOfCycles() {
-        return new SliceRule(classesTransformer, priority, (transformer, predicate) -> new SliceCycleArchCondition(predicate));
+        return new SliceRule(classesTransformer, priority, (transformer, predicate) -> CycleArchCondition.<Slice>builder()
+                .retrieveClassesBy(Function.identity())
+                .retrieveDescriptionBy(HasDescription::getDescription)
+                .retrieveOutgoingDependenciesBy(Slice::getDependenciesFromSelf)
+                .onlyConsiderDependencies(predicate)
+                .build()
+        );
     }
 
     @Override
