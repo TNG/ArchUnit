@@ -1,6 +1,6 @@
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
-import com.tngtech.archunit.library.dependencies.PrimitiveDataTypes.IntStack;
+import com.tngtech.archunit.library.cycle_detection.PrimitiveDataTypes.IntStack;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

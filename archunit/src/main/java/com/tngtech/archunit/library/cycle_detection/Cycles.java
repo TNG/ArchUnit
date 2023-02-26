@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.Collection;
 
-interface Cycles<EDGE extends Edge<?>> extends Collection<Cycle<EDGE>> {
+import com.tngtech.archunit.PublicAPI;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
+public interface Cycles<EDGE extends Edge<?>> extends Collection<Cycle<EDGE>> {
 
     /**
      * @return {@code true}, if the maximum number of cycles to detect had been reached.
@@ -26,5 +31,6 @@ interface Cycles<EDGE extends Edge<?>> extends Collection<Cycle<EDGE>> {
      *         The maximum number of cycles at which the algorithm will stop can be configured by the {@code archunit.properties}
      *         property {@value CycleConfiguration#MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME}.
      */
+    @PublicAPI(usage = ACCESS)
     boolean maxNumberOfCyclesReached();
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,7 +21,7 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.tngtech.archunit.library.dependencies.PrimitiveDataTypes.IntStack;
+import com.tngtech.archunit.library.cycle_detection.PrimitiveDataTypes.IntStack;
 
 import static java.util.Arrays.binarySearch;
 

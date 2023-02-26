@@ -1,11 +1,11 @@
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.List;
 
 import org.junit.Test;
 
-import static com.tngtech.archunit.library.dependencies.GraphTest.randomNode;
-import static com.tngtech.archunit.library.dependencies.GraphTest.stringEdge;
+import static com.tngtech.archunit.library.cycle_detection.GraphTest.randomNode;
+import static com.tngtech.archunit.library.cycle_detection.GraphTest.stringEdge;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

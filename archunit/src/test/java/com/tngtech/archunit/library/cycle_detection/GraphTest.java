@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,8 +18,8 @@ import static com.google.common.collect.DiscreteDomain.integers;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.cartesianProduct;
-import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
-import static com.tngtech.archunit.library.dependencies.CyclesAssertion.assertThatCycles;
+import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+import static com.tngtech.archunit.library.cycle_detection.CyclesAssertion.assertThatCycles;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;

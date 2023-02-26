@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import org.junit.Test;
 

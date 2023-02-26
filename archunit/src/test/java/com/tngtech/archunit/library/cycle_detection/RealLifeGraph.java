@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,7 +11,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
-import static com.tngtech.archunit.library.dependencies.GraphTest.newEdge;
+import static com.tngtech.archunit.library.cycle_detection.GraphTest.newEdge;
 
 public class RealLifeGraph {
     // This graph has originally been taken from the toplevel packages of org.hibernate

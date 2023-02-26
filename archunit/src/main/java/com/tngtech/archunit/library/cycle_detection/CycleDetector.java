@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.Collection;
+
+import com.tngtech.archunit.PublicAPI;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * @see #detectCycles(Collection, Collection)
  */
-final class CycleDetector {
+@PublicAPI(usage = ACCESS)
+public final class CycleDetector {
     private CycleDetector() {
     }
 
@@ -46,7 +51,8 @@ final class CycleDetector {
      * @param edges The edges connecting the nodes of the graph
      * @return All cycles within the graph created from the passed nodes and edges.
      */
-    static <NODE, EDGE extends Edge<NODE>> Cycles<EDGE> detectCycles(Collection<NODE> nodes, Collection<EDGE> edges) {
+    @PublicAPI(usage = ACCESS)
+    public static <NODE, EDGE extends Edge<NODE>> Cycles<EDGE> detectCycles(Collection<NODE> nodes, Collection<EDGE> edges) {
         Graph<NODE, EDGE> graph = new Graph<>();
         graph.addNodes(nodes);
         graph.addEdges(edges);

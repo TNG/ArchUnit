@@ -38,13 +38,17 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.library.cycle_detection.Cycle;
+import com.tngtech.archunit.library.cycle_detection.CycleDetector;
+import com.tngtech.archunit.library.cycle_detection.Cycles;
+import com.tngtech.archunit.library.cycle_detection.Edge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.MultimapBuilder.hashKeys;
-import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
-import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
+import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+import static com.tngtech.archunit.library.dependencies.CycleRuleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
@@ -212,7 +216,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         private static final String CYCLE_DETECTED_SECTION_INTRO = "Cycle detected: ";
         private static final String DEPENDENCY_DETAILS_INDENT = Strings.repeat(" ", 4);
 
-        private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
+        private final CycleRuleConfiguration cycleConfiguration = new CycleRuleConfiguration();
 
         private EventRecorder() {
             log.trace("Maximum number of dependencies to report per edge is set to {}; "

@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
-interface Edge<NODE> {
+import com.tngtech.archunit.PublicAPI;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+
+@PublicAPI(usage = INHERITANCE)
+public interface Edge<NODE> {
 
     NODE getOrigin();
 
     NODE getTarget();
 
+    @PublicAPI(usage = ACCESS)
     static <N> Edge<N> create(N origin, N target) {
         return new SimpleEdge<>(origin, target);
     }

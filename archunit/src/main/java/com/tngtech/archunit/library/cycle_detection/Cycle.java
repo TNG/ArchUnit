@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.List;
+
+import com.tngtech.archunit.PublicAPI;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * A cycle formed by the referenced {@code EDGEs}. A cycle in this context always refers to a "simple" cycle,
@@ -25,10 +29,12 @@ import java.util.List;
  *
  * @param <EDGE> The type of the edges forming the cycle
  */
-interface Cycle<EDGE extends Edge<?>> {
+@PublicAPI(usage = ACCESS)
+public interface Cycle<EDGE extends Edge<?>> {
 
     /**
      * @return The edges of the {@link Cycle}
      */
+    @PublicAPI(usage = ACCESS)
     List<EDGE> getEdges();
 }

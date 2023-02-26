@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.Arrays;
 
-import com.tngtech.archunit.library.dependencies.PrimitiveDataTypes.IntArray;
-import com.tngtech.archunit.library.dependencies.PrimitiveDataTypes.IntStack;
+import com.tngtech.archunit.library.cycle_detection.PrimitiveDataTypes.IntArray;
+import com.tngtech.archunit.library.cycle_detection.PrimitiveDataTypes.IntStack;
 
 import static java.util.Arrays.fill;
 

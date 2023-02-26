@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,8 +22,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
-import static com.tngtech.archunit.library.dependencies.TarjanComponentFinder.NO_COMPONENT_FOUND;
+import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+import static com.tngtech.archunit.library.cycle_detection.TarjanComponentFinder.NO_COMPONENT_FOUND;
 
 /**
  * An implementation of Johnson's algorithm to find cycles within an uni-directed graph

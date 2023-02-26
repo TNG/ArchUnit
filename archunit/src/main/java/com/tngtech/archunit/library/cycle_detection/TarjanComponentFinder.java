@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies;
+package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.primitives.Ints;
 
-import static com.tngtech.archunit.library.dependencies.TarjanGraph.LESS_THAN_TWO_VALUES;
+import static com.tngtech.archunit.library.cycle_detection.TarjanGraph.LESS_THAN_TWO_VALUES;
 import static java.util.Arrays.sort;
 import static java.util.Comparator.comparing;
 
