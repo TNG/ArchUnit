@@ -1,5 +1,6 @@
 package com.tngtech.archunit.library.dependencies;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -10,16 +11,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.library.dependencies.Graph.Cycles;
 import org.junit.Test;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
+import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.cartesianProduct;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+import static com.tngtech.archunit.library.dependencies.CyclesAssertion.assertThatCycles;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
@@ -30,16 +31,16 @@ public class GraphTest {
 
     @Test
     public void graph_without_cycles() {
-        Graph<String, String> graph = new Graph<>();
+        Graph<String, Edge<String>> graph = new Graph<>();
 
         graph.addNodes(asList(randomNode(), randomNode(), randomNode()));
 
-        assertThat(graph.findCycles()).isEmpty();
+        assertThatCycles(graph.findCycles()).isEmpty();
     }
 
     @Test
     public void three_node_cycle_is_detected() {
-        Graph<String, String> graph = new Graph<>();
+        Graph<String, Edge<String>> graph = new Graph<>();
 
         String nodeA = "Node-A";
         String nodeB = "Node-B";
@@ -47,7 +48,7 @@ public class GraphTest {
         graph.addNodes(asList(nodeA, nodeB, nodeC));
         graph.addEdges(ImmutableSet.of(stringEdge(nodeA, nodeB), stringEdge(nodeB, nodeC), stringEdge(nodeC, nodeA)));
 
-        Cycle<String, String> cycle = getOnlyElement(graph.findCycles());
+        Cycle<Edge<String>> cycle = getOnlyElement(graph.findCycles());
 
         assertThat(cycle.getEdges()).hasSize(3);
         assertEdgeExists(cycle, nodeA, nodeB);
@@ -57,7 +58,7 @@ public class GraphTest {
 
     @Test
     public void sub_cycle_of_three_node_graph_is_detected() {
-        Graph<String, String> graph = new Graph<>();
+        Graph<String, Edge<String>> graph = new Graph<>();
 
         String nodeA = "Node-A";
         String nodeB = "Node-B";
@@ -65,7 +66,7 @@ public class GraphTest {
         graph.addNodes(asList(nodeA, nodeB, nodeC));
         graph.addEdges(ImmutableSet.of(stringEdge(nodeB, nodeA), stringEdge(nodeA, nodeB)));
 
-        Cycle<String, String> cycle = getOnlyElement(graph.findCycles());
+        Cycle<Edge<String>> cycle = getOnlyElement(graph.findCycles());
         assertThat(cycle.getEdges()).hasSize(2);
         assertEdgeExists(cycle, nodeA, nodeB);
         assertEdgeExists(cycle, nodeB, nodeA);
@@ -73,7 +74,7 @@ public class GraphTest {
 
     @Test
     public void nested_cycles_are_detected() {
-        Graph<String, String> graph = new Graph<>();
+        Graph<String, Edge<String>> graph = new Graph<>();
 
         String nodeA = "Node-A";
         String nodeB = "Node-B";
@@ -81,46 +82,46 @@ public class GraphTest {
         graph.addNodes(asList(nodeA, nodeB, nodeC));
         graph.addEdges(ImmutableSet.of(stringEdge(nodeB, nodeA), stringEdge(nodeA, nodeB), stringEdge(nodeC, nodeA), stringEdge(nodeB, nodeC)));
 
-        assertThat(graph.findCycles()).hasSize(2);
+        assertThatCycles(graph.findCycles()).hasSize(2);
     }
 
     @Test
     public void multiple_cycles_are_detected() {
-        Graph<String, String> graph = new Graph<>();
+        Graph<String, Edge<String>> graph = new Graph<>();
 
-        Cycle<String, String> threeElements = randomCycle(3);
-        Cycle<String, String> fourElements = randomCycle(4);
-        Cycle<String, String> fiveElements = randomCycle(5);
+        Cycle<Edge<String>> threeElements = randomCycle(3);
+        Cycle<Edge<String>> fourElements = randomCycle(4);
+        Cycle<Edge<String>> fiveElements = randomCycle(5);
 
         addCycles(graph, threeElements, fourElements, fiveElements);
         addCrossLink(graph, threeElements, fourElements);
         addCrossLink(graph, fourElements, fiveElements);
 
-        Collection<Cycle<String, String>> cycles = graph.findCycles();
+        Collection<Cycle<Edge<String>>> cycles = graph.findCycles();
 
-        assertThat(cycles).containsOnly(threeElements, fourElements, fiveElements);
+        assertThatCycles(cycles).containsOnly(threeElements, fourElements, fiveElements);
     }
 
     @Test
     public void double_linked_three_node_cycle_results_in_five_cycles() {
-        Graph<String, String> graph = new Graph<>();
+        Graph<String, Edge<String>> graph = new Graph<>();
 
-        Cycle<String, String> threeElements = randomCycle(3);
+        Cycle<Edge<String>> threeElements = randomCycle(3);
 
         addCycles(graph, threeElements);
-        for (Edge<String, String> edge : threeElements.getEdges()) {
-            graph.addEdges(singleEdge(edge.getTo(), edge.getFrom()));
+        for (Edge<String> edge : threeElements.getEdges()) {
+            graph.addEdges(singleEdge(edge.getTarget(), edge.getOrigin()));
         }
 
-        assertThat(graph.findCycles()).hasSize(5);
+        assertThatCycles(graph.findCycles()).hasSize(5);
     }
 
     @Test
     public void complete_graph() {
-        Graph<Integer, Integer> completeGraph = createCompleteGraph(3);
-        Iterable<Cycle<Integer, Integer>> cycles = completeGraph.findCycles();
+        Graph<Integer, Edge<Integer>> completeGraph = createCompleteGraph(3);
+        Collection<Cycle<Edge<Integer>>> cycles = completeGraph.findCycles();
 
-        assertThat(cycles).containsOnly(createCycle(ImmutableList.of(0, 1, 2, 0)),
+        assertThatCycles(cycles).containsOnly(createCycle(ImmutableList.of(0, 1, 2, 0)),
                 createCycle(ImmutableList.of(0, 2, 1, 0)),
                 createCycle(ImmutableList.of(0, 1, 0)),
                 createCycle(ImmutableList.of(1, 2, 1)),
@@ -130,7 +131,7 @@ public class GraphTest {
     @Test
     public void graph_which_causes_error_when_dependently_blocked_nodes_are_not_cleared_after_unblocking() {
         ImmutableSet<Integer> nodes = ImmutableSet.of(0, 1, 2, 3, 4, 5);
-        Graph<Integer, Object> graph = new Graph<>();
+        Graph<Integer, Edge<Integer>> graph = new Graph<>();
         graph.addNodes(nodes);
 
         graph.addEdges(ImmutableSet.of(
@@ -145,26 +146,25 @@ public class GraphTest {
                 newEdge(5, 2)
         ));
 
-        assertThat(graph.findCycles()).isNotEmpty();
+        assertThatCycles(graph.findCycles()).isNotEmpty();
     }
 
     // This test covers some edge cases, e.g. if too many nodes stay blocked
     @Test
     public void finds_cycles_in_real_life_graph() {
-        Graph<Integer, Object> graph = RealLifeGraph.get();
+        Graph<Integer, Edge<Integer>> graph = RealLifeGraph.get();
         int expectedNumberOfCycles = 10000;
         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME, String.valueOf(expectedNumberOfCycles));
 
-        Cycles<Integer, Object> cycles = graph.findCycles();
+        Cycles<Edge<Integer>> cycles = graph.findCycles();
 
-        assertThat(cycles).hasSize(expectedNumberOfCycles);
+        assertThatCycles(cycles).hasSize(expectedNumberOfCycles);
         assertThat(cycles.maxNumberOfCyclesReached()).as("maximum number of cycles reached").isTrue();
     }
 
-    @SuppressWarnings("unchecked")
-    private Graph<Integer, Integer> createCompleteGraph(int n) {
+    private Graph<Integer, Edge<Integer>> createCompleteGraph(int n) {
         ContiguousSet<Integer> integers = ContiguousSet.create(Range.closedOpen(0, n), integers());
-        Graph<Integer, Integer> graph = new Graph<>();
+        Graph<Integer, Edge<Integer>> graph = new Graph<>();
         graph.addNodes(integers);
         graph.addEdges(cartesianProduct(integers, integers).stream()
                 .filter(input -> !input.get(0).equals(input.get(1)))
@@ -173,43 +173,44 @@ public class GraphTest {
         return graph;
     }
 
-    private Cycle<Integer, Integer> createCycle(List<Integer> numbers) {
-        ImmutableList.Builder<Edge<Integer, Integer>> builder = ImmutableList.builder();
+    private Cycle<Edge<Integer>> createCycle(List<Integer> numbers) {
+        ImmutableList.Builder<Edge<Integer>> builder = ImmutableList.builder();
         for (int i = 0; i < numbers.size() - 1; i++) {
             builder.add(integerEdge(numbers.get(i), numbers.get(i + 1)));
         }
-        return new Cycle<>(builder.build());
+        return new CycleInternal<>(builder.build());
     }
 
-    private Cycle<String, String> randomCycle(int numberOfNodes) {
+    private Cycle<Edge<String>> randomCycle(int numberOfNodes) {
         checkArgument(numberOfNodes > 1, "A cycle can't be formed by less than 2 nodes");
-        Path<String, String> path = new Path<>(singleEdgeList(randomNode(), randomNode()));
+        List<Edge<String>> path = new ArrayList<>(singleEdgeList(randomNode(), randomNode()));
         for (int i = 0; i < numberOfNodes - 2; i++) {
-            path.append(stringEdge(path.getEnd(), randomNode()));
+            path.add(stringEdge(getLast(path).getTarget(), randomNode()));
         }
-        return new Cycle<>(path.append(stringEdge(path.getEnd(), path.getStart())));
+        path.add(stringEdge(getLast(path).getTarget(), path.get(0).getOrigin()));
+        return new CycleInternal<>(path);
     }
 
     @SafeVarargs
-    private final void addCycles(Graph<String, String> graph, Cycle<String, String>... cycles) {
-        for (Cycle<String, String> cycle : cycles) {
-            for (Edge<String, String> edge : cycle.getEdges()) {
-                graph.addNodes(asList(edge.getFrom(), edge.getTo()));
+    private final void addCycles(Graph<String, Edge<String>> graph, Cycle<Edge<String>>... cycles) {
+        for (Cycle<Edge<String>> cycle : cycles) {
+            for (Edge<String> edge : cycle.getEdges()) {
+                graph.addNodes(asList(edge.getOrigin(), edge.getTarget()));
             }
             graph.addEdges(cycle.getEdges());
         }
     }
 
-    private void addCrossLink(Graph<String, String> graph, Cycle<String, String> first, Cycle<String, String> second) {
+    private void addCrossLink(Graph<String, Edge<String>> graph, Cycle<Edge<String>> first, Cycle<Edge<String>> second) {
         Random rand = new Random();
-        String origin = first.getEdges().get(rand.nextInt(first.getEdges().size())).getFrom();
-        String target = second.getEdges().get(rand.nextInt(second.getEdges().size())).getFrom();
+        String origin = first.getEdges().get(rand.nextInt(first.getEdges().size())).getOrigin();
+        String target = second.getEdges().get(rand.nextInt(second.getEdges().size())).getOrigin();
         graph.addEdges(singleEdge(origin, target));
     }
 
-    private static void assertEdgeExists(Cycle<?, ?> cycle, Object from, Object to) {
-        for (Edge<?, ?> edge : cycle.getEdges()) {
-            if (edge.getFrom().equals(from) && edge.getTo().equals(to)) {
+    private static void assertEdgeExists(Cycle<?> cycle, Object from, Object to) {
+        for (Edge<?> edge : cycle.getEdges()) {
+            if (edge.getOrigin().equals(from) && edge.getTarget().equals(to)) {
                 return;
             }
         }
@@ -220,23 +221,23 @@ public class GraphTest {
         return "" + random.nextLong() + System.nanoTime();
     }
 
-    static Edge<String, String> stringEdge(String nodeA, String nodeB) {
+    static Edge<String> stringEdge(String nodeA, String nodeB) {
         return newEdge(nodeA, nodeB);
     }
 
-    private Edge<Integer, Integer> integerEdge(Integer origin, Integer target) {
+    private Edge<Integer> integerEdge(Integer origin, Integer target) {
         return newEdge(origin, target);
     }
 
-    static List<Edge<String, String>> singleEdgeList(String from, String to) {
+    static List<Edge<String>> singleEdgeList(String from, String to) {
         return singletonList(stringEdge(from, to));
     }
 
-    static Set<Edge<String, String>> singleEdge(String from, String to) {
+    static Set<Edge<String>> singleEdge(String from, String to) {
         return singleton(stringEdge(from, to));
     }
 
-    static <NODE, ATTACHMENT> Edge<NODE, ATTACHMENT> newEdge(NODE from, NODE to) {
-        return new Edge<>(from, to, emptySet());
+    static <NODE> Edge<NODE> newEdge(NODE from, NODE to) {
+        return Edge.create(from, to);
     }
 }

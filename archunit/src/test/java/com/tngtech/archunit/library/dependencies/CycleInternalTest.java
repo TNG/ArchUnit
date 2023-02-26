@@ -1,8 +1,8 @@
 package com.tngtech.archunit.library.dependencies;
 
-import org.junit.Test;
-
 import java.util.List;
+
+import org.junit.Test;
 
 import static com.tngtech.archunit.library.dependencies.GraphTest.randomNode;
 import static com.tngtech.archunit.library.dependencies.GraphTest.stringEdge;
@@ -11,13 +11,13 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class CycleTest {
+public class CycleInternalTest {
 
     @Test
     public void rejects_invalid_edges() {
-        List<Edge<String, String>> edges = asList(stringEdge(randomNode(), randomNode()), stringEdge(randomNode(), randomNode()));
+        List<Edge<String>> edges = asList(stringEdge(randomNode(), randomNode()), stringEdge(randomNode(), randomNode()));
         assertThatThrownBy(
-                () -> new Cycle<>(edges)
+                () -> new CycleInternal<>(edges)
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Edges are not connected");
@@ -25,9 +25,9 @@ public class CycleTest {
 
     @Test
     public void rejects_single_edge() {
-        List<Edge<String, String>> edges = singletonList(stringEdge(randomNode(), randomNode()));
+        List<Edge<String>> edges = singletonList(stringEdge(randomNode(), randomNode()));
         assertThatThrownBy(
-                () -> new Cycle<>(edges)
+                () -> new CycleInternal<>(edges)
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("do not form a cycle");
@@ -37,7 +37,7 @@ public class CycleTest {
     public void minimal_nontrivial_cycle() {
         String nodeA = "Node-A";
         String nodeB = "Node-B";
-        Cycle<String, ?> cycle = new Cycle<>(asList(stringEdge(nodeA, nodeB), stringEdge(nodeB, nodeA)));
+        CycleInternal<Edge<String>> cycle = new CycleInternal<>(asList(stringEdge(nodeA, nodeB), stringEdge(nodeB, nodeA)));
 
         assertThat(cycle.getEdges()).hasSize(2);
     }

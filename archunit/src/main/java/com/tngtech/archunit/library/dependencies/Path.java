@@ -17,28 +17,25 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.collect.Iterables.getLast;
 import static java.util.Collections.emptyList;
 
-class Path<T, ATTACHMENT> {
-    private final List<Edge<T, ATTACHMENT>> edges;
+class Path<EDGE extends Edge<?>> {
+    private final List<EDGE> edges;
 
     Path() {
         this(emptyList());
     }
 
-    Path(Path<T, ATTACHMENT> other) {
+    Path(Path<EDGE> other) {
         this(other.getEdges());
     }
 
-    Path(List<Edge<T, ATTACHMENT>> edges) {
+    Path(List<EDGE> edges) {
         this.edges = new ArrayList<>(edges);
         validateEdgesConnect();
     }
@@ -47,55 +44,35 @@ class Path<T, ATTACHMENT> {
         if (edges.isEmpty()) {
             return;
         }
-        Object expectedFrom = edges.get(0).getFrom();
-        for (Edge<T, ?> edge : edges) {
+        Object expectedFrom = edges.get(0).getOrigin();
+        for (EDGE edge : edges) {
             verifyEdgeFromMatches(expectedFrom, edge);
-            expectedFrom = edge.getTo();
+            expectedFrom = edge.getTarget();
         }
     }
 
-    private void verifyEdgeFromMatches(Object expectedFrom, Edge<T, ?> edge) {
-        if (!expectedFrom.equals(edge.getFrom())) {
+    private void verifyEdgeFromMatches(Object expectedFrom, EDGE edge) {
+        if (!expectedFrom.equals(edge.getOrigin())) {
             throw new IllegalArgumentException("Edges are not connected: " + edges);
         }
     }
 
-    List<Edge<T, ATTACHMENT>> getEdges() {
+    List<EDGE> getEdges() {
         return ImmutableList.copyOf(edges);
-    }
-
-    Set<Edge<T, ATTACHMENT>> getSetOfEdges() {
-        return ImmutableSet.copyOf(edges);
-    }
-
-    Path<T, ATTACHMENT> append(Edge<T, ATTACHMENT> edge) {
-        if (!edges.isEmpty()) {
-            verifyEdgeFromMatches(getLast(edges).getTo(), edge);
-        }
-        edges.add(edge);
-        return this;
     }
 
     boolean isEmpty() {
         return edges.isEmpty();
     }
 
-    T getStart() {
-        if (edges.isEmpty()) {
-            throw new NoSuchElementException("Empty path has no start");
+    boolean formsCycle() {
+        if (isEmpty()) {
+            return false;
         }
-        return edges.get(0).getFrom();
-    }
 
-    T getEnd() {
-        if (edges.isEmpty()) {
-            throw new NoSuchElementException("Empty path has no end");
-        }
-        return edges.get(edges.size() - 1).getTo();
-    }
-
-    public boolean isCycle() {
-        return !isEmpty() && getStart().equals(getEnd());
+        Object start = edges.get(0).getOrigin();
+        Object end = getLast(edges).getTarget();
+        return start.equals(end);
     }
 
     @Override
@@ -111,7 +88,7 @@ class Path<T, ATTACHMENT> {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        Path<?, ?> other = (Path<?, ?>) obj;
+        Path<?> other = (Path<?>) obj;
         return Objects.equals(this.edges, other.edges);
     }
 

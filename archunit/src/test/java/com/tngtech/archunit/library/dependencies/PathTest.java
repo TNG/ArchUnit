@@ -1,8 +1,8 @@
 package com.tngtech.archunit.library.dependencies;
 
-import org.junit.Test;
-
 import java.util.List;
+
+import org.junit.Test;
 
 import static com.tngtech.archunit.library.dependencies.GraphTest.randomNode;
 import static com.tngtech.archunit.library.dependencies.GraphTest.stringEdge;
@@ -13,7 +13,7 @@ public class PathTest {
 
     @Test
     public void rejects_invalid_edges() {
-        List<Edge<String, String>> edges = asList(stringEdge(randomNode(), randomNode()), stringEdge(randomNode(), randomNode()));
+        List<Edge<String>> edges = asList(stringEdge(randomNode(), randomNode()), stringEdge(randomNode(), randomNode()));
         assertThatThrownBy(
                 () -> new Path<>(edges)
         )

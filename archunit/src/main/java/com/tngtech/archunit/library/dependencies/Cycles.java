@@ -15,20 +15,16 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.List;
+import java.util.Collection;
 
-/**
- * A cycle formed by the referenced {@code EDGEs}. A cycle in this context always refers to a "simple" cycle,
- * i.e. the list of edges is not empty, the {@link Edge#getOrigin() origin} of the first {@link Edge} is equal
- * to the {@link Edge#getTarget() target} of the last {@link Edge} and every node contained in the cycle
- * is contained exactly once.
- *
- * @param <EDGE> The type of the edges forming the cycle
- */
-interface Cycle<EDGE extends Edge<?>> {
+interface Cycles<EDGE extends Edge<?>> extends Collection<Cycle<EDGE>> {
 
     /**
-     * @return The edges of the {@link Cycle}
+     * @return {@code true}, if the maximum number of cycles to detect had been reached.
+     *         I.e. if {@code true} there could be more cycles in the examined graph that are omitted from the result,
+     *         if {@code false} then all the cycles of the graph are reported.<br><br>
+     *         The maximum number of cycles at which the algorithm will stop can be configured by the {@code archunit.properties}
+     *         property {@value CycleConfiguration#MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME}.
      */
-    List<EDGE> getEdges();
+    boolean maxNumberOfCyclesReached();
 }

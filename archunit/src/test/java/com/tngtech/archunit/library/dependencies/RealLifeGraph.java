@@ -67,24 +67,24 @@ public class RealLifeGraph {
         return result;
     }
 
-    private static final Graph<Integer, Object> graph = createGraphFrom(edgeTargetsByOrigin);
+    private static final Graph<Integer, Edge<Integer>> graph = createGraphFrom(edgeTargetsByOrigin);
 
-    private static Graph<Integer, Object> createGraphFrom(Multimap<Integer, Integer> edges) {
-        Graph<Integer, Object> result = new Graph<>();
+    private static Graph<Integer, Edge<Integer>> createGraphFrom(Multimap<Integer, Integer> edges) {
+        Graph<Integer, Edge<Integer>> result = new Graph<>();
         addNodes(result, edges);
         addEdges(result, edges);
         return result;
     }
 
-    private static void addNodes(Graph<Integer, Object> result, Multimap<Integer, Integer> edges) {
+    private static void addNodes(Graph<Integer, Edge<Integer>> result, Multimap<Integer, Integer> edges) {
         Set<Integer> nodes = new HashSet<>();
         nodes.addAll(edges.keySet());
         nodes.addAll(edges.values());
         result.addNodes(nodes);
     }
 
-    private static void addEdges(Graph<Integer, Object> result, Multimap<Integer, Integer> targetNodesByOriginNodes) {
-        List<Edge<Integer, Object>> edges = new ArrayList<>();
+    private static void addEdges(Graph<Integer, Edge<Integer>> result, Multimap<Integer, Integer> targetNodesByOriginNodes) {
+        List<Edge<Integer>> edges = new ArrayList<>();
         for (Map.Entry<Integer, Collection<Integer>> targetNodesByOrigin : targetNodesByOriginNodes.asMap().entrySet()) {
             for (Integer target : targetNodesByOrigin.getValue()) {
                 edges.add(newEdge(targetNodesByOrigin.getKey(), target));
@@ -93,7 +93,7 @@ public class RealLifeGraph {
         result.addEdges(edges);
     }
 
-    public static Graph<Integer, Object> get() {
+    public static Graph<Integer, Edge<Integer>> get() {
         return graph;
     }
 }

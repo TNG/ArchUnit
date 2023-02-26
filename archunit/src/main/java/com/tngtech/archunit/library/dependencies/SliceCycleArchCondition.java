@@ -17,6 +17,7 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,19 +41,21 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
 
     private final DescribedPredicate<Dependency> predicate;
     private ClassesToSlicesMapping classesToSlicesMapping;
-    private Graph<Slice, Dependency> graph;
+    private SliceCycleDetector cycleDetector;
     private EventRecorder eventRecorder;
 
     SliceCycleArchCondition(DescribedPredicate<Dependency> predicate) {
@@ -62,31 +65,26 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
     @Override
     public void init(Collection<Slice> allSlices) {
-        initializeResources(allSlices);
-        graph.addNodes(allSlices);
-    }
-
-    private void initializeResources(Iterable<Slice> allSlices) {
         classesToSlicesMapping = new ClassesToSlicesMapping(allSlices);
-        graph = new Graph<>();
+        cycleDetector = new SliceCycleDetector(allSlices);
         eventRecorder = new EventRecorder();
     }
 
     @Override
     public void check(Slice slice, ConditionEvents events) {
-        graph.addEdges(SliceDependencies.of(slice, classesToSlicesMapping, predicate));
+        cycleDetector.addEdges(SliceDependencies.of(slice, classesToSlicesMapping, predicate));
     }
 
     @Override
     public void finish(ConditionEvents events) {
-        Graph.Cycles<Slice, Dependency> cycles = graph.findCycles();
+        Cycles<SliceDependency> cycles = cycleDetector.findCycles();
         if (cycles.maxNumberOfCyclesReached()) {
             events.setInformationAboutNumberOfViolations(String.format(
                     " >= %d times - the maximum number of cycles to detect has been reached; "
                             + "this limit can be adapted using the `archunit.properties` value `%s=xxx`",
                     cycles.size(), MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME));
         }
-        for (Cycle<Slice, Dependency> cycle : cycles) {
+        for (Cycle<SliceDependency> cycle : cycles) {
             eventRecorder.record(cycle, events);
         }
         releaseResources();
@@ -94,7 +92,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
     private void releaseResources() {
         classesToSlicesMapping = null;
-        graph = null;
+        cycleDetector = null;
         eventRecorder = null;
     }
 
@@ -128,14 +126,57 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         }
     }
 
-    private static class SliceDependencies extends ForwardingSet<Edge<Slice, Dependency>> {
-        private final Set<Edge<Slice, Dependency>> edges;
+    private static class SliceCycleDetector {
+        private final Collection<Slice> slices;
+        private final Set<SliceDependency> sliceDependencies = new HashSet<>();
+
+        SliceCycleDetector(Collection<Slice> slices) {
+            this.slices = checkNotNull(slices);
+        }
+
+        void addEdges(Collection<SliceDependency> sliceDependencies) {
+            this.sliceDependencies.addAll(sliceDependencies);
+        }
+
+        Cycles<SliceDependency> findCycles() {
+            return CycleDetector.detectCycles(slices, sliceDependencies);
+        }
+    }
+
+    private static class SliceDependency implements Edge<Slice> {
+        private final Slice origin;
+        private final Slice target;
+        private final SortedSet<Dependency> classDependencies;
+
+        private SliceDependency(Slice origin, Slice target, SortedSet<Dependency> classDependencies) {
+            this.origin = origin;
+            this.target = target;
+            this.classDependencies = classDependencies;
+        }
+
+        @Override
+        public Slice getOrigin() {
+            return origin;
+        }
+
+        @Override
+        public Slice getTarget() {
+            return target;
+        }
+
+        SortedSet<Dependency> toClassDependencies() {
+            return classDependencies;
+        }
+    }
+
+    private static class SliceDependencies extends ForwardingSet<SliceDependency> {
+        private final Set<SliceDependency> edges;
 
         private SliceDependencies(Slice slice, ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
             SortedSetMultimap<Slice, Dependency> targetSlicesWithDependencies = targetsOf(slice, classesToSlicesMapping, predicate);
-            ImmutableSet.Builder<Edge<Slice, Dependency>> edgeBuilder = ImmutableSet.builder();
+            ImmutableSet.Builder<SliceDependency> edgeBuilder = ImmutableSet.builder();
             for (Map.Entry<Slice, SortedSet<Dependency>> entry : sortedEntries(targetSlicesWithDependencies)) {
-                edgeBuilder.add(new Edge<>(slice, entry.getKey(), entry.getValue()));
+                edgeBuilder.add(new SliceDependency(slice, entry.getKey(), entry.getValue()));
             }
             this.edges = edgeBuilder.build();
         }
@@ -158,7 +199,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         }
 
         @Override
-        protected Set<Edge<Slice, Dependency>> delegate() {
+        protected Set<SliceDependency> delegate() {
             return edges;
         }
 
@@ -179,12 +220,12 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
                     cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge(), MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME);
         }
 
-        void record(Cycle<Slice, Dependency> cycle, ConditionEvents events) {
+        void record(Cycle<SliceDependency> cycle, ConditionEvents events) {
             events.add(newEvent(cycle));
         }
 
-        private ConditionEvent newEvent(Cycle<Slice, Dependency> cycle) {
-            Map<String, Edge<Slice, Dependency>> descriptionsToEdges = sortEdgesByDescription(cycle);
+        private ConditionEvent newEvent(Cycle<SliceDependency> cycle) {
+            Map<String, SliceDependency> descriptionsToEdges = sortEdgesByDescription(cycle);
             String description = createDescription(descriptionsToEdges.keySet(), CYCLE_DETECTED_SECTION_INTRO.length());
             String details = createDetails(descriptionsToEdges);
             return new SimpleConditionEvent(cycle,
@@ -192,15 +233,15 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
                     CYCLE_DETECTED_SECTION_INTRO + description + lineSeparator() + details);
         }
 
-        private Map<String, Edge<Slice, Dependency>> sortEdgesByDescription(Cycle<Slice, Dependency> cycle) {
-            LinkedList<Edge<Slice, Dependency>> edges = new LinkedList<>(cycle.getEdges());
-            Edge<Slice, Dependency> startEdge = cycle.getEdges().stream().min(comparing(input -> input.getFrom().getDescription())).get();
+        private Map<String, SliceDependency> sortEdgesByDescription(Cycle<SliceDependency> cycle) {
+            LinkedList<SliceDependency> edges = new LinkedList<>(cycle.getEdges());
+            SliceDependency startEdge = cycle.getEdges().stream().min(comparing(input -> input.getOrigin().getDescription())).get();
             while (!edges.getFirst().equals(startEdge)) {
                 edges.addLast(edges.pollFirst());
             }
-            Map<String, Edge<Slice, Dependency>> descriptionToEdge = new LinkedHashMap<>();
-            for (Edge<Slice, Dependency> edge : edges) {
-                descriptionToEdge.put(edge.getFrom().getDescription(), edge);
+            Map<String, SliceDependency> descriptionToEdge = new LinkedHashMap<>();
+            for (SliceDependency edge : edges) {
+                descriptionToEdge.put(edge.getOrigin().getDescription(), edge);
             }
             return descriptionToEdge;
         }
@@ -211,10 +252,10 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             return Joiner.on(" -> " + lineSeparator() + Strings.repeat(" ", indent)).join(descriptions);
         }
 
-        private String createDetails(Map<String, Edge<Slice, Dependency>> descriptionsToEdges) {
+        private String createDetails(Map<String, SliceDependency> descriptionsToEdges) {
             List<String> details = new ArrayList<>();
             int sliceIndex = 0;
-            for (Map.Entry<String, Edge<Slice, Dependency>> edgeWithDescription : descriptionsToEdges.entrySet()) {
+            for (Map.Entry<String, SliceDependency> edgeWithDescription : descriptionsToEdges.entrySet()) {
                 ++sliceIndex;
                 details.add(String.format("  %d. Dependencies of %s", sliceIndex, edgeWithDescription.getKey()));
                 details.addAll(dependenciesDescription(edgeWithDescription.getValue()));
@@ -222,11 +263,14 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             return Joiner.on(lineSeparator()).join(details);
         }
 
-        private List<String> dependenciesDescription(Edge<Slice, Dependency> edge) {
+        private List<String> dependenciesDescription(SliceDependency edge) {
             int maxDependencies = cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge();
-            List<Dependency> allDependencies = edge.getAttachments();
+            Collection<Dependency> allDependencies = edge.toClassDependencies();
             boolean tooManyDependenciesToDisplay = allDependencies.size() > maxDependencies;
-            List<Dependency> dependenciesToDisplay = tooManyDependenciesToDisplay ? allDependencies.subList(0, maxDependencies) : allDependencies;
+
+            Collection<Dependency> dependenciesToDisplay = tooManyDependenciesToDisplay
+                    ? allDependencies.stream().limit(maxDependencies).collect(toList())
+                    : allDependencies;
 
             List<String> result = dependenciesToDisplay.stream()
                     .map(dependency -> DEPENDENCY_DETAILS_INDENT + "- " + dependency.getDescription())
