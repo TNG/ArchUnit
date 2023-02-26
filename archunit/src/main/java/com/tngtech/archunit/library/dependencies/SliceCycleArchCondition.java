@@ -223,7 +223,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private Map<String, SliceDependency> sortEdgesByDescription(Cycle<SliceDependency> cycle) {
             LinkedList<SliceDependency> edges = new LinkedList<>(cycle.getEdges());
-            SliceDependency startEdge = cycle.getEdges().stream().min(comparing(input -> input.getOrigin().getDescription())).get();
+            SliceDependency startEdge = findStartEdge(cycle);
             while (!edges.getFirst().equals(startEdge)) {
                 edges.addLast(edges.pollFirst());
             }
@@ -232,6 +232,13 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
                 descriptionToEdge.put(edge.getOrigin().getDescription(), edge);
             }
             return descriptionToEdge;
+        }
+
+        // A cycle always has edges, so we know that there is always at least one edge and by that a minimum element
+        // with respect to comparing the description lexicographically
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        private static SliceDependency findStartEdge(Cycle<SliceDependency> cycle) {
+            return cycle.getEdges().stream().min(comparing(input -> input.getOrigin().getDescription())).get();
         }
 
         private String createDescription(Collection<String> edgeDescriptions, int indent) {
