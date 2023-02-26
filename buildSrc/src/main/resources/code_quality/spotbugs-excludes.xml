@@ -53,7 +53,7 @@
     </Match>
     <Match>
         <!-- False positive: Complains some path is null, but the respective line is just using the MultimapBuilder -->
-        <Class name="com.tngtech.archunit.library.dependencies.SliceCycleArchCondition$SliceDependencies"/>
+        <Class name="com.tngtech.archunit.library.dependencies.SliceCycleArchCondition"/>
         <Method name="targetsOf"/>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
