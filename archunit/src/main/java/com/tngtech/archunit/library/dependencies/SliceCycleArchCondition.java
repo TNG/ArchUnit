@@ -56,14 +56,14 @@ import static java.util.stream.Collectors.toList;
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
 
-    private final DescribedPredicate<Dependency> predicate;
+    private final DescribedPredicate<Dependency> relevantDependenciesPredicate;
     private ClassesToSlicesMapping classesToSlicesMapping;
     private SliceCycleDetector cycleDetector;
     private EventRecorder eventRecorder;
 
-    SliceCycleArchCondition(DescribedPredicate<Dependency> predicate) {
+    SliceCycleArchCondition(DescribedPredicate<Dependency> relevantDependenciesPredicate) {
         super("be free of cycles");
-        this.predicate = predicate;
+        this.relevantDependenciesPredicate = relevantDependenciesPredicate;
     }
 
     @Override
@@ -75,22 +75,20 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
     @Override
     public void check(Slice slice, ConditionEvents events) {
-        cycleDetector.addEdges(createSliceDependencies(slice, classesToSlicesMapping, predicate));
+        cycleDetector.addEdges(createSliceDependencies(slice));
     }
 
-    private static Set<SliceDependency> createSliceDependencies(Slice slice, ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
-        SortedSetMultimap<Slice, Dependency> targetSlicesWithDependencies = targetsOf(slice, classesToSlicesMapping, predicate);
-        return sortedEntries(targetSlicesWithDependencies).stream()
+    private Set<SliceDependency> createSliceDependencies(Slice slice) {
+        return sortedEntries(targetsOf(slice)).stream()
                 .map(entry -> new SliceDependency(slice, entry.getKey(), entry.getValue()))
                 .collect(toImmutableSet());
     }
 
-    private static SortedSetMultimap<Slice, Dependency> targetsOf(Slice slice,
-            ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
+    private SortedSetMultimap<Slice, Dependency> targetsOf(Slice slice) {
 
         SortedSetMultimap<Slice, Dependency> result = hashKeys().treeSetValues().build();
         slice.getDependenciesFromSelf().stream()
-                .filter(predicate)
+                .filter(relevantDependenciesPredicate)
                 .filter(dependency -> classesToSlicesMapping.containsKey(dependency.getTargetClass()))
                 .forEach(dependency -> result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency));
         return result;
