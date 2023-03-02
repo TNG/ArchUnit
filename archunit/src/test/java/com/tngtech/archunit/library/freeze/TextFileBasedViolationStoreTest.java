@@ -60,8 +60,8 @@ public class TextFileBasedViolationStoreTest {
         String ruleViolationsFile = properties.getProperty(defaultRule().getDescription());
         assertThat(ruleViolationsFile).isNotBlank();
 
-        List<String> violationLines = Files.readLines(new File(configuredFolder, ruleViolationsFile), UTF_8);
-        assertThat(violationLines).containsOnly("first violation", "second violation");
+        String contents = Files.asCharSource(new File(configuredFolder, ruleViolationsFile), UTF_8).read();
+        assertThat(contents).isEqualTo("first violation\nsecond violation\n");
     }
 
     @Test
