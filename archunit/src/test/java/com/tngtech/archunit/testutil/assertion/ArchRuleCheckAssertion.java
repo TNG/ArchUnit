@@ -86,6 +86,13 @@ public class ArchRuleCheckAssertion {
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public ArchRuleCheckAssertion hasOnlyOneViolationContaining(String part) {
+        assertThat(getOnlyElement(evaluationResult.getFailureReport().getDetails())).contains(part);
+        assertThat(error.get().getMessage()).contains(part);
+        return this;
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ArchRuleCheckAssertion hasOnlyOneViolationMatching(String regex) {
         assertThat(getOnlyElement(evaluationResult.getFailureReport().getDetails())).matches(regex);
         assertThat(error.get().getMessage()).containsPattern(regex);

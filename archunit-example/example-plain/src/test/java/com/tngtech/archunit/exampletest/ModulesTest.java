@@ -114,6 +114,17 @@ public class ModulesTest {
                 .check(classes);
     }
 
+    /**
+     * This example demonstrates how to check for cyclic dependencies between modules.
+     */
+    @Test
+    public void modules_should_be_free_of_cycles() {
+        modules()
+                .definedByAnnotation(AppModule.class)
+                .should().beFreeOfCycles()
+                .check(classes);
+    }
+
     private static DescribedPredicate<ModuleDependency<AnnotationDescriptor<AppModule>>> declaredByDescriptorAnnotation() {
         return DescribedPredicate.describe("declared by descriptor annotation", moduleDependency -> {
             AppModule descriptor = moduleDependency.getOrigin().getDescriptor().getAnnotation();

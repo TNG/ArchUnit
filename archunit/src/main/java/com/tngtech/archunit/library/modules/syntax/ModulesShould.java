@@ -64,4 +64,13 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
      */
     @PublicAPI(usage = ACCESS)
     ModulesRule respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope);
+
+    /**
+     * Checks that the {@link ArchModule}s under consideration don't have any cyclic dependencies within their
+     * {@link ArchModule#getModuleDependenciesFromSelf() module dependencies}.
+     *
+     * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
+     */
+    @PublicAPI(usage = ACCESS)
+    ModulesRule beFreeOfCycles();
 }

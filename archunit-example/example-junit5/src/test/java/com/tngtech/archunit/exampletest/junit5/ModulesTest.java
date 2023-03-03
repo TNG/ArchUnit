@@ -106,6 +106,15 @@ public class ModulesTest {
                     )
                     .ignoreDependency(alwaysTrue(), equivalentTo(AppModule.class));
 
+    /**
+     * This example demonstrates how to check for cyclic dependencies between modules.
+     */
+    @ArchTest
+    static ArchRule modules_should_be_free_of_cycles =
+            modules()
+                    .definedByAnnotation(AppModule.class)
+                    .should().beFreeOfCycles();
+
     private static DescribedPredicate<ModuleDependency<AnnotationDescriptor<AppModule>>> declaredByDescriptorAnnotation() {
         return DescribedPredicate.describe("declared by descriptor annotation", moduleDependency -> {
             AppModule descriptor = moduleDependency.getOrigin().getDescriptor().getAnnotation();

@@ -86,6 +86,23 @@ public class ModulesShouldTest {
                 .hasNoViolationContaining(ArchRule.class.getName());
     }
 
+    @Test
+    public void beFreeOfCycles_ignores_dependencies() {
+        ModulesRule rule = modulesByClassName().should().beFreeOfCycles().ignoreDependency(d -> d.getDescription().contains("cyclicDependencyOne"));
+
+        assertThatRule(rule)
+                .checking(new ClassFileImporter().importClasses(ModuleOne.class, ModuleTwo.class))
+                .hasOnlyOneViolationContaining("Cycle detected")
+                .hasViolationContaining("cyclicDependencyTwo")
+                .hasNoViolationContaining("cyclicDependencyOne");
+
+        rule = rule.ignoreDependency(d -> d.getDescription().contains("cyclicDependencyTwo"));
+
+        assertThatRule(rule)
+                .checking(new ClassFileImporter().importClasses(ModuleOne.class, ModuleTwo.class))
+                .hasNoViolation();
+    }
+
     @SuppressWarnings("unused")
     private static class ModuleOne {
         ModuleTwo dependencyToOtherModule;
@@ -94,6 +111,8 @@ public class ModulesShouldTest {
 
     @SuppressWarnings("unused")
     private static class ModuleTwo {
+        ModuleOne cyclicDependencyOne;
+        ModuleOne cyclicDependencyTwo;
         ArchRule dependencyInOtherArchUnitPackage;
     }
 }
