@@ -21,6 +21,8 @@ import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
 
@@ -77,6 +79,12 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
      */
     @PublicAPI(usage = ACCESS)
     ModulesRule onlyDependOnEachOtherThroughClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Like {@link #onlyDependOnEachOtherThroughClassesThat(DescribedPredicate)} but allows to specify the predicate in a fluent way.
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesThat<ModulesRule> onlyDependOnEachOtherThroughClassesThat();
 
     /**
      * Checks that the {@link ArchModule}s under consideration don't have any cyclic dependencies within their

@@ -29,6 +29,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.syntax.ClassesThatInternal;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.library.cycle_detection.rules.CycleArchCondition;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
@@ -74,6 +76,11 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
                     }
                 }
         );
+    }
+
+    @Override
+    public ClassesThat<ModulesRule> onlyDependOnEachOtherThroughClassesThat() {
+        return new ClassesThatInternal<>(this::onlyDependOnEachOtherThroughClassesThat);
     }
 
     @Override

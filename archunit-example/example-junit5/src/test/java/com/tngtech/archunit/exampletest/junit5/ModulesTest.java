@@ -22,8 +22,6 @@ import com.tngtech.archunit.library.modules.syntax.DescriptorFunction;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
-import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.library.modules.syntax.AllowedModuleDependencies.allow;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage;
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
@@ -116,7 +114,7 @@ public class ModulesTest {
     static ArchRule modules_should_only_depend_on_each_other_through_module_API =
             modules()
                     .definedByAnnotation(AppModule.class)
-                    .should().onlyDependOnEachOtherThroughClassesThat(are(annotatedWith(ModuleApi.class)));
+                    .should().onlyDependOnEachOtherThroughClassesThat().areAnnotatedWith(ModuleApi.class);
 
     /**
      * This example demonstrates how to check for cyclic dependencies between modules.

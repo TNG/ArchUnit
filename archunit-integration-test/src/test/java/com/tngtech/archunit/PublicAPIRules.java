@@ -77,6 +77,7 @@ public class PublicAPIRules {
             classes()
                     .that(haveMemberThatBelongsToPublicApi())
                     .should(beAnnotatedWith(PublicAPI.class).<JavaClass>forSubtype()
+                            .or(beAnnotatedWith(Internal.class))
                             .or(have(supertype(annotatedWith(PublicAPI.class)).and(not(modifier(PUBLIC))))));
 
     @ArchTest

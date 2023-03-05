@@ -88,7 +88,11 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                                                 );
                                             }
                                         })
-                                .descriptionReplacements(new ReplaceEverythingSoFar("as '([^']+)'.*", "$1")))
+                                .descriptionReplacements(
+                                        new ReplaceEverythingSoFar("as '([^']+)'.*", "$1"),
+                                        new SingleStringReplacement("meta annotated", "meta-annotated")
+                                )
+                        )
                 )
                 .flatMap(Collection::stream)
                 .collect(toList());

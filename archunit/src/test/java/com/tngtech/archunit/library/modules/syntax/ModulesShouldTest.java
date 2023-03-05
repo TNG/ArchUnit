@@ -14,6 +14,8 @@ import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.library.modules.syntax.GivenModulesTest.modulesByClassName;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringAllDependencies;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesBetweenModules;
@@ -86,10 +88,18 @@ public class ModulesShouldTest {
                 .hasNoViolationContaining(ArchRule.class.getName());
     }
 
+    @DataProvider
+    public static Object[][] data_onlyDependOnEachOtherThroughClassesThat_ignores_dependencies() {
+        return testForEach(
+                modulesByClassName().should().onlyDependOnEachOtherThroughClassesThat(have(simpleName(ModuleTwo.class.getSimpleName()))),
+                modulesByClassName().should().onlyDependOnEachOtherThroughClassesThat().haveSimpleName(ModuleTwo.class.getSimpleName())
+        );
+    }
+
     @Test
-    public void onlyDependOnEachOtherThroughClassesThat_ignores_dependencies() {
-        ModulesRule rule = modulesByClassName().should()
-                .onlyDependOnEachOtherThroughClassesThat(equivalentTo(ModuleTwo.class))
+    @UseDataProvider
+    public void test_onlyDependOnEachOtherThroughClassesThat_ignores_dependencies(ModulesRule rule) {
+        rule = rule
                 .ignoreDependency(d -> d.getDescription().contains("cyclicDependencyOne"));
 
         assertThatRule(rule)
