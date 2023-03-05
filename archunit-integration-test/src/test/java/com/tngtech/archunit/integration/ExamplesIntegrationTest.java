@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.example.AppModule;
+import com.tngtech.archunit.example.ModuleApi;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassBeingCalledInSliceOne;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassOfMinimalCycleCallingSliceTwo;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
@@ -141,6 +142,8 @@ import com.tngtech.archunit.example.shopping.customer.Customer;
 import com.tngtech.archunit.example.shopping.importer.ProductImport;
 import com.tngtech.archunit.example.shopping.order.Order;
 import com.tngtech.archunit.example.shopping.product.Product;
+import com.tngtech.archunit.example.shopping.xml.processor.XmlProcessor;
+import com.tngtech.archunit.example.shopping.xml.types.XmlTypes;
 import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutil.TransientCopyRule;
@@ -1166,7 +1169,7 @@ class ExamplesIntegrationTest {
 
                         .by(ExpectedModuleDependency.fromModule(moduleNames.importer()).toModule(moduleNames.customer())
                                 .including(callFromMethod(ProductImport.class, "getCustomer")
-                                        .toConstructor(Customer.class).inLine(14).asDependency())
+                                        .toConstructor(Customer.class).inLine(17).asDependency())
                                 .including(method(ProductImport.class, "getCustomer")
                                         .withReturnType(Customer.class)))
 
@@ -1198,6 +1201,13 @@ class ExamplesIntegrationTest {
                         + "should respect their allowed dependencies declared by descriptor annotation considering only dependencies in any package ['..example..']");
         expectModulesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
 
+        expectedFailures.ofRule("modules defined by annotation @AppModule should only depend on each other through classes that are annotated with @ModuleApi")
+                .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                .by(field(ProductImport.class, "productCatalog").ofType(ProductCatalog.class))
+                .by(field(ProductImport.class, "xmlType").ofType(XmlTypes.class))
+                .by(callFromMethod(ProductImport.class, "parse", byte[].class).toConstructor(ProductCatalog.class).inLine(21).asDependency())
+                .by(method(ProductImport.class, "parse").withReturnType(ProductCatalog.class));
+
         expectedFailures.ofRule("modules defined by annotation @AppModule should be free of cycles")
                 .by(cycle()
                         .from("Address")
@@ -1225,7 +1235,7 @@ class ExamplesIntegrationTest {
                         .by(field(Order.class, "customer").ofType(Customer.class))
                         .by(callFromMethod(Order.class, "report")
                                 .toMethod(Customer.class, "getAddress")
-                                .inLine(18))
+                                .inLine(21))
                         .from("Customer")
                         .by(field(Customer.class, "address").ofType(Address.class))
                         .by(method(Customer.class, "getAddress").withReturnType(Address.class)))
@@ -1244,7 +1254,7 @@ class ExamplesIntegrationTest {
                         .by(genericMethodParameterType(Order.class, "addProducts", Set.class).dependingOn(Product.class))
                         .by(callFromMethod(Order.class, "report")
                                 .toMethod(Product.class, "report")
-                                .inLine(20))
+                                .inLine(23))
                         .from("Product")
                         .by(field(Product.class, "customer").ofType(Customer.class))
                         .from("Customer")
@@ -1303,7 +1313,7 @@ class ExamplesIntegrationTest {
                         .by(field(Order.class, "customer").ofType(Customer.class))
                         .by(callFromMethod(Order.class, "report")
                                 .toMethod(Customer.class, "getAddress")
-                                .inLine(18))
+                                .inLine(21))
                         .from("Customer")
                         .by(field(Customer.class, "address").ofType(Address.class))
                         .by(method(Customer.class, "getAddress").withReturnType(Address.class)))
@@ -1314,7 +1324,7 @@ class ExamplesIntegrationTest {
                         .by(field(Order.class, "customer").ofType(Customer.class))
                         .by(callFromMethod(Order.class, "report")
                                 .toMethod(Customer.class, "getAddress")
-                                .inLine(18)))
+                                .inLine(21)))
                 .by(cycle()
                         .from("Customer")
                         .by(method(Customer.class, "addOrder").withParameter(Order.class))
@@ -1323,7 +1333,7 @@ class ExamplesIntegrationTest {
                         .by(genericMethodParameterType(Order.class, "addProducts", Set.class).dependingOn(Product.class))
                         .by(callFromMethod(Order.class, "report")
                                 .toMethod(Product.class, "report")
-                                .inLine(20))
+                                .inLine(23))
                         .from("Product")
                         .by(field(Product.class, "customer").ofType(Customer.class)))
                 .by(cycle()
@@ -1332,7 +1342,7 @@ class ExamplesIntegrationTest {
                         .by(genericMethodParameterType(Order.class, "addProducts", Set.class).dependingOn(Product.class))
                         .by(callFromMethod(Order.class, "report")
                                 .toMethod(Product.class, "report")
-                                .inLine(20))
+                                .inLine(23))
                         .from("Product")
                         .by(method(Product.class, "getOrder").withReturnType(Order.class)));
 
@@ -1412,7 +1422,7 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
                         .toMethod(Order.class, "addProducts", Set.class).inLine(16).asDependency())
                 .by(callFromMethod(ProductImport.class, "getCustomer")
-                        .toConstructor(Customer.class).inLine(14).asDependency())
+                        .toConstructor(Customer.class).inLine(17).asDependency())
                 .by(method(ProductImport.class, "getCustomer")
                         .withReturnType(Customer.class))
                 .by(method(Order.class, "report")
@@ -1429,17 +1439,24 @@ class ExamplesIntegrationTest {
                         .extending(AbstractController.class))
                 .by(callFromConstructor(AddressController.class)
                         .toConstructor(AbstractController.class)
-                        .inLine(6).asDependency())
+                        .inLine(8).asDependency())
                 .by(field(Product.class, "customer")
                         .ofType(Customer.class))
                 .by(method(Customer.class, "addOrder")
                         .withParameter(Order.class))
                 .by(callFromMethod(ProductImport.class, "getCustomer")
-                        .toConstructor(Customer.class).inLine(14).asDependency())
+                        .toConstructor(Customer.class).inLine(17).asDependency())
                 .by(method(ProductImport.class, "getCustomer")
                         .withReturnType(Customer.class))
                 .by(method(Order.class, "report")
                         .withParameter(Address.class))
+                .by(annotatedClass(Address.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(AddressController.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(Customer.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(ProductImport.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(Order.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(Product.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(XmlProcessor.class).annotatedWith(ModuleApi.class))
                 .by(annotatedPackageInfo(Address.class.getPackage().getName()).annotatedWith(AppModule.class))
                 .by(annotatedPackageInfo(ProductCatalog.class.getPackage().getName()).annotatedWith(AppModule.class))
                 .by(annotatedPackageInfo(Customer.class.getPackage().getName()).annotatedWith(AppModule.class))

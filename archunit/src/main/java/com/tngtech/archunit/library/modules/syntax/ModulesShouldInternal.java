@@ -28,6 +28,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.library.cycle_detection.rules.CycleArchCondition;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
@@ -55,6 +56,23 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         return respectTheirAllowedDependencies(
                 allowedDependencies.asPredicate(),
                 dependencyScope
+        );
+    }
+
+    @Override
+    public ModulesRule onlyDependOnEachOtherThroughClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        return new ModulesRuleInternal<>(
+                createRule,
+                relevantClassDependencyPredicate -> new ArchCondition<ArchModule<DESCRIPTOR>>("only depend on each other through classes that " + predicate.getDescription()) {
+                    @Override
+                    public void check(ArchModule<DESCRIPTOR> module, ConditionEvents events) {
+                        module.getModuleDependenciesFromSelf().stream()
+                                .flatMap(moduleDependency -> moduleDependency.toClassDependencies().stream())
+                                .filter(relevantClassDependencyPredicate)
+                                .filter(classDependency -> !predicate.test(classDependency.getTargetClass()))
+                                .forEach(classDependency -> events.add(SimpleConditionEvent.violated(classDependency, classDependency.getDescription())));
+                    }
+                }
         );
     }
 

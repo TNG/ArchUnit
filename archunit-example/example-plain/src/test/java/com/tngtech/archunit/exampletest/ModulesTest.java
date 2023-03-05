@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.AppModule;
+import com.tngtech.archunit.example.ModuleApi;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
@@ -20,7 +21,9 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.library.modules.syntax.AllowedModuleDependencies.allow;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage;
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
@@ -47,7 +50,7 @@ public class ModulesTest {
                                 .fromModule("importer").toModules("catalog", "xml")
                                 .fromModule("order").toModules("customer", "product"),
                         consideringOnlyDependenciesInAnyPackage("..example.."))
-                .ignoreDependency(alwaysTrue(), equivalentTo(AppModule.class))
+                .ignoreDependency(alwaysTrue(), belongToAnyOf(AppModule.class, ModuleApi.class))
                 .check(classes);
     }
 
@@ -64,7 +67,7 @@ public class ModulesTest {
                         declaredByDescriptorAnnotation(),
                         consideringOnlyDependenciesInAnyPackage("..example..")
                 )
-                .ignoreDependency(alwaysTrue(), equivalentTo(AppModule.class))
+                .ignoreDependency(alwaysTrue(), belongToAnyOf(AppModule.class, ModuleApi.class))
                 .check(classes);
     }
 
@@ -92,7 +95,7 @@ public class ModulesTest {
                         declaredByDescriptorAnnotation(),
                         consideringOnlyDependenciesInAnyPackage("..example..")
                 )
-                .ignoreDependency(alwaysTrue(), equivalentTo(AppModule.class))
+                .ignoreDependency(alwaysTrue(), belongToAnyOf(AppModule.class, ModuleApi.class))
                 .check(classes);
     }
 
@@ -110,7 +113,18 @@ public class ModulesTest {
                         declaredByDescriptorAnnotation(),
                         consideringOnlyDependenciesInAnyPackage("..example..")
                 )
-                .ignoreDependency(alwaysTrue(), equivalentTo(AppModule.class))
+                .ignoreDependency(alwaysTrue(), belongToAnyOf(AppModule.class, ModuleApi.class))
+                .check(classes);
+    }
+
+    /**
+     * This example demonstrates how to check that modules only depend on each other through a specific API.
+     */
+    @Test
+    public void modules_should_only_depend_on_each_other_through_module_API() {
+        modules()
+                .definedByAnnotation(AppModule.class)
+                .should().onlyDependOnEachOtherThroughClassesThat(are(annotatedWith(ModuleApi.class)))
                 .check(classes);
     }
 

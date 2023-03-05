@@ -2,10 +2,13 @@ package com.tngtech.archunit.example.shopping.order;
 
 import java.util.Set;
 
+import com.tngtech.archunit.example.ModuleApi;
 import com.tngtech.archunit.example.shopping.address.Address;
 import com.tngtech.archunit.example.shopping.customer.Customer;
 import com.tngtech.archunit.example.shopping.product.Product;
 
+@ModuleApi
+@SuppressWarnings("unused")
 public class Order {
     public Customer customer;
     private Set<Product> products;

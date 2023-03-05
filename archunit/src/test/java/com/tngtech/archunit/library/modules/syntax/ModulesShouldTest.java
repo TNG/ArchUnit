@@ -87,6 +87,24 @@ public class ModulesShouldTest {
     }
 
     @Test
+    public void onlyDependOnEachOtherThroughClassesThat_ignores_dependencies() {
+        ModulesRule rule = modulesByClassName().should()
+                .onlyDependOnEachOtherThroughClassesThat(equivalentTo(ModuleTwo.class))
+                .ignoreDependency(d -> d.getDescription().contains("cyclicDependencyOne"));
+
+        assertThatRule(rule)
+                .checking(new ClassFileImporter().importClasses(ModuleOne.class, ModuleTwo.class))
+                .hasOnlyOneViolationContaining("cyclicDependencyTwo")
+                .hasNoViolationContaining("cyclicDependencyOne");
+
+        rule = rule.ignoreDependency(d -> d.getDescription().contains("cyclicDependencyTwo"));
+
+        assertThatRule(rule)
+                .checking(new ClassFileImporter().importClasses(ModuleOne.class, ModuleTwo.class))
+                .hasNoViolation();
+    }
+
+    @Test
     public void beFreeOfCycles_ignores_dependencies() {
         ModulesRule rule = modulesByClassName().should().beFreeOfCycles().ignoreDependency(d -> d.getDescription().contains("cyclicDependencyOne"));
 
