@@ -49,6 +49,7 @@ class JavaClassDependencies {
                         throwsDeclarationDependenciesFromSelf(),
                         annotationDependenciesFromSelf(),
                         instanceofCheckDependenciesFromSelf(),
+                        typeCastDependenciesFromSelf(),
                         referencedClassObjectDependenciesFromSelf(),
                         typeParameterDependenciesFromSelf()
                 ).collect(toImmutableSet())
@@ -180,6 +181,11 @@ class JavaClassDependencies {
     private Stream<Dependency> instanceofCheckDependenciesFromSelf() {
         return javaClass.getInstanceofChecks().stream()
                 .flatMap(instanceofCheck -> Dependency.tryCreateFromInstanceofCheck(instanceofCheck).stream());
+    }
+
+    private Stream<Dependency> typeCastDependenciesFromSelf() {
+        return javaClass.getTypeCasts().stream()
+                .flatMap(typeCast -> Dependency.tryCreateFromTypeCast(typeCast).stream());
     }
 
     private Stream<Dependency> referencedClassObjectDependenciesFromSelf() {

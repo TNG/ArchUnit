@@ -72,6 +72,7 @@ public abstract class JavaCodeUnit
     private Set<TryCatchBlock> tryCatchBlocks = Collections.emptySet();
     private Set<ReferencedClassObject> referencedClassObjects;
     private Set<InstanceofCheck> instanceofChecks;
+    private Set<TypeCast> typeCasts;
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
@@ -208,6 +209,11 @@ public abstract class JavaCodeUnit
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<TypeCast> getTypeCasts() {
+        return typeCasts;
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Set<TryCatchBlock> getTryCatchBlocks() {
         return tryCatchBlocks;
     }
@@ -281,6 +287,7 @@ public abstract class JavaCodeUnit
                 .collect(toImmutableSet());
         referencedClassObjects = context.createReferencedClassObjectsFor(this);
         instanceofChecks = context.createInstanceofChecksFor(this);
+        typeCasts = context.createTypeCastsFor(this);
     }
 
     @ResolvesTypesViaReflection

@@ -334,6 +334,11 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
+        public void visitVarInsn(int opcode, int varIndex) {
+            accessHandler.handleVariableInstruction(opcode, varIndex);
+        }
+
+        @Override
         public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
             return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, parameter), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
@@ -387,6 +392,10 @@ class JavaClassProcessor extends ClassVisitor {
                 JavaClassDescriptor instanceOfCheckType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
                 accessHandler.handleInstanceofCheck(instanceOfCheckType, actualLineNumber);
                 declarationHandler.onDeclaredInstanceofCheck(instanceOfCheckType.getFullyQualifiedClassName());
+            } else if (opcode == Opcodes.CHECKCAST) {
+                JavaClassDescriptor typeCastType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
+                accessHandler.handleTypeCast(typeCastType, actualLineNumber);
+                declarationHandler.onDeclaredTypeCast(typeCastType.getFullyQualifiedClassName());
             }
         }
 
@@ -505,6 +514,8 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     interface AccessHandler {
+        void handleVariableInstruction(int opcode, int varIndex);
+
         void handleFieldInstruction(int opcode, String owner, String name, String desc);
 
         void setContext(CodeUnit codeUnit);
@@ -523,6 +534,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber);
 
+        void handleTypeCast(JavaClassDescriptor typeCastType, int lineNumber);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -531,6 +544,10 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Internal
         class NoOp implements AccessHandler {
+            @Override
+            public void handleVariableInstruction(int opcode, int varIndex) {
+            }
+
             @Override
             public void handleFieldInstruction(int opcode, String owner, String name, String desc) {
             }
@@ -565,6 +582,10 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber) {
+            }
+
+            @Override
+            public void handleTypeCast(JavaClassDescriptor typeCastType, int lineNumber) {
             }
 
             @Override

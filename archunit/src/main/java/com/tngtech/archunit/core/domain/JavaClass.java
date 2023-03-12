@@ -646,6 +646,11 @@ public final class JavaClass
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<TypeCast> getTypeCasts() {
+        return members.getTypeCasts();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Set<ReferencedClassObject> getReferencedClassObjects() {
         return members.getReferencedClassObjects();
     }

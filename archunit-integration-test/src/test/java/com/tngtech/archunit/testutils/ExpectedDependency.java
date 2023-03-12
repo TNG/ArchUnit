@@ -295,6 +295,10 @@ public class ExpectedDependency implements ExpectedRelation {
             return new AddsLineNumber(owner, getOriginName(), "checks instanceof", target);
         }
 
+        public AddsLineNumber casting(Class<?> target) {
+            return new AddsLineNumber(owner, getOriginName(), "casts", target);
+        }
+
         public AddsLineNumber referencingClassObject(Class<?> target) {
             return new AddsLineNumber(owner, getOriginName(), "references class object", target);
         }

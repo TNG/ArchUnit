@@ -15,6 +15,8 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithArrayDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnTypeCast;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnTypeCast.TypeCastTarget;
 import com.tngtech.archunit.core.domain.testobjects.DependenciesOnClassObjects;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.testutil.Assertions;
@@ -220,6 +222,30 @@ public class DependencyTest {
                 .matches(ClassWithDependencyOnInstanceofCheck.class, InstanceOfCheckTarget.class)
                 .hasDescription(memberWithInstanceofCheck.getFullName(), "checks instanceof", InstanceOfCheckTarget.class.getName())
                 .inLocation(ClassWithDependencyOnInstanceofCheck.class, expectedLineNumber);
+    }
+    
+    @DataProvider
+    public static Object[][] with_type_cast_members() {
+        JavaClass javaClass = importClassesWithContext(ClassWithDependencyOnTypeCast.class, TypeCastTarget.class)
+                .get(ClassWithDependencyOnTypeCast.class);
+
+        return $$(
+                $(javaClass.getStaticInitializer().get(), 7),
+                $(javaClass.getConstructor(Object.class), 12),
+                $(javaClass.getMethod("method", Object.class), 16));
+    }
+
+    @Test
+    @UseDataProvider("with_type_cast_members")
+    public void Dependency_from_type_cast_in_code_unit(JavaCodeUnit memberWithTypeCast, int expectedLineNumber) {
+        TypeCast typeCast = getOnlyElement(memberWithTypeCast.getTypeCasts());
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromTypeCast(typeCast));
+
+        Assertions.assertThatDependency(dependency)
+                .matches(ClassWithDependencyOnTypeCast.class, TypeCastTarget.class)
+                .hasDescription(memberWithTypeCast.getFullName(), "casts", TypeCastTarget.class.getName())
+                .inLocation(ClassWithDependencyOnTypeCast.class, expectedLineNumber);
     }
 
     @DataProvider

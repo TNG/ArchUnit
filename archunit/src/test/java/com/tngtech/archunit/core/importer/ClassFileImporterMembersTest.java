@@ -43,6 +43,11 @@ import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObj
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithThrowingMethod;
 import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjects;
+import com.tngtech.archunit.core.importer.testexamples.typecast.ClassWithMultipleTypeCasts;
+import com.tngtech.archunit.core.importer.testexamples.typecast.TypeCastInConstructor;
+import com.tngtech.archunit.core.importer.testexamples.typecast.TypeCastInMethod;
+import com.tngtech.archunit.core.importer.testexamples.typecast.TypeCastInStaticInitializer;
+import com.tngtech.archunit.core.importer.testexamples.typecast.TypeCastTestedType;
 import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.ExpectedReferencedClassObject;
 import org.assertj.core.util.Objects;
 import org.junit.Test;
@@ -65,11 +70,13 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatInstanceofChecks;
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
 import static com.tngtech.archunit.testutil.Assertions.assertThatThrowsClause;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypeCasts;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
+import static com.tngtech.archunit.testutil.assertion.TypeCastsAssertion.typeCast;
 import static java.util.stream.Collectors.toSet;
 
 public class ClassFileImporterMembersTest {
@@ -305,6 +312,24 @@ public class ClassFileImporterMembersTest {
                         instanceofCheck(InstanceofChecked.class, 6),
                         instanceofCheck(InstanceofChecked.class, 10),
                         instanceofCheck(InstanceofChecked.class, 15));
+    }
+
+    @Test
+    public void imports_type_casts() {
+        assertThatTypeCasts(new ClassFileImporter().importClass(TypeCastInConstructor.class).getConstructor(Object.class).getTypeCasts())
+                .containTypeCasts(typeCast(TypeCastTestedType.class, 8));
+        assertThatTypeCasts(new ClassFileImporter().importClass(TypeCastInMethod.class).getMethod("method", Object.class).getTypeCasts())
+                .containTypeCasts(typeCast(TypeCastTestedType.class, 6));
+        assertThatTypeCasts(new ClassFileImporter().importClass(TypeCastInStaticInitializer.class).getStaticInitializer().get().getTypeCasts())
+                .containTypeCasts(typeCast(TypeCastTestedType.class, 7));
+        assertThatTypeCasts(new ClassFileImporter().importClass(ClassWithMultipleTypeCasts.class).getTypeCasts())
+                .hasSize(5)
+                .containTypeCasts(
+                        typeCast(TypeCastTestedType.class, 9),
+                        typeCast(TypeCastTestedType.class, 14),
+                        typeCast(TypeCastTestedType.class, 26),
+                        typeCast(TypeCastTestedType.class, 30),
+                        typeCast(TypeCastTestedType.class, 36).declaredInLambda());
     }
 
     @Test
