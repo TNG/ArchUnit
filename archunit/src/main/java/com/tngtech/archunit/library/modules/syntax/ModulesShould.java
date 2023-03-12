@@ -22,7 +22,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
-import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
 
@@ -44,7 +43,7 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
      * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
      */
     @PublicAPI(usage = ACCESS)
-    ModulesRule respectTheirAllowedDependencies(
+    ModulesRule<DESCRIPTOR> respectTheirAllowedDependencies(
             DescribedPredicate<? super ModuleDependency<DESCRIPTOR>> allowedDependencyPredicate,
             ModuleDependencyScope dependencyScope
     );
@@ -66,7 +65,7 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
      * </code></pre>
      */
     @PublicAPI(usage = ACCESS)
-    ModulesRule respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope);
+    ModulesRule<DESCRIPTOR> respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope);
 
     /**
      * Checks that the {@link Dependency#getTargetClass() target classes} of each {@link Dependency}
@@ -78,13 +77,13 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
      * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
      */
     @PublicAPI(usage = ACCESS)
-    ModulesRule onlyDependOnEachOtherThroughClassesThat(DescribedPredicate<? super JavaClass> predicate);
+    ModulesRule<DESCRIPTOR> onlyDependOnEachOtherThroughClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Like {@link #onlyDependOnEachOtherThroughClassesThat(DescribedPredicate)} but allows to specify the predicate in a fluent way.
      */
     @PublicAPI(usage = ACCESS)
-    ClassesThat<ModulesRule> onlyDependOnEachOtherThroughClassesThat();
+    ClassesThat<ModulesRule<DESCRIPTOR>> onlyDependOnEachOtherThroughClassesThat();
 
     /**
      * Checks that the {@link ArchModule}s under consideration don't have any cyclic dependencies within their
@@ -93,5 +92,5 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
      * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
      */
     @PublicAPI(usage = ACCESS)
-    ModulesRule beFreeOfCycles();
+    ModulesRule<DESCRIPTOR> beFreeOfCycles();
 }

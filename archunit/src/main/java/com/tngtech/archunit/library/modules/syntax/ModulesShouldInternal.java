@@ -46,7 +46,7 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
     }
 
     @Override
-    public ModulesRule respectTheirAllowedDependencies(DescribedPredicate<? super ModuleDependency<DESCRIPTOR>> allowedDependencyPredicate, ModuleDependencyScope dependencyScope) {
+    public ModulesRule<DESCRIPTOR> respectTheirAllowedDependencies(DescribedPredicate<? super ModuleDependency<DESCRIPTOR>> allowedDependencyPredicate, ModuleDependencyScope dependencyScope) {
         return new ModulesRuleInternal<>(
                 createRule,
                 relevantClassDependencyPredicate -> new RespectTheirAllowedDependenciesCondition<>(allowedDependencyPredicate.forSubtype(), dependencyScope, relevantClassDependencyPredicate)
@@ -54,7 +54,7 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
     }
 
     @Override
-    public ModulesRule respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope) {
+    public ModulesRule<DESCRIPTOR> respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope) {
         return respectTheirAllowedDependencies(
                 allowedDependencies.asPredicate(),
                 dependencyScope
@@ -62,7 +62,7 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
     }
 
     @Override
-    public ModulesRule onlyDependOnEachOtherThroughClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+    public ModulesRule<DESCRIPTOR> onlyDependOnEachOtherThroughClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return new ModulesRuleInternal<>(
                 createRule,
                 relevantClassDependencyPredicate -> new ArchCondition<ArchModule<DESCRIPTOR>>("only depend on each other through classes that " + predicate.getDescription()) {
@@ -79,12 +79,12 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
     }
 
     @Override
-    public ClassesThat<ModulesRule> onlyDependOnEachOtherThroughClassesThat() {
+    public ClassesThat<ModulesRule<DESCRIPTOR>> onlyDependOnEachOtherThroughClassesThat() {
         return new ClassesThatInternal<>(this::onlyDependOnEachOtherThroughClassesThat);
     }
 
     @Override
-    public ModulesRule beFreeOfCycles() {
+    public ModulesRule<DESCRIPTOR> beFreeOfCycles() {
         return new ModulesRuleInternal<>(
                 createRule,
                 relevantClassDependencyPredicate -> CycleArchCondition.<ArchModule<DESCRIPTOR>>builder()
@@ -134,7 +134,7 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         }
     }
 
-    private static class ModulesRuleInternal<DESCRIPTOR extends ArchModule.Descriptor> implements ModulesRule {
+    private static class ModulesRuleInternal<DESCRIPTOR extends ArchModule.Descriptor> implements ModulesRule<DESCRIPTOR> {
         private final Function<ArchCondition<ArchModule<DESCRIPTOR>>, ArchRule> createRule;
         private final Function<ArchRule, ArchRule> modifyRule;
         private final Function<Predicate<Dependency>, ArchCondition<ArchModule<DESCRIPTOR>>> createCondition;
@@ -175,7 +175,17 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         }
 
         @Override
-        public ModulesRule as(String newDescription) {
+        public ModulesShould<DESCRIPTOR> andShould() {
+            return new ModulesShouldInternal<>(this::andShould);
+        }
+
+        @Override
+        public ArchRule andShould(ArchCondition<? super ArchModule<DESCRIPTOR>> condition) {
+            return createRule(createCondition().and(condition.as("should " + condition.getDescription())));
+        }
+
+        @Override
+        public ModulesRule<DESCRIPTOR> as(String newDescription) {
             return new ModulesRuleInternal<>(
                     createRule,
                     createCondition,
@@ -184,7 +194,7 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         }
 
         @Override
-        public ModulesRule because(String reason) {
+        public ModulesRule<DESCRIPTOR> because(String reason) {
             return new ModulesRuleInternal<>(
                     createRule,
                     createCondition,
@@ -193,7 +203,7 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         }
 
         @Override
-        public ModulesRule allowEmptyShould(boolean allowEmptyShould) {
+        public ModulesRule<DESCRIPTOR> allowEmptyShould(boolean allowEmptyShould) {
             return new ModulesRuleInternal<>(
                     createRule,
                     createCondition,
@@ -202,22 +212,22 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         }
 
         @Override
-        public ModulesRule ignoreDependency(Class<?> origin, Class<?> target) {
+        public ModulesRule<DESCRIPTOR> ignoreDependency(Class<?> origin, Class<?> target) {
             return ignoreDependency(dependency(origin, target));
         }
 
         @Override
-        public ModulesRule ignoreDependency(String originFullyQualifiedClassName, String targetFullyQualifiedClassName) {
+        public ModulesRule<DESCRIPTOR> ignoreDependency(String originFullyQualifiedClassName, String targetFullyQualifiedClassName) {
             return ignoreDependency(dependency(originFullyQualifiedClassName, targetFullyQualifiedClassName));
         }
 
         @Override
-        public ModulesRule ignoreDependency(Predicate<? super JavaClass> originPredicate, Predicate<? super JavaClass> targetPredicate) {
+        public ModulesRule<DESCRIPTOR> ignoreDependency(Predicate<? super JavaClass> originPredicate, Predicate<? super JavaClass> targetPredicate) {
             return ignoreDependency(dependency -> originPredicate.test(dependency.getOriginClass()) && targetPredicate.test(dependency.getTargetClass()));
         }
 
         @Override
-        public ModulesRule ignoreDependency(Predicate<? super Dependency> dependencyPredicate) {
+        public ModulesRule<DESCRIPTOR> ignoreDependency(Predicate<? super Dependency> dependencyPredicate) {
             return new ModulesRuleInternal<>(
                     createRule,
                     createCondition,
@@ -226,7 +236,15 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         }
 
         private ArchRule createRule() {
-            return modifyRule.apply(createRule.apply(createCondition.apply(relevantClassDependencyPredicate)));
+            return createRule(createCondition());
+        }
+
+        private ArchCondition<ArchModule<DESCRIPTOR>> createCondition() {
+            return createCondition.apply(relevantClassDependencyPredicate);
+        }
+
+        private ArchRule createRule(ArchCondition<ArchModule<DESCRIPTOR>> condition) {
+            return modifyRule.apply(createRule.apply(condition));
         }
     }
 }
