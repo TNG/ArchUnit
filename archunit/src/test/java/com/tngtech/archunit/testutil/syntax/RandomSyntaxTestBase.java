@@ -372,7 +372,7 @@ public abstract class RandomSyntaxTestBase {
                     }
 
                     @Override
-                    boolean canHandle(Class<?> type) {
+                    protected boolean canHandle(String methodName, Class<?> type) {
                         return supportedType == type; // only use this when the type is really Object[] and not for more specific subtypes
                     }
                 })
@@ -418,7 +418,7 @@ public abstract class RandomSyntaxTestBase {
                 })
                 .build();
 
-        private final Set<SingleParameterProvider> singleParameterProviders;
+        private final List<SingleParameterProvider> singleParameterProviders;
 
         private final List<ParametersProvider> parametersProvider = ImmutableList.of(
                 new FieldMethodParametersProvider(),
@@ -429,7 +429,7 @@ public abstract class RandomSyntaxTestBase {
                 new DefaultParametersProvider());
 
         public ParameterProvider(Set<SingleParameterProvider> additionalParameterProviders) {
-            singleParameterProviders = Stream.concat(defaultSingleParameterProviders.stream(), additionalParameterProviders.stream()).collect(toSet());
+            singleParameterProviders = Stream.concat(additionalParameterProviders.stream(), defaultSingleParameterProviders.stream()).collect(toList());
         }
 
         Parameters get(String methodName, List<TypeToken<?>> types) {
@@ -444,7 +444,7 @@ public abstract class RandomSyntaxTestBase {
 
         Parameter get(String methodName, TypeToken<?> type) {
             for (SingleParameterProvider provider : singleParameterProviders) {
-                if (provider.canHandle(type.getRawType())) {
+                if (provider.canHandle(methodName, type.getRawType())) {
                     return provider.get(methodName, type);
                 }
             }

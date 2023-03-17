@@ -15,11 +15,14 @@
  */
 package com.tngtech.archunit.library.modules.syntax;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -32,6 +35,7 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ClassesThatInternal;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.library.cycle_detection.rules.CycleArchCondition;
+import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
 
@@ -94,6 +98,48 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
                         .onlyConsiderDependencies(relevantClassDependencyPredicate)
                         .build()
         );
+    }
+
+    static class ModulesByAnnotationShouldInternal<ANNOTATION extends Annotation> extends ModulesShouldInternal<AnnotationDescriptor<ANNOTATION>> implements ModulesByAnnotationShould<ANNOTATION> {
+        ModulesByAnnotationShouldInternal(Function<ArchCondition<ArchModule<AnnotationDescriptor<ANNOTATION>>>, ArchRule> createRule) {
+            super(createRule);
+        }
+
+        @Override
+        public ModulesRule<AnnotationDescriptor<ANNOTATION>> respectTheirAllowedDependenciesDeclaredIn(String annotationPropertyName, ModuleDependencyScope dependencyScope) {
+            return respectTheirAllowedDependencies(
+                    DescribedPredicate.describe(
+                            "declared in '" + annotationPropertyName + "'",
+                            moduleDependency -> {
+                                Set<String> allowedDependencies = getAllowedDependencies(moduleDependency.getOrigin().getDescriptor().getAnnotation(), annotationPropertyName);
+                                return allowedDependencies.contains(moduleDependency.getTarget().getName());
+                            }),
+                    dependencyScope);
+        }
+
+        private Set<String> getAllowedDependencies(Annotation annotation, String annotationPropertyName) {
+            String[] allowedDependencies = getStringArrayAnnotationProperty(annotation, annotationPropertyName);
+            return ImmutableSet.copyOf(allowedDependencies);
+        }
+
+        private String[] getStringArrayAnnotationProperty(Annotation annotation, String annotationPropertyName) {
+            Object value = getAnnotationProperty(annotation, annotationPropertyName);
+            try {
+                return (String[]) value;
+            } catch (ClassCastException e) {
+                String message = String.format("Property @%s.%s() must be of type String[]", annotation.annotationType().getSimpleName(), annotationPropertyName);
+                throw new IllegalArgumentException(message, e);
+            }
+        }
+
+        private static Object getAnnotationProperty(Annotation annotation, String annotationPropertyName) {
+            try {
+                return annotation.annotationType().getMethod(annotationPropertyName).invoke(annotation);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                String message = String.format("Could not invoke @%s.%s()", annotation.annotationType().getSimpleName(), annotationPropertyName);
+                throw new IllegalArgumentException(message, e);
+            }
+        }
     }
 
     private static class RespectTheirAllowedDependenciesCondition<DESCRIPTOR extends ArchModule.Descriptor> extends ArchCondition<ArchModule<DESCRIPTOR>> {

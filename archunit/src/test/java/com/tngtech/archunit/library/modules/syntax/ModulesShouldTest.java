@@ -2,12 +2,17 @@ package com.tngtech.archunit.library.modules.syntax;
 
 import java.util.function.Function;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.library.modules.ArchModule;
+import com.tngtech.archunit.library.modules.testexamples.default_annotation.TestModule;
+import com.tngtech.archunit.library.modules.testexamples.default_annotation.module1.ClassInModule1;
+import com.tngtech.archunit.library.modules.testexamples.default_annotation.module2.ClassInModule2;
+import com.tngtech.archunit.library.modules.testexamples.default_annotation.module3.ClassInModule3;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -24,9 +29,11 @@ import static com.tngtech.archunit.library.modules.syntax.GivenModulesTest.modul
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringAllDependencies;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesBetweenModules;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage;
+import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class ModulesShouldTest {
@@ -56,6 +63,48 @@ public class ModulesShouldTest {
                 .checking(new ClassFileImporter().importClasses(ModuleOne.class, ModuleTwo.class))
                 .hasNoViolationContaining(String.class.getName())
                 .hasViolationContaining(ArchRule.class.getName());
+    }
+
+    @Test
+    public void respectTheirAllowedDependenciesDeclaredIn_takes_allowed_dependencies_from_annotation_property() {
+        assertThatRule(modules().definedByAnnotation(TestModule.class)
+                .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies", consideringOnlyDependenciesBetweenModules()))
+                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class, ClassInModule3.class))
+                .hasViolationContaining(ClassInModule3.class.getName())
+                .hasNoViolationContaining(ClassInModule2.class.getName());
+    }
+
+    @Test
+    public void respectTheirAllowedDependenciesDeclaredIn_works_together_with_filtering_by_predicate() {
+        assertThatRule(modules().definedByAnnotation(TestModule.class)
+                .that(DescribedPredicate.describe("are not Module 1", it -> !it.getName().equals("Module 1")))
+                .and(DescribedPredicate.describe("are not Module 2", it -> !it.getName().equals("Module 2")))
+                .or(DescribedPredicate.describe("are Module 3", it -> it.getName().equals("Module 3")))
+                .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies", consideringOnlyDependenciesBetweenModules()))
+                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class, ClassInModule3.class))
+                .hasNoViolation();
+    }
+
+    @Test
+    public void respectTheirAllowedDependenciesDeclaredIn_rejects_missing_property() {
+        assertThatThrownBy(
+                () -> modules().definedByAnnotation(TestModule.class)
+                        .should().respectTheirAllowedDependenciesDeclaredIn("notThere", consideringOnlyDependenciesBetweenModules())
+                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class))
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(String.format("Could not invoke @%s.notThere()", TestModule.class.getSimpleName()));
+    }
+
+    @Test
+    public void respectTheirAllowedDependenciesDeclaredIn_rejects_property_of_wrong_type() {
+        assertThatThrownBy(
+                () -> modules().definedByAnnotation(TestModule.class)
+                        .should().respectTheirAllowedDependenciesDeclaredIn("name", consideringOnlyDependenciesBetweenModules())
+                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class))
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(String.format("Property @%s.name() must be of type %s", TestModule.class.getSimpleName(), String[].class.getSimpleName()));
     }
 
     @DataProvider

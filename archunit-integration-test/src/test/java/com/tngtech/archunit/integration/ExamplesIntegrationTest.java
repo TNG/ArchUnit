@@ -1184,6 +1184,12 @@ class ExamplesIntegrationTest {
         expectModulesViolations.accept(ModuleNames.definedByPackages(), expectedFailures);
 
         expectedFailures = expectedFailures
+                .ofRule(String.format("modules defined by annotation @%s should respect their allowed dependencies declared in 'allowedDependencies'"
+                                + " considering only dependencies in any package ['..example..']",
+                        AppModule.class.getSimpleName()));
+        expectModulesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+
+        expectedFailures = expectedFailures
                 .ofRule(String.format("modules defined by annotation @%s should respect their allowed dependencies declared by descriptor annotation"
                                 + " considering only dependencies in any package ['..example..']",
                         AppModule.class.getSimpleName()));

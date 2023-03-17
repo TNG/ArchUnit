@@ -15,33 +15,31 @@
  */
 package com.tngtech.archunit.library.modules.syntax;
 
+import java.lang.annotation.Annotation;
+
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
+import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public interface GivenModulesConjunction<DESCRIPTOR extends ArchModule.Descriptor> extends GivenConjunction<ArchModule<DESCRIPTOR>> {
+public interface GivenModulesByAnnotationConjunction<ANNOTATION extends Annotation> extends GivenModulesConjunction<AnnotationDescriptor<ANNOTATION>> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenModulesConjunction<DESCRIPTOR> and(DescribedPredicate<? super ArchModule<DESCRIPTOR>> predicate);
+    GivenModulesByAnnotationConjunction<ANNOTATION> and(DescribedPredicate<? super ArchModule<AnnotationDescriptor<ANNOTATION>>> predicate);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenModulesConjunction<DESCRIPTOR> or(DescribedPredicate<? super ArchModule<DESCRIPTOR>> predicate);
+    GivenModulesByAnnotationConjunction<ANNOTATION> or(DescribedPredicate<? super ArchModule<AnnotationDescriptor<ANNOTATION>>> predicate);
 
-    /**
-     * @see GivenModules#should()
-     */
+    @Override
     @PublicAPI(usage = ACCESS)
-    ModulesShould<DESCRIPTOR> should();
+    ModulesByAnnotationShould<ANNOTATION> should();
 
-    /**
-     * @see GivenModules#as(String, Object...)
-     */
+    @Override
     @PublicAPI(usage = ACCESS)
-    GivenModulesConjunction<DESCRIPTOR> as(String description, Object... args);
+    GivenModulesByAnnotationConjunction<ANNOTATION> as(String description, Object... args);
 }

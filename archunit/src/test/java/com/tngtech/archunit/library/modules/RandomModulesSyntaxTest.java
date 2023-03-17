@@ -10,6 +10,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.library.modules.syntax.AllowedModuleDependencies;
 import com.tngtech.archunit.library.modules.syntax.DescriptorFunction;
 import com.tngtech.archunit.library.modules.syntax.GivenModules;
+import com.tngtech.archunit.library.modules.syntax.GivenModulesByAnnotation;
 import com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope;
 import com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition;
 import com.tngtech.archunit.testutil.syntax.Parameter;
@@ -31,11 +32,11 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                         ModuleRuleDefinition.modules().definedByPackages("..test.(*).."),
                         "modules defined by packages '..test.(*)..'"),
                 new RandomSyntaxSeed<>(
-                        givenModulesClass(),
+                        givenModulesByAnnotationClass(),
                         ModuleRuleDefinition.modules().definedByAnnotation(RandomSyntaxModule.class),
                         "modules defined by annotation @" + RandomSyntaxModule.class.getSimpleName()),
                 new RandomSyntaxSeed<>(
-                        givenModulesClass(),
+                        givenModulesByAnnotationClass(),
                         ModuleRuleDefinition.modules().definedByAnnotation(RandomSyntaxModule.class, RandomSyntaxModule::name),
                         "modules defined by annotation @" + RandomSyntaxModule.class.getSimpleName()),
                 new RandomSyntaxSeed<>(
@@ -54,7 +55,7 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
     }
 
     @SafeVarargs
-    private static List<List<?>> createRandomRulesForSeeds(RandomSyntaxSeed<GivenModules<?>>... seeds) {
+    private static List<List<?>> createRandomRulesForSeeds(RandomSyntaxSeed<? extends GivenModules<?>>... seeds) {
         return Arrays.stream(seeds)
                 .map(seed -> RandomSyntaxTestBase.createRandomRules(
                         RandomRulesBlueprint
@@ -87,7 +88,19 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                                                         "{ Module One -> [Module Two, Module Three], Module Two -> [Module Three] }"
                                                 );
                                             }
-                                        })
+                                        },
+                                        new SingleParameterProvider(String.class) {
+                                            @Override
+                                            protected boolean canHandle(String methodName, Class<?> type) {
+                                                return methodName.equals("respectTheirAllowedDependenciesDeclaredIn") && super.canHandle(methodName, type);
+                                            }
+
+                                            @Override
+                                            public Parameter get(String methodName, TypeToken<?> type) {
+                                                return new Parameter("allowedDependencies", "'allowedDependencies'");
+                                            }
+                                        }
+                                )
                                 .descriptionReplacements(
                                         new ReplaceEverythingSoFar("as '([^']+)'.*", "$1"),
                                         new SingleStringReplacement("meta annotated", "meta-annotated")
@@ -103,7 +116,15 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
         return (Class) GivenModules.class;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Class<GivenModulesByAnnotation<RandomSyntaxModule>> givenModulesByAnnotationClass() {
+        return (Class) GivenModulesByAnnotation.class;
+    }
+
+    @SuppressWarnings("unused")
     private @interface RandomSyntaxModule {
         String name();
+
+        String[] allowedDependencies() default {};
     }
 }

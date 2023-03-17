@@ -9,7 +9,7 @@ public abstract class SingleParameterProvider {
         this.supportedType = supportedType;
     }
 
-    boolean canHandle(Class<?> type) {
+    protected boolean canHandle(String methodName, Class<?> type) {
         return supportedType.isAssignableFrom(type);
     }
 
