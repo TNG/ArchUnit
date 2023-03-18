@@ -115,10 +115,9 @@ note right on link #crimson: one adapter must not know\nabout any other adapter
 ----
 
 
-
 === Slices
 
-Currently there are two "slice" rules offered by the Library API. These are basically rules
+Currently, there are two "slice" rules offered by the Library API. These are basically rules
 that slice the code by packages, and contain assertions on those slices. The entrance point is:
 
 [source,java,options="nowrap"]
@@ -196,6 +195,108 @@ cycles.maxNumberToDetect=50
 # default is 20
 cycles.maxNumberOfDependenciesPerEdge=5
 ----
+
+==== The Cycle Detection Core API
+
+The underlying infrastructure for cycle detection that the `slices()` rule makes use of can also be accessed
+without any rule syntax around it. This allows to use the pure cycle detection algorithm in custom
+checks or libraries. The core class of the cycle detection is
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.library.cycle_detection.CycleDetector
+----
+
+It can be used on a set of a generic type `NODE` in combination with a generic `Set<EDGE>`
+(where `EDGE implements Edge<NODE>`) representing the edges of the graph:
+
+[source,java,options="nowrap"]
+----
+Set<MyNode> nodes = // ...
+Set<Edge<MyNode>> edges = // ...
+Cycles<Edge<MyNode>> foundCycles = CycleDetector.detectCycles(nodes, edges);
+----
+
+Edges are parameterized by a generic type `EDGE` to allow custom edge types that can
+then transport additional meta-information if needed.
+
+
+=== Modularization Rules
+
+[NOTE]
+Note: ArchUnit doesn't strive to be a "competition" for module systems like the
+Java Platform Module System. Such systems have advantages like checks at compile time
+versus test time as ArchUnit does. So, if another module system works well in your
+environment, there is no need to switch over. But ArchUnit can bring JPMS-like features
+to older code bases, e.g. Java 8 projects, or environments where the JPMS is for some
+reason no option. It also can accompany a module system by adding additional rules e.g.
+on the API of a module.
+
+To express the concept of modularization ArchUnit offers `ArchModule`﻿s. The entrypoint into
+the API is `ModuleRuleDefinition`, e.g.
+
+[source,java,options="nowrap"]
+----
+ModuleRuleDefinition.modules().definedByPackages("..example.(*)..").should().beFreeOfCycles();
+----
+
+As the example shows, it shares some concepts with the <<Slices>> API. For example `definedByPackages(..)`
+follows the same semantics as `slices().matching(..)`.
+Also, the configuration options for cycle detection mentioned in the last section are shared by these APIs.
+But, it also offers several powerful concepts beyond that API to express many different modularization scenarios.
+
+One example would be to express modules via annotation. We can introduce a custom annotation
+like `@AppModule` and follow a convention to annotate the top-level `package-info` file
+of each package we consider the root of a module. E.g.
+
+[source,java,options="nowrap"]
+.com/myapp/example/module_one/package-info.java
+----
+@AppModule(
+  name = "Module One",
+  allowedDependencies = {"Module Two", "Module Three"},
+  exposedPackages = {"..module_one.api.."}
+)
+package com.myapp.example.module_one;
+----
+
+We can then define a rule using this annotation:
+
+[source,java,options="nowrap"]
+----
+modules()
+  .definedByAnnotation(AppModule.class)
+  .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies",
+      consideringOnlyDependenciesInAnyPackage("..example.."))
+  .andShould().onlyDependOnEachOtherThroughPackagesDeclaredIn("exposedPackages")
+----
+
+As the example shows, the syntax carries on meta-information (like the annotation of the annotated
+`package-info`) into the created `ArchModule` objects where it can
+be used to define the rule. In this example, the allowed dependencies are taken from the `@AppModule`
+annotation on the respective `package-info` and compared to the actual module dependencies. Any
+dependency not listed is reported as violation.
+Likewise, the exposed packages are taken from the `@AppModule` annotation and any dependency
+where the target class's package doesn't match any declared package identifier is reported
+as violation.
+
+Note that the `modules()` API can be adjusted in many ways to model custom requirements.
+For further details, please take a look at the examples provided
+https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit5/src/test/java/com/tngtech/archunit/exampletest/junit5/ModulesTest.java[here].
+
+==== Modularization Core API
+
+The infrastructure to create modules and inspect their dependencies can also be used outside
+the rule syntax, e.g. for custom checks or utility code:
+
+[source,java,options="nowrap"]
+----
+ArchModules<?> modules = ArchModules.defineByPackages("..example.(*)..").modularize(javaClasses);
+ArchModule<?> coreModule = modules.getByIdentifier("core");
+Set<? extends ModuleDependency<?>> coreDependencies = coreModule.getModuleDependenciesFromSelf();
+coreDependencies.forEach(...);
+----
+
 
 === General Coding Rules
 
