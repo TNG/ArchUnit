@@ -11,7 +11,8 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.testexamples.default_annotation.TestModule;
 import com.tngtech.archunit.library.modules.testexamples.default_annotation.module1.ClassInModule1;
-import com.tngtech.archunit.library.modules.testexamples.default_annotation.module2.ClassInModule2;
+import com.tngtech.archunit.library.modules.testexamples.default_annotation.module2.InternalClassInModule2;
+import com.tngtech.archunit.library.modules.testexamples.default_annotation.module2.api.ApiClassInModule2;
 import com.tngtech.archunit.library.modules.testexamples.default_annotation.module3.ClassInModule3;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -69,9 +70,10 @@ public class ModulesShouldTest {
     public void respectTheirAllowedDependenciesDeclaredIn_takes_allowed_dependencies_from_annotation_property() {
         assertThatRule(modules().definedByAnnotation(TestModule.class)
                 .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies", consideringOnlyDependenciesBetweenModules()))
-                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class, ClassInModule3.class))
+                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class, ClassInModule3.class))
                 .hasViolationContaining(ClassInModule3.class.getName())
-                .hasNoViolationContaining(ClassInModule2.class.getName());
+                .hasNoViolationContaining(ApiClassInModule2.class.getName())
+                .hasNoViolationContaining(InternalClassInModule2.class.getName());
     }
 
     @Test
@@ -81,7 +83,7 @@ public class ModulesShouldTest {
                 .and(DescribedPredicate.describe("are not Module 2", it -> !it.getName().equals("Module 2")))
                 .or(DescribedPredicate.describe("are Module 3", it -> it.getName().equals("Module 3")))
                 .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies", consideringOnlyDependenciesBetweenModules()))
-                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class, ClassInModule3.class))
+                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class, ClassInModule3.class))
                 .hasNoViolation();
     }
 
@@ -90,7 +92,7 @@ public class ModulesShouldTest {
         assertThatThrownBy(
                 () -> modules().definedByAnnotation(TestModule.class)
                         .should().respectTheirAllowedDependenciesDeclaredIn("notThere", consideringOnlyDependenciesBetweenModules())
-                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class))
+                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class))
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.format("Could not invoke @%s.notThere()", TestModule.class.getSimpleName()));
@@ -101,7 +103,38 @@ public class ModulesShouldTest {
         assertThatThrownBy(
                 () -> modules().definedByAnnotation(TestModule.class)
                         .should().respectTheirAllowedDependenciesDeclaredIn("name", consideringOnlyDependenciesBetweenModules())
-                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, ClassInModule2.class))
+                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class))
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(String.format("Property @%s.name() must be of type %s", TestModule.class.getSimpleName(), String[].class.getSimpleName()));
+    }
+
+    @Test
+    public void onlyDependOnEachOtherThroughPackagesDeclaredIn_takes_allowed_dependencies_from_annotation_property() {
+        assertThatRule(modules().definedByAnnotation(TestModule.class)
+                .should().onlyDependOnEachOtherThroughPackagesDeclaredIn("exposedPackages"))
+                .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class))
+                .hasViolationContaining(InternalClassInModule2.class.getName())
+                .hasNoViolationContaining(ApiClassInModule2.class.getName());
+    }
+
+    @Test
+    public void onlyDependOnEachOtherThroughPackagesDeclaredIn_rejects_missing_property() {
+        assertThatThrownBy(
+                () -> modules().definedByAnnotation(TestModule.class)
+                        .should().onlyDependOnEachOtherThroughPackagesDeclaredIn("notThere")
+                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class))
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(String.format("Could not invoke @%s.notThere()", TestModule.class.getSimpleName()));
+    }
+
+    @Test
+    public void onlyDependOnEachOtherThroughPackagesDeclaredIn_rejects_property_of_wrong_type() {
+        assertThatThrownBy(
+                () -> modules().definedByAnnotation(TestModule.class)
+                        .should().onlyDependOnEachOtherThroughPackagesDeclaredIn("name")
+                        .evaluate(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class))
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.format("Property @%s.name() must be of type %s", TestModule.class.getSimpleName(), String[].class.getSimpleName()));

@@ -99,6 +99,18 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                                             public Parameter get(String methodName, TypeToken<?> type) {
                                                 return new Parameter("allowedDependencies", "'allowedDependencies'");
                                             }
+                                        },
+                                        new SingleParameterProvider(String.class) {
+
+                                            @Override
+                                            protected boolean canHandle(String methodName, Class<?> type) {
+                                                return methodName.equals("onlyDependOnEachOtherThroughPackagesDeclaredIn") && super.canHandle(methodName, type);
+                                            }
+
+                                            @Override
+                                            public Parameter get(String methodName, TypeToken<?> type) {
+                                                return new Parameter("exposedPackages", "'exposedPackages'");
+                                            }
                                         }
                                 )
                                 .descriptionReplacements(
@@ -126,5 +138,7 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
         String name();
 
         String[] allowedDependencies() default {};
+
+        String[] exposedPackages() default {};
     }
 }

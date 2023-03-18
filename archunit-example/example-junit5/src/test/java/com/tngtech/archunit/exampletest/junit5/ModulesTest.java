@@ -52,17 +52,18 @@ public class ModulesTest {
 
     /**
      * This example demonstrates how to easily derive modules from classes annotated with a certain annotation,
-     * and also test for allowed dependencies by a declared descriptor annotation property.
+     * and also test for allowed dependencies and correct access to exposed packages by declared descriptor annotation properties.
      * Within the example those are simply package-info files which denote the root of the modules by
      * being annotated with @AppModule.
      */
     @ArchTest
-    static ArchRule modules_should_respect_their_declared_dependencies__use_default_annotation_API =
+    static ArchRule modules_should_respect_their_declared_dependencies_and_exposed_packages =
             modules()
                     .definedByAnnotation(AppModule.class)
                     .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies",
                             consideringOnlyDependenciesInAnyPackage("..example.."))
-                    .ignoreDependency(alwaysTrue(), belongToAnyOf(AppModule.class, ModuleApi.class));
+                    .ignoreDependency(alwaysTrue(), belongToAnyOf(AppModule.class, ModuleApi.class))
+                    .andShould().onlyDependOnEachOtherThroughPackagesDeclaredIn("exposedPackages");
 
     /**
      * This example demonstrates how to easily derive modules from classes annotated with a certain annotation,

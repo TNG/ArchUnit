@@ -4,4 +4,6 @@ public @interface TestModule {
     String name();
 
     String[] allowedDependencies() default {};
+
+    String[] exposedPackages() default {};
 }

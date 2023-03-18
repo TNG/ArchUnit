@@ -21,6 +21,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.PackageMatcher;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
@@ -72,5 +73,37 @@ public interface ModulesByAnnotationShould<ANNOTATION extends Annotation> extend
      * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
      */
     @PublicAPI(usage = ACCESS)
-    ModulesRule<AnnotationDescriptor<ANNOTATION>> respectTheirAllowedDependenciesDeclaredIn(String annotationPropertyName, ModuleDependencyScope dependencyScope);
+    ModulesByAnnotationRule<ANNOTATION> respectTheirAllowedDependenciesDeclaredIn(String annotationPropertyName, ModuleDependencyScope dependencyScope);
+
+    /**
+     * Checks that the {@link Dependency#getTargetClass() target classes} of each {@link Dependency}
+     * that originate from one {@link ArchModule} and target another {@link ArchModule} reside in a package that matches
+     * a package identifier declared within {@link ANNOTATION}.
+     * <br><br>
+     * For example, given the annotation
+     * <pre><code>
+     * &#64;interface MyModule {
+     *   String name();
+     *
+     *   String[] exposedPackages() default {};
+     * }
+     * </code></pre>
+     * and the annotated root classes
+     * <pre><code>
+     * &#64;MyModule(name = "Module One")
+     * interface ModuleOneDescriptor {}
+     *
+     * &#64;MyModule(name = "Module Two", exposedPackages = {"com.myapp.module_two.api.."})
+     * interface ModuleTwoDescriptor {}
+     * </code></pre>
+     * Then a dependency from Module One to a class {@code com.myapp.module_two.api.SomeApi}
+     * would be allowed, but a dependency to a class
+     * {@code com.myapp.module_two.OutsideOfApi} would be forbidden.
+     *
+     * @param annotationPropertyName The name of the property declared within {@link ANNOTATION} that defines through which
+     *                               {@link PackageMatcher package identifiers} modules may depend on each other
+     * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
+     */
+    @PublicAPI(usage = ACCESS)
+    ModulesByAnnotationRule<ANNOTATION> onlyDependOnEachOtherThroughPackagesDeclaredIn(String annotationPropertyName);
 }

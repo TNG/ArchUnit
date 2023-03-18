@@ -40,10 +40,11 @@ import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
 
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 
 class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements ModulesShould<DESCRIPTOR> {
-    private final Function<ArchCondition<ArchModule<DESCRIPTOR>>, ArchRule> createRule;
+    final Function<ArchCondition<ArchModule<DESCRIPTOR>>, ArchRule> createRule;
 
     ModulesShouldInternal(Function<ArchCondition<ArchModule<DESCRIPTOR>>, ArchRule> createRule) {
         this.createRule = createRule;
@@ -101,20 +102,49 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
     }
 
     static class ModulesByAnnotationShouldInternal<ANNOTATION extends Annotation> extends ModulesShouldInternal<AnnotationDescriptor<ANNOTATION>> implements ModulesByAnnotationShould<ANNOTATION> {
+
         ModulesByAnnotationShouldInternal(Function<ArchCondition<ArchModule<AnnotationDescriptor<ANNOTATION>>>, ArchRule> createRule) {
             super(createRule);
         }
 
         @Override
-        public ModulesRule<AnnotationDescriptor<ANNOTATION>> respectTheirAllowedDependenciesDeclaredIn(String annotationPropertyName, ModuleDependencyScope dependencyScope) {
-            return respectTheirAllowedDependencies(
-                    DescribedPredicate.describe(
-                            "declared in '" + annotationPropertyName + "'",
-                            moduleDependency -> {
-                                Set<String> allowedDependencies = getAllowedDependencies(moduleDependency.getOrigin().getDescriptor().getAnnotation(), annotationPropertyName);
-                                return allowedDependencies.contains(moduleDependency.getTarget().getName());
-                            }),
-                    dependencyScope);
+        public ModulesByAnnotationRule<ANNOTATION> respectTheirAllowedDependenciesDeclaredIn(String annotationPropertyName, ModuleDependencyScope dependencyScope) {
+            return new ModulesByAnnotationRuleInternal<>(
+                    respectTheirAllowedDependencies(
+                            DescribedPredicate.describe(
+                                    "declared in '" + annotationPropertyName + "'",
+                                    moduleDependency -> {
+                                        Set<String> allowedDependencies = getAllowedDependencies(moduleDependency.getOrigin().getDescriptor().getAnnotation(), annotationPropertyName);
+                                        return allowedDependencies.contains(moduleDependency.getTarget().getName());
+                                    }),
+                            dependencyScope)
+            );
+        }
+
+        @Override
+        public ModulesByAnnotationRule<ANNOTATION> onlyDependOnEachOtherThroughPackagesDeclaredIn(String annotationPropertyName) {
+            return new ModulesByAnnotationRuleInternal<>(new ModulesRuleInternal<>(
+                    createRule,
+                    relevantClassDependencyPredicate -> new ArchCondition<ArchModule<AnnotationDescriptor<ANNOTATION>>>(
+                            String.format("only depend on each other through packages declared in '%s'", annotationPropertyName)
+                    ) {
+                        @Override
+                        public void check(ArchModule<AnnotationDescriptor<ANNOTATION>> module, ConditionEvents events) {
+                            // note that while this would be simpler to write via getClassDependenciesToSelf() we don't go this way because resolving
+                            // reverse dependencies is more expensive. So as a library function it makes sense to choose the more performant way instead.
+                            module.getModuleDependenciesFromSelf().forEach(moduleDependency -> {
+                                ANNOTATION descriptor = moduleDependency.getTarget().getDescriptor().getAnnotation();
+                                String[] apiPackageIdentifiers = getStringArrayAnnotationProperty(descriptor, annotationPropertyName);
+                                Predicate<JavaClass> predicate = resideInAnyPackage(apiPackageIdentifiers);
+
+                                moduleDependency.toClassDependencies().stream()
+                                        .filter(relevantClassDependencyPredicate)
+                                        .filter(classDependency -> !predicate.test(classDependency.getTargetClass()))
+                                        .forEach(classDependency -> events.add(SimpleConditionEvent.violated(classDependency, classDependency.getDescription())));
+                            });
+                        }
+                    }
+            ));
         }
 
         private Set<String> getAllowedDependencies(Annotation annotation, String annotationPropertyName) {
@@ -138,6 +168,74 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 String message = String.format("Could not invoke @%s.%s()", annotation.annotationType().getSimpleName(), annotationPropertyName);
                 throw new IllegalArgumentException(message, e);
+            }
+        }
+
+        private static class ModulesByAnnotationRuleInternal<ANNOTATION extends Annotation> implements ModulesByAnnotationRule<ANNOTATION> {
+            private final ModulesRule<AnnotationDescriptor<ANNOTATION>> delegate;
+
+            ModulesByAnnotationRuleInternal(ModulesRule<AnnotationDescriptor<ANNOTATION>> delegate) {
+                this.delegate = delegate;
+            }
+
+            @Override
+            public ModulesByAnnotationShouldInternal<ANNOTATION> andShould() {
+                return new ModulesByAnnotationShouldInternal<>(this::andShould);
+            }
+
+            @Override
+            public ArchRule andShould(ArchCondition<? super ArchModule<AnnotationDescriptor<ANNOTATION>>> condition) {
+                return delegate.andShould(condition);
+            }
+
+            @Override
+            public String getDescription() {
+                return delegate.getDescription();
+            }
+
+            @Override
+            public void check(JavaClasses classes) {
+                delegate.check(classes);
+            }
+
+            @Override
+            public EvaluationResult evaluate(JavaClasses classes) {
+                return delegate.evaluate(classes);
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> as(String newDescription) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.as(newDescription));
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> because(String reason) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.because(reason));
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> allowEmptyShould(boolean allowEmptyShould) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.allowEmptyShould(allowEmptyShould));
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> ignoreDependency(Class<?> origin, Class<?> target) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.ignoreDependency(origin, target));
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> ignoreDependency(String originFullyQualifiedClassName, String targetFullyQualifiedClassName) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.ignoreDependency(originFullyQualifiedClassName, targetFullyQualifiedClassName));
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> ignoreDependency(Predicate<? super JavaClass> originPredicate, Predicate<? super JavaClass> targetPredicate) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.ignoreDependency(originPredicate, targetPredicate));
+            }
+
+            @Override
+            public ModulesByAnnotationRule<ANNOTATION> ignoreDependency(Predicate<? super Dependency> dependencyPredicate) {
+                return new ModulesByAnnotationRuleInternal<>(delegate.ignoreDependency(dependencyPredicate));
             }
         }
     }
