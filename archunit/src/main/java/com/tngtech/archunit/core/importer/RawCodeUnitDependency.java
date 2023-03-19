@@ -23,4 +23,16 @@ interface RawCodeUnitDependency<TARGET> {
     int getLineNumber();
 
     boolean isDeclaredInLambda();
+
+    interface Builder<CODE_UNIT_DEPENDENCY extends RawCodeUnitDependency<TARGET>, TARGET> {
+        Builder<CODE_UNIT_DEPENDENCY, TARGET> withOrigin(RawAccessRecord.CodeUnit origin);
+
+        Builder<CODE_UNIT_DEPENDENCY, TARGET> withTarget(TARGET target);
+
+        Builder<CODE_UNIT_DEPENDENCY, TARGET> withLineNumber(int lineNumber);
+
+        Builder<CODE_UNIT_DEPENDENCY, TARGET> withDeclaredInLambda(boolean declaredInLambda);
+
+        CODE_UNIT_DEPENDENCY build();
+    }
 }

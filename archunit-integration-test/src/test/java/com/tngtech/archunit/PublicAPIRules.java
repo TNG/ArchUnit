@@ -125,6 +125,7 @@ public class PublicAPIRules {
     public static final ArchRule parameters_of_public_API_are_public =
             codeUnits()
                     .that().areDeclaredInClassesThat().arePublic()
+                    .and().areDeclaredInClassesThat(not(enclosedInANonPublicClass()))
                     .and().areDeclaredInClassesThat().areNotAnnotatedWith(Internal.class)
                     .and().arePublic()
                     .and().doNotHaveName("adhereToPlantUmlDiagram")
@@ -267,6 +268,7 @@ public class PublicAPIRules {
         return not(annotatedWith(PublicAPI.class)).<JavaMember>forSubtype()
                 .and(not(annotatedWith(Internal.class)).forSubtype())
                 .and(declaredIn(modifier(PUBLIC)))
+                .and(not(declaredIn(enclosedInANonPublicClass())))
                 .as("without API marking");
     }
 
