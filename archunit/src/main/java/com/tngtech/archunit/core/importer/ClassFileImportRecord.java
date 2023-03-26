@@ -305,15 +305,15 @@ class ClassFileImportRecord {
         ).forEach(doWithInstanceofCheck);
     }
 
-    private <ACCESS extends RawCodeUnitDependency<?>> Stream<ACCESS> fixSyntheticOrigins(
-            Set<ACCESS> rawAccessRecordsIncludingSyntheticAccesses,
-            Function<ACCESS, ? extends RawCodeUnitDependency.Builder<ACCESS, ?>> createAccessWithNewOrigin,
+    private <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Stream<HAS_RAW_CODE_UNIT_ORIGIN> fixSyntheticOrigins(
+            Set<HAS_RAW_CODE_UNIT_ORIGIN> rawAccessRecordsIncludingSyntheticAccesses,
+            Function<HAS_RAW_CODE_UNIT_ORIGIN, ? extends HasRawCodeUnitOrigin.Builder<HAS_RAW_CODE_UNIT_ORIGIN>> createRecordWithNewOrigin,
             SyntheticAccessRecorder... syntheticAccessRecorders
     ) {
 
-        Stream<ACCESS> result = rawAccessRecordsIncludingSyntheticAccesses.stream();
+        Stream<HAS_RAW_CODE_UNIT_ORIGIN> result = rawAccessRecordsIncludingSyntheticAccesses.stream();
         for (SyntheticAccessRecorder syntheticAccessRecorder : syntheticAccessRecorders) {
-            result = result.flatMap(access -> syntheticAccessRecorder.fixSyntheticAccess(access, createAccessWithNewOrigin).stream());
+            result = result.flatMap(hasRawCodeUnitOrigin -> syntheticAccessRecorder.fixSyntheticAccess(hasRawCodeUnitOrigin, createRecordWithNewOrigin).stream());
         }
         return result;
     }
@@ -360,7 +360,7 @@ class ClassFileImportRecord {
     private static SyntheticAccessRecorder createSyntheticPrivateAccessRecorder() {
         return new SyntheticAccessRecorder(
                 codeUnit -> isSyntheticAccessMethodName(codeUnit.getName()),
-                RawCodeUnitDependency.Builder::withOrigin
+                HasRawCodeUnitOrigin.Builder::withOrigin
         );
     }
 
@@ -408,11 +408,11 @@ class ClassFileImportRecord {
     private static class SyntheticAccessRecorder {
         private final SetMultimap<String, RawAccessRecord> rawSyntheticMethodInvocationRecordsByTarget = HashMultimap.create();
         private final Predicate<CodeUnit> isSyntheticOrigin;
-        private final BiConsumer<RawCodeUnitDependency.Builder<?, ?>, CodeUnit> fixOrigin;
+        private final BiConsumer<HasRawCodeUnitOrigin.Builder<?>, CodeUnit> fixOrigin;
 
         SyntheticAccessRecorder(
                 Predicate<CodeUnit> isSyntheticOrigin,
-                BiConsumer<RawCodeUnitDependency.Builder<?, ?>, CodeUnit> fixOrigin
+                BiConsumer<HasRawCodeUnitOrigin.Builder<?>, CodeUnit> fixOrigin
         ) {
             this.isSyntheticOrigin = isSyntheticOrigin;
             this.fixOrigin = fixOrigin;
@@ -422,22 +422,22 @@ class ClassFileImportRecord {
             rawSyntheticMethodInvocationRecordsByTarget.put(getMemberKey(record.getTarget()), record);
         }
 
-        <ACCESS extends RawCodeUnitDependency<?>> Set<ACCESS> fixSyntheticAccess(
+        <ACCESS extends HasRawCodeUnitOrigin> Set<ACCESS> fixSyntheticAccess(
                 ACCESS access,
-                Function<ACCESS, ? extends RawCodeUnitDependency.Builder<ACCESS, ?>> copyAccess
+                Function<ACCESS, ? extends HasRawCodeUnitOrigin.Builder<ACCESS>> copyAccess
         ) {
             return isSyntheticOrigin.test(access.getOrigin())
                     ? replaceOriginByFixedOrigin(access, copyAccess)
                     : singleton(access);
         }
 
-        private <ACCESS extends RawCodeUnitDependency<?>> Set<ACCESS> replaceOriginByFixedOrigin(
+        private <ACCESS extends HasRawCodeUnitOrigin> Set<ACCESS> replaceOriginByFixedOrigin(
                 ACCESS accessFromSyntheticMethod,
-                Function<ACCESS, ? extends RawCodeUnitDependency.Builder<ACCESS, ?>> copyAccess
+                Function<ACCESS, ? extends HasRawCodeUnitOrigin.Builder<ACCESS>> copyAccess
         ) {
             Set<ACCESS> result = findNonSyntheticOriginOf(accessFromSyntheticMethod)
                     .map(accessWithCorrectOrigin -> {
-                        RawCodeUnitDependency.Builder<ACCESS, ?> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
+                        HasRawCodeUnitOrigin.Builder<ACCESS> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
                         fixOrigin.accept(copiedBuilder, accessWithCorrectOrigin.getOrigin());
                         return copiedBuilder.build();
                     })
@@ -450,7 +450,7 @@ class ClassFileImportRecord {
             return result;
         }
 
-        private <ACCESS extends RawCodeUnitDependency<?>> Stream<RawCodeUnitDependency<?>> findNonSyntheticOriginOf(ACCESS access) {
+        private <ACCESS extends HasRawCodeUnitOrigin> Stream<HasRawCodeUnitOrigin> findNonSyntheticOriginOf(ACCESS access) {
             return isSyntheticOrigin.test(access.getOrigin())
                     ? rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(access.getOrigin())).stream().flatMap(this::findNonSyntheticOriginOf)
                     : Stream.of(access);
