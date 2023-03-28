@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticAccessMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticEnumSwitchMapFieldName;
@@ -77,7 +78,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
-    private final SetMultimap<String, TryCatchBlockBuilder> tryCatchBlocksByOwner = HashMultimap.create();
+    private final SetMultimap<String, RawTryCatchBlock> tryCatchBlocksByOwner = HashMultimap.create();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
@@ -151,7 +152,7 @@ class ClassFileImportRecord {
         enclosingDeclarationsByOwner.registerEnclosingCodeUnit(ownerName, enclosingCodeUnit);
     }
 
-    void addTryCatchBlocks(String declaringClassName, String methodName, String descriptor, Set<TryCatchBlockBuilder> tryCatchBlocks) {
+    void addTryCatchBlocks(String declaringClassName, String methodName, String descriptor, Set<RawTryCatchBlock> tryCatchBlocks) {
         tryCatchBlocksByOwner.putAll(getMemberKey(declaringClassName, methodName, descriptor), tryCatchBlocks);
     }
 
@@ -215,7 +216,12 @@ class ClassFileImportRecord {
     }
 
     Set<TryCatchBlockBuilder> getTryCatchBlockBuildersFor(JavaCodeUnit codeUnit) {
-        return tryCatchBlocksByOwner.get(getMemberKey(codeUnit));
+        return tryCatchBlocksByOwner.get(getMemberKey(codeUnit)).stream()
+                .map(block -> new TryCatchBlockBuilder()
+                        .withCaughtThrowables(block.getCaughtThrowables())
+                        .withLineNumber(block.getLineNumber())
+                        .withRawAccessesInTryBlock(block.getAccessesInTryBlock()))
+                .collect(toImmutableSet());
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {

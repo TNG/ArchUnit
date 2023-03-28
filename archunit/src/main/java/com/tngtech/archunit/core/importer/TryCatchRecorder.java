@@ -15,28 +15,24 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import org.objectweb.asm.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 class TryCatchRecorder {
     private static final Logger log = LoggerFactory.getLogger(TryCatchRecorder.class);
 
     private final TryCatchBlocksFinishedListener tryCatchBlocksFinishedListener;
     private final Map<Label, Map<Label, RawTryCatchBlock>> blocksByEndByStart = new HashMap<>();
-    private final Multimap<Label, RawTryCatchBlock> activeBlocksByEnd = HashMultimap.create();
+    private final SetMultimap<Label, RawTryCatchBlock> activeBlocksByEnd = HashMultimap.create();
     private final Set<Label> handlers = new HashSet<>();
     private Label lastEncounteredLabelWithoutLineNumber = null;
     private boolean active = false;
@@ -95,15 +91,9 @@ class TryCatchRecorder {
     }
 
     private void processEndingBlocks(Label end) {
-        Collection<RawTryCatchBlock> finishedBlocks = activeBlocksByEnd.removeAll(end);
+        Set<RawTryCatchBlock> finishedBlocks = activeBlocksByEnd.removeAll(end);
 
-        Set<TryCatchBlockBuilder> finishedBuilders = finishedBlocks.stream()
-                .map(block -> new TryCatchBlockBuilder()
-                        .withCaughtThrowables(block.caughtThrowables)
-                        .withLineNumber(block.lineNumber)
-                        .withRawAccessesInTryBlock(block.accessesInTryBlock))
-                .collect(toImmutableSet());
-        tryCatchBlocksFinishedListener.onTryCatchBlocksFinished(finishedBuilders);
+        tryCatchBlocksFinishedListener.onTryCatchBlocksFinished(finishedBlocks);
 
         if (blocksByEndByStart.isEmpty() && activeBlocksByEnd.isEmpty()) {
             active = false;
@@ -155,25 +145,7 @@ class TryCatchRecorder {
         return blocksByEnd.computeIfAbsent(end, __ -> new RawTryCatchBlock());
     }
 
-    private static class RawTryCatchBlock {
-        private final Set<JavaClassDescriptor> caughtThrowables = new HashSet<>();
-        private int lineNumber;
-        private final Set<RawAccessRecord> accessesInTryBlock = new HashSet<>();
-
-        void addThrowable(JavaClassDescriptor throwableType) {
-            caughtThrowables.add(throwableType);
-        }
-
-        void setLineNumber(int lineNumber) {
-            this.lineNumber = lineNumber;
-        }
-
-        void addAccess(RawAccessRecord accessRecord) {
-            accessesInTryBlock.add(accessRecord);
-        }
-    }
-
     interface TryCatchBlocksFinishedListener {
-        void onTryCatchBlocksFinished(Set<TryCatchBlockBuilder> tryCatchBlocks);
+        void onTryCatchBlocksFinished(Set<RawTryCatchBlock> tryCatchBlocks);
     }
 }

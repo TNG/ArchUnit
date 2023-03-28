@@ -34,7 +34,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
@@ -315,7 +314,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onTryCatchBlocksFinished(Set<TryCatchBlockBuilder> tryCatchBlocks) {
+        public void onTryCatchBlocksFinished(Set<RawTryCatchBlock> tryCatchBlocks) {
             importRecord.addTryCatchBlocks(codeUnit.getDeclaringClassName(), codeUnit.getName(), codeUnit.getDescriptor(), tryCatchBlocks);
         }
 
