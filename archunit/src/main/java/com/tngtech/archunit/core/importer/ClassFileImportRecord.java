@@ -32,7 +32,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
@@ -42,7 +41,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.MemberSignature;
 import org.slf4j.Logger;
@@ -50,7 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticAccessMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticEnumSwitchMapFieldName;
@@ -78,7 +75,6 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
-    private final SetMultimap<String, RawTryCatchBlock> tryCatchBlocksByOwner = HashMultimap.create();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
@@ -87,6 +83,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
     private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
     private final Set<RawInstanceofCheck> rawInstanceofChecks = new HashSet<>();
+    private final Set<RawTryCatchBlock> rawTryCatchBlocks = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
 
@@ -152,8 +149,8 @@ class ClassFileImportRecord {
         enclosingDeclarationsByOwner.registerEnclosingCodeUnit(ownerName, enclosingCodeUnit);
     }
 
-    void addTryCatchBlocks(String declaringClassName, String methodName, String descriptor, Set<RawTryCatchBlock> tryCatchBlocks) {
-        tryCatchBlocksByOwner.putAll(getMemberKey(declaringClassName, methodName, descriptor), tryCatchBlocks);
+    void addTryCatchBlocks(Set<RawTryCatchBlock> tryCatchBlocks) {
+        rawTryCatchBlocks.addAll(tryCatchBlocks);
     }
 
     Optional<String> getSuperclassFor(String name) {
@@ -213,15 +210,6 @@ class ClassFileImportRecord {
 
     Optional<CodeUnit> getEnclosingCodeUnitFor(String ownerName) {
         return enclosingDeclarationsByOwner.getEnclosingCodeUnit(ownerName);
-    }
-
-    Set<TryCatchBlockBuilder> getTryCatchBlockBuildersFor(JavaCodeUnit codeUnit) {
-        return tryCatchBlocksByOwner.get(getMemberKey(codeUnit)).stream()
-                .map(block -> new TryCatchBlockBuilder()
-                        .withCaughtThrowables(block.getCaughtThrowables())
-                        .withLineNumber(block.getLineNumber())
-                        .withRawAccessesInTryBlock(block.getAccessesInTryBlock()))
-                .collect(toImmutableSet());
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {
@@ -309,6 +297,10 @@ class ClassFileImportRecord {
                 rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK,
                 syntheticLambdaAccessRecorder
         ).forEach(doWithInstanceofCheck);
+    }
+
+    public void forEachRawTryCatchBlock(Consumer<RawTryCatchBlock> doWithTryCatchBlock) {
+        rawTryCatchBlocks.forEach(doWithTryCatchBlock);
     }
 
     private <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Stream<HAS_RAW_CODE_UNIT_ORIGIN> fixSyntheticOrigins(

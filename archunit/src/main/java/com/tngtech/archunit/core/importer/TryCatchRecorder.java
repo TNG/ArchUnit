@@ -31,8 +31,8 @@ class TryCatchRecorder {
     private static final Logger log = LoggerFactory.getLogger(TryCatchRecorder.class);
 
     private final TryCatchBlocksFinishedListener tryCatchBlocksFinishedListener;
-    private final Map<Label, Map<Label, RawTryCatchBlock>> blocksByEndByStart = new HashMap<>();
-    private final SetMultimap<Label, RawTryCatchBlock> activeBlocksByEnd = HashMultimap.create();
+    private final Map<Label, Map<Label, RawTryCatchBlock.Builder>> blocksByEndByStart = new HashMap<>();
+    private final SetMultimap<Label, RawTryCatchBlock.Builder> activeBlocksByEnd = HashMultimap.create();
     private final Set<Label> handlers = new HashSet<>();
     private Label lastEncounteredLabelWithoutLineNumber = null;
     private boolean active = false;
@@ -79,21 +79,19 @@ class TryCatchRecorder {
     }
 
     private void processStartingBlocks(Label start, int lineNumber) {
-        Map<Label, RawTryCatchBlock> blocksByEnd = blocksByEndByStart.remove(start);
+        Map<Label, RawTryCatchBlock.Builder> blocksByEnd = blocksByEndByStart.remove(start);
         if (blocksByEnd == null) {
             return;
         }
 
-        for (Map.Entry<Label, RawTryCatchBlock> endToBlock : blocksByEnd.entrySet()) {
-            endToBlock.getValue().setLineNumber(lineNumber);
+        for (Map.Entry<Label, RawTryCatchBlock.Builder> endToBlock : blocksByEnd.entrySet()) {
+            endToBlock.getValue().withLineNumber(lineNumber);
             activeBlocksByEnd.put(endToBlock.getKey(), endToBlock.getValue());
         }
     }
 
     private void processEndingBlocks(Label end) {
-        Set<RawTryCatchBlock> finishedBlocks = activeBlocksByEnd.removeAll(end);
-
-        tryCatchBlocksFinishedListener.onTryCatchBlocksFinished(finishedBlocks);
+        tryCatchBlocksFinishedListener.onTryCatchBlocksFinished(activeBlocksByEnd.removeAll(end));
 
         if (blocksByEndByStart.isEmpty() && activeBlocksByEnd.isEmpty()) {
             active = false;
@@ -101,7 +99,7 @@ class TryCatchRecorder {
     }
 
     void registerTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType) {
-        getOrCreateTryCatchBlock(start, end).addThrowable(throwableType);
+        getOrCreateTryCatchBlock(start, end).addCaughtThrowable(throwableType);
         active = true;
         handlers.add(handler);
     }
@@ -120,7 +118,7 @@ class TryCatchRecorder {
         if (!active) {
             return;
         }
-        activeBlocksByEnd.values().forEach(block -> block.addAccess(accessRecord));
+        activeBlocksByEnd.values().forEach(block -> block.addRawAccessContainedInTryBlock(accessRecord));
     }
 
     void onEncounteredMethodEnd() {
@@ -140,12 +138,12 @@ class TryCatchRecorder {
         }
     }
 
-    private RawTryCatchBlock getOrCreateTryCatchBlock(Label start, Label end) {
-        Map<Label, RawTryCatchBlock> blocksByEnd = blocksByEndByStart.computeIfAbsent(start, __ -> new HashMap<>());
-        return blocksByEnd.computeIfAbsent(end, __ -> new RawTryCatchBlock());
+    private RawTryCatchBlock.Builder getOrCreateTryCatchBlock(Label start, Label end) {
+        Map<Label, RawTryCatchBlock.Builder> blocksByEnd = blocksByEndByStart.computeIfAbsent(start, __ -> new HashMap<>());
+        return blocksByEnd.computeIfAbsent(end, __ -> new RawTryCatchBlock.Builder());
     }
 
     interface TryCatchBlocksFinishedListener {
-        void onTryCatchBlocksFinished(Set<RawTryCatchBlock> tryCatchBlocks);
+        void onTryCatchBlocksFinished(Set<RawTryCatchBlock.Builder> tryCatchBlocks);
     }
 }

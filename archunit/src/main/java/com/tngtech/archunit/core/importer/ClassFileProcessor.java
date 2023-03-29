@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static java.util.stream.Collectors.toSet;
 import static org.objectweb.asm.Opcodes.ASM9;
 
 class ClassFileProcessor {
@@ -314,8 +315,9 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onTryCatchBlocksFinished(Set<RawTryCatchBlock> tryCatchBlocks) {
-            importRecord.addTryCatchBlocks(codeUnit.getDeclaringClassName(), codeUnit.getName(), codeUnit.getDescriptor(), tryCatchBlocks);
+        public void onTryCatchBlocksFinished(Set<RawTryCatchBlock.Builder> tryCatchBlocks) {
+            tryCatchBlocks.forEach(it -> it.withDeclaringCodeUnit(codeUnit));
+            importRecord.addTryCatchBlocks(tryCatchBlocks.stream().map(RawTryCatchBlock.Builder::build).collect(toSet()));
         }
 
         private <BUILDER extends RawAccessRecord.BaseBuilder<?, BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {

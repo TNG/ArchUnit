@@ -277,7 +277,7 @@ public abstract class JavaCodeUnit
         methodReferences = context.createMethodReferencesFor(this, tryCatchBlockBuilders);
         constructorReferences = context.createConstructorReferencesFor(this, tryCatchBlockBuilders);
         tryCatchBlocks = tryCatchBlockBuilders.stream()
-                .map(builder -> builder.build(this, context))
+                .map(builder -> builder.build(this))
                 .collect(toImmutableSet());
         referencedClassObjects = context.createReferencedClassObjectsFor(this);
         instanceofChecks = context.createInstanceofChecksFor(this);

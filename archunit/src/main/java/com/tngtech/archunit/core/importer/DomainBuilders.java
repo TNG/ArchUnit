@@ -43,7 +43,6 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
-import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -91,6 +90,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 @Internal
+@SuppressWarnings("UnusedReturnValue")
 public final class DomainBuilders {
     private DomainBuilders() {
     }
@@ -894,17 +894,16 @@ public final class DomainBuilders {
 
     @Internal
     public static class TryCatchBlockBuilder {
-        private Set<JavaClassDescriptor> caughtThrowables;
+        private Set<JavaClass> caughtThrowables;
         private int lineNumber;
         private JavaCodeUnit owner;
-        private ImportContext context;
         private final Set<JavaAccess<?>> accessesContainedInTryBlock = new HashSet<>();
         private Set<RawAccessRecord> rawAccessesContainedInTryBlock;
 
         TryCatchBlockBuilder() {
         }
 
-        TryCatchBlockBuilder withCaughtThrowables(Set<JavaClassDescriptor> caughtThrowables) {
+        TryCatchBlockBuilder withCaughtThrowables(Set<JavaClass> caughtThrowables) {
             this.caughtThrowables = caughtThrowables;
             return this;
         }
@@ -914,7 +913,7 @@ public final class DomainBuilders {
             return this;
         }
 
-        TryCatchBlockBuilder withRawAccessesInTryBlock(Set<RawAccessRecord> accessRecords) {
+        TryCatchBlockBuilder withRawAccessesContainedInTryBlock(Set<RawAccessRecord> accessRecords) {
             this.rawAccessesContainedInTryBlock = accessRecords;
             return this;
         }
@@ -925,9 +924,8 @@ public final class DomainBuilders {
             }
         }
 
-        public TryCatchBlock build(JavaCodeUnit owner, ImportContext context) {
+        public TryCatchBlock build(JavaCodeUnit owner) {
             this.owner = owner;
-            this.context = context;
             return createTryCatchBlock(this);
         }
 
@@ -940,9 +938,7 @@ public final class DomainBuilders {
         }
 
         public Set<JavaClass> getCaughtThrowables() {
-            return caughtThrowables.stream()
-                    .map(throwable -> context.resolveClass(throwable.getFullyQualifiedClassName()))
-                    .collect(toImmutableSet());
+            return caughtThrowables;
         }
 
         public SourceCodeLocation getSourceCodeLocation() {
