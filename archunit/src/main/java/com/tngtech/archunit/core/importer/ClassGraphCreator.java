@@ -178,7 +178,8 @@ class ClassGraphCreator implements ImportContext {
                                 .collect(toImmutableSet())
                 )
                 .withLineNumber(rawTryCatchBlock.getLineNumber())
-                .withRawAccessesContainedInTryBlock(rawTryCatchBlock.getAccessesInTryBlock());
+                .withRawAccessesContainedInTryBlock(rawTryCatchBlock.getAccessesInTryBlock())
+                .withDeclaredInLambda(rawTryCatchBlock.isDeclaredInLambda());
         processedTryCatchBlocks.put(declaringCodeUnit, tryCatchBlockBuilder);
     }
 

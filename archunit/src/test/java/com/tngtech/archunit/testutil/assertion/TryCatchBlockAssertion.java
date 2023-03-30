@@ -44,6 +44,7 @@ public class TryCatchBlockAssertion extends AbstractObjectAssert<TryCatchBlockAs
         private String expectedSourceClassName;
         private Optional<Integer> expectedLineNumber = Optional.empty();
         private JavaCodeUnit expectedOwner;
+        private boolean declaredInLambda = false;
 
         private TryCatchBlockCondition() {
         }
@@ -58,8 +59,9 @@ public class TryCatchBlockAssertion extends AbstractObjectAssert<TryCatchBlockAs
             SourceCodeLocation sourceCodeLocation = tryCatchBlock.getSourceCodeLocation();
             boolean sourceClassMatches = sourceCodeLocation.getSourceClass().getName().equals(expectedSourceClassName);
             boolean lineNumberMatches = expectedLineNumber.map(it -> sourceCodeLocation.getLineNumber() == it).orElse(true);
+            boolean declaredInLambdaMatches = tryCatchBlock.isDeclaredInLambda() == declaredInLambda;
 
-            return ownerMatches && caughtThrowablesMatch && sourceClassMatches && lineNumberMatches;
+            return ownerMatches && caughtThrowablesMatch && sourceClassMatches && lineNumberMatches && declaredInLambdaMatches;
         }
 
         public TryCatchBlockCondition declaredIn(JavaCodeUnit owner) {
@@ -84,6 +86,12 @@ public class TryCatchBlockAssertion extends AbstractObjectAssert<TryCatchBlockAs
             description.add(String.format("at location %s:%d", sourceOwner.getName(), lineNumber));
             expectedSourceClassName = sourceOwner.getName();
             expectedLineNumber = Optional.of(lineNumber);
+            return this;
+        }
+
+        public TryCatchBlockCondition declaredInLambda() {
+            description.add("declared in lambda");
+            declaredInLambda = true;
             return this;
         }
     }

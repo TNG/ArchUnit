@@ -289,7 +289,15 @@ class ClassFileImportRecord {
     }
 
     public void forEachRawTryCatchBlock(Consumer<RawTryCatchBlock> doWithTryCatchBlock) {
-        rawTryCatchBlocks.forEach(doWithTryCatchBlock);
+        resolveSyntheticOrigins(rawTryCatchBlocks, COPY_RAW_TRY_CATCH_BLOCK, syntheticLambdaAccessRecorder)
+                .map(rawTryCatchBlock -> {
+                    Set<RawAccessRecord> fixedAccessesInTryBlock =
+                            resolveSyntheticOrigins(
+                                    rawTryCatchBlock.getAccessesInTryBlock(), COPY_RAW_ACCESS_RECORD,
+                                    syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
+                            ).collect(toSet());
+                    return RawTryCatchBlock.Builder.from(rawTryCatchBlock).withRawAccessesContainedInTryBlock(fixedAccessesInTryBlock).build();
+                }).forEach(doWithTryCatchBlock);
     }
 
     private <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Stream<HAS_RAW_CODE_UNIT_ORIGIN> resolveSyntheticOrigins(
@@ -323,6 +331,8 @@ class ClassFileImportRecord {
 
     private static final Function<RawInstanceofCheck, RawInstanceofCheck.Builder> COPY_RAW_INSTANCEOF_CHECK =
             instanceofCheck -> copyInto(new RawInstanceofCheck.Builder(), instanceofCheck);
+
+    private static final Function<RawTryCatchBlock, RawTryCatchBlock.Builder> COPY_RAW_TRY_CATCH_BLOCK = RawTryCatchBlock.Builder::from;
 
     private static <TARGET, BUILDER extends RawCodeUnitDependency.Builder<?, TARGET>> BUILDER copyInto(BUILDER builder, RawCodeUnitDependency<TARGET> referencedClassObject) {
         builder

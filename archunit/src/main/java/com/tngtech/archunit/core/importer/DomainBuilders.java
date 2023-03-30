@@ -385,6 +385,7 @@ public final class DomainBuilders {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     @Internal
     public static final class JavaClassBuilder {
         private final boolean stub;
@@ -511,6 +512,7 @@ public final class DomainBuilders {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     @Internal
     public static final class JavaAnnotationBuilder {
         private JavaClassDescriptor type;
@@ -899,6 +901,7 @@ public final class DomainBuilders {
         private JavaCodeUnit owner;
         private final Set<JavaAccess<?>> accessesContainedInTryBlock = new HashSet<>();
         private Set<RawAccessRecord> rawAccessesContainedInTryBlock;
+        private boolean declaredInLambda;
 
         TryCatchBlockBuilder() {
         }
@@ -924,6 +927,11 @@ public final class DomainBuilders {
             }
         }
 
+        TryCatchBlockBuilder withDeclaredInLambda(boolean declaredInLambda) {
+            this.declaredInLambda = declaredInLambda;
+            return this;
+        }
+
         public TryCatchBlock build(JavaCodeUnit owner) {
             this.owner = owner;
             return createTryCatchBlock(this);
@@ -943,6 +951,10 @@ public final class DomainBuilders {
 
         public SourceCodeLocation getSourceCodeLocation() {
             return SourceCodeLocation.of(owner.getOwner(), lineNumber);
+        }
+
+        public boolean isDeclaredInLambda() {
+            return declaredInLambda;
         }
     }
 

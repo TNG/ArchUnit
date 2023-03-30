@@ -24,17 +24,19 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class RawTryCatchBlock {
+class RawTryCatchBlock implements HasRawCodeUnitOrigin {
     private final Set<JavaClassDescriptor> caughtThrowables;
     private final int lineNumber;
     private final Set<RawAccessRecord> accessesInTryBlock;
     private final CodeUnit declaringCodeUnit;
+    private final boolean declaredInLambda;
 
     private RawTryCatchBlock(Builder builder) {
         this.caughtThrowables = ImmutableSet.copyOf(builder.caughtThrowables);
         this.lineNumber = builder.lineNumber;
         this.accessesInTryBlock = ImmutableSet.copyOf(builder.rawAccessesContainedInTryBlock);
         this.declaringCodeUnit = checkNotNull(builder.declaringCodeUnit);
+        this.declaredInLambda = builder.declaredInLambda;
     }
 
     Set<JavaClassDescriptor> getCaughtThrowables() {
@@ -53,12 +55,27 @@ class RawTryCatchBlock {
         return declaringCodeUnit;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    static class Builder {
-        private final Set<JavaClassDescriptor> caughtThrowables = new HashSet<>();
+    @Override
+    public CodeUnit getOrigin() {
+        return getDeclaringCodeUnit();
+    }
+
+    @Override
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
+    }
+
+    static class Builder implements HasRawCodeUnitOrigin.Builder<RawTryCatchBlock> {
+        private Set<JavaClassDescriptor> caughtThrowables = new HashSet<>();
         private int lineNumber;
-        private final Set<RawAccessRecord> rawAccessesContainedInTryBlock = new HashSet<>();
+        private Set<RawAccessRecord> rawAccessesContainedInTryBlock = new HashSet<>();
         private CodeUnit declaringCodeUnit;
+        private boolean declaredInLambda = false;
+
+        Builder withCaughtThrowables(Set<JavaClassDescriptor> caughtThrowables) {
+            this.caughtThrowables = caughtThrowables;
+            return this;
+        }
 
         Builder addCaughtThrowable(JavaClassDescriptor throwableType) {
             caughtThrowables.add(throwableType);
@@ -67,6 +84,11 @@ class RawTryCatchBlock {
 
         Builder withLineNumber(int lineNumber) {
             this.lineNumber = lineNumber;
+            return this;
+        }
+
+        Builder withRawAccessesContainedInTryBlock(Set<RawAccessRecord> accessRecords) {
+            this.rawAccessesContainedInTryBlock = accessRecords;
             return this;
         }
 
@@ -80,8 +102,29 @@ class RawTryCatchBlock {
             return this;
         }
 
-        RawTryCatchBlock build() {
+        @Override
+        public Builder withOrigin(CodeUnit origin) {
+            return withDeclaringCodeUnit(origin);
+        }
+
+        @Override
+        public Builder withDeclaredInLambda(boolean declaredInLambda) {
+            this.declaredInLambda = declaredInLambda;
+            return this;
+        }
+
+        @Override
+        public RawTryCatchBlock build() {
             return new RawTryCatchBlock(this);
+        }
+
+        static Builder from(RawTryCatchBlock tryCatchBlock) {
+            return new RawTryCatchBlock.Builder()
+                    .withCaughtThrowables(tryCatchBlock.getCaughtThrowables())
+                    .withLineNumber(tryCatchBlock.getLineNumber())
+                    .withRawAccessesContainedInTryBlock(tryCatchBlock.getAccessesInTryBlock())
+                    .withDeclaringCodeUnit(tryCatchBlock.getOrigin())
+                    .withDeclaredInLambda(tryCatchBlock.isDeclaredInLambda());
         }
     }
 }

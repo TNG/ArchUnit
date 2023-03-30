@@ -20,6 +20,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
+import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.CheckingInstanceofFromLambda;
 import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjectsFromLambda;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -43,6 +44,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClass
 import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
 import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
+import static com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion.tryCatchBlock;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.stream.Collectors.toSet;
@@ -406,6 +408,38 @@ public class ClassFileImporterLambdaDependenciesTest {
                         .fromOrigin(Caller.class, "call")
                         .toTarget(Caller.Target.Inner.class, "field")
                 );
+    }
+
+    @Test
+    public void imports_try_blocks_within_lambda() {
+        class Target {
+            public void target() {
+            }
+        }
+        @SuppressWarnings({"unused"})
+        class Origin {
+            void call(Target target) {
+                execute(() -> {
+                    try {
+                        target.target();
+                    } finally {
+                        System.out.println("Irrelevant statement");
+                    }
+                });
+            }
+
+            private void execute(Runnable runnable) {
+            }
+        }
+
+        JavaClass origin = new ClassFileImporter().importClasses(Origin.class, Target.class).get(Origin.class);
+
+        JavaMethod originMethod = origin.getMethod("call", Target.class);
+        Set<TryCatchBlock> tryCatchBlocks = originMethod.getTryCatchBlocks();
+        assertThat(tryCatchBlocks).areExactly(1, tryCatchBlock().declaredIn(originMethod).catchingNoThrowables().declaredInLambda());
+
+        assertThatAccesses(getOnlyElement(tryCatchBlocks).getAccessesContainedInTryBlock())
+                .contain(access().fromOrigin(Origin.class, "call").toTarget(Target.class, "target").declaredInLambda());
     }
 
     @Test
