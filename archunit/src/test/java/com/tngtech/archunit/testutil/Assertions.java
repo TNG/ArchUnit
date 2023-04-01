@@ -65,7 +65,6 @@ import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
 import com.tngtech.archunit.testutil.assertion.ThrowsClauseAssertion;
 import com.tngtech.archunit.testutil.assertion.ThrowsDeclarationAssertion;
 import com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion;
-import com.tngtech.archunit.testutil.assertion.TryCatchBlocksAssertion;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static <T> ArchConditionAssertion<T> assertThat(ArchCondition<T> archCondition) {
@@ -227,9 +226,5 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static TryCatchBlockAssertion assertThatTryCatchBlock(TryCatchBlock tryCatchBlock) {
         return new TryCatchBlockAssertion(tryCatchBlock);
-    }
-
-    public static TryCatchBlocksAssertion assertThatTryCatchBlocks(Set<TryCatchBlock> tryCatchBlocks) {
-        return new TryCatchBlocksAssertion(tryCatchBlocks);
     }
 }
