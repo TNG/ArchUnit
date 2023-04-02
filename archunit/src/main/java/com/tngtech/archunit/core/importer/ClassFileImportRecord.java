@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
@@ -52,6 +53,7 @@ import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isL
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticAccessMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticEnumSwitchMapFieldName;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 
@@ -86,6 +88,7 @@ class ClassFileImportRecord {
     private final Set<RawTryCatchBlock> rawTryCatchBlocks = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
+    private final SyntheticallyResolvedAccessRecords syntheticallyResolvedAccessRecords = new SyntheticallyResolvedAccessRecords();
 
     void setSuperclass(String ownerName, String superclassName) {
         checkState(!superclassNamesByOwner.containsKey(ownerName),
@@ -251,69 +254,53 @@ class ClassFileImportRecord {
     }
 
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
-        fixSyntheticOrigins(
-                rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD,
-                syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
-        ).forEach(doWithRecord);
+        resolveSyntheticOrigins(rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
+                .forEach(doWithRecord);
     }
 
     void forEachRawMethodCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixSyntheticOrigins(
-                rawMethodCallRecords, COPY_RAW_ACCESS_RECORD,
-                syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
-        ).forEach(doWithRecord);
+        resolveSyntheticOrigins(rawMethodCallRecords, COPY_RAW_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
+                .forEach(doWithRecord);
     }
 
     void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixSyntheticOrigins(
-                rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD,
-                syntheticLambdaAccessRecorder
-        ).forEach(doWithRecord);
+        resolveSyntheticOrigins(rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD, syntheticLambdaAccessRecorder)
+                .forEach(doWithRecord);
     }
 
     void forEachRawMethodReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixSyntheticOrigins(
-                rawMethodReferenceRecords, COPY_RAW_ACCESS_RECORD,
-                syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
-        ).forEach(doWithRecord);
+        resolveSyntheticOrigins(rawMethodReferenceRecords, COPY_RAW_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
+                .forEach(doWithRecord);
     }
 
     void forEachRawConstructorReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixSyntheticOrigins(
-                rawConstructorReferenceRecords, COPY_RAW_ACCESS_RECORD,
-                syntheticLambdaAccessRecorder
-        ).forEach(doWithRecord);
+        resolveSyntheticOrigins(rawConstructorReferenceRecords, COPY_RAW_ACCESS_RECORD, syntheticLambdaAccessRecorder)
+                .forEach(doWithRecord);
     }
 
     void forEachRawReferencedClassObject(Consumer<RawReferencedClassObject> doWithReferencedClassObject) {
-        fixSyntheticOrigins(
-                rawReferencedClassObjects, COPY_RAW_REFERENCED_CLASS_OBJECT,
-                syntheticLambdaAccessRecorder
-        ).forEach(doWithReferencedClassObject);
+        resolveSyntheticOrigins(rawReferencedClassObjects, COPY_RAW_REFERENCED_CLASS_OBJECT, syntheticLambdaAccessRecorder)
+                .forEach(doWithReferencedClassObject);
     }
 
     void forEachRawInstanceofCheck(Consumer<RawInstanceofCheck> doWithInstanceofCheck) {
-        fixSyntheticOrigins(
-                rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK,
-                syntheticLambdaAccessRecorder
-        ).forEach(doWithInstanceofCheck);
+        resolveSyntheticOrigins(rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK, syntheticLambdaAccessRecorder)
+                .forEach(doWithInstanceofCheck);
     }
 
     public void forEachRawTryCatchBlock(Consumer<RawTryCatchBlock> doWithTryCatchBlock) {
         rawTryCatchBlocks.forEach(doWithTryCatchBlock);
     }
 
-    private <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Stream<HAS_RAW_CODE_UNIT_ORIGIN> fixSyntheticOrigins(
-            Set<HAS_RAW_CODE_UNIT_ORIGIN> rawAccessRecordsIncludingSyntheticAccesses,
-            Function<HAS_RAW_CODE_UNIT_ORIGIN, ? extends HasRawCodeUnitOrigin.Builder<HAS_RAW_CODE_UNIT_ORIGIN>> createRecordWithNewOrigin,
+    private <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Stream<HAS_RAW_CODE_UNIT_ORIGIN> resolveSyntheticOrigins(
+            Set<HAS_RAW_CODE_UNIT_ORIGIN> objectsWithCodeUnitOrigins,
+            Function<HAS_RAW_CODE_UNIT_ORIGIN, ? extends HasRawCodeUnitOrigin.Builder<HAS_RAW_CODE_UNIT_ORIGIN>> copyObjectWithCodeUnitOrigin,
             SyntheticAccessRecorder... syntheticAccessRecorders
     ) {
-
-        Stream<HAS_RAW_CODE_UNIT_ORIGIN> result = rawAccessRecordsIncludingSyntheticAccesses.stream();
-        for (SyntheticAccessRecorder syntheticAccessRecorder : syntheticAccessRecorders) {
-            result = result.flatMap(hasRawCodeUnitOrigin -> syntheticAccessRecorder.fixSyntheticAccess(hasRawCodeUnitOrigin, createRecordWithNewOrigin).stream());
-        }
-        return result;
+        return objectsWithCodeUnitOrigins.stream()
+                .flatMap(objectWithCodeUnitOrigin -> syntheticallyResolvedAccessRecords.resolveSyntheticOrigin(
+                        objectWithCodeUnitOrigin, copyObjectWithCodeUnitOrigin, syntheticAccessRecorders
+                ));
     }
 
     void add(JavaClass javaClass) {
@@ -452,6 +439,68 @@ class ClassFileImportRecord {
             return isSyntheticOrigin.test(access.getOrigin())
                     ? rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(access.getOrigin())).stream().flatMap(this::findNonSyntheticOriginOf)
                     : Stream.of(access);
+        }
+    }
+
+    private static class SyntheticallyResolvedAccessRecords {
+        private final Map<HasRawCodeUnitOrigin, ResolvedAccesses<? extends HasRawCodeUnitOrigin>> resolvedAccessRecords = new HashMap<>();
+
+        <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Stream<HAS_RAW_CODE_UNIT_ORIGIN> resolveSyntheticOrigin(
+                HAS_RAW_CODE_UNIT_ORIGIN hasRawCodeUnitOrigin,
+                Function<HAS_RAW_CODE_UNIT_ORIGIN, ? extends HasRawCodeUnitOrigin.Builder<HAS_RAW_CODE_UNIT_ORIGIN>> createWithNewOrigin,
+                SyntheticAccessRecorder... syntheticAccessRecorders
+        ) {
+            ResolvedAccesses<HAS_RAW_CODE_UNIT_ORIGIN> resolvedAccesses = this.<HAS_RAW_CODE_UNIT_ORIGIN>getResolvedAccessRecordsTyped()
+                    .computeIfAbsent(hasRawCodeUnitOrigin, it -> fixSyntheticAccesses(it, createWithNewOrigin, syntheticAccessRecorders));
+            return resolvedAccesses.areUnchanged() ? Stream.of(hasRawCodeUnitOrigin) : resolvedAccesses.stream();
+        }
+
+        private static <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> ResolvedAccesses<HAS_RAW_CODE_UNIT_ORIGIN> fixSyntheticAccesses(
+                HAS_RAW_CODE_UNIT_ORIGIN hasRawCodeUnitOrigin,
+                Function<HAS_RAW_CODE_UNIT_ORIGIN, ? extends HasRawCodeUnitOrigin.Builder<HAS_RAW_CODE_UNIT_ORIGIN>> createWithNewOrigin,
+                SyntheticAccessRecorder[] syntheticAccessRecorders) {
+
+            Set<HAS_RAW_CODE_UNIT_ORIGIN> unresolvedResult = singleton(hasRawCodeUnitOrigin);
+            Set<HAS_RAW_CODE_UNIT_ORIGIN> result = unresolvedResult;
+            for (SyntheticAccessRecorder syntheticAccessRecorder : syntheticAccessRecorders) {
+                result = result.stream().flatMap(it -> syntheticAccessRecorder.fixSyntheticAccess(it, createWithNewOrigin).stream()).collect(toSet());
+            }
+            return result.equals(unresolvedResult) ? ResolvedAccesses.unchanged() : new ResolvedAccesses<>(result);
+        }
+
+        // The type of the key matching the type of the set values is an invariant that we ensure at all times, thus the cast is safe in this limited context
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> Map<HAS_RAW_CODE_UNIT_ORIGIN, ResolvedAccesses<HAS_RAW_CODE_UNIT_ORIGIN>> getResolvedAccessRecordsTyped() {
+            return (Map) resolvedAccessRecords;
+        }
+
+        /**
+         * Encapsulates a performance hack to not store any set of (original) accesses in case nothing was resolved.
+         * I.e. for every method that is not synthetic we don't want to store additional objects to save memory.
+         * Thus, if nothing was resolved we represent this by the (single) value {@link #UNCHANGED}
+         */
+        private static class ResolvedAccesses<HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> extends ForwardingSet<HAS_RAW_CODE_UNIT_ORIGIN> {
+            private static final ResolvedAccesses<HasRawCodeUnitOrigin> UNCHANGED = new ResolvedAccesses<>(emptySet());
+
+            private final Set<HAS_RAW_CODE_UNIT_ORIGIN> accesses;
+
+            private ResolvedAccesses(Set<HAS_RAW_CODE_UNIT_ORIGIN> accesses) {
+                this.accesses = accesses;
+            }
+
+            @Override
+            protected Set<HAS_RAW_CODE_UNIT_ORIGIN> delegate() {
+                return accesses;
+            }
+
+            boolean areUnchanged() {
+                return this == UNCHANGED;
+            }
+
+            @SuppressWarnings("unchecked")
+            static <HAS_RAW_CODE_UNIT_ORIGIN extends HasRawCodeUnitOrigin> ResolvedAccesses<HAS_RAW_CODE_UNIT_ORIGIN> unchanged() {
+                return (ResolvedAccesses<HAS_RAW_CODE_UNIT_ORIGIN>) UNCHANGED;
+            }
         }
     }
 }
