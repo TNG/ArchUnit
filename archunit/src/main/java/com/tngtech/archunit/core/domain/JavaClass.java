@@ -2235,7 +2235,7 @@ public final class JavaClass
          * Same as {@link #assignableFrom(Class)}, but returns {@code true} whenever the tested {@link JavaClass}
          * is assignable from a class that matches the supplied predicate.<br>
          * This is the opposite of {@link #assignableTo(DescribedPredicate)}:
-         * some class {@code B} is assignable from a class {@code A} if and only if {@code A} is assignable to {@code A}.
+         * some class {@code B} is assignable from a class {@code A} if and only if {@code A} is assignable to {@code B}.
          *
          * @see #assignableFrom(Class)
          * @see #assignableFrom(String)
