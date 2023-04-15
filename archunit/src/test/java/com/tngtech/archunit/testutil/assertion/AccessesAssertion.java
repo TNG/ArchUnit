@@ -68,5 +68,11 @@ public class AccessesAssertion {
                     predicate.and(toCodeUnit)
                             .as("%s to target %s.%s", predicate.getDescription(), owner.getName(), name));
         }
+
+        public AccessCondition declaredInLambda() {
+            return new AccessCondition(
+                    predicate.and(DescribedPredicate.describe("", JavaAccess::isDeclaredInLambda))
+                            .as(predicate.getDescription() + " declared in lambda"));
+        }
     }
 }

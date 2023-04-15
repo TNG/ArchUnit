@@ -267,7 +267,7 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     /**
      * Allows to adjust the rule violation file names of {@link TextFileBasedViolationStore}
      *
-     * @see #TextFileBasedViolationStore(RuleViolationFileNameStrategy)
+     * @see TextFileBasedViolationStore#TextFileBasedViolationStore(RuleViolationFileNameStrategy)
      */
     @FunctionalInterface
     @PublicAPI(usage = INHERITANCE)

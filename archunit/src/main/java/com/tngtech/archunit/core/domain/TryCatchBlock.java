@@ -34,12 +34,14 @@ public final class TryCatchBlock implements HasOwner<JavaCodeUnit>, HasSourceCod
     private final Set<JavaClass> caughtThrowables;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaAccess<?>> accessesContainedInTryBlock;
+    private final boolean declaredInLambda;
 
     TryCatchBlock(TryCatchBlockBuilder builder) {
         this.owner = checkNotNull(builder.getOwner());
         this.caughtThrowables = ImmutableSet.copyOf(builder.getCaughtThrowables());
         this.sourceCodeLocation = checkNotNull(builder.getSourceCodeLocation());
         this.accessesContainedInTryBlock = ImmutableSet.copyOf(builder.getAccessesContainedInTryBlock());
+        declaredInLambda = builder.isDeclaredInLambda();
     }
 
     @Override
@@ -62,6 +64,11 @@ public final class TryCatchBlock implements HasOwner<JavaCodeUnit>, HasSourceCod
     @PublicAPI(usage = ACCESS)
     public Set<JavaAccess<?>> getAccessesContainedInTryBlock() {
         return accessesContainedInTryBlock;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
     }
 
     @Override
