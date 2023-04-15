@@ -35,7 +35,7 @@ ext {
     googleRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
-            asm                 : [group: 'org.ow2.asm', name: 'asm', version: '9.4'],
+            asm                 : [group: 'org.ow2.asm', name: 'asm', version: '9.5'],
             guava               : [group: 'com.google.guava', name: 'guava', version: '31.1-jre'],
             addGuava            : { dependencyHandler ->
                                       dependencyHandler(dependency.guava) {
@@ -46,7 +46,7 @@ ext {
                                           exclude module: 'j2objc-annotations'
                                       }
                                   },
-            slf4j               : [group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'],
+            slf4j               : [group: 'org.slf4j', name: 'slf4j-api', version: '2.0.7'],
             log4j_api           : [group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.20.0'],
             log4j_core          : [group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.20.0'],
             log4j_slf4j         : [group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: '2.20.0'],
@@ -74,7 +74,7 @@ ext {
             // NOTE: The pure javaee-api dependencies are crippled, so to run any test we need to choose a full implementation provider
             geronimoEjb         : [group: 'org.apache.geronimo.specs', name: 'geronimo-ejb_3.1_spec', version: '1.0.2'],
             geronimoJpa         : [group: 'org.apache.geronimo.specs', name: 'geronimo-jpa_2.0_spec', version: '1.1'],
-            jodaTime            : [group: 'joda-time', name: 'joda-time', version: '2.12.2'],
+            jodaTime            : [group: 'joda-time', name: 'joda-time', version: '2.12.5'],
             joox                : [group: 'org.jooq', name: 'joox-java-6', version: '1.6.0']
     ]
 
