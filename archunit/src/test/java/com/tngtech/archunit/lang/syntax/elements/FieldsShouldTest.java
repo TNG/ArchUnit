@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -17,12 +18,18 @@ import org.junit.runner.RunWith;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFieldsWithType;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -69,6 +76,37 @@ public class FieldsShouldTest {
 
         Set<String> actualFields = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
         assertThat(actualFields).hasSameElementsAs(expectedViolatingFields);
+    }
+
+    @DataProvider
+    public static Object[][] data_be_accessed_by_methods() {
+        return testForEach(
+                fields().should().notBeAccessedByMethodsThat(have(name("toFind"))),
+                noFields().should().beAccessedByMethodsThat(have(name("toFind")))
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_be_accessed_by_methods(ArchRule ruleCheckingAccessToMethod) {
+        class ClassWithAccessedField {
+            String field;
+        }
+        @SuppressWarnings("unused")
+        class AccessFromMethod {
+            void toFind(ClassWithAccessedField target) {
+                target.field = "changed";
+            }
+
+            void toIgnore(ClassWithAccessedField target) {
+                target.field = "changed";
+            }
+        }
+
+        assertThatRule(ruleCheckingAccessToMethod)
+                .checking(new ClassFileImporter().importClasses(ClassWithAccessedField.class, AccessFromMethod.class))
+                .hasOnlyOneViolationMatching(".*" + quote(AccessFromMethod.class.getName()) + ".*toFind.*")
+                .hasNoViolationMatching(".*toIgnore.*");
     }
 
     private static final String FIELD_A = "fieldA";

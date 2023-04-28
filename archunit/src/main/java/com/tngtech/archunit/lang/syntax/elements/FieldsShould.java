@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
@@ -155,6 +156,35 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawType(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that fields are accessed by at least one method matching the given predicate.
+     * This mostly makes sense in the negated form
+     * <pre><code>
+     * {@link ArchRuleDefinition#noFields() noFields()}.{@link GivenFields#should() should()}.{@link #beAccessedByMethodsThat(DescribedPredicate)}
+     * </code></pre>
+     * In this form it is equivalent to
+     * <pre><code>
+     * {@link ArchRuleDefinition#fields()} fields()}.{@link GivenFields#should() should()}.{@link #notBeAccessedByMethodsThat(DescribedPredicate)}
+     * </code></pre>
+     * but might be useful for chaining multiple conditions via <code>{@link FieldsShouldConjunction#andShould()}</code>.
+     *
+     * @param predicate A predicate determining the methods this field should not be accessed by
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     * @see #notBeAccessedByMethodsThat(DescribedPredicate)
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION beAccessedByMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
+
+    /**
+     * Asserts that fields are not accessed by methods matching the given predicate.
+     *
+     * @param predicate A predicate determining the methods this field should not be accessed by
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     * @see #beAccessedByMethodsThat(DescribedPredicate)
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notBeAccessedByMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
 
     /**
      * Asserts that fields are static.
