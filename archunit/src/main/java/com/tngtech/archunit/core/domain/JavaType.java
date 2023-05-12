@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Type;
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -55,6 +56,33 @@ public interface JavaType extends HasName {
      */
     @PublicAPI(usage = ACCESS)
     JavaClass toErasure();
+
+    /**
+     * Returns the set of all raw types that are involved in this type.
+     * If this type is a {@link JavaClass}, then this method trivially returns only the class itself.
+     * If this type is a {@link JavaParameterizedType}, {@link JavaTypeVariable}, {@link JavaWildcardType}, etc.,
+     * then this method returns all raw types involved in type arguments and upper and lower bounds recursively.
+     * If this type is an array type, then this method returns all raw types involved in the component type of the array type.
+     * <br><br>
+     * Examples:<br>
+     * For the parameterized type
+     * <pre><code>
+     * List&lt;String&gt;</code></pre>
+     * the result would be the {@link JavaClass classes} <code>[List, String]</code>.<br>
+     * For the parameterized type
+     * <pre><code>
+     * Map&lt;? extends Serializable, List&lt;? super Integer[]&gt;&gt;</code></pre>
+     * the result would be <code>[Map, Serializable, List, Integer]</code>.<br>
+     * And for the type variable
+     * <pre><code>
+     * T extends List&lt;? super Integer&gt;</code></pre>
+     * the result would be <code>[List, Integer]</code>.<br>
+     * Thus, this method offers a quick way to determine all types a (possibly complex) type depends on.
+     *
+     * @return All raw types involved in this {@link JavaType}
+     */
+    @PublicAPI(usage = ACCESS)
+    Set<JavaClass> getAllInvolvedRawTypes();
 
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link JavaType}.

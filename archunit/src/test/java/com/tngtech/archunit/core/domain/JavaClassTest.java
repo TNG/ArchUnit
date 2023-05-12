@@ -175,6 +175,28 @@ public class JavaClassTest {
     }
 
     @Test
+    public void get_all_involved_raw_types_returns_only_self_for_non_array_type() {
+        class SimpleClass {
+        }
+
+        JavaClass clazz = new ClassFileImporter().importClass(SimpleClass.class);
+
+        assertThatTypes(clazz.getAllInvolvedRawTypes()).matchExactly(SimpleClass.class);
+    }
+
+    @Test
+    public void get_all_involved_raw_types_returns_component_type_for_array_type() {
+        class SimpleClass {
+            @SuppressWarnings("unused")
+            SimpleClass[][] field;
+        }
+
+        JavaType arrayType = new ClassFileImporter().importClass(SimpleClass.class).getField("field").getType();
+
+        assertThatTypes(arrayType.getAllInvolvedRawTypes()).matchExactly(SimpleClass.class);
+    }
+
+    @Test
     public void finds_component_type_chain_of_otherwise_unreferenced_component_type() {
         @SuppressWarnings("unused")
         class OnlyReferencingMultiDimArray {
