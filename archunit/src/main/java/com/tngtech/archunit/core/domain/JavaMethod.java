@@ -131,7 +131,26 @@ public final class JavaMethod extends JavaCodeUnit {
         return Stream.concat(getOwner().getAllRawSuperclasses().stream(), getOwner().getAllRawInterfaces().stream())
                 .map(JavaClass::getAllMethods)
                 .flatMap(Set<JavaMethod>::stream)
-                .anyMatch(superMethod -> superMethod.getName().equals(getName()) && superMethod.getParameterTypes().equals(getParameterTypes()));
+                .anyMatch(superMethod -> {
+                    if(!superMethod.getName().equals(getName())){
+                        return false;
+                    }
+                    List<JavaTypeVariable<JavaClass>> superClassTypeParameters = superMethod.getOwner().getTypeParameters();
+                    List<JavaParameter> parameterTypes = getParameters();
+                    List<JavaParameter> superMethodParameterTypes = superMethod.getParameters();
+                    if(parameterTypes.size() != superMethodParameterTypes.size()){
+                        return false;
+                    }
+                    for(int i = 0; i < parameterTypes.size(); i++){
+                        JavaParameter parameter = parameterTypes.get(i);
+                        JavaParameter superParameter = superMethodParameterTypes.get(i);
+                        if(!parameter.equals(superParameter)){
+                            return false;
+                        }
+                        //TODO Somehow find type arguements of extension to the super class(cannot be done with raw supperclass)
+                    }
+                    return true;
+                });
     }
 
     @ResolvesTypesViaReflection
