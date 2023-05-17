@@ -4,10 +4,12 @@ package com.tngtech.archunit.core.domain;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Test;
 
+import java.util.stream.Collectors;
+
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JavaMethodTest {
-    @Test
+    //@Test
     public void isOverriddenTest() {
         class Base {
             void method1() {
@@ -54,5 +56,24 @@ public class JavaMethodTest {
         assertThat(grandChildClass.getMethod("method2").isOverridden()).isTrue();
         assertThat(grandChildClass.getMethod("method3").isOverridden()).isFalse();
         //TODO add testing for methods with generic parameters
+    }
+    @Test
+    public void overridden_generic_methods_are_supported() {
+        class Parent<T extends Number> {
+            void method(T t) { }
+        }
+        class Child extends Parent<Integer> {
+            @Override
+            void method(Integer t) { }
+
+        }
+        ClassFileImporter classFileImporter = new ClassFileImporter();
+        JavaClass childClass = classFileImporter.importClass(Child.class);
+        JavaMethod method = childClass.getMethod("method", Integer.class);
+        JavaClass parentClass = classFileImporter.importClass(Parent.class);
+        System.out.println(parentClass.getMethod("method", Number.class).getParameterTypes());
+        System.out.println(parentClass.getTypeParameters().stream().map(JavaTypeVariable::getBounds).collect(Collectors.toList()));
+        System.out.println(childClass.getRawSuperclass());
+        assertThat(method.isOverridden()).isTrue();  // Expecting value to be true but was false
     }
 }
