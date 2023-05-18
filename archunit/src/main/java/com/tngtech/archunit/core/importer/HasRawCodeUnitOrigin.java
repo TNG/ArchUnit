@@ -15,16 +15,17 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
+interface HasRawCodeUnitOrigin {
+    RawAccessRecord.CodeUnit getOrigin();
 
-interface RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY extends RawCodeUnitDependency<TARGET>, TARGET> {
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withOrigin(CodeUnit origin);
+    boolean isDeclaredInLambda();
 
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withTarget(TARGET target);
+    interface Builder<HAS_RAW_CODE_UNIT_ORIGIN> {
 
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withLineNumber(int lineNumber);
+        Builder<HAS_RAW_CODE_UNIT_ORIGIN> withOrigin(RawAccessRecord.CodeUnit origin);
 
-    RawCodeUnitDependencyBuilder<CODE_UNIT_DEPENDENCY, TARGET> withDeclaredInLambda(boolean declaredInLambda);
+        Builder<HAS_RAW_CODE_UNIT_ORIGIN> withDeclaredInLambda(boolean declaredInLambda);
 
-    CODE_UNIT_DEPENDENCY build();
+        HAS_RAW_CODE_UNIT_ORIGIN build();
+    }
 }

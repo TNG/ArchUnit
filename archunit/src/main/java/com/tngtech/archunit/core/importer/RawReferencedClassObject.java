@@ -66,7 +66,7 @@ class RawReferencedClassObject implements RawCodeUnitDependency<JavaClassDescrip
                 .toString();
     }
 
-    static class Builder implements RawCodeUnitDependencyBuilder<RawReferencedClassObject, JavaClassDescriptor> {
+    static class Builder implements RawCodeUnitDependency.Builder<RawReferencedClassObject, JavaClassDescriptor> {
         private CodeUnit origin;
         private JavaClassDescriptor target;
         private int lineNumber;

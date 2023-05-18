@@ -66,6 +66,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeAnnotations;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingDeclaration;
@@ -94,6 +95,7 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, ReferencedClassObject> processedReferencedClassObjects = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, InstanceofCheck> processedInstanceofChecks = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, TryCatchBlockBuilder> processedTryCatchBlocks = HashMultimap.create();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
@@ -133,6 +135,7 @@ class ClassGraphCreator implements ImportContext {
                 tryProcess(record, AccessRecord.Factory.forConstructorReferenceRecord(), processedConstructorReferenceRecords));
         importRecord.forEachRawReferencedClassObject(this::processReferencedClassObject);
         importRecord.forEachRawInstanceofCheck(this::processInstanceofCheck);
+        importRecord.forEachRawTryCatchBlock(this::processTryCatchBlock);
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
@@ -164,6 +167,20 @@ class ClassGraphCreator implements ImportContext {
                 rawInstanceofCheck.isDeclaredInLambda()
         );
         processedInstanceofChecks.put(origin, instanceofCheck);
+    }
+
+    private void processTryCatchBlock(RawTryCatchBlock rawTryCatchBlock) {
+        JavaCodeUnit declaringCodeUnit = rawTryCatchBlock.getDeclaringCodeUnit().resolveFrom(classes);
+        TryCatchBlockBuilder tryCatchBlockBuilder = new TryCatchBlockBuilder()
+                .withCaughtThrowables(
+                        rawTryCatchBlock.getCaughtThrowables().stream()
+                                .map(it -> classes.getOrResolve(it.getFullyQualifiedClassName()))
+                                .collect(toImmutableSet())
+                )
+                .withLineNumber(rawTryCatchBlock.getLineNumber())
+                .withRawAccessesContainedInTryBlock(rawTryCatchBlock.getAccessesInTryBlock())
+                .withDeclaredInLambda(rawTryCatchBlock.isDeclaredInLambda());
+        processedTryCatchBlocks.put(declaringCodeUnit, tryCatchBlockBuilder);
     }
 
     @Override
@@ -361,7 +378,7 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
-        return importRecord.getTryCatchBlockBuildersFor(codeUnit);
+        return processedTryCatchBlocks.get(codeUnit);
     }
 
     @Override

@@ -118,7 +118,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
-import static com.tngtech.archunit.testutil.assertion.TryCatchBlocksAssertion.tryCatchBlock;
+import static com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion.tryCatchBlock;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;

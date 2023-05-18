@@ -25,7 +25,6 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.lang.ArchRule;
@@ -151,24 +150,23 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     }
 
     private void write(List<String> violations, File ruleDetails) {
-        String updatedViolations = Joiner.on("\n").join(escape(violations));
+        StringBuilder builder = new StringBuilder();
+        for (String violation : violations) {
+            builder.append(escape(violation)).append("\n");
+        }
         try {
-            Files.write(ruleDetails.toPath(), updatedViolations.getBytes(UTF_8));
+            Files.write(ruleDetails.toPath(), builder.toString().getBytes(UTF_8));
         } catch (IOException e) {
             throw new StoreUpdateFailedException(e);
         }
     }
 
-    private List<String> escape(List<String> violations) {
-        return replaceCharacter(violations, "\n", "\\\n");
+    private String escape(String violation) {
+        return violation.replace("\n", "\\\n");
     }
 
-    private List<String> unescape(List<String> violations) {
-        return replaceCharacter(violations, "\\\n", "\n");
-    }
-
-    private List<String> replaceCharacter(List<String> violations, String characterToReplace, String replacement) {
-        return violations.stream().map(violation -> violation.replace(characterToReplace, replacement)).collect(toList());
+    private String unescape(String violation) {
+        return violation.replace("\\\n", "\n");
     }
 
     private String ensureRuleFileName(ArchRule rule) {
@@ -197,8 +195,9 @@ public final class TextFileBasedViolationStore implements ViolationStore {
 
     private List<String> readLines(String ruleDetailsFileName) {
         String violationsText = readStoreFile(ruleDetailsFileName);
-        List<String> lines = Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).omitEmptyStrings().splitToList(violationsText);
-        return unescape(lines);
+        return Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).omitEmptyStrings().splitToStream(violationsText)
+                .map(this::unescape)
+                .collect(toList());
     }
 
     private String readStoreFile(String fileName) {
@@ -268,7 +267,7 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     /**
      * Allows to adjust the rule violation file names of {@link TextFileBasedViolationStore}
      *
-     * @see #TextFileBasedViolationStore(RuleViolationFileNameStrategy)
+     * @see TextFileBasedViolationStore#TextFileBasedViolationStore(RuleViolationFileNameStrategy)
      */
     @FunctionalInterface
     @PublicAPI(usage = INHERITANCE)
