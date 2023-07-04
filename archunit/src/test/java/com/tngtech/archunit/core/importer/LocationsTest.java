@@ -189,7 +189,7 @@ public class LocationsTest {
         return StreamSupport.stream(iterable.spliterator(), false);
     }
 
-    private <T> T unchecked(ThrowingSupplier<T> supplier) {
+    static <T> T unchecked(ThrowingSupplier<T> supplier) {
         try {
             return supplier.get();
         } catch (Exception e) {
@@ -198,7 +198,7 @@ public class LocationsTest {
     }
 
     @FunctionalInterface
-    private interface ThrowingSupplier<T> {
+    interface ThrowingSupplier<T> {
         T get() throws Exception;
     }
 

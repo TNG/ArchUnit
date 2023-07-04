@@ -335,8 +335,9 @@ public abstract class Location {
             }
 
             static ParsedUri from(NormalizedUri uri) {
-                String[] parts = uri.toString().split("!/", 2);
-                return new ParsedUri(parts[0] + "!/", parts[1]);
+                String uriString = uri.toString();
+                int entryPathStartIndex = uriString.lastIndexOf("!/") + 2;
+                return new ParsedUri(uriString.substring(0, entryPathStartIndex), uriString.substring(entryPathStartIndex));
             }
         }
     }
