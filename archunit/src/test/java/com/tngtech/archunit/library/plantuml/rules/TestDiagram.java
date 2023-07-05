@@ -41,6 +41,25 @@ class TestDiagram {
         return this;
     }
 
+    DatabaseCreator database(String databaseName) {
+        return new DatabaseCreator(databaseName);
+    }
+
+    private TestDiagram addDatabase(DatabaseCreator creator) {
+        String stereotypes = creator.stereotypes
+                .stream().map(input -> "<<" + input + ">>")
+                .collect(joining(" "));
+        String line = String.format("database \"%s\" %s", creator.databaseName, stereotypes);
+        if (creator.alias != null) {
+            line += " as " + creator.alias;
+        }
+        if (creator.color != null) {
+            line += " #" + creator.color;
+        }
+        lines.add(line);
+        return this;
+    }
+
     DependencyFromCreator dependencyFrom(String origin) {
         return new DependencyFromCreator(origin);
     }
@@ -96,7 +115,7 @@ class TestDiagram {
             return this;
         }
 
-        public ComponentCreator withColor(String color) {
+        ComponentCreator withColor(String color) {
             this.color = color;
             return this;
         }
@@ -104,6 +123,36 @@ class TestDiagram {
         TestDiagram withStereoTypes(String... stereoTypes) {
             this.stereotypes.addAll(ImmutableList.copyOf(stereoTypes));
             return addComponent(this);
+        }
+    }
+
+    class DatabaseCreator {
+        private final String databaseName;
+        private final List<String> stereotypes = new ArrayList<>();
+        private String alias;
+        private String color;
+
+        DatabaseCreator(String databaseName) {
+            this.databaseName = databaseName;
+        }
+
+        DatabaseCreator withAlias(String alias) {
+            this.alias = alias;
+            return this;
+        }
+
+        DatabaseCreator withColor(String color) {
+            this.color = color;
+            return this;
+        }
+
+        TestDiagram withStereoTypes(String... stereoTypes) {
+            this.stereotypes.addAll(ImmutableList.copyOf(stereoTypes));
+            return addDatabase(this);
+        }
+
+        public TestDiagram build() {
+            return addDatabase(this);
         }
     }
 

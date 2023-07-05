@@ -16,6 +16,7 @@
 package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -36,17 +37,20 @@ import static java.util.Collections.singletonList;
 class PlantUmlPatterns {
     private static final String COMPONENT_NAME_GROUP_NAME = "componentName";
     private static final String COMPONENT_NAME_FORMAT = "\\[" + capture(anythingBut("\\[\\]"), COMPONENT_NAME_GROUP_NAME) + "]";
-
+    private static final String DATABASE_NAME_FORMAT = "\\\"" + capture(anythingBut("\\\""), COMPONENT_NAME_GROUP_NAME) + "\"";
     private static final String STEREOTYPE_FORMAT = "(?:<<" + capture(anythingBut("<>")) + ">>\\s*)";
     private static final Pattern STEREOTYPE_PATTERN = Pattern.compile(STEREOTYPE_FORMAT);
-
     private static final String ALIAS_GROUP_NAME = "alias";
     private static final String ALIAS_FORMAT = "\\s*(?:as \"?" + capture("[^\" ]+", ALIAS_GROUP_NAME) + "\"?)?";
 
     private static final String COLOR_FORMAT = "\\s*(?:#" + anyOf("\\w|/\\\\-") + "+)?";
-
+    private static final String COMPONENT_TYPE_GROUP_NAME = "componentType";
+    private static final String COMPONENT_TYPE_FORMAT = capture("component", COMPONENT_TYPE_GROUP_NAME) + "?";
+    private static final String DATABASE_TYPE_FORMAT = capture("database", COMPONENT_TYPE_GROUP_NAME);
     private static final Pattern PLANTUML_COMPONENT_PATTERN = Pattern.compile(
-            "^\\s*" + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + COLOR_FORMAT + "\\s*");
+            "^\\s*" + COMPONENT_TYPE_FORMAT + "\\s*"  + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + COLOR_FORMAT + "\\s*");;
+    private static final Pattern PLANTUML_DATABASE_PATTERN = Pattern.compile(
+            "^\\s*" + DATABASE_TYPE_FORMAT + "\\s*" + DATABASE_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + COLOR_FORMAT + "\\s*");
 
     private static String capture(String pattern) {
         return "(" + pattern + ")";
@@ -66,15 +70,15 @@ class PlantUmlPatterns {
     }
 
     Stream<String> filterComponents(List<String> lines) {
-        return lines.stream().filter(matches(PLANTUML_COMPONENT_PATTERN));
+        return lines.stream().filter(matchesToAny(PLANTUML_COMPONENT_PATTERN, PLANTUML_DATABASE_PATTERN));
     }
 
     PlantUmlComponentMatcher matchComponent(String input) {
         return new PlantUmlComponentMatcher(input);
     }
 
-    private Predicate<String> matches(Pattern pattern) {
-        return input -> pattern.matcher(input).matches();
+    private Predicate<String> matchesToAny(Pattern... patterns) {
+        return input -> Arrays.stream(patterns).anyMatch(pattern -> pattern.matcher(input).matches());
     }
 
     Iterable<PlantUmlDependencyMatcher> matchDependencies(List<String> diagramLines) {
@@ -91,8 +95,13 @@ class PlantUmlPatterns {
         private final Matcher stereotypeMatcher;
 
         PlantUmlComponentMatcher(String input) {
-            componentMatcher = PLANTUML_COMPONENT_PATTERN.matcher(input);
-            checkState(componentMatcher.matches(), "input %s does not match pattern %s", input, PLANTUML_COMPONENT_PATTERN);
+            Matcher componentMatcher = PLANTUML_COMPONENT_PATTERN.matcher(input);
+            if (!componentMatcher.matches()) {
+                componentMatcher = PLANTUML_DATABASE_PATTERN.matcher(input);
+            }
+            checkState(componentMatcher.matches(),
+                    "input %s does not match either pattern %s or %s", input, PLANTUML_COMPONENT_PATTERN, PLANTUML_DATABASE_PATTERN);
+            this.componentMatcher = componentMatcher;
 
             stereotypeMatcher = STEREOTYPE_PATTERN.matcher(input);
         }
@@ -111,6 +120,10 @@ class PlantUmlPatterns {
 
         Optional<String> matchAlias() {
             return Optional.ofNullable(componentMatcher.group(ALIAS_GROUP_NAME));
+        }
+
+        Optional<PlantUmlComponent.ComponentType> matchComponentType() {
+            return PlantUmlComponent.ComponentType.parseString(componentMatcher.group(COMPONENT_TYPE_GROUP_NAME));
         }
     }
 

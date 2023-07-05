@@ -4,8 +4,12 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -416,6 +420,31 @@ public class PlantUmlParserTest {
 
         assertThat(foo.getDependencies()).containsOnly(bar);
         assertThat(bar.getDependencies()).isEmpty();
+    }
+
+    @Test
+    public void parse_a_database_component() {
+        File file = TestDiagram.in(temporaryFolder)
+                .component("A").withAlias("foo").withStereoTypes("..origin..")
+                .component("B").withAlias("bar").withStereoTypes("..target..")
+                .database("DB").build()
+                .dependencyFrom("foo").to("bar")
+                .dependencyFrom("bar").to("DB")
+                .write();
+
+        PlantUmlDiagram diagram = createDiagram(file);
+
+        Set<String> components = diagram.getAllComponents().stream()
+                .map(PlantUmlComponent::getComponentName)
+                .map(it -> it.asString())
+                .collect(Collectors.toSet());
+
+        assertThat(components).as("DB components is filter out").isEqualTo(new HashSet<>(Arrays.asList("A", "B")));
+
+        PlantUmlComponent foo = getComponentWithAlias(new Alias("foo"), diagram);
+        PlantUmlComponent bar = getComponentWithAlias(new Alias("bar"), diagram);
+        assertThat(foo.getDependencies()).containsOnly(bar);
+        assertThat(bar.getDependencies()).as("bar has no dependency to DB").isEmpty();
     }
 
     private PlantUmlComponent getComponentWithName(String componentName, PlantUmlDiagram diagram) {

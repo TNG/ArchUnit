@@ -17,6 +17,7 @@ package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -33,11 +34,15 @@ class PlantUmlDiagram {
     }
 
     Set<PlantUmlComponent> getAllComponents() {
-        return ImmutableSet.copyOf(plantUmlComponents.getAllComponents());
+        return plantUmlComponents.getAllComponents().stream()
+                .filter(it -> it.getComponentType() == PlantUmlComponent.ComponentType.COMPONENT)
+                .collect(Collectors.toSet());
     }
 
     Set<PlantUmlComponent> getComponentsWithAlias() {
-        return ImmutableSet.copyOf(plantUmlComponents.getComponentsWithAlias());
+        return plantUmlComponents.getComponentsWithAlias().stream()
+                .filter(it -> it.getComponentType() == PlantUmlComponent.ComponentType.COMPONENT)
+                .collect(Collectors.toSet());
     }
 
     static class Builder {
