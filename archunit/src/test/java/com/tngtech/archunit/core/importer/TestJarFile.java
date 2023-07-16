@@ -16,6 +16,7 @@ import com.tngtech.archunit.testutil.TestUtils;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.newOutputStream;
 import static java.util.jar.Attributes.Name.MANIFEST_VERSION;
+import static org.assertj.core.util.Preconditions.checkArgument;
 
 class TestJarFile {
     private final Manifest manifest;
@@ -32,7 +33,8 @@ class TestJarFile {
     }
 
     TestJarFile withEntry(String entry) {
-        entries.add(entry);
+        // ZIP entries must not start with a '/' (compare ZIP spec https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT -> 4.4.17.1)
+        entries.add(entry.replaceAll("^/", ""));
         return this;
     }
 
@@ -69,9 +71,15 @@ class TestJarFile {
     }
 
     private void write(JarOutputStream jarOut, String entry) throws IOException {
-        jarOut.putNextEntry(new ZipEntry(entry));
-        if (getClass().getResource(entry) != null) {
-            jarOut.write(toByteArray(getClass().getResourceAsStream(entry)));
+        checkArgument(!entry.startsWith("/"),
+                "ZIP entries must not start with a '/' (compare ZIP spec https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT -> 4.4.17.1)");
+
+        String absoluteResourcePath = "/" + entry;
+
+        ZipEntry zipEntry = new ZipEntry(entry);
+        jarOut.putNextEntry(zipEntry);
+        if (!zipEntry.isDirectory() && getClass().getResource(absoluteResourcePath) != null) {
+            jarOut.write(toByteArray(getClass().getResourceAsStream(absoluteResourcePath)));
         }
         jarOut.closeEntry();
     }
