@@ -21,10 +21,21 @@ import static org.assertj.core.util.Preconditions.checkArgument;
 class TestJarFile {
     private final Manifest manifest;
     private final Set<String> entries = new HashSet<>();
+    private boolean withDirectoryEntries = false;
 
     TestJarFile() {
         manifest = new Manifest();
         manifest.getMainAttributes().put(MANIFEST_VERSION, "1.0");
+    }
+
+    public TestJarFile withDirectoryEntries() {
+        withDirectoryEntries = true;
+        return this;
+    }
+
+    public TestJarFile withoutDirectoryEntries() {
+        withDirectoryEntries = false;
+        return this;
     }
 
     TestJarFile withManifestAttribute(Attributes.Name name, String value) {
@@ -56,14 +67,36 @@ class TestJarFile {
     }
 
     JarFile create(File jarFile) {
+        Set<String> allEntries = withDirectoryEntries ? ensureDirectoryEntries(entries) : entries;
         try (JarOutputStream jarOut = new JarOutputStream(newOutputStream(jarFile.toPath()), manifest)) {
-            for (String entry : entries) {
+            for (String entry : allEntries) {
                 write(jarOut, entry);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return newJarFile(jarFile);
+    }
+
+    private Set<String> ensureDirectoryEntries(Set<String> entries) {
+        Set<String> result = new HashSet<>();
+        entries.forEach(entry -> {
+            result.addAll(createDirectoryEntries(entry));
+            result.add(entry);
+        });
+        return result;
+    }
+
+    private static Set<String> createDirectoryEntries(String entry) {
+        Set<String> result = new HashSet<>();
+        int checkedUpToIndex = -1;
+        do {
+            checkedUpToIndex = entry.indexOf("/", checkedUpToIndex + 1);
+            if (checkedUpToIndex != -1) {
+                result.add(entry.substring(0, checkedUpToIndex + 1));
+            }
+        } while (checkedUpToIndex != -1);
+        return result;
     }
 
     String createAndReturnName(File jarFile) {

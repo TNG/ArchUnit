@@ -173,12 +173,12 @@ public class LocationTest {
         return new File(urlOfClass(clazz).toURI()).getAbsoluteFile().toPath();
     }
 
-    private URI jarUriOfEntry(JarFile jarFile, String entry) {
+    static URI jarUriOfEntry(JarFile jarFile, String entry) {
         return jarUriOfEntry(jarFile, NormalizedResourceName.from(entry));
     }
 
-    private URI jarUriOfEntry(JarFile jarFile, NormalizedResourceName entry) {
-        return URI.create("jar:" + new File(jarFile.getName()).toURI().toString() + "!/" + entry);
+    private static URI jarUriOfEntry(JarFile jarFile, NormalizedResourceName entry) {
+        return URI.create("jar:" + new File(jarFile.getName()).toURI() + "!/" + entry);
     }
 
     @Test
@@ -342,7 +342,7 @@ public class LocationTest {
         return clazz.getResourceAsStream(classFileResource(clazz));
     }
 
-    private static NormalizedResourceName classFileEntry(Class<?> clazz) {
+    static NormalizedResourceName classFileEntry(Class<?> clazz) {
         return NormalizedResourceName.from(classFileResource(clazz));
     }
 
