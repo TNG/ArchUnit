@@ -271,8 +271,8 @@ public abstract class Location {
         @Override
         ClassFileSource asClassFileSource(ImportOptions importOptions) {
             try {
-                String[] parts = uri.toString().split("!/", 2);
-                return new ClassFileSource.FromJar(new URL(parts[0] + "!/"), parts[1], importOptions);
+                ParsedUri parsedUri = ParsedUri.from(uri);
+                return new ClassFileSource.FromJar(new URL(parsedUri.base), parsedUri.path, importOptions);
             } catch (IOException e) {
                 throw new LocationException(e);
             }
@@ -298,7 +298,7 @@ public abstract class Location {
                 // Note: We can't use a composed JAR URL like `jar:file:/path/to/file.jar!/com/example`, because opening the connection
                 //       fails with an exception if the directory entry for this path is missing (which is possible, even if there is
                 //       a class `com.example.SomeClass` in the JAR file).
-                String baseUri = uri.toString().replaceAll("!/.*", "!/");
+                String baseUri = ParsedUri.from(uri).base;
                 JarURLConnection jarUrlConnection = (JarURLConnection) new URL(baseUri).openConnection();
                 return Optional.of(jarUrlConnection.getJarFile());
             } catch (IOException e) {
@@ -308,7 +308,7 @@ public abstract class Location {
 
         private Collection<NormalizedResourceName> readJarFileContent(JarFile jarFile) {
             ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
-            String prefix = uri.toString().replaceAll(".*!/", "");
+            String prefix = ParsedUri.from(uri).path;
             result.addAll(readEntries(prefix, jarFile));
             return result.build();
         }
@@ -323,6 +323,21 @@ public abstract class Location {
                 }
             }
             return result;
+        }
+
+        private static class ParsedUri {
+            final String base;
+            final String path;
+
+            private ParsedUri(String base, String path) {
+                this.base = base;
+                this.path = path;
+            }
+
+            static ParsedUri from(NormalizedUri uri) {
+                String[] parts = uri.toString().split("!/", 2);
+                return new ParsedUri(parts[0] + "!/", parts[1]);
+            }
         }
     }
 
