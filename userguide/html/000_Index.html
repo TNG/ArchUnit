@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 1.0.1</span>
+<span id="revnumber">version 1.1.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -617,7 +617,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;1.0.1&lt;/version&gt;
+    &lt;version&gt;1.1.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -626,7 +626,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:1.0.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:1.1.0'
 }</code></pre>
 </div>
 </div>
@@ -647,7 +647,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;1.0.1&lt;/version&gt;
+    &lt;version&gt;1.1.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -656,7 +656,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.0.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.1.0'
 }</code></pre>
 </div>
 </div>
@@ -673,7 +673,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;1.0.1&lt;/version&gt;
+    &lt;version&gt;1.1.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -682,7 +682,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:1.0.1'
+   testImplementation 'com.tngtech.archunit:archunit:1.1.0'
 }</code></pre>
 </div>
 </div>
@@ -849,7 +849,7 @@ class MyArchitectureTest {
 <h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-no-access.png" alt="package deps no access" width="460" height="75">
+<img src="package-deps-no-access.png" alt="package deps no access" width="452" height="67">
 </div>
 </div>
 <div class="listingblock">
@@ -860,7 +860,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-only-access.png" alt="package deps only access" width="487" height="333">
+<img src="package-deps-only-access.png" alt="package deps only access" width="483" height="323">
 </div>
 </div>
 <div class="listingblock">
@@ -874,7 +874,7 @@ class MyArchitectureTest {
 <h3 id="_class_dependency_checks"><a class="anchor" href="#_class_dependency_checks"></a>4.2. Class Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-naming-deps.png" alt="class naming deps" width="324" height="213">
+<img src="class-naming-deps.png" alt="class naming deps" width="323" height="204">
 </div>
 </div>
 <div class="listingblock">
@@ -888,7 +888,7 @@ class MyArchitectureTest {
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-contain.png" alt="class package contain" width="348" height="203">
+<img src="class-package-contain.png" alt="class package contain" width="346" height="180">
 </div>
 </div>
 <div class="listingblock">
@@ -902,7 +902,7 @@ class MyArchitectureTest {
 <h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-naming-check.png" alt="inheritance naming check" width="468" height="224">
+<img src="inheritance-naming-check.png" alt="inheritance naming check" width="481" height="220">
 </div>
 </div>
 <div class="listingblock">
@@ -913,7 +913,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="569" height="266">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="554" height="240">
 </div>
 </div>
 <div class="listingblock">
@@ -927,7 +927,7 @@ class MyArchitectureTest {
 <h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="587" height="219">
+<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="597" height="212">
 </div>
 </div>
 <div class="listingblock">
@@ -941,7 +941,7 @@ class MyArchitectureTest {
 <h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="layer-check.png" alt="layer check" width="643" height="598">
+<img src="layer-check.png" alt="layer check" width="626" height="567">
 </div>
 </div>
 <div class="listingblock">
@@ -962,7 +962,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="749" height="398">
+<img src="cycle-check.png" alt="cycle check" width="770" height="375">
 </div>
 </div>
 <div class="listingblock">
@@ -1170,7 +1170,7 @@ like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="domain-overview.png" alt="domain overview" width="984" height="691">
+<img src="domain-overview.png" alt="domain overview" width="1034" height="686">
 </div>
 </div>
 <div class="paragraph">
@@ -1199,7 +1199,7 @@ inheritance is not completely straight forward. Consider for example</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-example.png" alt="resolution example" width="375" height="187">
+<img src="resolution-example.png" alt="resolution example" width="404" height="185">
 </div>
 </div>
 <div class="paragraph">
@@ -1214,7 +1214,7 @@ The situation looks roughly like</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-overview.png" alt="resolution overview" width="543" height="316">
+<img src="resolution-overview.png" alt="resolution overview" width="580" height="311">
 </div>
 </div>
 <div class="paragraph">
@@ -1234,7 +1234,7 @@ cases, for example:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="diamond-example.png" alt="diamond example" width="513" height="222">
+<img src="diamond-example.png" alt="diamond example" width="566" height="227">
 </div>
 </div>
 <div class="paragraph">
@@ -1590,7 +1590,7 @@ a more generic API that controls the types of objects that our concept targets.<
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="import-vs-lang.png" alt="import vs lang" width="710" height="79">
+<img src="import-vs-lang.png" alt="import vs lang" width="706" height="73">
 </div>
 </div>
 <div class="paragraph">
@@ -1784,7 +1784,7 @@ contain dependencies on any <code>adapter</code> package.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="onion-architecture-check.png" alt="onion architecture check" width="1139" height="771">
+<img src="onion-architecture-check.png" alt="onion architecture check" width="1156" height="742">
 </div>
 </div>
 </div>
@@ -1971,7 +1971,7 @@ The way this works is to use the respective package identifiers (compare
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="159" height="183">
+<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="175" height="197">
 </div>
 </div>
 <div class="listingblock">
@@ -2274,7 +2274,7 @@ The <code>CCD</code> of the system divided by the <code>CCD</code> of a balanced
 <h5 id="_example"><a class="anchor" href="#_example"></a>Example</h5>
 <div class="imageblock">
 <div class="content">
-<img src="lakos-example.png" alt="lakos example" width="466" height="547">
+<img src="lakos-example.png" alt="lakos example" width="462" height="553">
 </div>
 </div>
 <div class="paragraph">
@@ -2359,7 +2359,7 @@ of abstract classes within the respective component.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="martin-example.png" alt="martin example" width="466" height="709">
+<img src="martin-example.png" alt="martin example" width="462" height="703">
 </div>
 </div>
 </div>
@@ -2418,7 +2418,7 @@ elements within a component.</p>
 <h5 id="_example_3"><a class="anchor" href="#_example_3"></a>Example</h5>
 <div class="imageblock">
 <div class="content">
-<img src="dowalil-example.png" alt="dowalil example" width="723" height="351">
+<img src="dowalil-example.png" alt="dowalil example" width="692" height="326">
 </div>
 </div>
 </div>
