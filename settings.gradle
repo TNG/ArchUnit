@@ -4,7 +4,7 @@ plugins {
 
 rootProject.name = 'archunit-root'
 
-include 'archunit', 'archunit-integration-test', 'archunit-java-modules-test',
+include 'archunit', 'archunit-integration-test', 'archunit-java-modules-test', 'archunit-3rd-party-test',
         'archunit-junit', 'archunit-junit4', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'archunit-junit5-engine', 'archunit-junit5',
         'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5', 'archunit-maven-test', 'docs'
 
