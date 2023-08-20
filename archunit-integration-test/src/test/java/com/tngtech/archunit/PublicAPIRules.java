@@ -31,10 +31,12 @@ import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_I
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
@@ -124,17 +126,23 @@ public class PublicAPIRules {
 
     private static DescribedPredicate<JavaClass> onlyUsedAsPublicApiParameter() {
         return DescribedPredicate.describe("only used as public API parameter", clazz -> {
-            Set<Dependency> dependenciesFromPublicClasses = clazz.getDirectDependenciesToSelf().stream()
+            Set<Dependency> relevantDependenciesFromPublicClasses = clazz.getDirectDependenciesToSelf().stream()
                     .filter(d -> d.getOriginClass().getModifiers().contains(PUBLIC))
+                    .filter(d ->
+                            // this excludes fluent APIs where some public class returns a public nested class or similar
+                            !belongTo(equalTo(d.getOriginClass())).test(d.getTargetClass())
+                                    && !belongTo(equalTo(d.getTargetClass())).test(d.getOriginClass())
+                                    && !d.getOriginClass().getEnclosingClass().equals(d.getTargetClass().getEnclosingClass())
+                    )
                     .collect(toSet());
-            long numberOfMethodParameterDependencies = dependenciesFromPublicClasses.stream()
+            long numberOfMethodParameterDependencies = relevantDependenciesFromPublicClasses.stream()
                     .map(Dependency::getOriginClass)
                     .distinct()
                     .flatMap(originClass -> originClass.getMethods().stream())
                     .flatMap(method -> method.getRawParameterTypes().stream())
                     .filter(parameterType -> parameterType.equals(clazz))
                     .count();
-            return dependenciesFromPublicClasses.size() == numberOfMethodParameterDependencies;
+            return relevantDependenciesFromPublicClasses.size() == numberOfMethodParameterDependencies;
         });
     }
 

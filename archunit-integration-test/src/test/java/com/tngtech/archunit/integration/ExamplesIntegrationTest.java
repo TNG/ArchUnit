@@ -1143,6 +1143,9 @@ class ExamplesIntegrationTest {
         BiConsumer<ModuleNames, ExpectedTestFailures> expectModulesViolations =
                 (moduleNames, expected) -> expected
 
+                        .by(ExpectedModuleDependency.uncontainedFrom(AddressController.class).to(AbstractController.class))
+                        .by(ExpectedModuleDependency.uncontainedFrom(AddressController.class).to(AbstractController.class))
+
                         .by(ExpectedModuleDependency.fromModule(moduleNames.address()).toModule(moduleNames.catalog())
                                 .including(field(Address.class, "productCatalog").ofType(ProductCatalog.class)))
 
@@ -1171,33 +1174,29 @@ class ExamplesIntegrationTest {
                                 .including(method(Order.class, "report")
                                         .withParameter(Address.class)));
 
-        Function<BiConsumer<ModuleNames, ExpectedTestFailures>, BiConsumer<ModuleNames, ExpectedTestFailures>> includingUncontainedDependencies =
-                configureExpectedViolations -> (moduleNames, expected) ->
-                        configureExpectedViolations.accept(moduleNames, expected
-                                .by(ExpectedModuleDependency.uncontainedFrom(AddressController.class).to(AbstractController.class))
-                                .by(ExpectedModuleDependency.uncontainedFrom(AddressController.class).to(AbstractController.class)));
-
         expectedFailures = expectedFailures
-                .ofRule("modules defined by packages '..shopping.(*)..' should respect allowed dependencies catalog->[product] customer->[address] importer->[catalog, xml] order->[customer, product]");
+                .ofRule("modules defined by packages '..shopping.(*)..' should respect their allowed dependencies "
+                        + "{ catalog -> [product], customer -> [address], importer -> [catalog, xml], order -> [customer, product] } "
+                        + "considering only dependencies in any package ['..example..']");
         expectModulesViolations.accept(ModuleNames.definedByPackages(), expectedFailures);
 
         expectedFailures = expectedFailures
                 .ofRule(String.format("modules defined by annotation @%s should respect their allowed dependencies declared by descriptor annotation"
                                 + " considering only dependencies in any package ['..example..']",
                         AppModule.class.getSimpleName()));
-        includingUncontainedDependencies.apply(expectModulesViolations).accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+        expectModulesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
 
         expectedFailures = expectedFailures
                 .ofRule(String.format("modules defined by root classes annotated with @%s ", AppModule.class.getSimpleName())
                         + String.format("deriving module from root class by annotation @%s ", AppModule.class.getSimpleName())
                         + "should respect their allowed dependencies declared by descriptor annotation considering only dependencies in any package ['..example..']");
-        includingUncontainedDependencies.apply(expectModulesViolations).accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+        expectModulesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
 
         expectedFailures = expectedFailures
                 .ofRule(String.format("modules defined by root classes with annotation @%s ", AppModule.class.getSimpleName())
                         + String.format("deriving module from @%s(name) ", AppModule.class.getSimpleName())
                         + "should respect their allowed dependencies declared by descriptor annotation considering only dependencies in any package ['..example..']");
-        includingUncontainedDependencies.apply(expectModulesViolations).accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+        expectModulesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
 
         return expectedFailures.toDynamicTests();
     }

@@ -1,9 +1,6 @@
 package com.tngtech.archunit.exampletest;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -15,9 +12,6 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.AppModule;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
@@ -27,12 +21,10 @@ import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.library.modules.syntax.AllowedModuleDependencies.allow;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage;
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @Category(Example.class)
@@ -48,12 +40,14 @@ public class ModulesTest {
     public void modules_should_respect_their_declared_dependencies__use_package_API() {
         modules()
                 .definedByPackages("..shopping.(*)..")
-                .should(respectAllowedDependencies(new HashMap<String, Collection<String>>() {{
-                    put("catalog", singletonList("product"));
-                    put("customer", singletonList("address"));
-                    put("importer", asList("catalog", "xml"));
-                    put("order", asList("customer", "product"));
-                }}))
+                .should().respectTheirAllowedDependencies(
+                        allow()
+                                .fromModule("catalog").toModules("product")
+                                .fromModule("customer").toModules("address")
+                                .fromModule("importer").toModules("catalog", "xml")
+                                .fromModule("order").toModules("customer", "product"),
+                        consideringOnlyDependenciesInAnyPackage("..example.."))
+                .ignoreDependency(alwaysTrue(), equivalentTo(AppModule.class))
                 .check(classes);
     }
 
@@ -139,40 +133,6 @@ public class ModulesTest {
                     AppModule module = rootClass.getAnnotationOfType(AppModule.class);
                     return new AnnotationDescriptor<>(module.name(), module);
                 });
-    }
-
-    private static RespectAllowedDependenciesCondition respectAllowedDependencies(Map<String, Collection<String>> allowedDependencies) {
-        return new RespectAllowedDependenciesCondition(allowedDependencies);
-    }
-
-    private static class RespectAllowedDependenciesCondition extends ArchCondition<ArchModule<?>> {
-        private final Map<String, Collection<String>> allowedDependencies;
-
-        RespectAllowedDependenciesCondition(Map<String, Collection<String>> allowedDependencies) {
-            super("respect allowed dependencies %s", format(allowedDependencies));
-            this.allowedDependencies = allowedDependencies;
-        }
-
-        private static String format(Map<String, Collection<String>> allowedDependencies) {
-            return allowedDependencies.entrySet().stream()
-                    .map(originToTargets -> originToTargets.getKey() + "->" + originToTargets.getValue())
-                    .sorted()
-                    .collect(joining(" "));
-        }
-
-        @Override
-        public void check(ArchModule<?> module, ConditionEvents events) {
-            module.getModuleDependenciesFromSelf().stream()
-                    .filter(this::isForbidden)
-                    .forEach(it -> events.add(SimpleConditionEvent.violated(module, it.getDescription())));
-        }
-
-        private boolean isForbidden(ModuleDependency<?> moduleDependency) {
-            String originName = moduleDependency.getOrigin().getName();
-            String targetName = moduleDependency.getTarget().getName();
-
-            return !allowedDependencies.containsKey(originName) || !allowedDependencies.get(originName).contains(targetName);
-        }
     }
 
     private static class IdentifierFromAnnotation extends DescribedFunction<JavaClass, ArchModule.Identifier> {

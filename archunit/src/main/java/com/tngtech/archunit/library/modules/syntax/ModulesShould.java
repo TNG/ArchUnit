@@ -45,4 +45,23 @@ public interface ModulesShould<DESCRIPTOR extends ArchModule.Descriptor> {
             DescribedPredicate<? super ModuleDependency<DESCRIPTOR>> allowedDependencyPredicate,
             ModuleDependencyScope dependencyScope
     );
+
+    /**
+     * Convenience API for {@link #respectTheirAllowedDependencies(DescribedPredicate, ModuleDependencyScope)}
+     * that allows to statically define which {@link ArchModule modules} may depend on which other {@link ArchModule modules}
+     * by {@link ArchModule#getName() module name}.
+     * <br><br>
+     * Example:
+     * <pre><code>
+     * modules()
+     *   .definedByPackages("..example.(*)..")
+     *   .should().respectTheirAllowedDependencies(
+     *     AllowedModuleDependencies.allow()
+     *       .fromModule("Module One").toModules("Module Three", "Module Four")
+     *       .fromModule("Module Two").toModules("Module Four"),
+     *     consideringOnlyDependenciesInAnyPackage("..example.."));
+     * </code></pre>
+     */
+    @PublicAPI(usage = ACCESS)
+    ModulesRule respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope);
 }

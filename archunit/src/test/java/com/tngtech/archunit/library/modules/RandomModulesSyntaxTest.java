@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.library.modules.syntax.AllowedModuleDependencies;
 import com.tngtech.archunit.library.modules.syntax.DescriptorFunction;
 import com.tngtech.archunit.library.modules.syntax.GivenModules;
 import com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope;
@@ -59,22 +60,34 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                         RandomRulesBlueprint
                                 .seed(seed)
                                 .methodChoiceStrategy(chooseAllArchUnitSyntaxMethods().exceptMethodsWithName("ignoreDependency"))
-                                .parameterProviders(new SingleParameterProvider(ModuleDependencyScope.class) {
-                                    @Override
-                                    public Parameter get(String methodName, TypeToken<?> type) {
-                                        ModuleDependencyScope dependencyScope = randomElement(
-                                                ModuleDependencyScope.consideringAllDependencies(),
-                                                ModuleDependencyScope.consideringOnlyDependenciesBetweenModules(),
-                                                ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage("..test..")
-                                        );
-                                        return new Parameter(dependencyScope, dependencyScope.getDescription());
-                                    }
+                                .parameterProviders(
+                                        new SingleParameterProvider(ModuleDependencyScope.class) {
+                                            @Override
+                                            public Parameter get(String methodName, TypeToken<?> type) {
+                                                ModuleDependencyScope dependencyScope = randomElement(
+                                                        ModuleDependencyScope.consideringAllDependencies(),
+                                                        ModuleDependencyScope.consideringOnlyDependenciesBetweenModules(),
+                                                        ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage("..test..")
+                                                );
+                                                return new Parameter(dependencyScope, dependencyScope.getDescription());
+                                            }
 
-                                    @SafeVarargs
-                                    private final <T> T randomElement(T... elements) {
-                                        return elements[random.nextInt(elements.length)];
-                                    }
-                                })
+                                            @SafeVarargs
+                                            private final <T> T randomElement(T... elements) {
+                                                return elements[random.nextInt(elements.length)];
+                                            }
+                                        },
+                                        new SingleParameterProvider(AllowedModuleDependencies.class) {
+                                            @Override
+                                            public Parameter get(String methodName, TypeToken<?> type) {
+                                                return new Parameter(
+                                                        AllowedModuleDependencies.allow()
+                                                                .fromModule("Module One").toModules("Module Two", "Module Three")
+                                                                .fromModule("Module Two").toModules("Module Three"),
+                                                        "{ Module One -> [Module Two, Module Three], Module Two -> [Module Three] }"
+                                                );
+                                            }
+                                        })
                                 .descriptionReplacements(new ReplaceEverythingSoFar("as '([^']+)'.*", "$1")))
                 )
                 .flatMap(Collection::stream)

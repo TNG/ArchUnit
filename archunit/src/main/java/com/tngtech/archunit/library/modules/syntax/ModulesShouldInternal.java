@@ -49,6 +49,14 @@ class ModulesShouldInternal<DESCRIPTOR extends ArchModule.Descriptor> implements
         );
     }
 
+    @Override
+    public ModulesRule respectTheirAllowedDependencies(AllowedModuleDependencies allowedDependencies, ModuleDependencyScope dependencyScope) {
+        return respectTheirAllowedDependencies(
+                allowedDependencies.asPredicate(),
+                dependencyScope
+        );
+    }
+
     private static class RespectTheirAllowedDependenciesCondition<DESCRIPTOR extends ArchModule.Descriptor> extends ArchCondition<ArchModule<DESCRIPTOR>> {
         private final DescribedPredicate<ModuleDependency<DESCRIPTOR>> allowedModuleDependencyPredicate;
         private final ModuleDependencyScope dependencyScope;
