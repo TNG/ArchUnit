@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.MultimapBuilder.hashKeys;
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.cycle_detection.rules.CycleRuleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
@@ -63,7 +64,7 @@ import static java.util.stream.Collectors.toCollection;
  *
  * @param <COMPONENT> The type of the component to check dependencies between
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class CycleArchCondition<COMPONENT> extends ArchCondition<COMPONENT> {
     private static final Logger log = LoggerFactory.getLogger(CycleArchCondition.class);
 
@@ -297,12 +298,12 @@ public final class CycleArchCondition<COMPONENT> extends ArchCondition<COMPONENT
         }
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static <COMPONENT> NeedsRetrieveClasses<COMPONENT> builder() {
         return new Builder<>();
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class Builder<COMPONENT> implements NeedsRetrieveClasses<COMPONENT>, NeedsRetrieveDescription<COMPONENT>, NeedsRetrieveOutgoingDependencies<COMPONENT> {
         private Function<? super COMPONENT, Iterable<JavaClass>> retrieveClasses;
         private Function<? super COMPONENT, String> retrieveDescription;
@@ -333,7 +334,7 @@ public final class CycleArchCondition<COMPONENT> extends ArchCondition<COMPONENT
         /**
          * @param relevantClassDependenciesPredicate A {@link Predicate} to decide which {@link Dependency dependencies} are relevant when checking for cycles
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public Builder<COMPONENT> onlyConsiderDependencies(Predicate<? super Dependency> relevantClassDependenciesPredicate) {
             this.relevantClassDependenciesPredicate = checkNotNull(relevantClassDependenciesPredicate);
             return this;
@@ -342,36 +343,36 @@ public final class CycleArchCondition<COMPONENT> extends ArchCondition<COMPONENT
         /**
          * @return A new {@link CycleArchCondition}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public CycleArchCondition<COMPONENT> build() {
             return new CycleArchCondition<>(retrieveClasses, retrieveDescription, retrieveOutgoingDependencies, relevantClassDependenciesPredicate);
         }
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public interface NeedsRetrieveClasses<COMPONENT> {
         /**
          * @param retrieveClasses A {@link Function} to retrieve the contained {@link JavaClass classes} for any given {@code COMPONENT}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         NeedsRetrieveDescription<COMPONENT> retrieveClassesBy(Function<? super COMPONENT, Iterable<JavaClass>> retrieveClasses);
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public interface NeedsRetrieveDescription<COMPONENT> {
         /**
          * @param retrieveDescription A {@link Function} to retrieve the description of a {@code COMPONENT}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         NeedsRetrieveOutgoingDependencies<COMPONENT> retrieveDescriptionBy(Function<? super COMPONENT, String> retrieveDescription);
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public interface NeedsRetrieveOutgoingDependencies<COMPONENT> {
         /**
          * @param retrieveOutgoingDependencies A {@link Function} to retrieve the outgoing {@link Dependency dependencies} of a {@code COMPONENT}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         Builder<COMPONENT> retrieveOutgoingDependenciesBy(Function<? super COMPONENT, Set<Dependency>> retrieveOutgoingDependencies);
     }
 }

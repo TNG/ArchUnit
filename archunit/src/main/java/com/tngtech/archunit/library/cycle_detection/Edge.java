@@ -17,6 +17,7 @@ package com.tngtech.archunit.library.cycle_detection;
 
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
@@ -27,7 +28,7 @@ public interface Edge<NODE> {
 
     NODE getTarget();
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     static <N> Edge<N> create(N origin, N target) {
         return new SimpleEdge<>(origin, target);
     }

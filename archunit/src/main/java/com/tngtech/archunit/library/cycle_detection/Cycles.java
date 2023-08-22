@@ -19,9 +19,10 @@ import java.util.Collection;
 
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface Cycles<EDGE extends Edge<?>> extends Collection<Cycle<EDGE>> {
 
     /**
@@ -31,6 +32,6 @@ public interface Cycles<EDGE extends Edge<?>> extends Collection<Cycle<EDGE>> {
      *         The maximum number of cycles at which the algorithm will stop can be configured by the {@code archunit.properties}
      *         property {@value CycleConfiguration#MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     boolean maxNumberOfCyclesReached();
 }

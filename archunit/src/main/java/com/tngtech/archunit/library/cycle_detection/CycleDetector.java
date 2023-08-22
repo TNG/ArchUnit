@@ -19,12 +19,13 @@ import java.util.Collection;
 
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * @see #detectCycles(Collection, Collection)
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class CycleDetector {
     private CycleDetector() {
     }
@@ -51,7 +52,7 @@ public final class CycleDetector {
      * @param edges The edges connecting the nodes of the graph
      * @return All cycles within the graph created from the passed nodes and edges.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static <NODE, EDGE extends Edge<NODE>> Cycles<EDGE> detectCycles(Collection<NODE> nodes, Collection<EDGE> edges) {
         Graph<NODE, EDGE> graph = new Graph<>();
         graph.addNodes(nodes);

@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.tngtech.archunit.PublicAPI;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
@@ -29,12 +30,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  *
  * @param <EDGE> The type of the edges forming the cycle
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface Cycle<EDGE extends Edge<?>> {
 
     /**
      * @return The edges of the {@link Cycle}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     List<EDGE> getEdges();
 }
