@@ -25,6 +25,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ModuleDependency;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.stream.Collectors.joining;
 
@@ -33,7 +34,7 @@ import static java.util.stream.Collectors.joining;
  * Start the definition by following the fluent API through {@link #allow()}.<br>
  * Extend the definition by calling {@link #fromModule(String)} multiple times.
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class AllowedModuleDependencies {
     private final SetMultimap<String, String> allowedModuleDependenciesByName = LinkedHashMultimap.create();
 
@@ -52,7 +53,7 @@ public final class AllowedModuleDependencies {
      * @param moduleName A {@link ArchModule#getName() module name}
      * @return An object that allows to specify the allowed targets for this module.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public RequiringAllowedTargets fromModule(String moduleName) {
         return new RequiringAllowedTargets(moduleName);
     }
@@ -74,12 +75,12 @@ public final class AllowedModuleDependencies {
     /**
      * Starts the definition of {@link AllowedModuleDependencies}. Follow up via {@link Creator#fromModule(String)}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static Creator allow() {
         return new Creator();
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class Creator {
         private Creator() {
         }
@@ -87,13 +88,13 @@ public final class AllowedModuleDependencies {
         /**
          * @see AllowedModuleDependencies#fromModule(String)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public RequiringAllowedTargets fromModule(String moduleName) {
             return new AllowedModuleDependencies().new RequiringAllowedTargets(moduleName);
         }
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public final class RequiringAllowedTargets {
         private final String originModuleName;
 
@@ -107,7 +108,7 @@ public final class AllowedModuleDependencies {
          * @param targetModuleNames An array of allowed target {@link ArchModule#getName() module names}
          * @return {@link AllowedModuleDependencies}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public AllowedModuleDependencies toModules(String... targetModuleNames) {
             return allowDependencies(originModuleName, ImmutableSet.copyOf(targetModuleNames));
         }

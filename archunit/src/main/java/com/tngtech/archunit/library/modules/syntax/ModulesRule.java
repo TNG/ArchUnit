@@ -24,21 +24,22 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.modules.ArchModule;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface ModulesRule<DESCRIPTOR extends ArchModule.Descriptor> extends ArchRule, ModulesShouldConjunction<DESCRIPTOR> {
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> as(String newDescription);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> because(String reason);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> allowEmptyShould(boolean allowEmptyShould);
 
     /**
@@ -57,7 +58,7 @@ public interface ModulesRule<DESCRIPTOR extends ArchModule.Descriptor> extends A
      * @param origin the origin class of dependencies to ignore
      * @param target the target class of dependencies to ignore
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> ignoreDependency(Class<?> origin, Class<?> target);
 
     /**
@@ -77,7 +78,7 @@ public interface ModulesRule<DESCRIPTOR extends ArchModule.Descriptor> extends A
      * @param originFullyQualifiedClassName the fully qualified origin class of dependencies to ignore
      * @param targetFullyQualifiedClassName the fully qualified target class of dependencies to ignore
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> ignoreDependency(String originFullyQualifiedClassName, String targetFullyQualifiedClassName);
 
     /**
@@ -97,7 +98,7 @@ public interface ModulesRule<DESCRIPTOR extends ArchModule.Descriptor> extends A
      * @param originPredicate predicate determining for which origins of dependencies the dependency should be ignored
      * @param targetPredicate predicate determining for which targets of dependencies the dependency should be ignored
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> ignoreDependency(Predicate<? super JavaClass> originPredicate, Predicate<? super JavaClass> targetPredicate);
 
     /**
@@ -113,6 +114,6 @@ public interface ModulesRule<DESCRIPTOR extends ArchModule.Descriptor> extends A
      *   .ignoreDependency(/&#42; will only refer to `secondCondition`, not to `firstCondition` &#42;/)
      * </code></pre>
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesRule<DESCRIPTOR> ignoreDependency(Predicate<? super Dependency> dependencyPredicate);
 }

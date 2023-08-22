@@ -26,9 +26,10 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface ModulesByAnnotationShould<ANNOTATION extends Annotation> extends ModulesShould<AnnotationDescriptor<ANNOTATION>> {
 
     /**
@@ -72,7 +73,7 @@ public interface ModulesByAnnotationShould<ANNOTATION extends Annotation> extend
      * @param dependencyScope        Allows to adjust which {@link Dependency dependencies} are considered relevant by the rule
      * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> respectTheirAllowedDependenciesDeclaredIn(String annotationPropertyName, ModuleDependencyScope dependencyScope);
 
     /**
@@ -104,6 +105,6 @@ public interface ModulesByAnnotationShould<ANNOTATION extends Annotation> extend
      *                               {@link PackageMatcher package identifiers} modules may depend on each other
      * @return An {@link ArchRule} to be checked against a set of {@link JavaClasses}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> onlyDependOnEachOtherThroughPackagesDeclaredIn(String annotationPropertyName);
 }

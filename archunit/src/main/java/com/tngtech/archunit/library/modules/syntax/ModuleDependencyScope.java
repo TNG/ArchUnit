@@ -30,6 +30,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.modules.ArchModule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static java.util.Arrays.stream;
@@ -43,7 +44,7 @@ import static java.util.stream.Collectors.toList;
  *     <li>{@link #consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
  * </ul>
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class ModuleDependencyScope implements HasDescription {
     private final String description;
     private final Function<Collection<ArchModule<?>>, Predicate<Dependency>> createPredicate;
@@ -69,7 +70,7 @@ public final class ModuleDependencyScope implements HasDescription {
      * @see #consideringOnlyDependenciesBetweenModules()
      * @see #consideringOnlyDependenciesInAnyPackage(String, String...)
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static ModuleDependencyScope consideringAllDependencies() {
         return new ModuleDependencyScope("considering all dependencies", __ -> ___ -> true);
     }
@@ -83,7 +84,7 @@ public final class ModuleDependencyScope implements HasDescription {
      * @see #consideringAllDependencies()
      * @see #consideringOnlyDependenciesInAnyPackage(String, String...)
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static ModuleDependencyScope consideringOnlyDependenciesBetweenModules() {
         return new ModuleDependencyScope(
                 "considering only dependencies between modules",
@@ -102,7 +103,7 @@ public final class ModuleDependencyScope implements HasDescription {
      * @see #consideringAllDependencies()
      * @see #consideringOnlyDependenciesBetweenModules()
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static ModuleDependencyScope consideringOnlyDependenciesInAnyPackage(String packageIdentifier, String... furtherPackageIdentifiers) {
         List<String> packageIdentifiers = Stream.concat(Stream.of(packageIdentifier), stream(furtherPackageIdentifiers)).collect(toList());
         PackageMatchers packageMatchers = PackageMatchers.of(packageIdentifiers);

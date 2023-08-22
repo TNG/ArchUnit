@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.ArchModules.DescriptorCreator;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
@@ -43,7 +44,7 @@ public interface DescriptorFunction<DESCRIPTOR extends ArchModule.Descriptor> ex
     /**
      * Convenience method to create a {@link DescriptorFunction} from a {@link DescriptorCreator} and a textual {@code description}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     static <D extends ArchModule.Descriptor> DescriptorFunction<D> describe(String description, DescriptorCreator<D> descriptorCreator) {
         return new DescriptorFunction<D>() {
             @Override

@@ -21,15 +21,16 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.modules.ArchModule;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface ModulesShouldConjunction<DESCRIPTOR extends ArchModule.Descriptor> {
 
     /**
      * Like {@link #andShould(ArchCondition)} but offers a fluent API to pick the condition to join.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesShould<DESCRIPTOR> andShould();
 
     /**
@@ -40,6 +41,6 @@ public interface ModulesShouldConjunction<DESCRIPTOR extends ArchModule.Descript
      * @param condition Another condition to be 'and'-ed to the current condition of this rule
      * @return An {@link ArchRule} to check against imported {@link JavaClasses}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ArchRule andShould(ArchCondition<? super ArchModule<DESCRIPTOR>> condition);
 }

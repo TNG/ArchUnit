@@ -24,6 +24,7 @@ import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
@@ -34,7 +35,7 @@ import static java.util.stream.Collectors.joining;
  * where the {@link Dependency#getOriginClass() origin class} resides in the {@link #getOrigin() origin module} and the
  * {@link Dependency#getTargetClass() target class} resides in the {@link #getTarget() target module}.
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> implements HasDescription {
     private final ArchModule<DESCRIPTOR> origin;
     private final ArchModule<DESCRIPTOR> target;
@@ -49,7 +50,7 @@ public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> im
     /**
      * @return The {@link ArchModule module} where this dependency originates from
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public ArchModule<DESCRIPTOR> getOrigin() {
         return origin;
     }
@@ -57,7 +58,7 @@ public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> im
     /**
      * @return The {@link ArchModule module} that this dependency targets
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public ArchModule<DESCRIPTOR> getTarget() {
         return target;
     }
@@ -68,7 +69,7 @@ public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> im
      *         resides in the {@link #getOrigin() origin module} and the {@link Dependency#getTargetClass() target class}
      *         resides in the {@link #getTarget() target module}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<Dependency> toClassDependencies() {
         return classDependencies;
     }
@@ -77,7 +78,7 @@ public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> im
      * @return A textual representation of this {@link ModuleDependency} that can be used for textual reports.
      */
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public String getDescription() {
         String classDependencyDescriptions = classDependencies.stream()
                 .map(HasDescription::getDescription)

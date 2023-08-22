@@ -35,6 +35,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static java.util.Collections.emptyList;
@@ -53,7 +54,7 @@ import static java.util.Collections.emptyList;
  * <br><br>
  * To create {@link ArchModule}s please refer to {@link ArchModules}.
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends ForwardingSet<JavaClass> implements HasName {
     private final Identifier identifier;
     private final DESCRIPTOR descriptor;
@@ -98,7 +99,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
     /**
      * @return The {@link Identifier} of this module
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Identifier getIdentifier() {
         return identifier;
     }
@@ -107,7 +108,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * @return The name of this module, i.e. a human-readable string representing this module
      */
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public String getName() {
         return descriptor.getName();
     }
@@ -115,7 +116,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
     /**
      * @return The {@link ArchModule.Descriptor} of this {@link ArchModule}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public DESCRIPTOR getDescriptor() {
         return descriptor;
     }
@@ -124,7 +125,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * @return All {@link Dependency dependencies} where the {@link Dependency#getOriginClass() origin class}
      *         is contained within this {@link ArchModule}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<Dependency> getClassDependenciesFromSelf() {
         return classDependenciesFromSelf;
     }
@@ -133,7 +134,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * @return All {@link Dependency dependencies} where the {@link Dependency#getTargetClass() target class}
      *         is contained within this {@link ArchModule}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<Dependency> getClassDependenciesToSelf() {
         return classDependenciesToSelf.get();
     }
@@ -142,7 +143,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * @return All {@link ModuleDependency module dependencies} where the {@link ModuleDependency#getOrigin() origin}
      *         equals this {@link ArchModule}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<ModuleDependency<DESCRIPTOR>> getModuleDependenciesFromSelf() {
         return moduleDependenciesFromSelf;
     }
@@ -151,12 +152,12 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * @return All {@link ModuleDependency module dependencies} where the {@link ModuleDependency#getTarget() target}
      *         equals this {@link ArchModule}.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<ModuleDependency<DESCRIPTOR>> getModuleDependenciesToSelf() {
         return moduleDependenciesToSelf;
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<Dependency> getUndefinedDependencies() {
         return undefinedDependencies;
     }
@@ -191,7 +192,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * uniquely identifies an {@link ArchModule}, i.e. two {@link ArchModule modules} are equal, if and only if
      * their identifier is equal (i.e. all the textual parts of the identifier match in order).
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class Identifier implements Iterable<String> {
         private final List<String> parts;
 
@@ -202,7 +203,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
         /**
          * @see #from(List)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public static Identifier from(String... parts) {
             return from(ImmutableList.copyOf(parts));
         }
@@ -211,7 +212,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
          * @param parts The textual parts of the {@link Identifier}, must not be empty
          * @return An {@link Identifier} consisting of the passed {@code parts}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public static Identifier from(List<String> parts) {
             checkArgument(!parts.isEmpty(), "Parts may not be empty");
             return new Identifier(parts);
@@ -224,7 +225,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
          *
          * @return An {@link Identifier} that signals that this {@link ArchModule} is irrelevant and should be ignored.
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public static Identifier ignore() {
             return new Identifier(emptyList());
         }
@@ -232,7 +233,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
         /**
          * @return The number of (textual) parts this identifier consists of.
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public int getNumberOfParts() {
             return parts.size();
         }
@@ -241,7 +242,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
          * @param index Index of the requested (textual) part
          * @return Part with the given index; indices are 1-based (i.e. {@link #getPart(int) getPart(1)}) returns the first part.
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public String getPart(int index) {
             checkArgument(index >= 1 && index <= parts.size(), "Index %d is out of bounds", index);
             return parts.get(index - 1);
@@ -252,7 +253,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
         }
 
         @Override
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public Iterator<String> iterator() {
             return parts.iterator();
         }
@@ -299,7 +300,7 @@ public final class ArchModule<DESCRIPTOR extends ArchModule.Descriptor> extends 
          * @param name The name of the described {@link ArchModule}
          * @return A {@link Descriptor} carrying the passed {@code name}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         static Descriptor create(final String name) {
             return () -> name;
         }

@@ -49,6 +49,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Multimaps.asMap;
 import static com.google.common.collect.Multimaps.toMultimap;
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
@@ -71,7 +72,7 @@ import static java.util.stream.Collectors.toMap;
  *         that picks the relevant classes by looking for an annotation</li>
  * </ul>
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends ForwardingCollection<ArchModule<DESCRIPTOR>> {
     private final Map<Identifier, ArchModule<DESCRIPTOR>> modulesByIdentifier;
     private final Map<String, ArchModule<DESCRIPTOR>> modulesByName;
@@ -126,7 +127,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * @return The contained {@link ArchModule} having an {@link ArchModule.Identifier} comprised of the passed {@code identifier} parts.
      *         This method will throw an exception if no matching {@link ArchModule} is contained.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public ArchModule<DESCRIPTOR> getByIdentifier(String... identifier) {
         return tryGetByIdentifier(identifier).orElseThrow(() ->
                 new IllegalArgumentException(String.format("There is no %s with identifier %s", ArchModule.class.getSimpleName(), Arrays.toString(identifier))));
@@ -137,7 +138,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * @return The contained {@link ArchModule} having an {@link ArchModule.Identifier} comprised of the passed {@code identifier} parts,
      *         or {@link Optional#empty()} if no matching {@link ArchModule} is contained.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Optional<ArchModule<DESCRIPTOR>> tryGetByIdentifier(String... identifier) {
         return Optional.ofNullable(modulesByIdentifier.get(Identifier.from(identifier)));
     }
@@ -148,7 +149,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      *         This method will throw an exception if no matching {@link ArchModule} is contained.
      * @see #tryGetByName(String)
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public ArchModule<DESCRIPTOR> getByName(String name) {
         return tryGetByName(name).orElseThrow(() ->
                 new IllegalArgumentException(String.format("There is no %s with name %s", ArchModule.class.getSimpleName(), name)));
@@ -160,7 +161,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      *         or {@link Optional#empty()} if no matching {@link ArchModule} is contained.
      * @see #getByName(String)
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Optional<ArchModule<DESCRIPTOR>> tryGetByName(String name) {
         return Optional.ofNullable(modulesByName.get(name));
     }
@@ -168,7 +169,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
     /**
      * @return The names of all {@link ArchModule modules} contained within these {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public Set<String> getNames() {
         return modulesByName.keySet().stream().map(toStringFunction()).collect(toImmutableSet());
     }
@@ -196,7 +197,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * @param packageIdentifier A {@link PackageMatcher package identifier}
      * @return A fluent API to further customize how to create {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static Creator defineByPackages(String packageIdentifier) {
         return defineBy(identifierByPackage(packageIdentifier));
     }
@@ -235,7 +236,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      *                           {@link ArchModule} by its package
      * @return A fluent API to further customize how to create {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static CreatorByRootClass defineByRootClasses(Predicate<? super JavaClass> rootClassPredicate) {
         return CreatorByRootClass.from(rootClassPredicate);
     }
@@ -249,7 +250,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * </code></pre>
      * In case the respective {@code annotationType} doesn't offer a name attribute like this please refer to {@link #defineByAnnotation(Class, Function)} instead.
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static <A extends Annotation> WithGenericDescriptor<AnnotationDescriptor<A>> defineByAnnotation(Class<A> annotationType) {
         return defineByAnnotation(annotationType, input -> {
             try {
@@ -291,7 +292,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * @param nameFunction A function determining how to derive the {@link ArchModule#getName() module name} from the respective annotation
      * @return A fluent API to further customize how to create {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static <A extends Annotation> WithGenericDescriptor<AnnotationDescriptor<A>> defineByAnnotation(Class<A> annotationType, Function<A, String> nameFunction) {
         return defineByRootClasses(it -> it.isAnnotatedWith(annotationType))
                 .describeModuleByRootClass((__, rootClass) -> {
@@ -316,7 +317,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
      * @param identifierFunction A function defining how each {@link JavaClass} is mapped to the respective {@link ArchModule.Identifier}
      * @return A fluent API to further customize how to create {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static Creator defineBy(IdentifierAssociation identifierFunction) {
         return new Creator(checkNotNull(identifierFunction));
     }
@@ -385,7 +386,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
     /**
      * An element of the fluent API to create {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static class CreatorByRootClass extends Creator {
         private final RootClassIdentifierAssociation identifierAssociation;
 
@@ -402,7 +403,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
          * @param <D>               The specific subtype of {@link ArchModule.Descriptor}
          * @return A fluent API to further customize how to create {@link ArchModules}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public <D extends ArchModule.Descriptor> WithGenericDescriptor<D> describeModuleByRootClass(RootClassDescriptorCreator<D> descriptorCreator) {
             return describeBy((identifier, __) -> descriptorCreator.create(identifier, identifierAssociation.getRootClassOf(identifier)));
         }
@@ -461,7 +462,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
     /**
      * An element of the fluent API to create {@link ArchModules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static class Creator {
         private final IdentifierAssociation identifierAssociation;
         private final Function<Identifier, String> deriveNameFunction;
@@ -492,7 +493,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
          *                      the {@link ArchModule.Identifier}
          * @return A fluent API to further customize how to create {@link ArchModules}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public Creator deriveNameFromPattern(String namingPattern) {
             return new Creator(identifierAssociation, identifier -> {
                 String result = namingPattern.replace("$@", joinIdentifier(identifier));
@@ -513,7 +514,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
          * @param <D>               The specific subtype of the {@link ArchModule.Descriptor} to create
          * @return A fluent API to further customize how to create {@link ArchModules}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public <D extends ArchModule.Descriptor> WithGenericDescriptor<D> describeBy(DescriptorCreator<D> descriptorCreator) {
             return new WithGenericDescriptor<>(identifierAssociation, descriptorCreator);
         }
@@ -521,7 +522,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
         /**
          * @see WithGenericDescriptor#modularize(JavaClasses)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public ArchModules<?> modularize(JavaClasses classes) {
             return describeBy((identifier, __) -> ArchModule.Descriptor.create(deriveNameFunction.apply(identifier)))
                     .modularize(classes);
@@ -536,7 +537,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
         /**
          * An element of the fluent API to create {@link ArchModules}
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public static final class WithGenericDescriptor<DESCRIPTOR extends ArchModule.Descriptor> {
             private final IdentifierAssociation identifierAssociation;
             private final DescriptorCreator<DESCRIPTOR> descriptorCreator;
@@ -554,7 +555,7 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
              * @param classes The classes to modularize
              * @return An instance of {@link ArchModules} containing individual {@link ArchModule}s which in turn contain the partitioned classes
              */
-            @PublicAPI(usage = ACCESS)
+            @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
             public ArchModules<DESCRIPTOR> modularize(JavaClasses classes) {
                 SetMultimap<Identifier, JavaClass> classesByIdentifier = groupClassesByIdentifier(classes);
 

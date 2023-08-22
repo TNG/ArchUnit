@@ -23,40 +23,41 @@ import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface ModulesByAnnotationRule<ANNOTATION extends Annotation> extends ModulesRule<AnnotationDescriptor<ANNOTATION>> {
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationShould<ANNOTATION> andShould();
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> as(String newDescription);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> because(String reason);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> allowEmptyShould(boolean allowEmptyShould);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> ignoreDependency(Class<?> origin, Class<?> target);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> ignoreDependency(String originFullyQualifiedClassName, String targetFullyQualifiedClassName);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> ignoreDependency(Predicate<? super JavaClass> originPredicate, Predicate<? super JavaClass> targetPredicate);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationRule<ANNOTATION> ignoreDependency(Predicate<? super Dependency> dependencyPredicate);
 }

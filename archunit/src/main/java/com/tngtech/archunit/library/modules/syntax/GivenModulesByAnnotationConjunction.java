@@ -22,24 +22,25 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.library.modules.AnnotationDescriptor;
 import com.tngtech.archunit.library.modules.ArchModule;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface GivenModulesByAnnotationConjunction<ANNOTATION extends Annotation> extends GivenModulesConjunction<AnnotationDescriptor<ANNOTATION>> {
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     GivenModulesByAnnotationConjunction<ANNOTATION> and(DescribedPredicate<? super ArchModule<AnnotationDescriptor<ANNOTATION>>> predicate);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     GivenModulesByAnnotationConjunction<ANNOTATION> or(DescribedPredicate<? super ArchModule<AnnotationDescriptor<ANNOTATION>>> predicate);
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesByAnnotationShould<ANNOTATION> should();
 
     @Override
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     GivenModulesByAnnotationConjunction<ANNOTATION> as(String description, Object... args);
 }

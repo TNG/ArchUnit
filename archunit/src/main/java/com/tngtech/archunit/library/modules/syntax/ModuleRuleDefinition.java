@@ -30,12 +30,13 @@ import com.tngtech.archunit.library.modules.ArchModules;
 import com.tngtech.archunit.library.modules.syntax.AbstractGivenModulesInternal.GivenModulesByAnnotationInternal;
 import com.tngtech.archunit.library.modules.syntax.AbstractGivenModulesInternal.GivenModulesInternal;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * @see #modules()
  */
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public final class ModuleRuleDefinition {
     private ModuleRuleDefinition() {
     }
@@ -45,12 +46,12 @@ public final class ModuleRuleDefinition {
      *
      * @return A syntax element to create {@link ArchModules} {@link ArchRule rules}
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static Creator modules() {
         return new Creator();
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class Creator {
         private Creator() {
         }
@@ -58,7 +59,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules#defineBy(ArchModules.IdentifierAssociation)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public GenericDefinition definedBy(DescribedFunction<JavaClass, ArchModule.Identifier> identifierFunction) {
             return new GenericDefinition(identifierFunction);
         }
@@ -66,7 +67,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules#defineByRootClasses(Predicate)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public RootClassesDefinition<ArchModule.Descriptor> definedByRootClasses(DescribedPredicate<? super JavaClass> predicate) {
             return RootClassesDefinition.create(predicate);
         }
@@ -74,7 +75,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules#defineByAnnotation(Class)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public <A extends Annotation> GivenModulesByAnnotation<A> definedByAnnotation(Class<A> annotationType) {
             return new GivenModulesByAnnotationInternal<>(classes -> ArchModules
                     .defineByAnnotation(annotationType)
@@ -85,7 +86,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules#defineByPackages(String)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public PackagesDefinition definedByPackages(String packageIdentifier) {
             return new PackagesDefinition(packageIdentifier);
         }
@@ -93,7 +94,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules#defineByAnnotation(Class, Function)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public <A extends Annotation> GivenModulesByAnnotation<A> definedByAnnotation(Class<A> annotationType, Function<A, String> nameFunction) {
             return new GivenModulesByAnnotationInternal<>(classes -> ArchModules
                     .defineByAnnotation(annotationType, nameFunction)
@@ -102,7 +103,7 @@ public final class ModuleRuleDefinition {
         }
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class RootClassesDefinition<DESCRIPTOR extends ArchModule.Descriptor> implements GivenModules<DESCRIPTOR> {
         private final Predicate<? super JavaClass> rootClassPredicate;
         private final Function<? super JavaClass, DESCRIPTOR> descriptorFunction;
@@ -117,7 +118,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules.CreatorByRootClass#describeModuleByRootClass(ArchModules.RootClassDescriptorCreator)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public <D extends ArchModule.Descriptor> GivenModules<D> derivingModuleFromRootClassBy(DescribedFunction<? super JavaClass, D> descriptorFunction) {
             return new RootClassesDefinition<>(rootClassPredicate, descriptorFunction, description + " deriving module from root class by " + descriptorFunction.getDescription());
         }
@@ -158,7 +159,7 @@ public final class ModuleRuleDefinition {
         }
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class PackagesDefinition implements GivenModules<ArchModule.Descriptor> {
         private final String description;
         private final ArchModules.Creator creator;
@@ -180,7 +181,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules.Creator#deriveNameFromPattern(String)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public PackagesDefinition derivingNameFromPattern(String namePattern) {
             return new PackagesDefinition(creator.deriveNameFromPattern(namePattern), description + String.format(" deriving name from pattern '%s'", namePattern));
         }
@@ -206,7 +207,7 @@ public final class ModuleRuleDefinition {
         }
     }
 
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public static final class GenericDefinition {
         private final DescribedFunction<JavaClass, ArchModule.Identifier> identifierFunction;
 
@@ -217,7 +218,7 @@ public final class ModuleRuleDefinition {
         /**
          * @see ArchModules.Creator#describeBy(ArchModules.DescriptorCreator)
          */
-        @PublicAPI(usage = ACCESS)
+        @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
         public <D extends ArchModule.Descriptor> GivenModules<D> derivingModule(DescriptorFunction<D> descriptorFunction) {
             return new GivenModulesInternal<>(classes -> ArchModules
                     .defineBy(identifierFunction::apply)

@@ -21,9 +21,10 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 import com.tngtech.archunit.library.modules.ArchModule;
 
+import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = ACCESS)
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface GivenModules<DESCRIPTOR extends ArchModule.Descriptor> extends GivenObjects<ArchModule<DESCRIPTOR>> {
 
     @Override
@@ -40,7 +41,7 @@ public interface GivenModules<DESCRIPTOR extends ArchModule.Descriptor> extends 
      *
      * @return A syntax element, which can be used to create rules for the {@link ArchModule}s under consideration
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ModulesShould<DESCRIPTOR> should();
 
     /**
@@ -50,6 +51,6 @@ public interface GivenModules<DESCRIPTOR extends ArchModule.Descriptor> extends 
      * </code></pre>
      * would yield a rule text "App Modules should...".
      */
-    @PublicAPI(usage = ACCESS)
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     GivenModules<DESCRIPTOR> as(String description, Object... args);
 }
