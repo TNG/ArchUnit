@@ -5,9 +5,11 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -23,17 +25,18 @@ import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
@@ -51,6 +54,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.util.Lists.newArrayList;
 
 public class PublicAPIRules {
@@ -73,6 +77,7 @@ public class PublicAPIRules {
             classes()
                     .that(haveMemberThatBelongsToPublicApi())
                     .should(beAnnotatedWith(PublicAPI.class).<JavaClass>forSubtype()
+                            .or(beAnnotatedWith(Internal.class))
                             .or(have(supertype(annotatedWith(PublicAPI.class)).and(not(modifier(PUBLIC))))));
 
     @ArchTest
@@ -113,13 +118,34 @@ public class PublicAPIRules {
     public static final ArchRule only_entry_point_and_syntax_interfaces_should_be_public =
             classes()
                     .that().resideInAPackage("..syntax..")
-                    .and().haveNameNotMatching(".*" + ArchRuleDefinition.class.getSimpleName() + ".*")
+                    .and().haveNameNotMatching(".*RuleDefinition.*")
                     .and().areNotInterfaces()
                     .and().areNotAnnotatedWith(Internal.class)
+                    .and(are(not(onlyUsedAsPublicApiParameter())))
                     .should().notBePublic()
-                    .as(String.format(
-                            "Only %s and interfaces within the ArchUnit syntax (..syntax..) should be public",
-                            ArchRuleDefinition.class.getSimpleName()));
+                    .as("Only RuleDefinitions and interfaces within the ArchUnit syntax (..syntax..) should be public");
+
+    private static DescribedPredicate<JavaClass> onlyUsedAsPublicApiParameter() {
+        return DescribedPredicate.describe("only used as public API parameter", clazz -> {
+            Set<Dependency> relevantDependenciesFromPublicClasses = clazz.getDirectDependenciesToSelf().stream()
+                    .filter(d -> d.getOriginClass().getModifiers().contains(PUBLIC))
+                    .filter(d ->
+                            // this excludes fluent APIs where some public class returns a public nested class or similar
+                            !belongTo(equalTo(d.getOriginClass())).test(d.getTargetClass())
+                                    && !belongTo(equalTo(d.getTargetClass())).test(d.getOriginClass())
+                                    && !d.getOriginClass().getEnclosingClass().equals(d.getTargetClass().getEnclosingClass())
+                    )
+                    .collect(toSet());
+            long numberOfMethodParameterDependencies = relevantDependenciesFromPublicClasses.stream()
+                    .map(Dependency::getOriginClass)
+                    .distinct()
+                    .flatMap(originClass -> originClass.getMethods().stream())
+                    .flatMap(method -> method.getRawParameterTypes().stream())
+                    .filter(parameterType -> parameterType.equals(clazz))
+                    .count();
+            return relevantDependenciesFromPublicClasses.size() == numberOfMethodParameterDependencies;
+        });
+    }
 
     @ArchTest
     public static final ArchRule parameters_of_public_API_are_public =

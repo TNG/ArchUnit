@@ -338,9 +338,7 @@ public final class Architectures {
 
         private DescribedPredicate<Dependency> ifDependencyIsRelevant(DescribedPredicate<Dependency> predicate) {
             DescribedPredicate<Dependency> configuredPredicate = dependencySettings.ignoreExcludedDependencies.apply(layerDefinitions, predicate);
-            return irrelevantDependenciesPredicate.isPresent() ?
-                    configuredPredicate.or(irrelevantDependenciesPredicate.get()) :
-                    configuredPredicate;
+            return irrelevantDependenciesPredicate.map(configuredPredicate::or).orElse(configuredPredicate);
         }
 
         @Override

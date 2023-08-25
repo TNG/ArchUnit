@@ -82,7 +82,7 @@ public abstract class ExpectedAccess implements ExpectedRelation {
     public abstract ExpectedDependency asDependency();
 
     public static class ExpectedAccessViolationCreationProcess {
-        private ExpectedOrigin origin;
+        private final ExpectedOrigin origin;
 
         private ExpectedAccessViolationCreationProcess(String memberDescription, Class<?> clazz, String method, Class<?>[] paramTypes) {
             origin = new ExpectedOrigin(memberDescription, clazz, method, paramTypes);
@@ -162,6 +162,11 @@ public abstract class ExpectedAccess implements ExpectedRelation {
                     .toFieldDeclaredIn(getTarget().getDeclaringClass())
                     .inLineNumber(getLineNumber());
         }
+
+        @Override
+        public void addTo(HandlingAssertion assertion) {
+            assertion.byFieldAccess(this);
+        }
     }
 
     public static class ExpectedCall extends ExpectedAccess {
@@ -178,6 +183,15 @@ public abstract class ExpectedAccess implements ExpectedRelation {
             return ExpectedDependency.accessFrom(getOrigin().getDeclaringClass())
                     .toCodeUnitDeclaredIn(getTarget().getDeclaringClass())
                     .inLineNumber(getLineNumber());
+        }
+
+        @Override
+        public void addTo(HandlingAssertion assertion) {
+            if (isToConstructor()) {
+                assertion.byConstructorCall(this);
+            } else {
+                assertion.byMethodCall(this);
+            }
         }
     }
 }

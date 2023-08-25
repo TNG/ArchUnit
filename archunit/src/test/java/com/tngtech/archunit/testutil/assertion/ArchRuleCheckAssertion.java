@@ -11,6 +11,7 @@ import com.tngtech.archunit.lang.EvaluationResult;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("UnusedReturnValue")
 public class ArchRuleCheckAssertion {
     private final EvaluationResult evaluationResult;
     private final Optional<AssertionError> error;
@@ -29,6 +30,14 @@ public class ArchRuleCheckAssertion {
         }
     }
 
+    public ArchRuleCheckAssertion hasViolation(String violation, Object... args) {
+        String expectedViolation = String.format(violation, args);
+        assertThat(evaluationResult.getFailureReport().getDetails())
+                .as("violation details (should have some detail equal to '%s')", expectedViolation)
+                .anyMatch(detail -> detail.equals(expectedViolation));
+        return this;
+    }
+
     public ArchRuleCheckAssertion hasViolationContaining(String part, Object... args) {
         String expectedPart = String.format(part, args);
         assertThat(evaluationResult.getFailureReport().getDetails())
@@ -41,6 +50,14 @@ public class ArchRuleCheckAssertion {
         assertThat(evaluationResult.getFailureReport().getDetails())
                 .as("violation details (should have some detail matching '%s')", regex)
                 .anyMatch(detail -> detail.matches(regex));
+        return this;
+    }
+
+    public ArchRuleCheckAssertion hasNoViolationContaining(String part, Object... args) {
+        String expectedPart = String.format(part, args);
+        assertThat(evaluationResult.getFailureReport().getDetails())
+                .as("violation details (should not have any detail containing '%s')", expectedPart)
+                .noneMatch(detail -> detail.contains(expectedPart));
         return this;
     }
 
@@ -73,8 +90,11 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
-    private String toViolationMessage(Class<?> violatingClass, String violationDescription) {
-        return "Class <" + violatingClass.getName() + "> " + violationDescription + " in (" + violatingClass.getSimpleName() + ".java:0)";
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public ArchRuleCheckAssertion hasOnlyOneViolationContaining(String part) {
+        assertThat(getOnlyElement(evaluationResult.getFailureReport().getDetails())).contains(part);
+        assertThat(error.get().getMessage()).contains(part);
+        return this;
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -100,7 +120,7 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
-    public ArchRuleCheckAssertion hasViolations(int numberOfViolations) {
+    public ArchRuleCheckAssertion hasNumberOfViolations(int numberOfViolations) {
         assertThat(evaluationResult.getFailureReport().getDetails()).as("number of violation").hasSize(numberOfViolations);
         return this;
     }
@@ -108,5 +128,9 @@ public class ArchRuleCheckAssertion {
     public void hasNoViolation() {
         assertThat(evaluationResult.hasViolation()).as("result has violation").isFalse();
         assertThat(error).as("error").isEmpty();
+    }
+
+    private String toViolationMessage(Class<?> violatingClass, String violationDescription) {
+        return "Class <" + violatingClass.getName() + "> " + violationDescription + " in (" + violatingClass.getSimpleName() + ".java:0)";
     }
 }

@@ -1,7 +1,6 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
@@ -43,32 +42,6 @@ public class RandomSlicesSyntaxTest extends RandomSyntaxTestBase {
         @Override
         public String toString() {
             return getClass().getSimpleName() + "{" + skipPattern + "}";
-        }
-    }
-
-    private static class ReplaceEverythingSoFar implements DescriptionReplacement {
-        private final Pattern pattern;
-        private final String replaceWith;
-
-        ReplaceEverythingSoFar(String pattern, String replaceWith) {
-            this.pattern = Pattern.compile(pattern);
-            this.replaceWith = replaceWith;
-        }
-
-        @Override
-        public boolean applyTo(String currentToken, List<String> currentDescription) {
-            Matcher matcher = pattern.matcher(currentToken);
-            if (matcher.matches()) {
-                currentDescription.clear();
-                currentDescription.add(matcher.replaceAll(replaceWith));
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getSimpleName() + "{/" + pattern + "/" + replaceWith + "/}";
         }
     }
 }

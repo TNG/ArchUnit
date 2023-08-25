@@ -18,8 +18,8 @@ public class ArchConfigurationRule extends ExternalResource {
         return this;
     }
 
-    public ArchConfigurationRule setFailOnEmptyShould(boolean allowEmptyShould) {
-        addConfigurationInitializer(() -> ArchConfiguration.get().setProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, String.valueOf(allowEmptyShould)));
+    public ArchConfigurationRule setFailOnEmptyShould(boolean failOnEmptyShould) {
+        addConfigurationInitializer(() -> ArchConfiguration.get().setProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, String.valueOf(failOnEmptyShould)));
         return this;
     }
 

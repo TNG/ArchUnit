@@ -63,10 +63,10 @@ public interface GivenClasses extends GivenObjects<JavaClass> {
      * <code>
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link ClassesShould#haveSimpleName(String) haveSimpleName("Example")}
      * </code>
-     *
+     * <br>
      * Use {@link #should(ArchCondition)} to freely customize the condition against which the classes should be checked.
      *
-     * @return A syntax element, which can be used to restrict the classes under consideration
+     * @return A syntax element, which can be used to create rules for the classes under consideration
      */
     @PublicAPI(usage = ACCESS)
     ClassesShould should();

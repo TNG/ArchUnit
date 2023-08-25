@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.annotation.Resource;
@@ -23,6 +24,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.example.AppModule;
+import com.tngtech.archunit.example.ModuleApi;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassBeingCalledInSliceOne;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassOfMinimalCycleCallingSliceTwo;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
@@ -132,12 +135,15 @@ import com.tngtech.archunit.example.onionarchitecture.domain.model.ShoppingCart;
 import com.tngtech.archunit.example.onionarchitecture.domain.service.OrderQuantity;
 import com.tngtech.archunit.example.onionarchitecture.domain.service.ProductName;
 import com.tngtech.archunit.example.onionarchitecture.domain.service.ShoppingService;
-import com.tngtech.archunit.example.plantuml.address.Address;
-import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
-import com.tngtech.archunit.example.plantuml.customer.Customer;
-import com.tngtech.archunit.example.plantuml.importer.ProductImport;
-import com.tngtech.archunit.example.plantuml.order.Order;
-import com.tngtech.archunit.example.plantuml.product.Product;
+import com.tngtech.archunit.example.shopping.address.Address;
+import com.tngtech.archunit.example.shopping.address.AddressController;
+import com.tngtech.archunit.example.shopping.catalog.ProductCatalog;
+import com.tngtech.archunit.example.shopping.customer.Customer;
+import com.tngtech.archunit.example.shopping.importer.ProductImport;
+import com.tngtech.archunit.example.shopping.order.Order;
+import com.tngtech.archunit.example.shopping.product.Product;
+import com.tngtech.archunit.example.shopping.xml.processor.XmlProcessor;
+import com.tngtech.archunit.example.shopping.xml.types.XmlTypes;
 import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutil.TransientCopyRule;
@@ -146,6 +152,7 @@ import com.tngtech.archunit.testutils.ExpectedClass;
 import com.tngtech.archunit.testutils.ExpectedConstructor;
 import com.tngtech.archunit.testutils.ExpectedField;
 import com.tngtech.archunit.testutils.ExpectedMethod;
+import com.tngtech.archunit.testutils.ExpectedModuleDependency;
 import com.tngtech.archunit.testutils.ExpectedTestFailures;
 import com.tngtech.archunit.testutils.MessageAssertionChain;
 import com.tngtech.archunit.testutils.ResultStoringExtension;
@@ -179,6 +186,7 @@ import static com.tngtech.archunit.testutils.ExpectedAccess.callFromConstructor;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromMethod;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromStaticInitializer;
 import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedClass;
+import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedPackageInfo;
 import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedParameter;
 import static com.tngtech.archunit.testutils.ExpectedDependency.constructor;
 import static com.tngtech.archunit.testutils.ExpectedDependency.field;
@@ -191,6 +199,7 @@ import static com.tngtech.archunit.testutils.ExpectedDependency.inheritanceFrom;
 import static com.tngtech.archunit.testutils.ExpectedDependency.method;
 import static com.tngtech.archunit.testutils.ExpectedDependency.typeParameter;
 import static com.tngtech.archunit.testutils.ExpectedLocation.javaClass;
+import static com.tngtech.archunit.testutils.ExpectedMessage.violation;
 import static com.tngtech.archunit.testutils.ExpectedNaming.simpleNameOf;
 import static com.tngtech.archunit.testutils.ExpectedNaming.simpleNameOfAnonymousClassOf;
 import static com.tngtech.archunit.testutils.ExpectedViolation.clazz;
@@ -1127,6 +1136,233 @@ class ExamplesIntegrationTest {
     }
 
     @TestFactory
+    Stream<DynamicTest> ModulesTest() {
+        ExpectedTestFailures expectedFailures = ExpectedTestFailures
+                .forTests(
+                        com.tngtech.archunit.exampletest.ModulesTest.class,
+                        com.tngtech.archunit.exampletest.junit4.ModulesTest.class,
+                        com.tngtech.archunit.exampletest.junit5.ModulesTest.class);
+
+        BiConsumer<ModuleNames, ExpectedTestFailures> expectRespectTheirDeclaredDependenciesViolations =
+                (moduleNames, expected) -> expected
+
+                        .by(ExpectedModuleDependency.uncontainedFrom(AddressController.class).to(AbstractController.class))
+                        .by(ExpectedModuleDependency.uncontainedFrom(AddressController.class).to(AbstractController.class))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.address()).toModule(moduleNames.catalog())
+                                .including(field(Address.class, "productCatalog").ofType(ProductCatalog.class)))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.product()).toModule(moduleNames.customer())
+                                .including(field(Product.class, "customer").ofType(Customer.class)))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.product()).toModule(moduleNames.order())
+                                .including(method(Product.class, "getOrder").withReturnType(Order.class)))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.customer()).toModule(moduleNames.order())
+                                .including(method(Customer.class, "addOrder").withParameter(Order.class)))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.catalog()).toModule(moduleNames.order())
+                                .including(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                        .toConstructor(Order.class).inLine(12).asDependency())
+                                .including(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                        .toMethod(Order.class, "addProducts", Set.class).inLine(16).asDependency()))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.importer()).toModule(moduleNames.customer())
+                                .including(callFromMethod(ProductImport.class, "getCustomer")
+                                        .toConstructor(Customer.class).inLine(17).asDependency())
+                                .including(method(ProductImport.class, "getCustomer")
+                                        .withReturnType(Customer.class)))
+
+                        .by(ExpectedModuleDependency.fromModule(moduleNames.order()).toModule(moduleNames.address())
+                                .including(method(Order.class, "report")
+                                        .withParameter(Address.class)));
+
+        expectedFailures = expectedFailures
+                .ofRule("modules defined by packages '..shopping.(*)..' should respect their allowed dependencies "
+                        + "{ catalog -> [product], customer -> [address], importer -> [catalog, xml], order -> [customer, product] } "
+                        + "considering only dependencies in any package ['..example..']");
+        expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByPackages(), expectedFailures);
+
+        Consumer<ExpectedTestFailures> expectDependOnEachOtherThroughViolations =
+                expected -> expected
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .by(field(ProductImport.class, "productCatalog").ofType(ProductCatalog.class))
+                        .by(field(ProductImport.class, "xmlType").ofType(XmlTypes.class))
+                        .by(callFromMethod(ProductImport.class, "parse", byte[].class).toConstructor(ProductCatalog.class).inLine(21).asDependency())
+                        .by(method(ProductImport.class, "parse").withReturnType(ProductCatalog.class));
+
+        expectedFailures = expectedFailures
+                .ofRule(String.format("modules defined by annotation @%s should respect their allowed dependencies declared in 'allowedDependencies' "
+                                + "considering only dependencies in any package ['..example..'] "
+                                + "and should only depend on each other through packages declared in 'exposedPackages'",
+                        AppModule.class.getSimpleName()));
+        expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+        expectDependOnEachOtherThroughViolations.accept(expectedFailures);
+
+        expectedFailures = expectedFailures
+                .ofRule(String.format("modules defined by annotation @%s should respect their allowed dependencies declared by descriptor annotation"
+                                + " considering only dependencies in any package ['..example..']",
+                        AppModule.class.getSimpleName()));
+        expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+
+        expectedFailures = expectedFailures
+                .ofRule(String.format("modules defined by root classes annotated with @%s ", AppModule.class.getSimpleName())
+                        + String.format("deriving module from root class by annotation @%s ", AppModule.class.getSimpleName())
+                        + "should respect their allowed dependencies declared by descriptor annotation considering only dependencies in any package ['..example..']");
+        expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+
+        expectedFailures = expectedFailures
+                .ofRule(String.format("modules defined by root classes with annotation @%s ", AppModule.class.getSimpleName())
+                        + String.format("deriving module from @%s(name) ", AppModule.class.getSimpleName())
+                        + "should respect their allowed dependencies declared by descriptor annotation considering only dependencies in any package ['..example..']");
+        expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByMetaInfo(), expectedFailures);
+
+        expectedFailures
+                .ofRule("modules defined by annotation @AppModule should only depend on each other through classes that are annotated with @ModuleApi");
+        expectDependOnEachOtherThroughViolations.accept(expectedFailures);
+
+        expectedFailures.ofRule("modules defined by annotation @AppModule should be free of cycles")
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toConstructor(Order.class)
+                                .inLine(12))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Order.class, "addProducts", Set.class)
+                                .inLine(16))
+                        .from("Order")
+                        .by(method(Order.class, "report").withParameter(Address.class)))
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toConstructor(Order.class)
+                                .inLine(12))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Order.class, "addProducts", Set.class)
+                                .inLine(16))
+                        .from("Order")
+                        .by(field(Order.class, "customer").ofType(Customer.class))
+                        .by(callFromMethod(Order.class, "report")
+                                .toMethod(Customer.class, "getAddress")
+                                .inLine(21))
+                        .from("Customer")
+                        .by(field(Customer.class, "address").ofType(Address.class))
+                        .by(method(Customer.class, "getAddress").withReturnType(Address.class)))
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toConstructor(Order.class)
+                                .inLine(12))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Order.class, "addProducts", Set.class)
+                                .inLine(16))
+                        .from("Order")
+                        .by(genericFieldType(Order.class, "products").dependingOn(Product.class))
+                        .by(genericMethodParameterType(Order.class, "addProducts", Set.class).dependingOn(Product.class))
+                        .by(callFromMethod(Order.class, "report")
+                                .toMethod(Product.class, "report")
+                                .inLine(23))
+                        .from("Product")
+                        .by(field(Product.class, "customer").ofType(Customer.class))
+                        .from("Customer")
+                        .by(field(Customer.class, "address").ofType(Address.class))
+                        .by(method(Customer.class, "getAddress").withReturnType(Address.class)))
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(genericFieldType(ProductCatalog.class, "allProducts").dependingOn(Product.class))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Product.class, "register")
+                                .inLine(14))
+                        .from("Product")
+                        .by(field(Product.class, "customer").ofType(Customer.class))
+                        .from("Customer")
+                        .by(field(Customer.class, "address").ofType(Address.class))
+                        .by(method(Customer.class, "getAddress").withReturnType(Address.class)))
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(genericFieldType(ProductCatalog.class, "allProducts").dependingOn(Product.class))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Product.class, "register")
+                                .inLine(14))
+                        .from("Product")
+                        .by(field(Product.class, "customer").ofType(Customer.class))
+                        .from("Customer")
+                        .by(method(Customer.class, "addOrder").withParameter(Order.class))
+                        .from("Order")
+                        .by(method(Order.class, "report").withParameter(Address.class)))
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(genericFieldType(ProductCatalog.class, "allProducts").dependingOn(Product.class))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Product.class, "register")
+                                .inLine(14))
+                        .from("Product")
+                        .by(method(Product.class, "getOrder").withReturnType(Order.class))
+                        .from("Order")
+                        .by(method(Order.class, "report").withParameter(Address.class)))
+                .by(cycle()
+                        .from("Address")
+                        .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
+                        .from("Catalog")
+                        .by(genericFieldType(ProductCatalog.class, "allProducts").dependingOn(Product.class))
+                        .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
+                                .toMethod(Product.class, "register")
+                                .inLine(14))
+                        .from("Product")
+                        .by(method(Product.class, "getOrder").withReturnType(Order.class))
+                        .from("Order")
+                        .by(field(Order.class, "customer").ofType(Customer.class))
+                        .by(callFromMethod(Order.class, "report")
+                                .toMethod(Customer.class, "getAddress")
+                                .inLine(21))
+                        .from("Customer")
+                        .by(field(Customer.class, "address").ofType(Address.class))
+                        .by(method(Customer.class, "getAddress").withReturnType(Address.class)))
+                .by(cycle()
+                        .from("Customer")
+                        .by(method(Customer.class, "addOrder").withParameter(Order.class))
+                        .from("Order")
+                        .by(field(Order.class, "customer").ofType(Customer.class))
+                        .by(callFromMethod(Order.class, "report")
+                                .toMethod(Customer.class, "getAddress")
+                                .inLine(21)))
+                .by(cycle()
+                        .from("Customer")
+                        .by(method(Customer.class, "addOrder").withParameter(Order.class))
+                        .from("Order")
+                        .by(genericFieldType(Order.class, "products").dependingOn(Product.class))
+                        .by(genericMethodParameterType(Order.class, "addProducts", Set.class).dependingOn(Product.class))
+                        .by(callFromMethod(Order.class, "report")
+                                .toMethod(Product.class, "report")
+                                .inLine(23))
+                        .from("Product")
+                        .by(field(Product.class, "customer").ofType(Customer.class)))
+                .by(cycle()
+                        .from("Order")
+                        .by(genericFieldType(Order.class, "products").dependingOn(Product.class))
+                        .by(genericMethodParameterType(Order.class, "addProducts", Set.class).dependingOn(Product.class))
+                        .by(callFromMethod(Order.class, "report")
+                                .toMethod(Product.class, "report")
+                                .inLine(23))
+                        .from("Product")
+                        .by(method(Product.class, "getOrder").withReturnType(Order.class)));
+
+        return expectedFailures.toDynamicTests();
+    }
+
+    @TestFactory
     Stream<DynamicTest> NamingConventionTest() {
         return ExpectedTestFailures
                 .forTests(
@@ -1199,7 +1435,7 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(ProductCatalog.class, "gonnaDoSomethingIllegalWithOrder")
                         .toMethod(Order.class, "addProducts", Set.class).inLine(16).asDependency())
                 .by(callFromMethod(ProductImport.class, "getCustomer")
-                        .toConstructor(Customer.class).inLine(14).asDependency())
+                        .toConstructor(Customer.class).inLine(17).asDependency())
                 .by(method(ProductImport.class, "getCustomer")
                         .withReturnType(Customer.class))
                 .by(method(Order.class, "report")
@@ -1212,16 +1448,35 @@ class ExamplesIntegrationTest {
                         ProductCatalog.class.getName(), Product.class.getName(), Order.class.getName()))
                 .by(field(Address.class, "productCatalog")
                         .ofType(ProductCatalog.class))
+                .by(inheritanceFrom(AddressController.class)
+                        .extending(AbstractController.class))
+                .by(callFromConstructor(AddressController.class)
+                        .toConstructor(AbstractController.class)
+                        .inLine(8).asDependency())
                 .by(field(Product.class, "customer")
                         .ofType(Customer.class))
                 .by(method(Customer.class, "addOrder")
                         .withParameter(Order.class))
                 .by(callFromMethod(ProductImport.class, "getCustomer")
-                        .toConstructor(Customer.class).inLine(14).asDependency())
+                        .toConstructor(Customer.class).inLine(17).asDependency())
                 .by(method(ProductImport.class, "getCustomer")
                         .withReturnType(Customer.class))
                 .by(method(Order.class, "report")
                         .withParameter(Address.class))
+                .by(annotatedClass(Address.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(AddressController.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(Customer.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(ProductImport.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(Order.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(Product.class).annotatedWith(ModuleApi.class))
+                .by(annotatedClass(XmlProcessor.class).annotatedWith(ModuleApi.class))
+                .by(annotatedPackageInfo(Address.class.getPackage().getName()).annotatedWith(AppModule.class))
+                .by(annotatedPackageInfo(ProductCatalog.class.getPackage().getName()).annotatedWith(AppModule.class))
+                .by(annotatedPackageInfo(Customer.class.getPackage().getName()).annotatedWith(AppModule.class))
+                .by(annotatedPackageInfo(ProductImport.class.getPackage().getName()).annotatedWith(AppModule.class))
+                .by(annotatedPackageInfo(Order.class.getPackage().getName()).annotatedWith(AppModule.class))
+                .by(annotatedPackageInfo(Product.class.getPackage().getName()).annotatedWith(AppModule.class))
+                .by(violation("Class com.tngtech.archunit.example.shopping.xml.package-info is not contained in any component"))
 
                 .toDynamicTests();
     }
@@ -1497,5 +1752,45 @@ class ExamplesIntegrationTest {
                         .inLine(17))
 
                 .toDynamicTests();
+    }
+
+    private static class ModuleNames {
+        private final Function<String, String> nameModification;
+
+        private ModuleNames(Function<String, String> nameModification) {
+            this.nameModification = nameModification;
+        }
+
+        String address() {
+            return nameModification.apply("address");
+        }
+
+        String catalog() {
+            return nameModification.apply("catalog");
+        }
+
+        String customer() {
+            return nameModification.apply("customer");
+        }
+
+        String order() {
+            return nameModification.apply("order");
+        }
+
+        String product() {
+            return nameModification.apply("product");
+        }
+
+        String importer() {
+            return nameModification.apply("importer");
+        }
+
+        static ModuleNames definedByPackages() {
+            return new ModuleNames(Function.identity());
+        }
+
+        static ModuleNames definedByMetaInfo() {
+            return new ModuleNames(name -> name.substring(0, 1).toUpperCase() + name.substring(1));
+        }
     }
 }

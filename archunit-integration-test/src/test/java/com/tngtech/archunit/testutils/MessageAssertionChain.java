@@ -11,10 +11,10 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.testutils.ExpectedRelation.LineAssociation;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.System.lineSeparator;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -217,16 +217,6 @@ public class MessageAssertionChain {
                 this.mismatchDescription = mismatchDescription;
             }
 
-            static List<String> difference(List<String> list, String toSubtract) {
-                return difference(list, singletonList(toSubtract));
-            }
-
-            static List<String> difference(List<String> list, List<String> toSubtract) {
-                List<String> result = new ArrayList<>(list);
-                result.removeAll(toSubtract);
-                return result;
-            }
-
             Optional<String> getMismatchDescription() {
                 return Optional.ofNullable(mismatchDescription);
             }
@@ -247,6 +237,23 @@ public class MessageAssertionChain {
 
                 Builder matchesLine(String pattern) {
                     subLinks.add(MessageAssertionChain.matchesLine(pattern));
+                    return this;
+                }
+
+                Builder contains(Iterable<ExpectedRelation> relations) {
+                    for (ExpectedRelation relation : relations) {
+                        relation.associateLines(new LineAssociation() {
+                            @Override
+                            public void associateIfPatternMatches(String pattern) {
+                                matchesLine(pattern);
+                            }
+
+                            @Override
+                            public void associateIfStringIsContained(String string) {
+                                containsLine(string);
+                            }
+                        });
+                    }
                     return this;
                 }
 

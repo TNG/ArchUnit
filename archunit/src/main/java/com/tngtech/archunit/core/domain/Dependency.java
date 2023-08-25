@@ -244,11 +244,17 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         return "<" + name + ">";
     }
 
+    /**
+     * @return The class where this dependency originates from (e.g. because the origin class calls a method of another class)
+     */
     @PublicAPI(usage = ACCESS)
     public JavaClass getOriginClass() {
         return originClass;
     }
 
+    /**
+     * @return The class that is targeted by this dependency (e.g. because it contains a method that is called from another class)
+     */
     @PublicAPI(usage = ACCESS)
     public JavaClass getTargetClass() {
         return targetClass;

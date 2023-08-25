@@ -16,12 +16,14 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.DescribedPredicate;
 
 @Internal
-public final class PredicateAggregator<T> {
+public final class PredicateAggregator<T> implements Predicate<T> {
     private final AddMode<T> addMode;
     private final Optional<DescribedPredicate<T>> predicate;
 
@@ -34,12 +36,21 @@ public final class PredicateAggregator<T> {
         this.predicate = predicate;
     }
 
+    @Override
+    public boolean test(T t) {
+        return predicate.map(it -> it.test(t)).orElse(true);
+    }
+
     public PredicateAggregator<T> add(DescribedPredicate<? super T> other) {
         return new PredicateAggregator<>(addMode, Optional.of(addMode.apply(predicate, other)));
     }
 
     public boolean isPresent() {
         return predicate.isPresent();
+    }
+
+    public <V> Optional<V> map(Function<DescribedPredicate<T>, V> function) {
+        return predicate.map(function);
     }
 
     public DescribedPredicate<T> get() {

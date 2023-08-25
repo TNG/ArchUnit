@@ -1,31 +1,34 @@
 package com.tngtech.archunit.testutil.assertion;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
-import org.assertj.core.api.AbstractIterableAssert;
+import org.assertj.core.api.AbstractCollectionAssert;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DependenciesAssertion extends AbstractIterableAssert<
-        DependenciesAssertion, Iterable<Dependency>, Dependency, DependencyAssertion> {
+public class DependenciesAssertion extends AbstractCollectionAssert<
+        DependenciesAssertion, Collection<Dependency>, Dependency, DependencyAssertion> {
 
-    public DependenciesAssertion(Iterable<Dependency> dependencies) {
+    public DependenciesAssertion(Collection<Dependency> dependencies) {
         super(dependencies, DependenciesAssertion.class);
     }
 
@@ -75,22 +78,14 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     }
 
     public DependenciesAssertion containOnly(ExpectedDependencies expectedDependencies) {
-        ExpectedDependenciesMatchResult result = matchExpectedDependencies(expectedDependencies);
+        ExpectedDependencies.MatchResult result = matchExpectedDependencies(expectedDependencies);
         result.assertNoMissingDependencies();
         result.assertAllDependenciesMatched();
         return this;
     }
 
-    private ExpectedDependenciesMatchResult matchExpectedDependencies(ExpectedDependencies expectedDependencies) {
-        List<Dependency> rest = newArrayList(actual);
-        List<ExpectedDependency> missingDependencies = new ArrayList<>();
-        for (ExpectedDependency expectedDependency : expectedDependencies) {
-            if (rest.stream().noneMatch(expectedDependency::matches)) {
-                missingDependencies.add(expectedDependency);
-            }
-            rest = rest.stream().filter(dependency -> !expectedDependency.matches(dependency)).collect(toList());
-        }
-        return new ExpectedDependenciesMatchResult(missingDependencies, rest);
+    private ExpectedDependencies.MatchResult matchExpectedDependencies(ExpectedDependencies expectedDependencies) {
+        return expectedDependencies.match(actual);
     }
 
     public DependenciesAssertion containOnly(Class<?> expectedOrigin, Class<?> expectedTarget) {
@@ -166,9 +161,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
 
         void add(Class<?> origin, Class<?> target, Optional<String> descriptionTemplate) {
             ExpectedDependency expectedDependency = new ExpectedDependency(origin, target);
-            if (descriptionTemplate.isPresent()) {
-                expectedDependency.descriptionMatching(descriptionTemplate.get().replace("#target", quote(target.getName())));
-            }
+            descriptionTemplate.ifPresent(s -> expectedDependency.descriptionMatching(s.replace("#target", quote(target.getName()))));
             expectedDependencies.add(expectedDependency);
         }
 
@@ -187,6 +180,51 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         public ExpectedDependencies inLocation(Class<?> location, int lineNumber) {
             getLast(expectedDependencies).location(location, lineNumber);
             return this;
+        }
+
+        public MatchResult match(Collection<Dependency> actualDependencies) {
+            List<Dependency> rest = newArrayList(actualDependencies);
+            List<ExpectedDependency> missingDependencies = new ArrayList<>();
+            for (ExpectedDependency expectedDependency : expectedDependencies) {
+                if (rest.stream().noneMatch(expectedDependency::matches)) {
+                    missingDependencies.add(expectedDependency);
+                }
+                rest = rest.stream().filter(dependency -> !expectedDependency.matches(dependency)).collect(toList());
+            }
+            return new MatchResult(actualDependencies, missingDependencies, rest);
+        }
+
+        public static class MatchResult {
+            private final Collection<Dependency> actualDependencies;
+            private final Collection<ExpectedDependency> missingDependencies;
+            private final Collection<Dependency> unexpectedDependencies;
+
+            private MatchResult(Collection<Dependency> actualDependencies, Collection<ExpectedDependency> missingDependencies, Collection<Dependency> unexpectedDependencies) {
+                this.actualDependencies = actualDependencies;
+                this.missingDependencies = missingDependencies;
+                this.unexpectedDependencies = unexpectedDependencies;
+            }
+
+            public void assertNoMissingDependencies() {
+                if (!Iterables.isEmpty(missingDependencies)) {
+                    throw new AssertionError("Could not find expected dependencies:" + lineSeparator()
+                            + missingDependencies.stream().map(Objects::toString).collect(joining(lineSeparator())) + lineSeparator()
+                            + "within: " + lineSeparator()
+                            + descriptionsOf(actualDependencies).collect(joining(lineSeparator())));
+                }
+            }
+
+            private Stream<String> descriptionsOf(Collection<? extends HasDescription> haveDescriptions) {
+                return haveDescriptions.stream().map(HasDescription::getDescription);
+            }
+
+            public void assertAllDependenciesMatched() {
+                assertThat(unexpectedDependencies).as("unexpected dependencies").isEmpty();
+            }
+
+            public boolean matchesExactly() {
+                return unexpectedDependencies.isEmpty() && missingDependencies.isEmpty();
+            }
         }
     }
 
@@ -224,38 +262,9 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         @Override
         public String toString() {
             String dependency = origin.getName() + " -> " + target.getName();
-            String location = locationPart.isPresent() ? " " + locationPart.get() : "";
-            String description = descriptionPattern.isPresent() ? " with description matching '" + descriptionPattern.get() + "'" : "";
+            String location = locationPart.map(s -> " " + s).orElse("");
+            String description = descriptionPattern.map(pattern -> " with description matching '" + pattern + "'").orElse("");
             return dependency + location + description;
-        }
-    }
-
-    private class ExpectedDependenciesMatchResult {
-        private final Iterable<ExpectedDependency> missingDependencies;
-        private final Iterable<Dependency> unexpectedDependencies;
-
-        private ExpectedDependenciesMatchResult(Iterable<ExpectedDependency> missingDependencies, Iterable<Dependency> unexpectedDependencies) {
-            this.missingDependencies = missingDependencies;
-            this.unexpectedDependencies = unexpectedDependencies;
-        }
-
-        void assertNoMissingDependencies() {
-            if (!Iterables.isEmpty(missingDependencies)) {
-                throw new AssertionError("Could not find expected dependencies:" + lineSeparator() + Joiner.on(lineSeparator()).join(missingDependencies)
-                        + lineSeparator() + "within: " + lineSeparator() + Joiner.on(lineSeparator()).join(descriptionsOf(actual)));
-            }
-        }
-
-        private List<String> descriptionsOf(Iterable<? extends HasDescription> haveDescriptions) {
-            List<String> result = new ArrayList<>();
-            for (HasDescription hasDescription : haveDescriptions) {
-                result.add(hasDescription.getDescription());
-            }
-            return result;
-        }
-
-        public void assertAllDependenciesMatched() {
-            assertThat(unexpectedDependencies).as("unexpected dependencies").isEmpty();
         }
     }
 }

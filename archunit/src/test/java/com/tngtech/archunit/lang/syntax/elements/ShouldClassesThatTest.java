@@ -1778,7 +1778,7 @@ public class ShouldClassesThatTest {
                 : noClassesShould.transitivelyDependOnClassesThat().belongToAnyOf(matchingTransitivelyDependentClasses);
 
         assertThatRule(rule).checking(classes)
-                .hasViolations(3)
+                .hasNumberOfViolations(3)
                 .hasViolationMatching(String.format(".*<%s> transitively depends on <(?:%s|%s)> by \\[%s->.*\\] in .*",
                         quote(testClass1.getName()),
                         quote(level2TransitivelyDependentClass1.getName()),

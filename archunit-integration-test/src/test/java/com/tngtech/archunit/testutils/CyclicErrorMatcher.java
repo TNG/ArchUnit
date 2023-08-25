@@ -40,14 +40,14 @@ public class CyclicErrorMatcher implements MessageAssertionChain.Link {
     private List<String> detailLines() {
         List<String> result = new ArrayList<>();
         for (Map.Entry<String, Collection<ExpectedRelation>> detail : details.asMap().entrySet()) {
-            result.add(dependenciesOfSliceHeaderPattern(detail.getKey()));
+            result.add(dependenciesOfComponentHeaderPattern(detail.getKey()));
             result.addAll(transform(detail.getValue(), r -> detailLinePattern(r.toString())));
         }
         return result;
     }
 
-    public CyclicErrorMatcher from(String sliceName) {
-        cycleDescriptions.add(sliceName);
+    public CyclicErrorMatcher from(String componentName) {
+        cycleDescriptions.add(componentName);
         return this;
     }
 
@@ -61,8 +61,8 @@ public class CyclicErrorMatcher implements MessageAssertionChain.Link {
         Result.Builder builder = new Result.Builder()
                 .containsText(cycleText());
 
-        for (String sliceName : details.asMap().keySet()) {
-            builder.matchesLine(dependenciesOfSliceHeaderPattern(sliceName));
+        for (String componentName : details.asMap().keySet()) {
+            builder.matchesLine(dependenciesOfComponentHeaderPattern(componentName));
         }
 
         for (ExpectedRelation relation : details.values()) {
@@ -82,8 +82,8 @@ public class CyclicErrorMatcher implements MessageAssertionChain.Link {
         return builder.build(lines);
     }
 
-    private String dependenciesOfSliceHeaderPattern(String sliceName) {
-        return "\\s*\\d+. Dependencies of " + quote(sliceName);
+    private String dependenciesOfComponentHeaderPattern(String componentName) {
+        return "\\s*\\d+. Dependencies of " + quote(componentName);
     }
 
     private String detailLinePattern(String string) {

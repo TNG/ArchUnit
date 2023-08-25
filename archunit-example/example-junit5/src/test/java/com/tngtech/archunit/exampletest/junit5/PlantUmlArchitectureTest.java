@@ -3,9 +3,9 @@ package com.tngtech.archunit.exampletest.junit5;
 import java.net.URL;
 
 import com.tngtech.archunit.core.domain.PackageMatchers;
-import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
-import com.tngtech.archunit.example.plantuml.order.Order;
-import com.tngtech.archunit.example.plantuml.product.Product;
+import com.tngtech.archunit.example.shopping.catalog.ProductCatalog;
+import com.tngtech.archunit.example.shopping.order.Order;
+import com.tngtech.archunit.example.shopping.product.Product;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
@@ -21,7 +21,7 @@ import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.
 import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.adhereToPlantUmlDiagram;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example.plantuml")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.shopping")
 public class PlantUmlArchitectureTest {
     private static final URL plantUmlDiagram = PlantUmlArchitectureTest.class.getResource("shopping_example.puml");
 
