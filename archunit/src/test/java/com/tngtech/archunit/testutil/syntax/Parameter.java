@@ -2,11 +2,11 @@ package com.tngtech.archunit.testutil.syntax;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-class Parameter {
+public class Parameter {
     private final Object value;
     private final String description;
 
-    Parameter(Object value, String description) {
+    public Parameter(Object value, String description) {
         this.value = value;
         this.description = description;
     }

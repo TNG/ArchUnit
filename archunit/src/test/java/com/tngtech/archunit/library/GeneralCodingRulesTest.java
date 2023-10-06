@@ -70,7 +70,7 @@ public class GeneralCodingRulesTest {
     public void should_not_pass_when_none_of_multiple_matching_test_classes_resides_in_implementation_package() {
         assertThatRule(testClassesShouldResideInTheSamePackageAsImplementation())
                 .checking(new ClassFileImporter().importPackagesOf(ImplementationClassWithMultipleTestsNotMatchingImplementationClassPackage.class))
-                .hasViolations(2)
+                .hasNumberOfViolations(2)
                 .hasViolationWithStandardPattern(
                         com.tngtech.archunit.library.testclasses.packages.incorrect.nodirmatching.wrongdir1.ImplementationClassWithMultipleTestsNotMatchingImplementationClassPackageTest.class,
                         "does not reside in same package as implementation class <"
@@ -97,7 +97,7 @@ public class GeneralCodingRulesTest {
         }
         assertThatRule(ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE)
                 .checking(new ClassFileImporter().importClasses(InvalidAssertions.class))
-                .hasViolations(2)
+                .hasNumberOfViolations(2)
                 .hasViolationContaining("Method <%s.f(int)> calls constructor <%s.<init>()>",
                         InvalidAssertions.class.getName(), AssertionError.class.getName())
                 .hasViolationContaining("Method <%s.f()> calls constructor <%s.<init>()>",
@@ -163,7 +163,7 @@ public class GeneralCodingRulesTest {
         assertThatRule(DEPRECATED_API_SHOULD_NOT_BE_USED)
                 .hasDescriptionContaining("no classes should access @Deprecated members or should depend on @Deprecated classes, because there should be a better alternative")
                 .checking(new ClassFileImporter().importClasses(Origin.class, ClassWithDeprecatedMembers.class, DeprecatedClass.class))
-                .hasViolations(10)
+                .hasNumberOfViolations(10)
                 .hasViolationContaining("%s calls constructor <%s.%s>", violatingMethod, ClassWithDeprecatedMembers.class.getName(), innerClassConstructor)
                 .hasViolationContaining("%s gets field <%s.target>", violatingMethod, ClassWithDeprecatedMembers.class.getName())
                 .hasViolationContaining("%s sets field <%s.target>", violatingMethod, ClassWithDeprecatedMembers.class.getName())

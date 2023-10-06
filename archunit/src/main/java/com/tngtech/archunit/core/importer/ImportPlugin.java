@@ -51,7 +51,7 @@ interface ImportPlugin {
 
             @Override
             public void plugInLocationResolver(InitialConfiguration<LocationResolver> locationResolver) {
-                locationResolver.set(new LocationResolver.Legacy());
+                locationResolver.set(new LocationResolver.FromClasspathAndUrlClassLoaders());
             }
         }
     }

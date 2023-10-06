@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -31,6 +32,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.jar.JarEntry;
@@ -269,8 +271,8 @@ public abstract class Location {
         @Override
         ClassFileSource asClassFileSource(ImportOptions importOptions) {
             try {
-                String[] parts = uri.toString().split("!/", 2);
-                return new ClassFileSource.FromJar(new URL(parts[0] + "!/"), parts[1], importOptions);
+                ParsedUri parsedUri = ParsedUri.from(uri);
+                return new ClassFileSource.FromJar(new URL(parsedUri.base), parsedUri.path, importOptions);
             } catch (IOException e) {
                 throw new LocationException(e);
             }
@@ -288,28 +290,26 @@ public abstract class Location {
 
         @Override
         Collection<NormalizedResourceName> readResourceEntries() {
-            File file = getFileOfJar();
-            if (!file.exists()) {
-                return emptySet();
-            }
-
-            return readJarFileContent(file);
+            return getJarFile().map(this::readJarFileContent).orElse(emptySet());
         }
 
-        private File getFileOfJar() {
-            return new File(URI.create(uri.toString()
-                    .replaceAll("^" + SCHEME + ":", "")
-                    .replaceAll("!/.*", "")));
-        }
-
-        private Collection<NormalizedResourceName> readJarFileContent(File fileOfJar) {
-            ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
-            String prefix = uri.toString().replaceAll(".*!/", "");
-            try (JarFile jarFile = new JarFile(fileOfJar)) {
-                result.addAll(readEntries(prefix, jarFile));
+        private Optional<JarFile> getJarFile() {
+            try {
+                // Note: We can't use a composed JAR URL like `jar:file:/path/to/file.jar!/com/example`, because opening the connection
+                //       fails with an exception if the directory entry for this path is missing (which is possible, even if there is
+                //       a class `com.example.SomeClass` in the JAR file).
+                String baseUri = ParsedUri.from(uri).base;
+                JarURLConnection jarUrlConnection = (JarURLConnection) new URL(baseUri).openConnection();
+                return Optional.of(jarUrlConnection.getJarFile());
             } catch (IOException e) {
-                throw new LocationException(e);
+                return Optional.empty();
             }
+        }
+
+        private Collection<NormalizedResourceName> readJarFileContent(JarFile jarFile) {
+            ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
+            String prefix = ParsedUri.from(uri).path;
+            result.addAll(readEntries(prefix, jarFile));
             return result.build();
         }
 
@@ -323,6 +323,22 @@ public abstract class Location {
                 }
             }
             return result;
+        }
+
+        private static class ParsedUri {
+            final String base;
+            final String path;
+
+            private ParsedUri(String base, String path) {
+                this.base = base;
+                this.path = path;
+            }
+
+            static ParsedUri from(NormalizedUri uri) {
+                String uriString = uri.toString();
+                int entryPathStartIndex = uriString.lastIndexOf("!/") + 2;
+                return new ParsedUri(uriString.substring(0, entryPathStartIndex), uriString.substring(entryPathStartIndex));
+            }
         }
     }
 

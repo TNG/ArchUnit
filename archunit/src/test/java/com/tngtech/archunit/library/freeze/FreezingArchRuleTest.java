@@ -248,7 +248,7 @@ public class FreezingArchRuleTest {
 
         assertThatRule(frozen)
                 .checking(importClasses(getClass()))
-                .hasViolations(1)
+                .hasNumberOfViolations(1)
                 .hasAnyViolationOf("violation", "equivalent one");
     }
 

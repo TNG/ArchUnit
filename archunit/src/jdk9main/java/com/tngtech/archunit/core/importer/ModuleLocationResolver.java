@@ -34,9 +34,11 @@ import static com.google.common.collect.Iterables.concat;
 import static java.util.stream.Collectors.toList;
 
 class ModuleLocationResolver implements LocationResolver {
+    private final FromClasspathAndUrlClassLoaders standardResolver = new FromClasspathAndUrlClassLoaders();
+
     @Override
     public UrlSource resolveClassPath() {
-        Iterable<URL> classpath = UrlSource.From.classPathSystemProperties();
+        Iterable<URL> classpath = standardResolver.resolveClassPath();
         Set<ModuleReference> systemModuleReferences = ModuleFinder.ofSystem().findAll();
         Set<ModuleReference> configuredModuleReferences = ModuleFinder.of(modulepath()).findAll();
         Iterable<URL> modulepath = Stream.concat(systemModuleReferences.stream(), configuredModuleReferences.stream())

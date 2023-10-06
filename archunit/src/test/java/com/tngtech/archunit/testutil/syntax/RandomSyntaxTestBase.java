@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
@@ -34,7 +37,10 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -46,16 +52,29 @@ public abstract class RandomSyntaxTestBase {
     @Rule
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule().setFailOnEmptyShould(false);
 
-    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed,
-            DescriptionReplacement... replacements) {
+    public static List<List<?>> createRandomRules(
+            RandomSyntaxSeed<?> seed,
+            DescriptionReplacement... replacements
+    ) {
         return createRandomRules(seed, MethodChoiceStrategy.chooseAllArchUnitSyntaxMethods(), replacements);
     }
 
-    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed,
+    public static List<List<?>> createRandomRules(
+            RandomSyntaxSeed<?> seed,
             MethodChoiceStrategy methodChoiceStrategy,
-            DescriptionReplacement... replacements) {
+            DescriptionReplacement... replacements
+    ) {
+        return createRandomRules(RandomRulesBlueprint.seed(seed).methodChoiceStrategy(methodChoiceStrategy).descriptionReplacements(replacements));
+    }
+
+    public static List<List<?>> createRandomRules(RandomRulesBlueprint blueprint) {
         return IntStream.range(0, NUMBER_OF_RULES_TO_BUILD)
-                .mapToObj(i -> new SyntaxSpec<>(seed, methodChoiceStrategy, ExpectedDescription.from(seed, replacements)))
+                .mapToObj(i -> new SyntaxSpec<>(
+                        blueprint.seed,
+                        blueprint.methodChoiceStrategy,
+                        blueprint.parameterProviders,
+                        ExpectedDescription.from(blueprint.seed, blueprint.descriptionReplacements))
+                )
                 .map(spec -> ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()))
                 .collect(toList());
     }
@@ -87,16 +106,56 @@ public abstract class RandomSyntaxTestBase {
         }
     }
 
+    public static class RandomRulesBlueprint implements NeedsMethodChoiceStrategy {
+        private final RandomSyntaxSeed<?> seed;
+        private MethodChoiceStrategy methodChoiceStrategy;
+        private List<DescriptionReplacement> descriptionReplacements = emptyList();
+        private Set<SingleParameterProvider> parameterProviders = emptySet();
+
+        private RandomRulesBlueprint(RandomSyntaxSeed<?> seed) {
+            this.seed = seed;
+        }
+
+        @Override
+        public RandomRulesBlueprint methodChoiceStrategy(MethodChoiceStrategy methodChoiceStrategy) {
+            this.methodChoiceStrategy = methodChoiceStrategy;
+            return this;
+        }
+
+        public RandomRulesBlueprint descriptionReplacements(DescriptionReplacement... descriptionReplacements) {
+            this.descriptionReplacements = stream(descriptionReplacements).collect(toList());
+            return this;
+        }
+
+        public RandomRulesBlueprint parameterProviders(SingleParameterProvider... parameterProviders) {
+            this.parameterProviders = stream(parameterProviders).collect(toSet());
+            return this;
+        }
+
+        public static NeedsMethodChoiceStrategy seed(RandomSyntaxSeed<?> seed) {
+            return new RandomRulesBlueprint(seed);
+        }
+    }
+
+    public interface NeedsMethodChoiceStrategy {
+        RandomRulesBlueprint methodChoiceStrategy(MethodChoiceStrategy methodChoiceStrategy);
+    }
+
     private static class SyntaxSpec<T> {
         private static final int MAX_STEPS = 50;
 
         private final ExpectedDescription expectedDescription;
         private final ArchRule actualArchRule;
 
-        SyntaxSpec(RandomSyntaxSeed<T> seed, MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription) {
+        SyntaxSpec(
+                RandomSyntaxSeed<T> seed,
+                MethodChoiceStrategy methodChoiceStrategy,
+                Set<SingleParameterProvider> singleParameterProviders,
+                ExpectedDescription expectedDescription
+        ) {
             this.expectedDescription = expectedDescription;
             MethodCallChain methodCallChain = new MethodCallChain(methodChoiceStrategy, new TypedValue(seed.getType(), seed.getValue()));
-            Step firstStep = new PartialStep(expectedDescription, methodCallChain);
+            Step firstStep = new PartialStep(expectedDescription, methodCallChain, singleParameterProviders);
             LOG.debug("Starting from {}", firstStep);
             try {
                 LastStep result = firstStep.continueSteps(0, MAX_STEPS);
@@ -131,11 +190,11 @@ public abstract class RandomSyntaxTestBase {
         private final List<DescriptionReplacement> descriptionReplacements;
         private final List<String> description = new ArrayList<>();
 
-        private ExpectedDescription(DescriptionReplacement[] descriptionReplacements) {
-            this.descriptionReplacements = ImmutableList.copyOf(descriptionReplacements);
+        private ExpectedDescription(List<DescriptionReplacement> descriptionReplacements) {
+            this.descriptionReplacements = descriptionReplacements;
         }
 
-        public static ExpectedDescription from(RandomSyntaxSeed<?> seed, DescriptionReplacement[] patternsToExclude) {
+        public static ExpectedDescription from(RandomSyntaxSeed<?> seed, List<DescriptionReplacement> patternsToExclude) {
             return new ExpectedDescription(patternsToExclude).add(seed.getDescription());
         }
 
@@ -190,27 +249,21 @@ public abstract class RandomSyntaxTestBase {
 
     private static class PartialStep extends Step {
         private static final int LOW_NUMBER_OF_LEFT_STEPS = 5;
-        private static final ParameterProvider parameterProvider = new ParameterProvider();
 
-        final Parameters parameters;
+        private final ParameterProvider parameterProvider;
+        private final Parameters parameters;
 
-        PartialStep(ExpectedDescription expectedDescription, MethodCallChain methodCallChain) {
-            this(expectedDescription, methodCallChain, getParametersFor(methodCallChain.getNextMethodCandidate()));
+        PartialStep(ExpectedDescription expectedDescription, MethodCallChain methodCallChain, Set<SingleParameterProvider> singleParameterProviders) {
+            this(expectedDescription, methodCallChain, new ParameterProvider(singleParameterProviders));
         }
 
-        private PartialStep(
-                ExpectedDescription expectedDescription,
-                MethodCallChain methodCallChain,
-                Parameters parameters) {
-
+        PartialStep(ExpectedDescription expectedDescription, MethodCallChain methodCallChain, ParameterProvider parameterProvider) {
             super(expectedDescription, methodCallChain);
-            this.parameters = parameters;
-            expectedDescription.add(getDescription());
-        }
-
-        private static Parameters getParametersFor(Method method) {
+            this.parameterProvider = parameterProvider;
+            Method method = methodCallChain.getNextMethodCandidate();
             List<TypeToken<?>> tokens = stream(method.getGenericParameterTypes()).map(TypeToken::of).collect(toList());
-            return parameterProvider.get(method.getName(), tokens);
+            this.parameters = parameterProvider.get(method.getName(), tokens);
+            expectedDescription.add(getDescription());
         }
 
         @Override
@@ -226,7 +279,7 @@ public abstract class RandomSyntaxTestBase {
             boolean shouldContinue = methodCallChain.hasAnotherMethodCandidate()
                     && shouldContinue(methodCallChain.getCurrentValue(), lowNumberOfStepsLeft);
             Step nextStep = shouldContinue
-                    ? new PartialStep(expectedDescription, methodCallChain)
+                    ? new PartialStep(expectedDescription, methodCallChain, parameterProvider)
                     : new LastStep(expectedDescription, methodCallChain);
             LOG.debug("Next step is {}", nextStep);
 
@@ -286,10 +339,10 @@ public abstract class RandomSyntaxTestBase {
     }
 
     private static class ParameterProvider {
-        private static final Set<SpecificParameterProvider> singleParameterProviders = ImmutableSet.<SpecificParameterProvider>builder()
-                .add(new SpecificParameterProvider(String.class) {
+        private static final Set<SingleParameterProvider> defaultSingleParameterProviders = ImmutableSet.<SingleParameterProvider>builder()
+                .add(new SingleParameterProvider(String.class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         if (methodName.toLowerCase().contains("annotat")) {
                             return new Parameter("AnnotationType", "@AnnotationType");
                         } else if (methodName.toLowerCase().contains("assign")
@@ -304,17 +357,28 @@ public abstract class RandomSyntaxTestBase {
                         }
                     }
                 })
-                .add(new SpecificParameterProvider(String[].class) {
+                .add(new SingleParameterProvider(String[].class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         return methodName.toLowerCase().contains("type") ?
                                 new Parameter(new String[]{"first.Type", "second.Type"}, "[first.Type, second.Type]") :
                                 new Parameter(new String[]{"one", "two"}, "['one', 'two']");
                     }
                 })
-                .add(new SpecificParameterProvider(Class.class) {
+                .add(new SingleParameterProvider(Object[].class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
+                        return new Parameter(new Object[]{"one", "two"}, "[one, two]");
+                    }
+
+                    @Override
+                    protected boolean canHandle(String methodName, Class<?> type) {
+                        return supportedType == type; // only use this when the type is really Object[] and not for more specific subtypes
+                    }
+                })
+                .add(new SingleParameterProvider(Class.class) {
+                    @Override
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         TypeToken<?> typeParam = type.resolveType(Class.class.getTypeParameters()[0]);
                         String description = Annotation.class.isAssignableFrom(typeParam.getRawType())
                                 ? "@" + Deprecated.class.getSimpleName()
@@ -322,29 +386,29 @@ public abstract class RandomSyntaxTestBase {
                         return new Parameter(Deprecated.class, description);
                     }
                 })
-                .add(new SpecificParameterProvider(Class[].class) {
+                .add(new SingleParameterProvider(Class[].class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         Class<?>[] value = {String.class, Serializable.class};
                         return new Parameter(value, "[" + value[0].getName() + ", " + value[1].getName() + "]");
                     }
                 })
-                .add(new SpecificParameterProvider(Enum.class) {
+                .add(new SingleParameterProvider(Enum.class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         Object constant = type.getRawType().getEnumConstants()[0];
                         return new Parameter(constant, String.valueOf(constant));
                     }
                 })
-                .add(new SpecificParameterProvider(DescribedPredicate.class) {
+                .add(new SingleParameterProvider(DescribedPredicate.class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         return new Parameter(DescribedPredicate.alwaysTrue().as("custom predicate"), "custom predicate");
                     }
                 })
-                .add(new SpecificParameterProvider(ArchCondition.class) {
+                .add(new SingleParameterProvider(ArchCondition.class) {
                     @Override
-                    Parameter get(String methodName, TypeToken<?> type) {
+                    public Parameter get(String methodName, TypeToken<?> type) {
                         return new Parameter(new ArchCondition<Object>("overrideMe") {
                             @Override
                             public void check(Object item, ConditionEvents events) {
@@ -354,16 +418,22 @@ public abstract class RandomSyntaxTestBase {
                 })
                 .build();
 
-        private final List<SpecificParametersProvider> parametersProvider = ImmutableList.of(
+        private final List<SingleParameterProvider> singleParameterProviders;
+
+        private final List<ParametersProvider> parametersProvider = ImmutableList.of(
                 new FieldMethodParametersProvider(),
                 new CallMethodClassParametersProvider(),
                 new CallMethodStringParametersProvider(),
                 new CallConstructorClassParametersProvider(),
                 new CallConstructorStringParametersProvider(),
-                new SingleParametersProvider());
+                new DefaultParametersProvider());
+
+        public ParameterProvider(Set<SingleParameterProvider> additionalParameterProviders) {
+            singleParameterProviders = Stream.concat(additionalParameterProviders.stream(), defaultSingleParameterProviders.stream()).collect(toList());
+        }
 
         Parameters get(String methodName, List<TypeToken<?>> types) {
-            for (SpecificParametersProvider provider : parametersProvider) {
+            for (ParametersProvider provider : parametersProvider) {
                 if (provider.canHandle(methodName, types)) {
                     return provider.get(methodName, types);
                 }
@@ -373,35 +443,21 @@ public abstract class RandomSyntaxTestBase {
         }
 
         Parameter get(String methodName, TypeToken<?> type) {
-            for (SpecificParameterProvider provider : singleParameterProviders) {
-                if (provider.canHandle(type.getRawType())) {
+            for (SingleParameterProvider provider : singleParameterProviders) {
+                if (provider.canHandle(methodName, type.getRawType())) {
                     return provider.get(methodName, type);
                 }
             }
-            throw new RuntimeException("Parameter type " + type + " is not supported yet");
+            throw new RuntimeException("Parameter type " + type + " of method " + methodName + " is not supported yet");
         }
 
-        private abstract static class SpecificParametersProvider {
+        private abstract static class ParametersProvider {
             abstract boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes);
 
             abstract Parameters get(String methodName, List<TypeToken<?>> parameterTypes);
         }
 
-        private abstract static class SpecificParameterProvider {
-            private final Class<?> supportedType;
-
-            SpecificParameterProvider(Class<?> supportedType) {
-                this.supportedType = supportedType;
-            }
-
-            boolean canHandle(Class<?> type) {
-                return supportedType.isAssignableFrom(type);
-            }
-
-            abstract Parameter get(String methodName, TypeToken<?> type);
-        }
-
-        private class FieldMethodParametersProvider extends SpecificParametersProvider {
+        private class FieldMethodParametersProvider extends ParametersProvider {
             @Override
             boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
                 return methodName.toLowerCase().contains("field");
@@ -409,7 +465,7 @@ public abstract class RandomSyntaxTestBase {
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
-                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                Parameters parameters = new DefaultParametersProvider().get(methodName, parameterTypes);
                 if (parameterTypes.size() == 2) {
                     return specificHandlingOfTwoParameterMethods(methodName, parameterTypes, parameters);
                 }
@@ -475,7 +531,7 @@ public abstract class RandomSyntaxTestBase {
             }
         }
 
-        private abstract static class CallCodeUnitParametersProvider extends SpecificParametersProvider {
+        private abstract static class CallCodeUnitParametersProvider extends ParametersProvider {
             private final CanHandlePredicate predicate;
 
             CallCodeUnitParametersProvider(CanHandlePredicate predicate) {
@@ -495,7 +551,7 @@ public abstract class RandomSyntaxTestBase {
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
-                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                Parameters parameters = new DefaultParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForClassArrayAtIndex(2, parameters.get(1).getValue(), parameters);
                 return parameters.withDescription(params);
             }
@@ -508,7 +564,7 @@ public abstract class RandomSyntaxTestBase {
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
-                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                Parameters parameters = new DefaultParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForStringArrayAtIndex(2, parameters.get(1).getValue(), parameters);
                 return parameters.withDescription(params);
             }
@@ -521,7 +577,7 @@ public abstract class RandomSyntaxTestBase {
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
-                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                Parameters parameters = new DefaultParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForClassArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
                 return parameters.withDescription(params);
             }
@@ -534,7 +590,7 @@ public abstract class RandomSyntaxTestBase {
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
-                Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
+                Parameters parameters = new DefaultParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForStringArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
                 return parameters.withDescription(params);
             }
@@ -559,7 +615,7 @@ public abstract class RandomSyntaxTestBase {
                     Joiner.on(", ").join(simpleParamTypeNames));
         }
 
-        private class SingleParametersProvider extends SpecificParametersProvider {
+        private class DefaultParametersProvider extends ParametersProvider {
             @Override
             boolean canHandle(String methodName, List<TypeToken<?>> parameterTypes) {
                 return true;
@@ -600,6 +656,32 @@ public abstract class RandomSyntaxTestBase {
         @Override
         public String toString() {
             return getClass().getSimpleName() + "{/" + search + "/" + replacement + "/}";
+        }
+    }
+
+    protected static class ReplaceEverythingSoFar implements DescriptionReplacement {
+        private final Pattern pattern;
+        private final String replaceWith;
+
+        public ReplaceEverythingSoFar(String pattern, String replaceWith) {
+            this.pattern = Pattern.compile(pattern);
+            this.replaceWith = replaceWith;
+        }
+
+        @Override
+        public boolean applyTo(String currentToken, List<String> currentDescription) {
+            Matcher matcher = pattern.matcher(currentToken);
+            if (matcher.matches()) {
+                currentDescription.clear();
+                currentDescription.add(matcher.replaceAll(replaceWith));
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{/" + pattern + "/" + replaceWith + "/}";
         }
     }
 }

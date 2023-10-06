@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.syntax;
 import java.lang.annotation.Annotation;
 import java.util.function.Function;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -53,10 +54,11 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
+@Internal
+public final class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     private final Function<DescribedPredicate<? super JavaClass>, CONJUNCTION> addPredicate;
 
-    ClassesThatInternal(Function<DescribedPredicate<? super JavaClass>, CONJUNCTION> addPredicate) {
+    public ClassesThatInternal(Function<DescribedPredicate<? super JavaClass>, CONJUNCTION> addPredicate) {
         this.addPredicate = checkNotNull(addPredicate);
     }
 
@@ -450,10 +452,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
         return givenWith(SyntaxPredicates.doNotHaveModifier(modifier));
     }
 
-    private CONJUNCTION givenWith(DescribedPredicate<? super JavaClass> predicate) {
-        return addPredicate.apply(predicate);
-    }
-
     @Override
     public CONJUNCTION containAnyMembersThat(DescribedPredicate<? super JavaMember> predicate) {
         return givenWith(JavaClass.Predicates.containAnyMembersThat(predicate));
@@ -482,5 +480,9 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     @Override
     public CONJUNCTION containAnyStaticInitializersThat(DescribedPredicate<? super JavaStaticInitializer> predicate) {
         return givenWith(JavaClass.Predicates.containAnyStaticInitializersThat(predicate));
+    }
+
+    private CONJUNCTION givenWith(DescribedPredicate<? super JavaClass> predicate) {
+        return addPredicate.apply(predicate);
     }
 }

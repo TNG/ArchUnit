@@ -200,7 +200,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new DependencyAssertion(dependency);
     }
 
-    public static DependenciesAssertion assertThatDependencies(Iterable<Dependency> dependencies) {
+    public static DependenciesAssertion assertThatDependencies(Collection<Dependency> dependencies) {
         return new DependenciesAssertion(dependencies);
     }
 

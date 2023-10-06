@@ -28,7 +28,7 @@ interface LocationResolver {
     UrlSource resolveClassPath();
 
     @Internal
-    class Legacy implements LocationResolver {
+    class FromClasspathAndUrlClassLoaders implements LocationResolver {
         @Override
         public UrlSource resolveClassPath() {
             ImmutableList.Builder<URL> result = ImmutableList.builder();

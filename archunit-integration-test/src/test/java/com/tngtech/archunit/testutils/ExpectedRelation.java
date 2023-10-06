@@ -3,12 +3,15 @@ package com.tngtech.archunit.testutils;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.lang.ConditionEvent;
 
-public interface ExpectedRelation {
+interface ExpectedRelation {
+
+    void addTo(HandlingAssertion assertion);
+
     void associateLines(LineAssociation association);
 
     /**
      * @return True, if this expected dependency refers to the supplied object
-     * (i.e. the object that was passed to the {@link ConditionEvent}, e.g. a {@link JavaAccess})
+     *         (i.e. the object that was passed to the {@link ConditionEvent}, e.g. a {@link JavaAccess})
      */
     boolean correspondsTo(Object object);
 
