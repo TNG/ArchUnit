@@ -1606,7 +1606,7 @@ different type of input object. For example:</p>
     @Override
     public Iterable&lt;JavaPackage&gt; doTransform(JavaClasses classes) {
         Set&lt;JavaPackage&gt; result = new HashSet&lt;&gt;();
-        classes.getDefaultPackage().accept(alwaysTrue(), new PackageVisitor() {
+        classes.getDefaultPackage().traversePackageTree(alwaysTrue(), new PackageVisitor() {
             @Override
             public void visit(JavaPackage javaPackage) {
                 result.add(javaPackage);
