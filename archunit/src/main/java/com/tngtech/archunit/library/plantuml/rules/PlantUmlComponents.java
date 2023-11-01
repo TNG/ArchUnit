@@ -15,12 +15,13 @@
  */
 package com.tngtech.archunit.library.plantuml.rules;
 
+import com.google.common.collect.FluentIterable;
+
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-
-import com.google.common.collect.FluentIterable;
 
 import static com.tngtech.archunit.library.plantuml.rules.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
 import static java.util.function.Function.identity;
@@ -43,18 +44,14 @@ class PlantUmlComponents {
         return componentsByAlias.values();
     }
 
-    PlantUmlComponent findComponentWith(String nameOrAlias) {
+    Optional<PlantUmlComponent> tryFindComponentWith(String nameOrAlias) {
         ComponentName componentName = new ComponentName(nameOrAlias);
         Alias alias = new Alias(nameOrAlias);
         PlantUmlComponent result = componentsByAlias.containsKey(alias) ? componentsByAlias.get(alias) : componentsByName.get(componentName);
-        if (result == null) {
-            throw new IllegalDiagramException("There is no Component with name or alias = '%s'. %s", nameOrAlias,
-                    "Components must be specified separately from dependencies.");
-        }
-        return result;
+        return Optional.ofNullable(result);
     }
 
-    PlantUmlComponent findComponentWith(ComponentIdentifier identifier) {
+    PlantUmlComponent tryFindComponentWith(ComponentIdentifier identifier) {
         return componentsByName.get(identifier.getComponentName());
     }
 

@@ -63,7 +63,7 @@ class PlantUmlDiagram {
         private void finish(PlantUmlComponent component) {
             ImmutableList.Builder<PlantUmlComponentDependency> dependencies = ImmutableList.builder();
             for (ParsedDependency dependencyOriginatingFromComponent : originToParsedDependency.get(component.getIdentifier())) {
-                PlantUmlComponent target = plantUmlComponents.findComponentWith(dependencyOriginatingFromComponent.getTarget());
+                PlantUmlComponent target = plantUmlComponents.tryFindComponentWith(dependencyOriginatingFromComponent.getTarget());
                 dependencies.add(new PlantUmlComponentDependency(component, target));
             }
             component.finish(dependencies.build());
