@@ -28,6 +28,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
 import com.tngtech.archunit.library.plantuml.rules.PlantUmlPatterns.PlantUmlComponentMatcher;
 import com.tngtech.archunit.library.plantuml.rules.PlantUmlPatterns.PlantUmlDependencyMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -35,6 +37,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 class PlantUmlParser {
+    private static final Logger log = LoggerFactory.getLogger(PlantUmlParser.class);
+
     private final PlantUmlPatterns plantUmlPatterns = new PlantUmlPatterns();
 
     PlantUmlDiagram parse(URL url) {
@@ -78,9 +82,16 @@ class PlantUmlParser {
     private ImmutableList<ParsedDependency> parseDependencies(PlantUmlComponents plantUmlComponents, List<String> plantUmlDiagramLines) {
         ImmutableList.Builder<ParsedDependency> result = ImmutableList.builder();
         for (PlantUmlDependencyMatcher matcher : plantUmlPatterns.matchDependencies(plantUmlDiagramLines)) {
-            PlantUmlComponent origin = findComponentMatching(plantUmlComponents, matcher.matchOrigin());
-            PlantUmlComponent target = findComponentMatching(plantUmlComponents, matcher.matchTarget());
-            result.add(new ParsedDependency(origin.getIdentifier(), target.getIdentifier()));
+            Optional<PlantUmlComponent> origin = tryFindComponentMatching(plantUmlComponents, matcher.matchOrigin());
+            Optional<PlantUmlComponent> target = tryFindComponentMatching(plantUmlComponents, matcher.matchTarget());
+            if (origin.isPresent() && target.isPresent()) {
+                result.add(new ParsedDependency(origin.get().getIdentifier(), target.get().getIdentifier()));
+            } else {
+                log.trace(
+                        "Ignoring dependency from {} to {}, because origin or target couldn't be parsed",
+                        matcher.matchOrigin(), matcher.matchTarget()
+                );
+            }
         }
         return result.build();
     }
@@ -113,11 +124,11 @@ class PlantUmlParser {
         return result;
     }
 
-    private PlantUmlComponent findComponentMatching(PlantUmlComponents plantUmlComponents, String originOrTargetString) {
+    private Optional<PlantUmlComponent> tryFindComponentMatching(PlantUmlComponents plantUmlComponents, String originOrTargetString) {
         originOrTargetString = originOrTargetString.trim()
                 .replaceAll("^\\[", "")
                 .replaceAll("]$", "");
 
-        return plantUmlComponents.findComponentWith(originOrTargetString);
+        return plantUmlComponents.tryFindComponentWith(originOrTargetString);
     }
 }
