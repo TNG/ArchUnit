@@ -1274,6 +1274,21 @@ public final class ArchConditions {
                 origin.is(matching(JavaConstructor.class, predicate)), GET_CALLS_OF_SELF);
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaField> beAccessedByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        return new ArchCondition<JavaField>("be accessed by methods that " + predicate.getDescription()) {
+            @Override
+            public void check(JavaField field, ConditionEvents events) {
+                field.getAccessesToSelf().stream()
+                        .filter(access -> access.getOrigin() instanceof JavaMethod)
+                        .forEach(access -> {
+                            boolean satisfied = predicate.test((JavaMethod) access.getOrigin());
+                            events.add(new SimpleConditionEvent(field, satisfied, access.getDescription()));
+                        });
+            }
+        };
+    }
+
     /**
      * Derives an {@link ArchCondition} from a {@link DescribedPredicate}. Similar to {@link ArchCondition#from(DescribedPredicate)},
      * but more conveniently creates a message to be used within a 'have'-sentence.
