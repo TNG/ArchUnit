@@ -49,7 +49,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * The runner will cache classes between test runs, for details please refer to {@link com.tngtech.archunit.junit.internal.ClassCache}.
  */
 @PublicAPI(usage = ACCESS)
-public class ArchUnitRunner<T> extends ParentRunner<T> {
+public final class ArchUnitRunner<T> extends ParentRunner<T> {
     private final InternalRunner<T> runnerDelegate;
 
     @Internal
