@@ -63,6 +63,15 @@ public abstract class JavaMember implements
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 
+    /**
+     * Similar to {@link JavaType#getAllInvolvedRawTypes()}, this method returns all raw types involved in this {@link JavaMember member's} signature.
+     * For more concrete details refer to {@link JavaField#getAllInvolvedRawTypes()} and {@link JavaCodeUnit#getAllInvolvedRawTypes()}.
+     *
+     * @return All raw types involved in the signature of this member
+     */
+    @PublicAPI(usage = ACCESS)
+    public abstract Set<JavaClass> getAllInvolvedRawTypes();
+
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<? extends JavaMember>> getAnnotations() {

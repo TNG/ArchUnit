@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Set;
+
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -65,6 +67,11 @@ public final class JavaGenericArrayType implements JavaType {
     @PublicAPI(usage = ACCESS)
     public JavaClass toErasure() {
         return erasure;
+    }
+
+    @Override
+    public Set<JavaClass> getAllInvolvedRawTypes() {
+        return this.componentType.getAllInvolvedRawTypes();
     }
 
     @Override

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -43,6 +44,7 @@ import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -167,6 +169,22 @@ public abstract class JavaCodeUnit
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawReturnType() {
         return returnType.getRaw();
+    }
+
+    /**
+     * @return All raw types involved in this code unit's signature,
+     *         which is the union of all raw types involved in the {@link #getReturnType() return type},
+     *         the {@link #getParameterTypes() parameter types} and the {@link #getTypeParameters() type parameters} of this code unit.
+     *         For a definition of "all raw types involved" consult {@link JavaType#getAllInvolvedRawTypes()}.
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getAllInvolvedRawTypes() {
+        return Stream.of(
+                Stream.of(this.returnType.get()),
+                this.parameters.getParameterTypes().stream(),
+                this.typeParameters.stream()
+        ).flatMap(s -> s).map(JavaType::getAllInvolvedRawTypes).flatMap(Set::stream).collect(toSet());
     }
 
     @PublicAPI(usage = ACCESS)

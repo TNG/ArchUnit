@@ -62,6 +62,15 @@ public final class JavaField extends JavaMember implements HasType {
         return type.toErasure();
     }
 
+    /**
+     * @return All raw types involved in this field's signature, which is equivalent to {@link #getType()}.{@link JavaType#getAllInvolvedRawTypes() getAllInvolvedRawTypes()}.
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getAllInvolvedRawTypes() {
+        return getType().getAllInvolvedRawTypes();
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getAccessesToSelf() {
