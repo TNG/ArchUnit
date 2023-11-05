@@ -47,9 +47,9 @@ ext {
                                       }
                                   },
             slf4j               : [group: 'org.slf4j', name: 'slf4j-api', version: '2.0.9'],
-            log4j_api           : [group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.20.0'],
-            log4j_core          : [group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.20.0'],
-            log4j_slf4j         : [group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: '2.20.0'],
+            log4j_api           : [group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.21.1'],
+            log4j_core          : [group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.21.1'],
+            log4j_slf4j         : [group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: '2.21.1'],
 
             junit4              : [group: 'junit', name: 'junit', version: '4.13.2'],
             junit5JupiterApi    : [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.0'],
