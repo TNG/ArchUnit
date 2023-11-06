@@ -278,7 +278,7 @@ ClassesTransformer<JavaPackage> packages = new AbstractClassesTransformer<JavaPa
     @Override
     public Iterable<JavaPackage> doTransform(JavaClasses classes) {
         Set<JavaPackage> result = new HashSet<>();
-        classes.getDefaultPackage().accept(alwaysTrue(), new PackageVisitor() {
+        classes.getDefaultPackage().traversePackageTree(alwaysTrue(), new PackageVisitor() {
             @Override
             public void visit(JavaPackage javaPackage) {
                 result.add(javaPackage);

@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 1.1.0</span>
+<span id="revnumber">version 1.2.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -514,10 +514,11 @@ h4 {
 <ul class="sectlevel2">
 <li><a href="#_architectures">8.1. Architectures</a></li>
 <li><a href="#_slices">8.2. Slices</a></li>
-<li><a href="#_general_coding_rules">8.3. General Coding Rules</a></li>
-<li><a href="#_plantuml_component_diagrams_as_rules">8.4. PlantUML Component Diagrams as rules</a></li>
-<li><a href="#_freezing_arch_rules">8.5. Freezing Arch Rules</a></li>
-<li><a href="#_software_architecture_metrics">8.6. Software Architecture Metrics</a></li>
+<li><a href="#_modularization_rules">8.3. Modularization Rules</a></li>
+<li><a href="#_general_coding_rules">8.4. General Coding Rules</a></li>
+<li><a href="#_plantuml_component_diagrams_as_rules">8.5. PlantUML Component Diagrams as rules</a></li>
+<li><a href="#_freezing_arch_rules">8.6. Freezing Arch Rules</a></li>
+<li><a href="#_software_architecture_metrics">8.7. Software Architecture Metrics</a></li>
 </ul>
 </li>
 <li><a href="#_junit_support">9. JUnit Support</a>
@@ -617,7 +618,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0&lt;/version&gt;
+    &lt;version&gt;1.2.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -626,7 +627,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:1.1.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:1.2.0'
 }</code></pre>
 </div>
 </div>
@@ -647,7 +648,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0&lt;/version&gt;
+    &lt;version&gt;1.2.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -656,7 +657,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.1.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.0'
 }</code></pre>
 </div>
 </div>
@@ -673,7 +674,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0&lt;/version&gt;
+    &lt;version&gt;1.2.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -682,7 +683,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:1.1.0'
+   testImplementation 'com.tngtech.archunit:archunit:1.2.0'
 }</code></pre>
 </div>
 </div>
@@ -1606,7 +1607,7 @@ different type of input object. For example:</p>
     @Override
     public Iterable&lt;JavaPackage&gt; doTransform(JavaClasses classes) {
         Set&lt;JavaPackage&gt; result = new HashSet&lt;&gt;();
-        classes.getDefaultPackage().accept(alwaysTrue(), new PackageVisitor() {
+        classes.getDefaultPackage().traversePackageTree(alwaysTrue(), new PackageVisitor() {
             @Override
             public void visit(JavaPackage javaPackage) {
                 result.add(javaPackage);
@@ -1792,7 +1793,7 @@ contain dependencies on any <code>adapter</code> package.</p>
 <div class="sect2">
 <h3 id="_slices"><a class="anchor" href="#_slices"></a>8.2. Slices</h3>
 <div class="paragraph">
-<p>Currently there are two "slice" rules offered by the Library API. These are basically rules
+<p>Currently, there are two "slice" rules offered by the Library API. These are basically rules
 that slice the code by packages, and contain assertions on those slices. The entrance point is:</p>
 </div>
 <div class="listingblock">
@@ -1875,9 +1876,131 @@ cycles.maxNumberOfDependenciesPerEdge=5</code></pre>
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_the_cycle_detection_core_api"><a class="anchor" href="#_the_cycle_detection_core_api"></a>8.2.2. The Cycle Detection Core API</h4>
+<div class="paragraph">
+<p>The underlying infrastructure for cycle detection that the <code>slices()</code> rule makes use of can also be accessed
+without any rule syntax around it. This allows to use the pure cycle detection algorithm in custom
+checks or libraries. The core class of the cycle detection is</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library.cycle_detection.CycleDetector</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It can be used on a set of a generic type <code>NODE</code> in combination with a generic <code>Set&lt;EDGE&gt;</code>
+(where <code>EDGE implements Edge&lt;NODE&gt;</code>) representing the edges of the graph:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">Set&lt;MyNode&gt; nodes = // ...
+Set&lt;Edge&lt;MyNode&gt;&gt; edges = // ...
+Cycles&lt;Edge&lt;MyNode&gt;&gt; foundCycles = CycleDetector.detectCycles(nodes, edges);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Edges are parameterized by a generic type <code>EDGE</code> to allow custom edge types that can
+then transport additional meta-information if needed.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="_general_coding_rules"><a class="anchor" href="#_general_coding_rules"></a>8.3. General Coding Rules</h3>
+<h3 id="_modularization_rules"><a class="anchor" href="#_modularization_rules"></a>8.3. Modularization Rules</h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Note: ArchUnit doesn&#8217;t strive to be a "competition" for module systems like the
+Java Platform Module System. Such systems have advantages like checks at compile time
+versus test time as ArchUnit does. So, if another module system works well in your
+environment, there is no need to switch over. But ArchUnit can bring JPMS-like features
+to older code bases, e.g. Java 8 projects, or environments where the JPMS is for some
+reason no option. It also can accompany a module system by adding additional rules e.g.
+on the API of a module.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To express the concept of modularization ArchUnit offers <code>ArchModule</code>﻿s. The entrypoint into
+the API is <code>ModuleRuleDefinition</code>, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ModuleRuleDefinition.modules().definedByPackages("..example.(*)..").should().beFreeOfCycles();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As the example shows, it shares some concepts with the <a href="#_slices">Slices</a> API. For example <code>definedByPackages(..)</code>
+follows the same semantics as <code>slices().matching(..)</code>.
+Also, the configuration options for cycle detection mentioned in the last section are shared by these APIs.
+But, it also offers several powerful concepts beyond that API to express many different modularization scenarios.</p>
+</div>
+<div class="paragraph">
+<p>One example would be to express modules via annotation. We can introduce a custom annotation
+like <code>@AppModule</code> and follow a convention to annotate the top-level <code>package-info</code> file
+of each package we consider the root of a module. E.g.</p>
+</div>
+<div class="listingblock">
+<div class="title">com/myapp/example/module_one/package-info.java</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AppModule(
+  name = "Module One",
+  allowedDependencies = {"Module Two", "Module Three"},
+  exposedPackages = {"..module_one.api.."}
+)
+package com.myapp.example.module_one;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can then define a rule using this annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">modules()
+  .definedByAnnotation(AppModule.class)
+  .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies",
+      consideringOnlyDependenciesInAnyPackage("..example.."))
+  .andShould().onlyDependOnEachOtherThroughPackagesDeclaredIn("exposedPackages")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As the example shows, the syntax carries on meta-information (like the annotation of the annotated
+<code>package-info</code>) into the created <code>ArchModule</code> objects where it can
+be used to define the rule. In this example, the allowed dependencies are taken from the <code>@AppModule</code>
+annotation on the respective <code>package-info</code> and compared to the actual module dependencies. Any
+dependency not listed is reported as violation.
+Likewise, the exposed packages are taken from the <code>@AppModule</code> annotation and any dependency
+where the target class&#8217;s package doesn&#8217;t match any declared package identifier is reported
+as violation.</p>
+</div>
+<div class="paragraph">
+<p>Note that the <code>modules()</code> API can be adjusted in many ways to model custom requirements.
+For further details, please take a look at the examples provided
+<a href="https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit5/src/test/java/com/tngtech/archunit/exampletest/junit5/ModulesTest.java">here</a>.</p>
+</div>
+<div class="sect3">
+<h4 id="_modularization_core_api"><a class="anchor" href="#_modularization_core_api"></a>8.3.1. Modularization Core API</h4>
+<div class="paragraph">
+<p>The infrastructure to create modules and inspect their dependencies can also be used outside
+the rule syntax, e.g. for custom checks or utility code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ArchModules&lt;?&gt; modules = ArchModules.defineByPackages("..example.(*)..").modularize(javaClasses);
+ArchModule&lt;?&gt; coreModule = modules.getByIdentifier("core");
+Set&lt;? extends ModuleDependency&lt;?&gt;&gt; coreDependencies = coreModule.getModuleDependenciesFromSelf();
+coreDependencies.forEach(...);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_general_coding_rules"><a class="anchor" href="#_general_coding_rules"></a>8.4. General Coding Rules</h3>
 <div class="paragraph">
 <p>The Library API also offers a small set of coding rules that might be useful in various projects.
 Those can be found within</p>
@@ -1888,7 +2011,7 @@ Those can be found within</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_generalcodingrules"><a class="anchor" href="#_generalcodingrules"></a>8.3.1. GeneralCodingRules</h4>
+<h4 id="_generalcodingrules"><a class="anchor" href="#_generalcodingrules"></a>8.4.1. GeneralCodingRules</h4>
 <div class="paragraph">
 <p>The class <code>GeneralCodingRules</code> contains a set of very general rules and conditions for coding.
 For example:</p>
@@ -1914,7 +2037,7 @@ For example:</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_dependencyrules"><a class="anchor" href="#_dependencyrules"></a>8.3.2. DependencyRules</h4>
+<h4 id="_dependencyrules"><a class="anchor" href="#_dependencyrules"></a>8.4.2. DependencyRules</h4>
 <div class="paragraph">
 <p>The class <code>DependencyRules</code> contains a set of rules and conditions for checking dependencies between classes.
 For example:</p>
@@ -1928,7 +2051,7 @@ For example:</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_proxyrules"><a class="anchor" href="#_proxyrules"></a>8.3.3. ProxyRules</h4>
+<h4 id="_proxyrules"><a class="anchor" href="#_proxyrules"></a>8.4.3. ProxyRules</h4>
 <div class="paragraph">
 <p>The class <code>ProxyRules</code> contains a set of rules and conditions for checking the usage of proxy objects.
 For example:</p>
@@ -1943,7 +2066,7 @@ For example:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_plantuml_component_diagrams_as_rules"><a class="anchor" href="#_plantuml_component_diagrams_as_rules"></a>8.4. PlantUML Component Diagrams as rules</h3>
+<h3 id="_plantuml_component_diagrams_as_rules"><a class="anchor" href="#_plantuml_component_diagrams_as_rules"></a>8.5. PlantUML Component Diagrams as rules</h3>
 <div class="paragraph">
 <p>The Library API offers a feature that supports <a href="http://plantuml.com/component-diagram">PlantUML</a> diagrams.
 This feature is located in</p>
@@ -1989,7 +2112,7 @@ The way this works is to use the respective package identifiers (compare
 a class <code>some.target.Target</code> accessing <code>some.source.Source</code> would be reported as a violation.</p>
 </div>
 <div class="sect3">
-<h4 id="_configurations_2"><a class="anchor" href="#_configurations_2"></a>8.4.1. Configurations</h4>
+<h4 id="_configurations_2"><a class="anchor" href="#_configurations_2"></a>8.5.1. Configurations</h4>
 <div class="paragraph">
 <p>There are different ways to deal with dependencies of imported classes not covered by the
 diagram at all. The behavior of the PlantUML API can be configured by supplying a respective
@@ -2061,7 +2184,7 @@ an arbitrary number of packages; compare the core API)</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_freezing_arch_rules"><a class="anchor" href="#_freezing_arch_rules"></a>8.5. Freezing Arch Rules</h3>
+<h3 id="_freezing_arch_rules"><a class="anchor" href="#_freezing_arch_rules"></a>8.6. Freezing Arch Rules</h3>
 <div class="paragraph">
 <p>When rules are introduced in grown projects, there are often hundreds or even thousands of violations,
 way too many to fix immediately. The only way to tackle such extensive violations is to establish an
@@ -2073,7 +2196,7 @@ Consecutive runs will then only report new violations and ignore known violation
 If violations are fixed, <code>FreezingArchRule</code> will automatically reduce the known stored violations to prevent any regression.</p>
 </div>
 <div class="sect3">
-<h4 id="_usage"><a class="anchor" href="#_usage"></a>8.5.1. Usage</h4>
+<h4 id="_usage"><a class="anchor" href="#_usage"></a>8.6.1. Usage</h4>
 <div class="paragraph">
 <p>To freeze an arbitrary <code>ArchRule</code> just wrap it into a <code>FreezingArchRule</code>:</p>
 </div>
@@ -2090,7 +2213,7 @@ and will not be reported.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_configuration"><a class="anchor" href="#_configuration"></a>8.5.2. Configuration</h4>
+<h4 id="_configuration"><a class="anchor" href="#_configuration"></a>8.6.2. Configuration</h4>
 <div class="paragraph">
 <p>By default <code>FreezingArchRule</code> will use a simple <code>ViolationStore</code> based on plain text files.
 This is sufficient to add these files to any version control system to continuously track the progress.
@@ -2141,7 +2264,7 @@ all current violations is <code>freeze.refreeze=true</code>, where the default i
 </div>
 </div>
 <div class="sect3">
-<h4 id="_extension"><a class="anchor" href="#_extension"></a>8.5.3. Extension</h4>
+<h4 id="_extension"><a class="anchor" href="#_extension"></a>8.6.3. Extension</h4>
 <div class="paragraph">
 <p><code>FreezingArchRule</code> provides two extension points to adjust the behavior to custom needs.
 The first one is the <code>ViolationStore</code>, i.e. the store violations will be recorded to. The second one
@@ -2215,7 +2338,7 @@ A custom <code>ViolationLineMatcher</code> can again either be defined programma
 </div>
 </div>
 <div class="sect2">
-<h3 id="_software_architecture_metrics"><a class="anchor" href="#_software_architecture_metrics"></a>8.6. Software Architecture Metrics</h3>
+<h3 id="_software_architecture_metrics"><a class="anchor" href="#_software_architecture_metrics"></a>8.7. Software Architecture Metrics</h3>
 <div class="paragraph">
 <p>Similar to code quality metrics, like cyclomatic complexity or method length,
 software architecture metrics strive to measure the structure and design of software.
@@ -2240,7 +2363,7 @@ However, for further background information it is recommended to rely on
 some dedicated literature that explains these metrics in full detail.</p>
 </div>
 <div class="sect3">
-<h4 id="_cumulative_dependency_metrics_by_john_lakos"><a class="anchor" href="#_cumulative_dependency_metrics_by_john_lakos"></a>8.6.1. Cumulative Dependency Metrics by John Lakos</h4>
+<h4 id="_cumulative_dependency_metrics_by_john_lakos"><a class="anchor" href="#_cumulative_dependency_metrics_by_john_lakos"></a>8.7.1. Cumulative Dependency Metrics by John Lakos</h4>
 <div class="paragraph">
 <p>These are software architecture metrics as defined by John Lakos in his book
 "Large-Scale C++ Software Design". The basic idea is to calculate the <code>DependsOn</code>
@@ -2310,7 +2433,7 @@ System.out.println("NCCD: " + metrics.getNormalizedCumulativeComponentDependency
 </div>
 </div>
 <div class="sect3">
-<h4 id="_component_dependency_metrics_by_robert_c_martin"><a class="anchor" href="#_component_dependency_metrics_by_robert_c_martin"></a>8.6.2. Component Dependency Metrics by Robert C. Martin</h4>
+<h4 id="_component_dependency_metrics_by_robert_c_martin"><a class="anchor" href="#_component_dependency_metrics_by_robert_c_martin"></a>8.7.2. Component Dependency Metrics by Robert C. Martin</h4>
 <div class="paragraph">
 <p>These software architecture metrics were defined by Robert C. Martin in various sources,
 for example in his book "Clean architecture : a craftsman&#8217;s guide to software structure and design".</p>
@@ -2391,7 +2514,7 @@ System.out.println("D: " + metrics.getNormalizedDistanceFromMainSequence("com.ex
 </div>
 </div>
 <div class="sect3">
-<h4 id="_visibility_metrics_by_herbert_dowalil"><a class="anchor" href="#_visibility_metrics_by_herbert_dowalil"></a>8.6.3. Visibility Metrics by Herbert Dowalil</h4>
+<h4 id="_visibility_metrics_by_herbert_dowalil"><a class="anchor" href="#_visibility_metrics_by_herbert_dowalil"></a>8.7.3. Visibility Metrics by Herbert Dowalil</h4>
 <div class="paragraph">
 <p>These software architecture metrics were defined by Herbert Dowalil in his book
 "Modulare Softwarearchitektur: Nachhaltiger Entwurf durch Microservices, Modulithen und SOA 2.0".
