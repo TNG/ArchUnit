@@ -656,6 +656,11 @@ public final class JavaClass
         return this;
     }
 
+    @Override
+    public Set<JavaClass> getAllInvolvedRawTypes() {
+        return ImmutableSet.of(getBaseComponentType());
+    }
+
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getRawSuperclass() {
         return superclass.getRaw();

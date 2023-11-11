@@ -1,8 +1,11 @@
 package com.tngtech.archunit.core.domain;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -20,11 +23,27 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class JavaCodeUnitTest {
+
+    @Test
+    public void offers_all_involved_raw_types() {
+        class SampleClass<T extends Collection<? super File> & Serializable> {
+            @SuppressWarnings("unused")
+            T method(List<Map<? extends Number, Set<? super String[][]>>> input) {
+                return null;
+            }
+        }
+
+        JavaMethod method = new ClassFileImporter().importClass(SampleClass.class).getMethod("method", List.class);
+
+        assertThatTypes(method.getAllInvolvedRawTypes())
+                .matchInAnyOrder(Collection.class, File.class, Serializable.class, List.class, Map.class, Number.class, Set.class, String.class);
+    }
 
     @Test
     public void offers_all_calls_from_Self() {

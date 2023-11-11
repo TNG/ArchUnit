@@ -20,6 +20,7 @@ import java.util.function.Function;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
@@ -92,5 +93,15 @@ class FieldsShouldInternal
     @Override
     public FieldsShouldInternal notHaveRawType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(not(ArchConditions.haveRawType(predicate)));
+    }
+
+    @Override
+    public FieldsShouldInternal beAccessedByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        return addCondition(ArchConditions.beAccessedByMethodsThat(predicate));
+    }
+
+    @Override
+    public FieldsShouldInternal notBeAccessedByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        return addCondition(not(ArchConditions.beAccessedByMethodsThat(predicate)));
     }
 }
