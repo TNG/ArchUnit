@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JavaMethodTest {
-    //@Test
+    @Test
     public void isOverriddenTest() {
         class Base {
             void method1() {
@@ -70,10 +70,6 @@ public class JavaMethodTest {
         ClassFileImporter classFileImporter = new ClassFileImporter();
         JavaClass childClass = classFileImporter.importClass(Child.class);
         JavaMethod method = childClass.getMethod("method", Integer.class);
-        JavaClass parentClass = classFileImporter.importClass(Parent.class);
-        System.out.println(parentClass.getMethod("method", Number.class).getParameterTypes());
-        System.out.println(parentClass.getTypeParameters().stream().map(JavaTypeVariable::getBounds).collect(Collectors.toList()));
-        System.out.println(childClass.getRawSuperclass());
-        assertThat(method.isOverridden()).isTrue();  // Expecting value to be true but was false
+        assertThat(method.isOverridden()).isTrue();
     }
 }
