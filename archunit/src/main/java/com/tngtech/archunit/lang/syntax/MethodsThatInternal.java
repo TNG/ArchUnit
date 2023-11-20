@@ -15,8 +15,13 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.syntax.elements.MethodsThat;
+
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaMethod.Predicates.overriding;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 
 class MethodsThatInternal
         extends CodeUnitsThatInternal<JavaMethod, GivenMethodsInternal>
@@ -24,5 +29,19 @@ class MethodsThatInternal
 
     MethodsThatInternal(GivenMethodsInternal givenMethods, PredicateAggregator<JavaMethod> currentPredicate) {
         super(givenMethods, currentPredicate);
+    }
+
+    @Override
+    public GivenMethodsInternal areOverriding() {
+        return withPredicate(are(overriding()));
+    }
+
+    @Override
+    public GivenMethodsInternal areNotOverriding() {
+        return withPredicate(are(not(overriding())));
+    }
+
+    private GivenMethodsInternal withPredicate(DescribedPredicate<JavaMethod> predicate) {
+        return givenMembers.with(currentPredicate.add(predicate));
     }
 }

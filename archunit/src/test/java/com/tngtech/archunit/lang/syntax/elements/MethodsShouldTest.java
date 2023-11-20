@@ -29,6 +29,8 @@ public class MethodsShouldTest {
                 $(methods().should().notBeFinal(), ImmutableSet.of(METHOD_A, METHOD_B)),
                 $(methods().should().beStatic(), ImmutableSet.of(METHOD_A, METHOD_C)),
                 $(methods().should().notBeStatic(), ImmutableSet.of(METHOD_B, METHOD_D)),
+                $(methods().should().beOverriding(), ImmutableSet.of(METHOD_B, METHOD_C, METHOD_D)),
+                $(methods().should().notBeOverriding(), ImmutableSet.of(METHOD_A)),
                 $(methods().should().notBeFinal().andShould().notBeStatic(), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D)),
                 $(methods().should().notBeFinal().orShould().notBeStatic(), ImmutableSet.of(METHOD_B))
         );
@@ -49,7 +51,7 @@ public class MethodsShouldTest {
     private static final String METHOD_D = "methodD()";
 
     @SuppressWarnings({"unused"})
-    private static class ClassWithVariousMembers {
+    private static class ClassWithVariousMembers extends SuperclassWithVariousMembers {
         public final void methodA(int[] array) {
         }
         protected static final void methodB(boolean flag) {
@@ -58,6 +60,12 @@ public class MethodsShouldTest {
         }
         static int methodD() {
             return 0;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class SuperclassWithVariousMembers {
+        public void methodA(int[] array) {
         }
     }
 }
