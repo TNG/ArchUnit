@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -12,6 +13,7 @@ import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.expectedAccess;
+import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
 import static java.util.stream.Collectors.toSet;
 
 public class ClassFileImporterSyntheticPrivateAccessesTest {
@@ -420,6 +422,40 @@ public class ClassFileImporterSyntheticPrivateAccessesTest {
                         .to(Data_of_imports_private_constructor_reference_from_lambda.Target.class, CONSTRUCTOR_NAME)
                         .declaredInLambda()
         );
+    }
+
+    /**
+     * This is a special case, because for += concatenation of an outer string from an inner class
+     * the compiler may create a synthetic `access$123` method that creates a new `StringBuilder()` (depending on the JDK version).
+     * Before this we wrongly assumed that all that happens from such `access$123` methods
+     * are field accesses and method calls, but no constructor calls.
+     */
+    @Test
+    public void imports_synthetic_access_from_string_concatenation() {
+        @SuppressWarnings("unused")
+        class Outer {
+            private String outerPrivateString = "Hello";
+
+            class Inner {
+                private void stringConcat() {
+                    outerPrivateString += ", world!";
+                }
+            }
+        }
+
+        Set<JavaFieldAccess> fieldAccesses = new ClassFileImporter().importClasses(Outer.class, Outer.Inner.class)
+                .get(Outer.Inner.class)
+                .getFieldAccessesFromSelf();
+
+        assertThatAccesses(fieldAccesses)
+                .contain(access()
+                        .fromOrigin(Outer.Inner.class, "stringConcat")
+                        .toTarget(Outer.class, "outerPrivateString")
+                        .withAccessType(GET))
+                .contain(access()
+                        .fromOrigin(Outer.Inner.class, "stringConcat")
+                        .toTarget(Outer.class, "outerPrivateString")
+                        .withAccessType(SET));
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")

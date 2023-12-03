@@ -264,7 +264,7 @@ class ClassFileImportRecord {
     }
 
     void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        resolveSyntheticOrigins(rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD, syntheticLambdaAccessRecorder)
+        resolveSyntheticOrigins(rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
                 .forEach(doWithRecord);
     }
 
