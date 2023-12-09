@@ -58,7 +58,6 @@ import static com.tngtech.archunit.base.Optionals.asSet;
 public final class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
     private final JavaClass originClass;
     private final JavaClass targetClass;
-    private final int lineNumber;
     private final String description;
     private final SourceCodeLocation sourceCodeLocation;
     private final int hashCode;
@@ -70,7 +69,6 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
 
         this.originClass = originClass;
         this.targetClass = targetClass;
-        this.lineNumber = lineNumber;
         this.description = description;
         this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
         hashCode = Objects.hash(originClass, targetClass, lineNumber, description);
@@ -276,7 +274,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
     @PublicAPI(usage = ACCESS)
     public int compareTo(Dependency o) {
         return ComparisonChain.start()
-                .compare(lineNumber, o.lineNumber)
+                .compare(sourceCodeLocation.getLineNumber(), o.sourceCodeLocation.getLineNumber())
                 .compare(getDescription(), o.getDescription())
                 .result();
     }
@@ -297,7 +295,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         Dependency other = (Dependency) obj;
         return Objects.equals(this.originClass, other.originClass)
                 && Objects.equals(this.targetClass, other.targetClass)
-                && Objects.equals(this.lineNumber, other.lineNumber)
+                && Objects.equals(this.sourceCodeLocation.getLineNumber(), other.sourceCodeLocation.getLineNumber())
                 && Objects.equals(this.description, other.description);
     }
 
@@ -306,7 +304,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         return MoreObjects.toStringHelper(this)
                 .add("originClass", originClass)
                 .add("targetClass", targetClass)
-                .add("lineNumber", lineNumber)
+                .add("sourceCodeLocation", sourceCodeLocation)
                 .add("description", description)
                 .toString();
     }

@@ -29,14 +29,12 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
 
     private final JavaCodeUnit owner;
     private final JavaClass type;
-    private final int lineNumber;
     private final boolean declaredInLambda;
     private final SourceCodeLocation sourceCodeLocation;
 
     private InstanceofCheck(JavaCodeUnit owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
         this.owner = checkNotNull(owner);
         this.type = checkNotNull(type);
-        this.lineNumber = lineNumber;
         this.declaredInLambda = declaredInLambda;
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
     }
@@ -61,7 +59,7 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
 
     @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
-        return lineNumber;
+        return sourceCodeLocation.getLineNumber();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -79,7 +77,7 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
         return toStringHelper(this)
                 .add("owner", owner)
                 .add("type", type)
-                .add("lineNumber", lineNumber)
+                .add("sourceCodeLocation", sourceCodeLocation)
                 .add("declaredInLambda", declaredInLambda)
                 .toString();
     }
