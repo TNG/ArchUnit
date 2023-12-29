@@ -89,45 +89,122 @@ like this:
 
 [plantuml, "domain-overview"]
 ----
-skinparam componentStyle uml2
+@startuml
+skinparam hyperlinkUnderline false
+hide empty members
 
-skinparam component {
-  BorderColor #grey
-  BackgroundColor #white
-}
+!function $getDomainLink($name, $prefix="") !return "[[https://javadoc.io/doc/com.tngtech.archunit/archunit/latest/com/tngtech/archunit/core/domain/" + $prefix + $name + ".html " + $name + "]]"
+!function $getAccessTargetLink($name) !return $getDomainLink($name, "AccessTarget.")
 
-skinparam class {
-  BorderColor #grey
-  BackgroundColor #white
-}
+!unquoted procedure domainLink($name, $parameter="")
+  "$getDomainLink($name)$parameter " as $name
+!endprocedure
 
-class JavaPackage
-class JavaClass
-class JavaMember
-class JavaField
-class JavaCodeUnit
-class ThrowsClause
-class JavaConstructor
-class JavaMethod
-class JavaStaticInitializer
+!unquoted procedure accessTargetLink($name)
+    "$getAccessTargetLink($name) " as $name
+!endprocedure
 
-class JavaFieldAccess
-class JavaConstructorCall
-class JavaMethodCall
+interface domainLink(JavaType)
+interface domainLink(JavaParameterizedType)
+class domainLink(JavaGenericArrayType)
+class domainLink(JavaWildcardType)
+class domainLink(JavaTypeVariable)
 
-JavaPackage *--* "1..*" JavaClass : has
-JavaClass *-- "0..*" JavaMember : has
-JavaMember <|-- JavaField : extends
-JavaMember <|-- JavaCodeUnit : extends
-JavaCodeUnit <|-- JavaConstructor : extends
-JavaCodeUnit <|-- JavaMethod : extends
-JavaCodeUnit <|-- JavaStaticInitializer : extends
-JavaConstructor *-- "1" ThrowsClause : has
-JavaMethod *-- "1" ThrowsClause : has
+class domainLink(JavaClasses)<<Collection<JavaClass>>>
 
-JavaCodeUnit *-- "0..*" JavaFieldAccess : has
-JavaCodeUnit *-- "0..*" JavaMethodCall : has
-JavaCodeUnit *-- "0..*" JavaConstructorCall : has
+class domainLink(JavaPackage)
+class domainLink(JavaClass)
+abstract class domainLink(JavaMember)
+
+class domainLink(JavaField)
+abstract class domainLink(JavaCodeUnit)
+class domainLink(JavaParameter)
+class domainLink(JavaMethod)
+class domainLink(JavaConstructor)
+class domainLink(JavaStaticInitializer)
+
+class domainLink(JavaAnnotation, <OWNER>)
+
+class domainLink(ThrowsClause, <LOCATION>)<<List<ThrowsDeclaration<LOCATION>>>
+class domainLink(ThrowsDeclaration)
+class domainLink(ReferencedClassObject)
+class domainLink(InstanceofCheck)
+class domainLink(TryCatchBlock)
+abstract class domainLink(JavaAccess, \n<TARGET extends $getDomainLink(AccessTarget)>)
+class domainLink(JavaFieldAccess)
+abstract class domainLink(JavaCodeUnitAccess, \n<T extends $getAccessTargetLink(CodeUnitAccessTarget)>)
+abstract class domainLink(JavaCodeUnitReference, \n<T extends $getAccessTargetLink(CodeUnitReferenceTarget)>)
+class domainLink(JavaMethodReference)
+class domainLink(JavaConstructorReference)
+abstract class domainLink(JavaCall, \n<T extends $getAccessTargetLink(CodeUnitCallTarget)>)
+class domainLink(JavaMethodCall)
+class domainLink(JavaConstructorCall)
+
+abstract class domainLink(AccessTarget)
+class accessTargetLink(FieldAccessTarget)
+abstract class accessTargetLink(CodeUnitAccessTarget)
+abstract class accessTargetLink(CodeUnitReferenceTarget)
+class accessTargetLink(MethodReferenceTarget)
+class accessTargetLink(ConstructorReferenceTarget)
+abstract class accessTargetLink(CodeUnitCallTarget)
+class accessTargetLink(MethodCallTarget)
+class accessTargetLink(ConstructorCallTarget)
+
+JavaClass ---u-|> JavaType
+JavaParameterizedType --|> JavaType
+JavaTypeVariable --|> JavaType
+JavaGenericArrayType --|> JavaType
+JavaWildcardType --|> JavaType
+
+JavaClasses -. JavaClass : contains >
+
+JavaPackage ||-{ "1..*" JavaClass : has >
+
+JavaParameter ||--{ "0..*" JavaAnnotation : has >
+JavaPackage ||--{ "0..*" JavaAnnotation : has >
+JavaClass ||--{ "0..*" JavaAnnotation : has >
+JavaMember ||--{ "0..*" JavaAnnotation : has >
+
+JavaClass ||-{ "0..*" JavaMember : has >
+
+JavaMember <|-- JavaField
+JavaMember <|--r- JavaCodeUnit
+
+JavaCodeUnit ||--{ "0..*" JavaParameter : has >
+JavaCodeUnit <|-- JavaMethod
+JavaCodeUnit <|--- JavaConstructor
+JavaCodeUnit <|-- JavaStaticInitializer
+
+JavaCodeUnit ||--u{ "0..*" InstanceofCheck : has >
+JavaCodeUnit ||--u{ "0..*" ReferencedClassObject : has >
+JavaCodeUnit ||--u|| "1" ThrowsClause : has >
+JavaCodeUnit ||--u{ "0..*" TryCatchBlock : has >
+JavaCodeUnit ||--r-{ "0..*" JavaAccess : has >
+
+ThrowsClause ||-u-{ "0..*" ThrowsDeclaration : has >
+
+JavaAccess <|-- JavaFieldAccess : T =\n$getAccessTargetLink(FieldAccessTarget)
+JavaAccess <|-- JavaCodeUnitAccess
+
+JavaCodeUnitAccess <|-- JavaCall
+JavaCall <|-- JavaMethodCall : T =\n$getAccessTargetLink(MethodCallTarget)
+JavaCall <|--- JavaConstructorCall : T=\n$getAccessTargetLink(ConstructorCallTarget)
+
+JavaCodeUnitAccess <|-- JavaCodeUnitReference
+JavaCodeUnitReference <|-- JavaMethodReference : T=\n$getAccessTargetLink(MethodReferenceTarget)
+JavaCodeUnitReference <|--- JavaConstructorReference : T=\n$getAccessTargetLink(ConstructorReferenceTarget)
+
+JavaAccess ||-r-|| "1" AccessTarget : has >
+FieldAccessTarget -u-|> AccessTarget
+FieldAccessTarget -[hidden]r-> CodeUnitAccessTarget
+CodeUnitAccessTarget -u-|> AccessTarget
+CodeUnitCallTarget -u-|> CodeUnitAccessTarget
+MethodCallTarget -u-|> CodeUnitCallTarget
+ConstructorCallTarget --u-|> CodeUnitCallTarget
+CodeUnitReferenceTarget -u-|> CodeUnitAccessTarget
+MethodReferenceTarget -u-|> CodeUnitReferenceTarget
+ConstructorReferenceTarget --u-|> CodeUnitReferenceTarget
+@enduml
 ----
 
 Most objects resemble the Java Reflection API, including inheritance relations. Thus a `JavaClass`
