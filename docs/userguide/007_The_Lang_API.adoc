@@ -246,7 +246,7 @@ detailed about fields, methods or constructors. A generic API will never be able
 every imaginable concept out of the box. Thus ArchUnit's rule API has at its foundation
 a more generic API that controls the types of objects that our concept targets.
 
-[plantuml, "import-vs-lang"]
+[plantuml, "import-vs-lang", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 

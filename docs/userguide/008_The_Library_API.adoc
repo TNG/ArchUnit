@@ -55,7 +55,7 @@ More precisely, the following holds:
   contain dependencies on any `adapter` package.
 
 
-[plantuml, "onion-architecture-check"]
+[plantuml, "onion-architecture-check", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -357,7 +357,7 @@ Diagrams supported have to be component diagrams and associate classes to compon
 The way this works is to use the respective package identifiers (compare
 `ArchConditions.onlyHaveDependenciesInAnyPackage(..)`) as stereotypes:
 
-[plantuml, "simple-plantuml-archrule-example"]
+[plantuml, "simple-plantuml-archrule-example", svg, opts=interactive]
 ----
 [Some Source] <<..some.source..>>
 [Some Target] <<..some.target..>> as target
@@ -600,7 +600,7 @@ The `CCD` of the system divided by the `CCD` of a balanced binary tree with the 
 
 ===== Example
 
-[plantuml,"lakos-example"]
+[plantuml, "lakos-example", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -690,7 +690,7 @@ so it makes sense to only consider those classes to calculate the *A* value.
 The following provides some example where the `A` values assume some random factor
 of abstract classes within the respective component.
 
-[plantuml,"martin-example"]
+[plantuml, "martin-example", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -755,7 +755,7 @@ The metrics are composed from the following definitions:
 
 ===== Example
 
-[plantuml,"dowalil-example"]
+[plantuml, "dowalil-example", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
