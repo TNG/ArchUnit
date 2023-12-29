@@ -209,6 +209,8 @@ inheritance is not completely straight forward. Consider for example
 
 [plantuml, "resolution-example", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -232,7 +234,7 @@ class SuperclassBeingAccessed {
 
 SuperclassBeingAccessed <|-- ClassBeingAccessed
 ClassAccessing o-- ClassBeingAccessed
-
+@enduml
 ----
 
 The bytecode will record a field access from `ClassAccessing.accessField()` to
@@ -246,6 +248,8 @@ The situation looks roughly like
 
 [plantuml, "resolution-overview", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -276,6 +280,7 @@ MethodCallTarget "1" -- "0..*" JavaMethod : resolves to
 
 JavaConstructorCall "1" *-- "1" ConstructorCallTarget : has
 ConstructorCallTarget "1" -- "0..1" JavaConstructor : resolves to
+@enduml
 ----
 
 Two things might seem strange at the first look.
@@ -292,6 +297,8 @@ cases, for example:
 
 [plantuml, "diamond-example", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -304,13 +311,13 @@ skinparam class {
   BackgroundColor #white
 }
 
-class A <<interface>> {
+interface A <<interface>> {
   void targetMethod()
 }
-class B <<interface>> {
+interface B <<interface>> {
   void targetMethod()
 }
-class C <<abstract>> {
+abstract class C <<abstract>> {
 }
 class D {
   void callTargetMethod()
@@ -319,6 +326,7 @@ class D {
 A <|-- C : implements
 B <|-- C : implements
 D -right- C : calls targetMethod()
+@enduml
 ----
 
 While this situation will always be resolved in a specified way for a real program,
