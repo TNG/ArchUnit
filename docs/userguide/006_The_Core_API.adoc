@@ -140,16 +140,6 @@ abstract class domainLink(JavaCall, \n<T extends $getAccessTargetLink(CodeUnitCa
 class domainLink(JavaMethodCall)
 class domainLink(JavaConstructorCall)
 
-abstract class domainLink(AccessTarget)
-class accessTargetLink(FieldAccessTarget)
-abstract class accessTargetLink(CodeUnitAccessTarget)
-abstract class accessTargetLink(CodeUnitReferenceTarget)
-class accessTargetLink(MethodReferenceTarget)
-class accessTargetLink(ConstructorReferenceTarget)
-abstract class accessTargetLink(CodeUnitCallTarget)
-class accessTargetLink(MethodCallTarget)
-class accessTargetLink(ConstructorCallTarget)
-
 JavaClass ---u-|> JavaType
 JavaParameterizedType --|> JavaType
 JavaTypeVariable --|> JavaType
@@ -193,17 +183,6 @@ JavaCall <|--- JavaConstructorCall : T=\n$getAccessTargetLink(ConstructorCallTar
 JavaCodeUnitAccess <|-- JavaCodeUnitReference
 JavaCodeUnitReference <|-- JavaMethodReference : T=\n$getAccessTargetLink(MethodReferenceTarget)
 JavaCodeUnitReference <|--- JavaConstructorReference : T=\n$getAccessTargetLink(ConstructorReferenceTarget)
-
-JavaAccess ||-r-|| "1" AccessTarget : has >
-FieldAccessTarget -u-|> AccessTarget
-FieldAccessTarget -[hidden]r-> CodeUnitAccessTarget
-CodeUnitAccessTarget -u-|> AccessTarget
-CodeUnitCallTarget -u-|> CodeUnitAccessTarget
-MethodCallTarget -u-|> CodeUnitCallTarget
-ConstructorCallTarget --u-|> CodeUnitCallTarget
-CodeUnitReferenceTarget -u-|> CodeUnitAccessTarget
-MethodReferenceTarget -u-|> CodeUnitReferenceTarget
-ConstructorReferenceTarget --u-|> CodeUnitReferenceTarget
 @enduml
 ----
 
