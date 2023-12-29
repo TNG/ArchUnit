@@ -86,6 +86,7 @@ classes().that().haveNameMatching(".*Bar")
 ----
 @startuml
 hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -158,6 +159,7 @@ classes().that().implement(Connection.class)
 ----
 @startuml
 hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -235,6 +237,7 @@ classes().that().areAssignableTo(EntityManager.class)
 ----
 @startuml
 hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -292,6 +295,7 @@ layeredArchitecture()
 ----
 @startuml
 hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {

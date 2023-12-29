@@ -59,6 +59,7 @@ More precisely, the following holds:
 ----
 @startuml
 hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam class {
