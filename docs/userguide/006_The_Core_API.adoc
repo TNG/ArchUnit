@@ -87,7 +87,7 @@ The domain objects represent Java code, thus the naming should be pretty straigh
 commonly, the `ClassFileImporter` imports instances of type `JavaClass`. A rough overview looks
 like this:
 
-[plantuml, "domain-overview"]
+[plantuml, "domain-overview", svg, opts=interactive]
 ----
 @startuml
 skinparam hyperlinkUnderline false
@@ -207,7 +207,7 @@ For example, every `JavaField` allows to call `JavaField#getAccessesToSelf()` to
 code units within the graph that access this specific field. The resolution process through
 inheritance is not completely straight forward. Consider for example
 
-[plantuml, "resolution-example"]
+[plantuml, "resolution-example", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -244,7 +244,7 @@ member within another class. If a member is queried for `accessesToSelf()` thoug
 will resolve the necessary targets and determine, which member is represented by which target.
 The situation looks roughly like
 
-[plantuml, "resolution-overview"]
+[plantuml, "resolution-overview", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -290,7 +290,7 @@ Second, why can there be more than one resolved methods for method calls?
 The reason for this is that a call target might indeed match several methods in those
 cases, for example:
 
-[plantuml, "diamond-example"]
+[plantuml, "diamond-example", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 

@@ -4,7 +4,7 @@ The following section illustrates some typical checks you could do with ArchUnit
 
 === Package Dependency Checks
 
-[plantuml, "package-deps-no-access"]
+[plantuml, "package-deps-no-access", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -23,7 +23,7 @@ noClasses().that().resideInAPackage("..source..")
     .should().dependOnClassesThat().resideInAPackage("..foo..")
 ----
 
-[plantuml, "package-deps-only-access"]
+[plantuml, "package-deps-only-access", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -47,7 +47,7 @@ classes().that().resideInAPackage("..foo..")
 
 === Class Dependency Checks
 
-[plantuml, "class-naming-deps"]
+[plantuml, "class-naming-deps", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -79,7 +79,7 @@ classes().that().haveNameMatching(".*Bar")
 
 === Class and Package Containment Checks
 
-[plantuml, "class-package-contain"]
+[plantuml, "class-package-contain", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -113,7 +113,7 @@ classes().that().haveSimpleNameStartingWith("Foo")
 
 === Inheritance Checks
 
-[plantuml, "inheritance-naming-check"]
+[plantuml, "inheritance-naming-check", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -145,7 +145,7 @@ classes().that().implement(Connection.class)
     .should().haveSimpleNameEndingWith("Connection")
 ----
 
-[plantuml, "inheritance-access-check"]
+[plantuml, "inheritance-access-check", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -183,7 +183,7 @@ classes().that().areAssignableTo(EntityManager.class)
 
 === Annotation Checks
 
-[plantuml, "inheritance-annotation-check"]
+[plantuml, "inheritance-annotation-check", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -216,7 +216,7 @@ classes().that().areAssignableTo(EntityManager.class)
 
 === Layer Checks
 
-[plantuml, "layer-check"]
+[plantuml, "layer-check", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
@@ -270,7 +270,7 @@ layeredArchitecture()
 
 === Cycle Checks
 
-[plantuml, "cycle-check"]
+[plantuml, "cycle-check", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 
