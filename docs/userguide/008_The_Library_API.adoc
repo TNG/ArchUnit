@@ -57,6 +57,8 @@ More precisely, the following holds:
 
 [plantuml, "onion-architecture-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam class {
@@ -112,6 +114,7 @@ note right on link #crimson: application services must not\nknow about any adapt
 
 Cli --> RestController #crimson
 note right on link #crimson: one adapter must not know\nabout any other adapter
+@enduml
 ----
 
 

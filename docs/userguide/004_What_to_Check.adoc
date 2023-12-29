@@ -49,6 +49,8 @@ classes().that().resideInAPackage("..foo..")
 
 [plantuml, "class-naming-deps", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -69,6 +71,7 @@ note top on link #crimson: forbidden
 
 Bar --> FooBar #green
 note left on link #green: allowed
+@enduml
 ----
 
 [source,java]
@@ -81,6 +84,8 @@ classes().that().haveNameMatching(".*Bar")
 
 [plantuml, "class-package-contain", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -103,6 +108,7 @@ package com.wrong {
 
 note "resides in wrong package" as WrongPackage #crimson
 FooController .. WrongPackage
+@enduml
 ----
 
 [source,java]
@@ -115,6 +121,8 @@ classes().that().haveSimpleNameStartingWith("Foo")
 
 [plantuml, "inheritance-naming-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -137,6 +145,7 @@ FtpConnection --|> Connection #green
 SshThing --|> Connection #crimson
 
 note right on link #crimson: Has wrong name
+@enduml
 ----
 
 [source,java]
@@ -147,6 +156,8 @@ classes().that().implement(Connection.class)
 
 [plantuml, "inheritance-access-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -173,6 +184,7 @@ ValidPersistenceUser --> EntityManager #green
 IllegalPersistenceUser --> EntityManager #crimson
 
 note right on link #crimson: Accessor resides in wrong package
+@enduml
 ----
 
 [source,java]
@@ -185,6 +197,8 @@ classes().that().areAssignableTo(EntityManager.class)
 
 [plantuml, "inheritance-annotation-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -206,6 +220,7 @@ ValidPersistenceUser --> EntityManager #green
 IllegalPersistenceUser --> EntityManager #crimson
 
 note right on link #crimson: Accessor is not annotated with @Transactional
+@enduml
 ----
 
 [source,java]
@@ -218,6 +233,8 @@ classes().that().areAssignableTo(EntityManager.class)
 
 [plantuml, "layer-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -253,6 +270,7 @@ note right on link #crimson: Access goes against layers
 
 SomePersistenceManager -up--> SomeServiceOne #crimson
 note right on link #crimson: Access goes against layers
+@enduml
 ----
 
 [source,java]
@@ -272,6 +290,8 @@ layeredArchitecture()
 
 [plantuml, "cycle-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -301,6 +321,7 @@ ClassOneInModuleOne --> ClassTwoInModuleTwo #crimson
 ClassOneInModuleTwo --> ClassOneInModuleThree #crimson
 ClassTwoInModuleThree --> ClassOneInModuleOne #crimson
 note right on link #crimson: Combination of accesses forms cycle
+@enduml
 ----
 
 [source,java]
