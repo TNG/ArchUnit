@@ -1,9 +1,34 @@
+plugins {
+    id 'java-library'
+}
+
 abstract class ArchUnitTestExtension {
     boolean providesTestJar = false
-    boolean hasSlowTests = false
 }
 
 ext.archUnitTest = extensions.create('archUnitTest', ArchUnitTestExtension)
+
+dependencies {
+    testImplementation dependency.junit5JupiterApi
+
+    testRuntimeOnly dependency.junit5JupiterEngine
+    testRuntimeOnly dependency.junit5VintageEngine
+}
+
+tasks.withType(Test) {
+    maxHeapSize = "2G"
+
+    useJUnitPlatform {
+        if (!project.hasProperty('allTests')) {
+            excludeTags('com.tngtech.archunit.Slow')
+        }
+    }
+
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+}
 
 afterEvaluate {
     if (archUnitTest.providesTestJar) {
@@ -19,26 +44,6 @@ afterEvaluate {
         artifacts {
             tests testJar
         }
-    }
-
-    if (archUnitTest.hasSlowTests) {
-        tasks.withType(Test) {
-            assert !it.testFramework.class.name.contains('JUnitPlatform'): "Slow tests are not yet supported for JUnit 5 tests"
-            if (!project.hasProperty('allTests')) {
-                useJUnit {
-                    excludeCategories 'com.tngtech.archunit.Slow'
-                }
-            }
-        }
-    }
-}
-
-tasks.withType(Test) {
-    maxHeapSize = "2G"
-
-    testLogging {
-        events "failed"
-        exceptionFormat "full"
     }
 }
 

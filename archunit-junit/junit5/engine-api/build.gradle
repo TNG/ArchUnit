@@ -16,9 +16,6 @@ dependencies {
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.assertj
     testImplementation dependency.mockito
-    testImplementation dependency.junit5JupiterApi
-
-    testRuntimeOnly dependency.junit5JupiterEngine
 }
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive

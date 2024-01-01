@@ -50,7 +50,6 @@ publishing {
 
 archUnitTest {
     providesTestJar = true
-    hasSlowTests = true
 }
 
 def jdk9MainDirs = ['src/jdk9main/java']
@@ -68,12 +67,14 @@ sourceSets {
             srcDirs = jdk9TestDirs
         }
         compileClasspath += sourceSets.test.compileClasspath + sourceSets.jdk9main.output.classesDirs
+        runtimeClasspath += sourceSets.test.runtimeClasspath
     }
     jdk16test {
         java {
             srcDirs = jdk16TestDirs
         }
         compileClasspath += sourceSets.test.compileClasspath + sourceSets.jdk9main.output.classesDirs
+        runtimeClasspath += sourceSets.test.runtimeClasspath
     }
 }
 

@@ -13,9 +13,9 @@ dependencies {
 }
 
 test {
-    if (!project.hasProperty('example')) {
-        useJUnit {
-            excludeCategories 'com.tngtech.archunit.exampletest.Example'
+    useJUnitPlatform {
+        if (!project.hasProperty('example')) {
+            excludeTags('com.tngtech.archunit.exampletest.Example')
         }
     }
 }

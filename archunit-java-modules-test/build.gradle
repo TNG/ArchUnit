@@ -10,15 +10,6 @@ ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 dependencies {
     testImplementation project(path: ':archunit', configuration: 'shadow')
     testImplementation dependency.log4j_slf4j
-
-    testImplementation dependency.junit5JupiterApi
-
-    testRuntimeOnly dependency.junitPlatform
-    testRuntimeOnly dependency.junit5JupiterEngine
-}
-
-test {
-    useJUnitPlatform()
 }
 
 def addArchUnitModuleOptions = {
