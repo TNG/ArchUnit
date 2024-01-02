@@ -83,8 +83,8 @@ class PlantUmlParser {
     private ImmutableList<ParsedDependency> parseDependencies(PlantUmlComponents plantUmlComponents, List<String> plantUmlDiagramLines) {
         ImmutableList.Builder<ParsedDependency> result = ImmutableList.builder();
         for (PlantUmlDependencyMatcher matcher : plantUmlPatterns.matchDependencies(plantUmlDiagramLines)) {
-            Optional<PlantUmlComponent> origin = findComponentMatching(plantUmlComponents, matcher.matchOrigin());
-            Optional<PlantUmlComponent> target = findComponentMatching(plantUmlComponents, matcher.matchTarget());
+            Optional<PlantUmlComponent> origin = tryFindComponentMatching(plantUmlComponents, matcher.matchOrigin());
+            Optional<PlantUmlComponent> target = tryFindComponentMatching(plantUmlComponents, matcher.matchTarget());
             if (origin.isPresent() && target.isPresent()) {
                 result.add(new ParsedDependency(origin.get().getIdentifier(), target.get().getIdentifier()));
             } else {
@@ -122,7 +122,7 @@ class PlantUmlParser {
         return result;
     }
 
-    private Optional<PlantUmlComponent> findComponentMatching(PlantUmlComponents plantUmlComponents, String originOrTargetString) {
+    private Optional<PlantUmlComponent> tryFindComponentMatching(PlantUmlComponents plantUmlComponents, String originOrTargetString) {
         originOrTargetString = originOrTargetString.trim()
                 .replaceAll("^\\[", "")
                 .replaceAll("]$", "");
