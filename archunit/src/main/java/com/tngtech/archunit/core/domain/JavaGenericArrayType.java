@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 TNG Technology Consulting GmbH
+ * Copyright 2014-2024 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.tngtech.archunit.core.domain;
+
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 
@@ -65,6 +67,11 @@ public final class JavaGenericArrayType implements JavaType {
     @PublicAPI(usage = ACCESS)
     public JavaClass toErasure() {
         return erasure;
+    }
+
+    @Override
+    public Set<JavaClass> getAllInvolvedRawTypes() {
+        return this.componentType.getAllInvolvedRawTypes();
     }
 
     @Override

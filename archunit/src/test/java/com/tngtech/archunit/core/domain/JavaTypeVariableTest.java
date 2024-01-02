@@ -10,6 +10,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypeErasuresOf;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 
 public class JavaTypeVariableTest {
 
@@ -117,6 +118,30 @@ public class JavaTypeVariableTest {
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(3)).toErasure()).matches(Object[].class);
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(4)).toErasure()).matches(String[][].class);
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(5)).toErasure()).matches(List[][][].class);
+    }
+
+    @Test
+    public void all_involved_raw_types() {
+        class SampleClass<T extends String & List<Serializable[]>> {
+            @SuppressWarnings("unused")
+            private T field;
+        }
+
+        JavaTypeVariable<?> typeVariable = (JavaTypeVariable<?>) new ClassFileImporter().importClass(SampleClass.class).getField("field").getType();
+
+        assertThatTypes(typeVariable.getAllInvolvedRawTypes()).matchInAnyOrder(String.class, List.class, Serializable.class);
+    }
+
+    @Test
+    public void all_involved_raw_types_of_generic_array() {
+        class SampleClass<T extends String & List<Serializable>> {
+            @SuppressWarnings("unused")
+            private T[][] field;
+        }
+
+        JavaGenericArrayType typeVariable = (JavaGenericArrayType) new ClassFileImporter().importClass(SampleClass.class).getField("field").getType();
+
+        assertThatTypes(typeVariable.getAllInvolvedRawTypes()).matchInAnyOrder(String.class, List.class, Serializable.class);
     }
 
     @Test

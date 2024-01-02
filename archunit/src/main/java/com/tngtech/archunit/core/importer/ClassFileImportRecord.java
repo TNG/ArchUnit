@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 TNG Technology Consulting GmbH
+ * Copyright 2014-2024 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -264,7 +264,7 @@ class ClassFileImportRecord {
     }
 
     void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        resolveSyntheticOrigins(rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD, syntheticLambdaAccessRecorder)
+        resolveSyntheticOrigins(rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
                 .forEach(doWithRecord);
     }
 

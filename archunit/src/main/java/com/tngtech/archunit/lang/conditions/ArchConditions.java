@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 TNG Technology Consulting GmbH
+ * Copyright 2014-2024 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1272,6 +1272,21 @@ public final class ArchConditions {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
                 origin.is(matching(JavaConstructor.class, predicate)), GET_CALLS_OF_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaField> beAccessedByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        return new ArchCondition<JavaField>("be accessed by methods that " + predicate.getDescription()) {
+            @Override
+            public void check(JavaField field, ConditionEvents events) {
+                field.getAccessesToSelf().stream()
+                        .filter(access -> access.getOrigin() instanceof JavaMethod)
+                        .forEach(access -> {
+                            boolean satisfied = predicate.test((JavaMethod) access.getOrigin());
+                            events.add(new SimpleConditionEvent(field, satisfied, access.getDescription()));
+                        });
+            }
+        };
     }
 
     /**

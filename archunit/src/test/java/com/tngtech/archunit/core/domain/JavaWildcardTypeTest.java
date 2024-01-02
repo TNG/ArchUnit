@@ -1,7 +1,10 @@
 package com.tngtech.archunit.core.domain;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Test;
@@ -152,6 +155,50 @@ public class JavaWildcardTypeTest {
 
         wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithGenericArrayBounds.class, 5);
         assertThatType(wildcard.toErasure()).matches(List[][][].class);
+    }
+
+    @Test
+    public void allInvolvedRawTypes_finds_no_involved_raw_types_of_unbound_wildcard() {
+        @SuppressWarnings("unused")
+        class SampleClass<T extends List<?>> {
+        }
+
+        JavaWildcardType type = importWildcardTypeOf(SampleClass.class);
+
+        assertThat(type.getAllInvolvedRawTypes()).isEmpty();
+    }
+
+    @Test
+    public void allInvolvedRawTypes_finds_involved_raw_types_of_lower_bounds() {
+        @SuppressWarnings("unused")
+        class SampleClass<T extends List<? super String>> {
+        }
+
+        JavaWildcardType type = importWildcardTypeOf(SampleClass.class);
+
+        assertThatTypes(type.getAllInvolvedRawTypes()).matchInAnyOrder(String.class);
+    }
+
+    @Test
+    public void allInvolvedRawTypes_finds_involved_raw_types_of_upper_bounds() {
+        @SuppressWarnings("unused")
+        class SampleClass<T extends List<? extends String>> {
+        }
+
+        JavaWildcardType type = importWildcardTypeOf(SampleClass.class);
+
+        assertThatTypes(type.getAllInvolvedRawTypes()).matchInAnyOrder(String.class);
+    }
+
+    @Test
+    public void allInvolvedRawTypes_finds_involved_raw_types_for_complex_upper_and_lower_bounds() {
+        @SuppressWarnings("unused")
+        class SampleClass<T extends List<? extends Map<? extends List<String[][]>, Set<? super File[]>>>> {
+        }
+
+        JavaWildcardType type = importWildcardTypeOf(SampleClass.class);
+
+        assertThatTypes(type.getAllInvolvedRawTypes()).matchInAnyOrder(Map.class, List.class, String.class, Set.class, File.class);
     }
 
     @Test

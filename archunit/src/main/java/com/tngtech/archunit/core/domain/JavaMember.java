@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 TNG Technology Consulting GmbH
+ * Copyright 2014-2024 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,15 @@ public abstract class JavaMember implements
         this.sourceCodeLocation = SourceCodeLocation.of(owner, builder.getFirstLineNumber());
         this.modifiers = checkNotNull(builder.getModifiers());
     }
+
+    /**
+     * Similar to {@link JavaType#getAllInvolvedRawTypes()}, this method returns all raw types involved in this {@link JavaMember member's} signature.
+     * For more concrete details refer to {@link JavaField#getAllInvolvedRawTypes()} and {@link JavaCodeUnit#getAllInvolvedRawTypes()}.
+     *
+     * @return All raw types involved in the signature of this member
+     */
+    @PublicAPI(usage = ACCESS)
+    public abstract Set<JavaClass> getAllInvolvedRawTypes();
 
     @Override
     @PublicAPI(usage = ACCESS)

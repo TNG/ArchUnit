@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 TNG Technology Consulting GmbH
+ * Copyright 2014-2024 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,15 @@ public final class JavaField extends JavaMember implements HasType {
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
         return type.toErasure();
+    }
+
+    /**
+     * @return All raw types involved in this field's signature, which is equivalent to {@link #getType()}.{@link JavaType#getAllInvolvedRawTypes() getAllInvolvedRawTypes()}.
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getAllInvolvedRawTypes() {
+        return getType().getAllInvolvedRawTypes();
     }
 
     @Override

@@ -1,8 +1,37 @@
+import groovy.xml.XmlSlurper
+
 import java.nio.file.Files
 import java.util.jar.JarFile
 
 plugins {
     id 'archunit.java-artifact-check-conventions'
+}
+
+task ensureReleaseCheckUpToDate {
+    doFirst {
+        def mavenProject = new XmlSlurper().parseText(getExpectedPomFileContent())
+        def releaseCheckDependencies = mavenProject.dependencies.dependency
+                .findAll { it.groupId != 'com.tngtech.archunit' }
+                .collect {
+                    [groupId: it.groupId.toString(), artifactId: it.artifactId.toString(), version: it.version.toString()]
+                }
+
+        releaseCheckDependencies.each { releaseCheckDependency ->
+            def matchingProjectDependency = dependency.values().find {
+                it.group == releaseCheckDependency.groupId && it.name == releaseCheckDependency.artifactId
+            }
+            assert matchingProjectDependency != null:
+                    "No project dependency was found for expected release dependency ${releaseCheckDependency}"
+            assert matchingProjectDependency.version == releaseCheckDependency.version:
+                    "Release check dependency version ${releaseCheckDependency} doesn't match " +
+                            "project dependency version ${matchingProjectDependency}"
+        }
+    }
+}
+check.dependsOn(ensureReleaseCheckUpToDate)
+
+ext.getExpectedPomFileContent = {
+    getClass().getResourceAsStream("release_check/${project.name}.pom").text.replace('${archunit.version}', version).stripIndent()
 }
 
 task checkUploadedArtifacts {
@@ -24,10 +53,6 @@ task checkUploadedArtifacts {
 
         def getUploadedPomFileContent = {
             new URL("${createArtifactUrl(project.name)}.pom").text.stripIndent()
-        }
-
-        def getExpectedPomFileContent = {
-            getClass().getResourceAsStream("release_check/${project.name}.pom").text.replace('${archunit.version}', version).stripIndent()
         }
 
         def checkPom = {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 TNG Technology Consulting GmbH
+ * Copyright 2014-2024 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 
 @Internal
 @SuppressWarnings("UnusedReturnValue")
@@ -1214,6 +1215,14 @@ public final class DomainBuilders {
         @Override
         public JavaClass toErasure() {
             return type.toErasure();
+        }
+
+        @Override
+        public Set<JavaClass> getAllInvolvedRawTypes() {
+            return Stream.concat(
+                    type.getAllInvolvedRawTypes().stream(),
+                    typeArguments.stream().map(JavaType::getAllInvolvedRawTypes).flatMap(Set::stream)
+            ).collect(toSet());
         }
 
         @Override

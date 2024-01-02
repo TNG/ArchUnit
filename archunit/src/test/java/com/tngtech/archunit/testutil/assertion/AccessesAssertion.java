@@ -7,6 +7,8 @@ import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import org.assertj.core.api.Condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +37,9 @@ public class AccessesAssertion {
         }
         assertThat(actualRemaining).as("Unexpected " + JavaAccess.class.getSimpleName()).isEmpty();
         return this;
-    }public static AccessCondition access() {
+    }
+
+    public static AccessCondition access() {
         return new AccessCondition();
     }
 
@@ -67,6 +71,15 @@ public class AccessesAssertion {
             return new AccessCondition(
                     predicate.and(toCodeUnit)
                             .as("%s to target %s.%s", predicate.getDescription(), owner.getName(), name));
+        }
+
+        public Condition<? super JavaAccess<?>> withAccessType(AccessType accessType) {
+            DescribedPredicate<JavaAccess<?>> withAccessType = DescribedPredicate.describe("", access ->
+                    access instanceof JavaFieldAccess
+                            && ((JavaFieldAccess) access).getAccessType().equals(accessType));
+            return new AccessCondition(
+                    predicate.and(withAccessType)
+                            .as("%s with access type %s", predicate.getDescription(), accessType));
         }
 
         public AccessCondition declaredInLambda() {
