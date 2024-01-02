@@ -437,6 +437,23 @@ public class PlantUmlParserTest {
         assertThat(b.getDependencies()).isEmpty();
     }
 
+    @Test
+    public void supports_components_declared_with_component_keyword() {
+        File file = TestDiagram.in(temporaryFolder)
+                .rawLine("component [CompA] <<..c1..>>")
+                .rawLine("component [Comp B] <<..c2..>> as CompB")
+                .dependencyFrom("CompA").to("CompB")
+                .write();
+
+        PlantUmlDiagram diagram = createDiagram(file);
+
+        PlantUmlComponent a = getComponentWithName("CompA", diagram);
+        PlantUmlComponent b = getComponentWithAlias(new Alias("CompB"), diagram);
+
+        assertThat(a.getDependencies()).containsOnly(b);
+        assertThat(b.getDependencies()).isEmpty();
+    }
+
     private PlantUmlComponent getComponentWithName(String componentName, PlantUmlDiagram diagram) {
         PlantUmlComponent component = diagram.getAllComponents().stream()
                 .filter(c -> c.getComponentName().asString().equals(componentName))
