@@ -1,7 +1,10 @@
 package com.tngtech.archunit.library;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -40,6 +43,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -178,9 +182,24 @@ public class OnionArchitectureTest {
         assertFailureOnionArchitectureWithEmptyLayers(result);
     }
 
+    @DataProvider
+    public static List<Object> ruleTextModifications() {
+        return Stream.<Function<OnionArchitecture, OnionArchitecture>>of(
+                Function.identity(),
+                onionArchitecture -> onionArchitecture
+                        .as("Onion architecture consisting of (optional) changed"),
+                onionArchitecture -> onionArchitecture
+                        .because("changed"),
+                onionArchitecture -> onionArchitecture
+                        .as("Onion architecture consisting of (optional) changed")
+                        .because("changed")
+        ).collect(toList());
+    }
+
     @Test
-    public void onion_architecture_allows_empty_layers_if_all_layers_are_optional() {
-        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().withOptionalLayers(true);
+    @UseDataProvider("ruleTextModifications")
+    public void onion_architecture_allows_empty_layers_if_all_layers_are_optional(Function<OnionArchitecture, OnionArchitecture> modifyRule) {
+        OnionArchitecture architecture = modifyRule.apply(anOnionArchitectureWithEmptyLayers().withOptionalLayers(true));
         assertThat(architecture.getDescription()).startsWith("Onion architecture consisting of (optional)");
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
