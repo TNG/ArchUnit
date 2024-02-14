@@ -34,7 +34,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * </code></pre>
  *
  * The semantics of the new condition will be {@code (public OR private) AND haveNameMatching}
- * – and not {@code public || (private && haveNameMatching)}.
+ * - and not {@code public || (private && haveNameMatching)}.
  * <br><br>
  * Thus, for more complex conditions please consider explicitly joining {@link ArchConditions preconfigured conditions}
  * or custom {@link ArchCondition conditions} via {@link ArchCondition#and(ArchCondition)} and {@link ArchCondition#or(ArchCondition)}
