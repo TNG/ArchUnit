@@ -5,8 +5,10 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
@@ -14,6 +16,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 
 public class JavaAccessTest {
     @Test
@@ -23,6 +26,9 @@ public class JavaAccessTest {
                 .inLineNumber(7);
 
         assertThat(access.getDescription()).contains("(SomeClass.java:7)");
+        Dependency dependency = getOnlyElement(access.toClassDependencies());
+        assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(access.getTargetOwner());
+        Assertions.assertThat(dependency.getDescription()).as("description").isEqualTo(access.getDescription());
     }
 
     @Test

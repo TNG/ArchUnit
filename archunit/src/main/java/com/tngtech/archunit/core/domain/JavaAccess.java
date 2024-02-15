@@ -107,6 +107,14 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         return "";
     }
 
+    /**
+     * @return all matching class dependencies.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> toClassDependencies() {
+        return Dependency.tryCreateFromAccess(this);
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public String getDescription() {

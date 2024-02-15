@@ -18,6 +18,7 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -60,6 +61,11 @@ public final class SliceDependency implements HasDescription {
     @PublicAPI(usage = ACCESS)
     public Slice getTarget() {
         return target;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> toClassDependencies() {
+        return relevantDependencies;
     }
 
     @Override
