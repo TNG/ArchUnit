@@ -26,7 +26,13 @@ public class JavaAccessTest {
                 .inLineNumber(7);
 
         assertThat(access.getDescription()).contains("(SomeClass.java:7)");
+    }
+    @Test
+    public void java_access_transforms_to_class_dependency() {
+        TestJavaAccess access = anyAccess();
         Dependency dependency = getOnlyElement(access.toClassDependencies());
+
+        assertThatType(dependency.getOriginClass()).as("origin class").isEqualTo(access.getOriginOwner());
         assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(access.getTargetOwner());
         Assertions.assertThat(dependency.getDescription()).as("description").isEqualTo(access.getDescription());
     }
