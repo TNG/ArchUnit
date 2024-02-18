@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -392,7 +393,9 @@ public class LayeredArchitectureTest {
                 .ensureAllClassesAreContainedInArchitecture();
 
         assertThatRule(architectureNotCoveringAllClasses).checking(classes)
-                .hasOnlyOneViolation("Class <" + Second.class.getName() + "> is not contained in architecture");
+                .hasOnlyOneViolation(
+                        object -> object instanceof JavaClass && ((JavaClass) object).isEquivalentTo(Second.class),
+                        "Class <" + Second.class.getName() + "> is not contained in architecture");
 
         LayeredArchitecture architectureCoveringAllClasses = architectureNotCoveringAllClasses
                 .layer("Two").definedBy("..second..");
