@@ -189,6 +189,9 @@ public class MessageAssertionChain {
 
         String getDescription();
 
+        default void addTo(HandlingAssertion handlingAssertion) {
+        }
+
         @Internal
         class Result {
             private final boolean matches;

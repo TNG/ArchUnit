@@ -97,6 +97,11 @@ public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertio
                         .as("Dependency target matches '%s.class'", targetClass.getSimpleName()));
     }
 
+    public LocationAssertion hasDescription(String description) {
+        assertThat(actual.getDescription()).isEqualTo(description);
+        return new LocationAssertion();
+    }
+
     public LocationAssertion hasDescription(String originDescription, String dependencyDescription, String targetDescription) {
         String expectedOriginDependsOnTargetDescription = quote(String.format("<%s> %s <%s>", originDescription, dependencyDescription, targetDescription));
         String descriptionPattern = String.format(".+ %s in \\([^ ]+:\\d+\\)", expectedOriginDependsOnTargetDescription);

@@ -18,20 +18,24 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.Dependency;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
 @PublicAPI(usage = ACCESS)
-public final class SliceDependency implements HasDescription {
+public final class SliceDependency implements HasDescription, Convertible {
     private final Slice origin;
     private final SortedSet<Dependency> relevantDependencies;
     private final Slice target;
@@ -77,6 +81,15 @@ public final class SliceDependency implements HasDescription {
             parts.add(dependency.getDescription());
         }
         return Joiner.on(System.lineSeparator()).join(parts);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // compatibility is explicitly checked
+    public <T> Set<T> convertTo(Class<T> type) {
+        if (type.isAssignableFrom(getClass())) {
+            return (Set<T>) singleton(this);
+        }
+        return relevantDependencies.stream().flatMap(it -> it.convertTo(type).stream()).collect(toSet());
     }
 
     @Override

@@ -166,6 +166,9 @@ public abstract class ExpectedAccess implements ExpectedRelation {
         @Override
         public void addTo(HandlingAssertion assertion) {
             assertion.byFieldAccess(this);
+            if (!getOrigin().getDeclaringClass().equals(getTarget().getDeclaringClass())) {
+                assertion.byDependency(asDependency());
+            }
         }
     }
 
@@ -191,6 +194,9 @@ public abstract class ExpectedAccess implements ExpectedRelation {
                 assertion.byConstructorCall(this);
             } else {
                 assertion.byMethodCall(this);
+            }
+            if (!getOrigin().getDeclaringClass().equals(getTarget().getDeclaringClass())) {
+                assertion.byDependency(asDependency());
             }
         }
     }

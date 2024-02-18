@@ -27,6 +27,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
@@ -34,6 +35,8 @@ import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.Optionals.asSet;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 
 /**
  * Represents a dependency of one Java class on another Java class. Such a dependency can occur by either of the
@@ -55,7 +58,7 @@ import static com.tngtech.archunit.base.Optionals.asSet;
  * i.e. <code>origin</code> will never be equal to <code>target</code>.
  */
 @PublicAPI(usage = ACCESS)
-public final class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
+public class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation, Convertible {
     private final JavaClass originClass;
     private final JavaClass targetClass;
     private final String description;
@@ -79,7 +82,9 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         JavaClass targetOwner = access.getTargetOwner();
         ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
                 .addAll(createComponentTypeDependencies(originOwner, access.getOrigin().getDescription(), targetOwner, access.getSourceCodeLocation()));
-        dependencies.addAll(asSet(tryCreateDependency(originOwner, targetOwner, access.getDescription(), access.getSourceCodeLocation())));
+        if (!originOwner.equals(targetOwner) && !targetOwner.isPrimitive()) {
+            dependencies.add(new Dependency.FromAccess(access));
+        }
         return dependencies.build();
     }
 
@@ -271,6 +276,15 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
     }
 
     @Override
+    @SuppressWarnings("unchecked") // compatibility is explicitly checked
+    public <T> Set<T> convertTo(Class<T> type) {
+        if (type.isAssignableFrom(Dependency.class)) {
+            return (Set<T>) singleton(this);
+        }
+        return emptySet();
+    }
+
+    @Override
     @PublicAPI(usage = ACCESS)
     public int compareTo(Dependency o) {
         return ComparisonChain.start()
@@ -316,6 +330,49 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
             classes.add(dependency.getTargetClass());
         }
         return JavaClasses.of(classes);
+    }
+
+    private static class FromAccess extends Dependency {
+        private final JavaAccess<?> access;
+
+        FromAccess(JavaAccess<?> access) {
+            super(access.getOriginOwner(), access.getTargetOwner(), access.getSourceCodeLocation(), access.getDescription());
+            this.access = access;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked") // compatibility is explicitly checked
+        public <T> Set<T> convertTo(Class<T> type) {
+            if (type.isAssignableFrom(getClass())) {
+                return (Set<T>) singleton(this);
+            }
+            if (type.isAssignableFrom(access.getClass())) {
+                return (Set<T>) singleton(access);
+            }
+            return super.convertTo(type);
+        }
+
+        @Override
+        public int hashCode() {
+            return access.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final FromAccess other = (FromAccess) obj;
+            return Objects.equals(this.access, other.access);
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getEnclosingClass().getSimpleName() + "." + super.toString();
+        }
     }
 
     private static class Origin implements HasOwner<JavaClass>, HasDescription {

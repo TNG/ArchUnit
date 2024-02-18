@@ -21,13 +21,16 @@ import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.Dependency;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * A dependency between two {@link ArchModule}s. I.e. {@link #getOrigin() origin} and {@link #getTarget() target}
@@ -36,7 +39,7 @@ import static java.util.stream.Collectors.joining;
  * {@link Dependency#getTargetClass() target class} resides in the {@link #getTarget() target module}.
  */
 @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> implements HasDescription {
+public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> implements HasDescription, Convertible {
     private final ArchModule<DESCRIPTOR> origin;
     private final ArchModule<DESCRIPTOR> target;
     private final Set<Dependency> classDependencies;
@@ -84,6 +87,15 @@ public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> im
                 .map(HasDescription::getDescription)
                 .collect(joining(lineSeparator()));
         return String.format("Module Dependency [%s -> %s]:%n%s", origin.getName(), target.getName(), classDependencyDescriptions);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // compatibility is explicitly checked
+    public <T> Set<T> convertTo(Class<T> type) {
+        if (type.isAssignableFrom(getClass())) {
+            return (Set<T>) singleton(this);
+        }
+        return classDependencies.stream().flatMap(it -> it.convertTo(type).stream()).collect(toSet());
     }
 
     @Override

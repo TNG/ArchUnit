@@ -3,7 +3,7 @@ package com.tngtech.archunit.testutils;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.lang.ConditionEvent;
 
-interface ExpectedRelation {
+public interface ExpectedRelation {
 
     void addTo(HandlingAssertion assertion);
 

@@ -42,6 +42,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPac
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -95,6 +96,7 @@ public class PublicAPIRules {
     public static final ArchRule all_public_API_members_are_accessible =
             members()
                     .that().areAnnotatedWith(PublicAPI.class)
+                    .and().doNotHaveModifier(SYNTHETIC)
                     .should(bePubliclyAccessible());
 
     @ArchTest

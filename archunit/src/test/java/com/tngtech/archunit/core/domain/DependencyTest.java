@@ -35,8 +35,10 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
@@ -599,6 +601,25 @@ public class DependencyTest {
     public void functions() {
         assertThatType(GET_ORIGIN_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Origin.class);
         assertThatType(GET_TARGET_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Target.class);
+    }
+
+    @Test
+    public void convert_dependency_from_access() {
+        JavaMethodCall call = simulateCall().from(getClass(), "toString").to(Object.class, "toString");
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAccess(call));
+
+        assertThatConversionOf(dependency)
+                .satisfiesStandardConventions()
+                .isPossibleToSingleElement(JavaAccess.class, it -> assertThat(it).isEqualTo(call))
+                .isPossibleToSingleElement(JavaMethodCall.class, it -> assertThat(it).isEqualTo(call));
+    }
+
+    @Test
+    public void dependency_not_from_access_satisfies_standard_conventions() {
+        Dependency dependency = createDependency(Origin.class, Target.class);
+
+        assertThatConversionOf(dependency).satisfiesStandardConventions();
     }
 
     private Dependency createDependency(JavaClass origin, JavaClass target) {

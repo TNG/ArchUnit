@@ -1,15 +1,25 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.dependencies.testexamples.completedependencygraph.sevennodes.CompleteSevenNodesGraphRoot;
 import com.tngtech.archunit.library.dependencies.testexamples.cyclewithunbalanceddependencies.CycleWithUnbalancedDependenciesRoot;
+import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
+import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.second.any.pkg.SecondAnyClass;
+import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -23,9 +33,12 @@ import org.junit.runner.RunWith;
 import static com.google.common.math.IntMath.factorial;
 import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.cycle_detection.rules.CycleRuleTestConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
+import static com.tngtech.archunit.library.dependencies.GivenSlicesTest.TEST_CLASSES_PACKAGE;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
+import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -172,6 +185,30 @@ public class SliceRuleTest {
         configurationRule.setFailOnEmptyShould(true);
 
         ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    @DataProvider
+    public static Object[][] rules() {
+        return testForEach(
+                slices().matching(TEST_CLASSES_PACKAGE + ".(*)..").should().notDependOnEachOther(),
+                slices().matching(TEST_CLASSES_PACKAGE + ".(*)..").should().beFreeOfCycles());
+    }
+
+    @Test
+    @UseDataProvider("rules")
+    public void handles_violations_as_dependencies(SliceRule rule) {
+        JavaClasses classes = new ClassFileImporter().importPackages(TEST_CLASSES_PACKAGE);
+
+        Set<Dependency> reportedDependencies = new HashSet<>();
+        rule.evaluate(classes).handleViolations(
+                (Collection<Dependency> dependencies, String __) -> reportedDependencies.addAll(dependencies)
+        );
+
+        assertThatDependencies(reportedDependencies)
+                .contain(FirstThreeAnyClass.class, SecondThreeAnyClass.class)
+                .contain(FirstAnyPkgClass.class, SomePkgSubclass.class)
+                .contain(SecondAnyClass.class, FirstAnyPkgClass.class)
+                .contain(SecondThreeAnyClass.class, SomePkgClass.class);
     }
 
     private static SliceRule ruleWithEmptyShould() {

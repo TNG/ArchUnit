@@ -1,8 +1,13 @@
 package com.tngtech.archunit.library.modules.syntax;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedFunction;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -11,16 +16,25 @@ import com.tngtech.archunit.library.modules.ArchModule;
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.TestAnnotation;
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.TestAnnotationCustomName;
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.one.ClassOne;
+import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.one.one.ClassOneOne;
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.two.ClassTwo;
+import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.two.one.ClassTwoOne;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesBetweenModules;
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
+import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
+@RunWith(DataProviderRunner.class)
 public class ModuleRuleTest {
 
     @Test
@@ -112,12 +126,36 @@ public class ModuleRuleTest {
                         .definedByAnnotation(TestAnnotation.class)
                         .should().respectTheirAllowedDependencies(alwaysFalse(), consideringOnlyDependenciesBetweenModules())
                         .ignoreDependency(equivalentTo(ClassOne.class), alwaysTrue())
+                        .ignoreDependency(equivalentTo(ClassOneOne.class), alwaysTrue())
+                        .ignoreDependency(equivalentTo(ClassTwoOne.class), alwaysTrue())
                         .because("reason")
                         .as("description")
                         .allowEmptyShould(false)
         )
                 .checking(new ClassFileImporter().importPackagesOf(ClassOne.class, ClassTwo.class))
                 .hasNoViolation();
+    }
+
+    @DataProvider
+    public static Object[][] rules() {
+        return testForEach(
+                modules().definedByPackages("..test_modules.(*).(*)..").should().respectTheirAllowedDependencies(alwaysFalse(), consideringOnlyDependenciesBetweenModules()),
+                modules().definedByPackages("..test_modules.(*).(*)..").should().beFreeOfCycles());
+    }
+
+    @Test
+    @UseDataProvider("rules")
+    public void handles_violations_as_dependencies(ModulesRule<?> rule) {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(ClassOne.class, ClassTwo.class);
+
+        Set<Dependency> reportedDependencies = new HashSet<>();
+        rule.evaluate(classes).handleViolations(
+                (Collection<Dependency> dependencies, String __) -> reportedDependencies.addAll(dependencies)
+        );
+
+        assertThatDependencies(reportedDependencies)
+                .contain(ClassOneOne.class, ClassTwoOne.class)
+                .contain(ClassTwoOne.class, ClassOneOne.class);
     }
 
     private static <D extends ArchModule.Descriptor> ArchCondition<ArchModule<D>> reportAllAsViolations(Function<ArchModule<D>, String> reportModule) {

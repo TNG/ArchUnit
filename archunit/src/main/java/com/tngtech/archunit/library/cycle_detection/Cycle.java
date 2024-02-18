@@ -16,11 +16,14 @@
 package com.tngtech.archunit.library.cycle_detection;
 
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.Convertible;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * A cycle formed by the referenced {@code EDGEs}. A cycle in this context always refers to a "simple" cycle,
@@ -31,11 +34,19 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * @param <EDGE> The type of the edges forming the cycle
  */
 @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-public interface Cycle<EDGE extends Edge<?>> {
+public interface Cycle<EDGE extends Edge<?>> extends Convertible {
 
     /**
      * @return The edges of the {@link Cycle}
      */
     @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     List<EDGE> getEdges();
+
+    @Override
+    default <T> Set<T> convertTo(Class<T> type) {
+        return getEdges().stream()
+                .filter(edge -> edge instanceof Convertible)
+                .flatMap(edge -> ((Convertible) edge).convertTo(type).stream())
+                .collect(toSet());
+    }
 }

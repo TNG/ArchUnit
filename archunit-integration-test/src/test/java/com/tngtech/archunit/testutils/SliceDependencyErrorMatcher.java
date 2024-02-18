@@ -50,6 +50,11 @@ public class SliceDependencyErrorMatcher implements MessageAssertionChain.Link {
     }
 
     @Override
+    public void addTo(HandlingAssertion handlingAssertion) {
+        expectedAccesses.forEach(it -> it.addTo(handlingAssertion));
+    }
+
+    @Override
     public String getDescription() {
         return Joiner.on(System.lineSeparator()).join(ImmutableList.builder()
                 .add("Description: " + dependencyDescription)
