@@ -30,6 +30,8 @@ import com.tngtech.archunit.library.plantuml.rules.PlantUmlPatterns.PlantUmlComp
 import com.tngtech.archunit.library.plantuml.rules.PlantUmlPatterns.PlantUmlDependencyMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlComponent.ComponentType.COMPONENT;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlComponent.ComponentType.DATABASE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -75,11 +77,16 @@ class PlantUmlParser {
                 .collect(toSet());
     }
 
-    private ImmutableList<ParsedDependency> parseDependencies(PlantUmlComponents plantUmlComponents, List<String> plantUmlDiagramLines) {
+    private ImmutableList<ParsedDependency> parseDependencies(
+            PlantUmlComponents plantUmlComponents,
+            List<String> plantUmlDiagramLines) {
         ImmutableList.Builder<ParsedDependency> result = ImmutableList.builder();
         for (PlantUmlDependencyMatcher matcher : plantUmlPatterns.matchDependencies(plantUmlDiagramLines)) {
             PlantUmlComponent origin = findComponentMatching(plantUmlComponents, matcher.matchOrigin());
             PlantUmlComponent target = findComponentMatching(plantUmlComponents, matcher.matchTarget());
+            if (origin.getComponentType() == DATABASE || target.getComponentType() == DATABASE) {
+                continue;
+            }
             result.add(new ParsedDependency(origin.getIdentifier(), target.getIdentifier()));
         }
         return result.build();
@@ -89,24 +96,29 @@ class PlantUmlParser {
         PlantUmlComponentMatcher matcher = plantUmlPatterns.matchComponent(input);
 
         ComponentName componentName = new ComponentName(matcher.matchComponentName());
-        ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName);
+        PlantUmlComponent.ComponentType componentType = matcher.matchComponentType().orElse(COMPONENT);
+        ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName, componentType);
         Optional<Alias> alias = matcher.matchAlias().map(Alias::new);
 
         return new PlantUmlComponent.Builder()
                 .withComponentName(componentName)
                 .withStereotypes(immutableStereotypes)
                 .withAlias(alias)
+                .withComponentType(componentType)
                 .build();
     }
 
-    private ImmutableSet<Stereotype> identifyStereotypes(PlantUmlComponentMatcher matcher, ComponentName componentName) {
+    private ImmutableSet<Stereotype> identifyStereotypes(
+            PlantUmlComponentMatcher matcher,
+            ComponentName componentName,
+            PlantUmlComponent.ComponentType componentType) {
         ImmutableSet.Builder<Stereotype> stereotypes = ImmutableSet.builder();
         for (String stereotype : matcher.matchStereoTypes()) {
             stereotypes.add(new Stereotype(stereotype));
         }
 
         ImmutableSet<Stereotype> result = stereotypes.build();
-        if (result.isEmpty()) {
+        if (result.isEmpty() && componentType == COMPONENT) {
             throw new IllegalDiagramException(String.format("Components must include at least one stereotype"
                     + " specifying the package identifier(<<..>>), but component '%s' does not", componentName.asString()));
         }

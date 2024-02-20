@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.library.plantuml.rules;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -33,12 +34,15 @@ class PlantUmlComponent {
     private final ComponentName componentName;
     private final Set<Stereotype> stereotypes;
     private final Optional<Alias> alias;
+
+    private final ComponentType componentType;
     private List<PlantUmlComponentDependency> dependencies = emptyList();
 
     private PlantUmlComponent(Builder builder) {
         this.componentName = checkNotNull(builder.componentName);
         this.stereotypes = checkNotNull(builder.stereotypes);
         this.alias = checkNotNull(builder.alias);
+        this.componentType = checkNotNull(builder.componentType);
     }
 
     List<PlantUmlComponent> getDependencies() {
@@ -57,6 +61,10 @@ class PlantUmlComponent {
         return alias;
     }
 
+    public ComponentType getComponentType() {
+        return componentType;
+    }
+
     void finish(List<PlantUmlComponentDependency> dependencies) {
         this.dependencies = ImmutableList.copyOf(dependencies);
     }
@@ -68,7 +76,7 @@ class PlantUmlComponent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(componentName, stereotypes, alias);
+        return Objects.hash(componentName, stereotypes, alias, componentType);
     }
 
     @Override
@@ -82,7 +90,8 @@ class PlantUmlComponent {
         PlantUmlComponent other = (PlantUmlComponent) obj;
         return Objects.equals(this.componentName, other.componentName)
                 && Objects.equals(this.stereotypes, other.stereotypes)
-                && Objects.equals(this.alias, other.alias);
+                && Objects.equals(this.alias, other.alias)
+                && Objects.equals(this.componentType, other.componentType);
     }
 
     @Override
@@ -91,6 +100,7 @@ class PlantUmlComponent {
                 "componentName=" + componentName +
                 ", stereotypes=" + stereotypes +
                 ", alias=" + alias +
+                ", componentType=" + componentType +
                 ", dependencies=" + dependencies +
                 '}';
     }
@@ -103,10 +113,29 @@ class PlantUmlComponent {
                 };
     }
 
+    enum ComponentType {
+        COMPONENT("component"),
+        DATABASE("database");
+
+        private final String stringValue;
+
+        ComponentType(String stringValue) {
+            this.stringValue = stringValue;
+        }
+
+        static Optional<ComponentType> parseString(String value) {
+            String notNullValue = Optional.ofNullable(value).orElse("");
+            return Arrays.stream(ComponentType.values())
+                    .filter(it -> it.stringValue.equals(notNullValue.trim().toLowerCase()))
+                    .findFirst();
+        }
+    }
+
     static class Builder {
         private ComponentName componentName;
         private Set<Stereotype> stereotypes;
         private Optional<Alias> alias;
+        private ComponentType componentType;
 
         Builder withComponentName(ComponentName componentName) {
             this.componentName = componentName;
@@ -120,6 +149,11 @@ class PlantUmlComponent {
 
         Builder withAlias(Optional<Alias> alias) {
             this.alias = alias;
+            return this;
+        }
+
+        Builder withComponentType(ComponentType componentType) {
+            this.componentType = componentType;
             return this;
         }
 
