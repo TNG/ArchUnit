@@ -1,6 +1,6 @@
 plugins {
     id 'archunit.java-conventions'
-    id 'org.javamodularity.moduleplugin' version '1.8.12'
+    id 'org.javamodularity.moduleplugin' version '1.8.14'
 }
 
 ext.moduleName = 'com.tngtech.archunit.javamodulestest'
