@@ -190,6 +190,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredTypeCast(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
+
+        @Override
         public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
             dependencyResolutionProcess.registerMemberTypes(exceptionTypeNames);
         }
@@ -208,6 +213,7 @@ class ClassFileProcessor {
         private CodeUnit codeUnit;
         private int lineNumber;
         private final TryCatchRecorder tryCatchRecorder = new TryCatchRecorder(this);
+        private final TypeCastRecorder typeCastRecorder = new TypeCastRecorder();
 
         private RecordAccessHandler(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess) {
             this.importRecord = importRecord;
@@ -231,6 +237,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void handleVariableInstruction(int opcode, int varIndex) {
+            typeCastRecorder.reset();
+        }
+
+        @Override
         public void handleFieldInstruction(int opcode, String owner, String name, String desc) {
             AccessType accessType = AccessType.forOpCode(opcode);
             LOG.trace("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, lineNumber);
@@ -240,6 +251,7 @@ class ClassFileProcessor {
                     .build();
             importRecord.registerFieldAccess(accessRecord);
             tryCatchRecorder.registerAccess(accessRecord);
+            typeCastRecorder.reset();
             dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
@@ -254,6 +266,7 @@ class ClassFileProcessor {
                 importRecord.registerMethodCall(accessRecord);
             }
             tryCatchRecorder.registerAccess(accessRecord);
+            typeCastRecorder.registerMethodInstruction(owner, name, desc);
             dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
@@ -295,6 +308,18 @@ class ClassFileProcessor {
                     .withLineNumber(lineNumber)
                     .withDeclaredInLambda(false)
                     .build());
+        }
+
+        @Override
+        public void handleTypeCast(JavaClassDescriptor typeCastType, int lineNumber) {
+            if (!typeCastRecorder.isImplicit()) {
+                importRecord.registerTypeCast(new RawTypeCast.Builder()
+                        .withOrigin(codeUnit)
+                        .withTarget(typeCastType)
+                        .withLineNumber(lineNumber)
+                        .withDeclaredInLambda(false)
+                        .build());
+            }
         }
 
         @Override

@@ -184,6 +184,10 @@ public class DomainObjectCreationContext {
         return InstanceofCheck.from(codeUnit, type, lineNumber, declaredInLambda);
     }
 
+    public static TypeCast createTypeCast(JavaCodeUnit codeUnit, JavaClass type, int lineNumber, boolean declaredInLambda) {
+        return TypeCast.from(codeUnit, type, lineNumber, declaredInLambda);
+    }
+
     public static <OWNER extends HasDescription> JavaTypeVariable<OWNER> createTypeVariable(String name, OWNER owner, JavaClass erasure) {
         return new JavaTypeVariable<>(name, owner, erasure);
     }

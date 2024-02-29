@@ -191,6 +191,14 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<TypeCast> getTypeCasts() {
+        ImmutableSet.Builder<TypeCast> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getTypeCasts());
+        }
+        return result.build();
+    }
+
     Set<ReferencedClassObject> getReferencedClassObjects() {
         ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {

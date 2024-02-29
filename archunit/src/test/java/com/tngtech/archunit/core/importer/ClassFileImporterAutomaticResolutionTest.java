@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.core.domain.TypeCast;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.ImporterWithAdjustedResolutionRuns;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
@@ -544,6 +545,23 @@ public class ClassFileImporterAutomaticResolutionTest {
 
         assertThat(instanceofCheck.getRawType()).isFullyImported(true);
         assertThatType(instanceofCheck.getRawType()).matches(String.class);
+    }
+
+    @Test
+    public void automatically_resolves_type_cast_targets() {
+        @SuppressWarnings("unused")
+        class Origin {
+            String call(Object obj) {
+                return (String) obj;
+            }
+        }
+
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        TypeCast typeCast = getOnlyElement(javaClass.getTypeCasts());
+
+        assertThat(typeCast.getRawType()).isFullyImported(true);
+        assertThatType(typeCast.getRawType()).matches(String.class);
     }
 
     @Test

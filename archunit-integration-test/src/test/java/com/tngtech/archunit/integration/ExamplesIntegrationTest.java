@@ -681,6 +681,9 @@ class ExamplesIntegrationTest {
                 .by(method(OtherJpa.class, "testConnection")
                         .checkingInstanceOf(ProxiedConnection.class)
                         .inLine(26))
+                .by(method(OtherJpa.class, "testConnection")
+                        .casting(ProxiedConnection.class)
+                        .inLine(27))
 
                 .ofRule("no classes should depend on classes that are assignable to javax.persistence.EntityManager")
                 .by(callFromMethod(ServiceViolatingDaoRules.class, "illegallyUseEntityManager").
@@ -856,6 +859,9 @@ class ExamplesIntegrationTest {
                 .by(method(OtherJpa.class, "testConnection")
                         .checkingInstanceOf(ProxiedConnection.class)
                         .inLine(26))
+                .by(method(OtherJpa.class, "testConnection")
+                        .casting(ProxiedConnection.class)
+                        .inLine(27))
 
                 .ofRule("classes that reside in a package '..service..' should " +
                         "only have dependent classes that reside in any package ['..controller..', '..service..']")
@@ -875,6 +881,9 @@ class ExamplesIntegrationTest {
                 .by(method(OtherJpa.class, "testConnection")
                         .checkingInstanceOf(ProxiedConnection.class)
                         .inLine(26))
+                .by(method(OtherJpa.class, "testConnection")
+                        .casting(ProxiedConnection.class)
+                        .inLine(27))
 
                 .ofRule("classes that reside in a package '..service..' should "
                         + "only depend on classes that reside in any package ['..service..', '..persistence..', 'java..', 'javax..']")
@@ -981,6 +990,9 @@ class ExamplesIntegrationTest {
                                         .toMethod(ProxiedConnection.class, "refresh")
                                         .inLine(27)
                                         .asDependency())
+                                .by(method(OtherJpa.class, "testConnection")
+                                        .casting(ProxiedConnection.class)
+                                        .inLine(27))
 
                                 .by(typeParameter(ServiceHelper.class, "TYPE_PARAMETER_VIOLATING_LAYER_RULE").dependingOn(SomeUtility.class))
                                 .by(typeParameter(ServiceHelper.class, "ANOTHER_TYPE_PARAMETER_VIOLATING_LAYER_RULE").dependingOn(SomeEnum.class))

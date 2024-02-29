@@ -85,6 +85,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
     private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
     private final Set<RawInstanceofCheck> rawInstanceofChecks = new HashSet<>();
+    private final Set<RawTypeCast> rawTypeCasts = new HashSet<>();
     private final Set<RawTryCatchBlock> rawTryCatchBlocks = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
@@ -253,6 +254,10 @@ class ClassFileImportRecord {
         rawInstanceofChecks.add(instanceofCheck);
     }
 
+    void registerTypeCast(RawTypeCast typeCast) {
+        rawTypeCasts.add(typeCast);
+    }
+
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
         resolveSyntheticOrigins(rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
                 .forEach(doWithRecord);
@@ -286,6 +291,11 @@ class ClassFileImportRecord {
     void forEachRawInstanceofCheck(Consumer<RawInstanceofCheck> doWithInstanceofCheck) {
         resolveSyntheticOrigins(rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK, syntheticLambdaAccessRecorder)
                 .forEach(doWithInstanceofCheck);
+    }
+
+    void forEachRawTypeCast(Consumer<RawTypeCast> doWithTypeCast) {
+        resolveSyntheticOrigins(rawTypeCasts, COPY_RAW_TYPE_CAST, syntheticLambdaAccessRecorder)
+                .forEach(doWithTypeCast);
     }
 
     public void forEachRawTryCatchBlock(Consumer<RawTryCatchBlock> doWithTryCatchBlock) {
@@ -331,6 +341,9 @@ class ClassFileImportRecord {
 
     private static final Function<RawInstanceofCheck, RawInstanceofCheck.Builder> COPY_RAW_INSTANCEOF_CHECK =
             instanceofCheck -> copyInto(new RawInstanceofCheck.Builder(), instanceofCheck);
+
+    private static final Function<RawTypeCast, RawTypeCast.Builder> COPY_RAW_TYPE_CAST =
+            typeCast -> copyInto(new RawTypeCast.Builder(), typeCast);
 
     private static final Function<RawTryCatchBlock, RawTryCatchBlock.Builder> COPY_RAW_TRY_CATCH_BLOCK = RawTryCatchBlock.Builder::from;
 

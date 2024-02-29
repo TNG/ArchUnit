@@ -128,6 +128,12 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
                 instanceofCheck.getRawType(), instanceofCheck.getSourceCodeLocation());
     }
 
+    static Set<Dependency> tryCreateFromTypeCast(TypeCast typeCast) {
+        return tryCreateDependency(
+                typeCast.getOwner(), "casts",
+                typeCast.getRawType(), typeCast.getSourceCodeLocation());
+    }
+
     static Set<Dependency> tryCreateFromReferencedClassObject(ReferencedClassObject referencedClassObject) {
         return tryCreateDependency(
                 referencedClassObject.getOwner(), "references class object",

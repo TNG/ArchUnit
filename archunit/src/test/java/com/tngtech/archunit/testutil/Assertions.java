@@ -29,6 +29,7 @@ import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.TryCatchBlock;
+import com.tngtech.archunit.core.domain.TypeCast;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -65,6 +66,7 @@ import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
 import com.tngtech.archunit.testutil.assertion.ThrowsClauseAssertion;
 import com.tngtech.archunit.testutil.assertion.ThrowsDeclarationAssertion;
 import com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion;
+import com.tngtech.archunit.testutil.assertion.TypeCastsAssertion;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static <T> ArchConditionAssertion<T> assertThat(ArchCondition<T> archCondition) {
@@ -161,6 +163,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static InstanceofChecksAssertion assertThatInstanceofChecks(Set<InstanceofCheck> instanceofChecks) {
         return new InstanceofChecksAssertion(instanceofChecks);
+    }
+
+    public static TypeCastsAssertion assertThatTypeCasts(Set<TypeCast> typeCasts) {
+        return new TypeCastsAssertion(typeCasts);
     }
 
     public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {
