@@ -147,7 +147,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
             }
 
             private URI makeJarUri(JarEntry input) {
-                return Location.of(connection.getJarFileURL()).append(input.getName()).asURI();
+                return Location.of(connection.getURL()).append(input.getName()).asURI();
             }
 
             URI getUri() {
