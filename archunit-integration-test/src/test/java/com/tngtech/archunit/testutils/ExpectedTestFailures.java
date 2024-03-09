@@ -16,10 +16,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.EvaluationResult;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.platform.runner.JUnitPlatform;
+import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.runner.JUnitCore;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.System.lineSeparator;
@@ -29,6 +33,7 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 public class ExpectedTestFailures {
     private final SortedSet<Class<?>> testClasses;
@@ -149,7 +154,7 @@ public class ExpectedTestFailures {
         @Override
         TestFailures run() {
             List<TestFailure> result = new JUnitCore().run(testClass).getFailures().stream()
-                    .map(failure -> new TestFailure(failure, failure.getException()))
+                    .map(failure -> new TestFailure(failure.getDescription().getMethodName(), failure.getException()))
                     .collect(toList());
             return new TestFailures(result);
         }
@@ -163,12 +168,23 @@ public class ExpectedTestFailures {
         @Override
         TestFailures run() {
             List<TestFailure> result = new ArrayList<>();
-            new JUnitPlatform(testClass).run(new RunNotifier() {
+
+            LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                    .selectors(selectClass(testClass))
+                    .build();
+            Launcher launcher = LauncherFactory.create();
+            launcher.registerTestExecutionListeners(new TestExecutionListener() {
                 @Override
-                public void fireTestFailure(Failure failure) {
-                    result.add(new TestFailure(failure, failure.getException()));
+                public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+                    if (!testIdentifier.isContainer() && testExecutionResult.getStatus() == TestExecutionResult.Status.FAILED) {
+                        testExecutionResult.getThrowable().ifPresent(throwable -> {
+                            result.add(new TestFailure(testIdentifier.getDisplayName(), throwable));
+                        });
+                    }
                 }
             });
+            launcher.execute(request);
+
             return new TestFailures(result);
         }
     }
@@ -258,8 +274,8 @@ public class ExpectedTestFailures {
         final String memberName;
         final Throwable error;
 
-        private TestFailure(Failure junitFailure, Throwable error) {
-            this.memberName = junitFailure.getDescription().getMethodName();
+        private TestFailure(String memberName, Throwable error) {
+            this.memberName = memberName;
             this.error = error;
         }
 
