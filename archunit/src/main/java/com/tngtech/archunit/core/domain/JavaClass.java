@@ -662,6 +662,16 @@ public final class JavaClass
         return ImmutableSet.of(getBaseComponentType());
     }
 
+    @Override
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal traversal = SignatureTraversal.from(visitor);
+        if (isArray()) {
+            traversal.visitArrayType(this);
+        } else {
+            traversal.visitClass(this);
+        }
+    }
+
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getRawSuperclass() {
         return superclass.getRaw();

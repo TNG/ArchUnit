@@ -130,6 +130,11 @@ public final class JavaTypeVariable<OWNER extends HasDescription> implements Jav
     }
 
     @Override
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitTypeVariable(this);
+    }
+
+    @Override
     public String toString() {
         String bounds = printExtendsClause() ? " extends " + joinTypeNames(upperBounds) : "";
         return getClass().getSimpleName() + '{' + getName() + bounds + '}';

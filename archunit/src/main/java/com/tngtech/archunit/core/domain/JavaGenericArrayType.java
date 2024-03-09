@@ -75,6 +75,11 @@ public final class JavaGenericArrayType implements JavaType {
     }
 
     @Override
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitGenericArrayType(this);
+    }
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + '{' + getName() + '}';
     }
