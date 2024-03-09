@@ -107,6 +107,11 @@ public final class JavaWildcardType implements JavaType, HasUpperBounds {
     }
 
     @Override
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitWildcardType(this);
+    }
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + '{' + getName() + '}';
     }
