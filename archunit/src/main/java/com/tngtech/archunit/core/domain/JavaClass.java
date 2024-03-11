@@ -45,6 +45,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
@@ -138,7 +139,7 @@ public final class JavaClass
         isRecord = builder.isRecord();
         isAnonymousClass = builder.isAnonymousClass();
         isMemberClass = builder.isMemberClass();
-        modifiers = checkNotNull(builder.getModifiers());
+        modifiers = immutableEnumSet(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
         sourceCodeLocation = SourceCodeLocation.of(this);
         javaPackage = JavaPackage.simple(this);
