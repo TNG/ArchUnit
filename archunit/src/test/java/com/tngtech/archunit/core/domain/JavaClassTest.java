@@ -164,6 +164,58 @@ public class JavaClassTest {
         assertThatType(twoDimArray.tryGetComponentType().get().tryGetComponentType().get()).isEqualTo(type);
     }
 
+    @DataProvider
+    public static Object[][] data_imported_array_types_match_Reflection_API() {
+        @SuppressWarnings("unused")
+        class PublicClassArray {
+            String[] array;
+        }
+        @SuppressWarnings("unused")
+        class PublicClassMultiDimArray {
+            String[][] array;
+        }
+        @SuppressWarnings("unused")
+        class PrimitiveClassArray {
+            int[] array;
+        }
+        class LocalClass {
+        }
+        @SuppressWarnings("unused")
+        class LocalClassArray {
+            LocalClass[] array;
+        }
+        @SuppressWarnings("unused")
+        class PrivateClassArray {
+            SomePrivateClass[] array;
+        }
+        @SuppressWarnings("unused")
+        class ProtectedClassArray {
+            SomeProtectedClass[] array;
+        }
+        @SuppressWarnings("unused")
+        class InnerPackagePrivateClassArray {
+            SomePackagePrivateClass[] array;
+        }
+        return $$(
+                $(PublicClassArray.class, String[].class),
+                $(PublicClassMultiDimArray.class, String[][].class),
+                $(PrimitiveClassArray.class, int[].class),
+                $(LocalClassArray.class, LocalClass[].class),
+                $(PrivateClassArray.class, SomePrivateClass[].class),
+                $(ProtectedClassArray.class, SomeProtectedClass[].class),
+                $(InnerPackagePrivateClassArray.class, SomePackagePrivateClass[].class)
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_imported_array_types_match_Reflection_API(Class<?> classWithArrayField, Class<?> expectedReflectionType) {
+        JavaClass classWithArray = new ClassFileImporter().importClass(classWithArrayField);
+        JavaClass arrayClassObject = classWithArray.getField("array").getRawType();
+
+        assertThatType(arrayClassObject).matches(expectedReflectionType);
+    }
+
     @Test
     public void erased_type_of_class_is_the_class_itself() {
         class SimpleClass {
@@ -2651,5 +2703,14 @@ public class JavaClassTest {
 
         void throwableSelfReference() throws ClassWithSelfReferences {
         }
+    }
+
+    private class SomePrivateClass {
+    }
+
+    class SomePackagePrivateClass {
+    }
+
+    protected class SomeProtectedClass {
     }
 }
