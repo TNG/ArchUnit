@@ -58,22 +58,20 @@ import static com.tngtech.archunit.base.Optionals.asSet;
 public final class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
     private final JavaClass originClass;
     private final JavaClass targetClass;
-    private final int lineNumber;
     private final String description;
     private final SourceCodeLocation sourceCodeLocation;
     private final int hashCode;
 
-    private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
+    private Dependency(JavaClass originClass, JavaClass targetClass, SourceCodeLocation sourceCodeLocation, String description) {
         checkArgument(!originClass.equals(targetClass) || targetClass.isPrimitive(),
                 "Tried to create illegal dependency '%s' (%s -> %s), this is likely a bug!",
                 description, originClass.getSimpleName(), targetClass.getSimpleName());
 
         this.originClass = originClass;
         this.targetClass = targetClass;
-        this.lineNumber = lineNumber;
         this.description = description;
-        this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
-        hashCode = Objects.hash(originClass, targetClass, lineNumber, description);
+        this.sourceCodeLocation = sourceCodeLocation;
+        hashCode = Objects.hash(originClass, targetClass, sourceCodeLocation, description);
     }
 
     static Set<Dependency> tryCreateFromAccess(JavaAccess<?> access) {
@@ -81,7 +79,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         JavaClass targetOwner = access.getTargetOwner();
         ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
                 .addAll(createComponentTypeDependencies(originOwner, access.getOrigin().getDescription(), targetOwner, access.getSourceCodeLocation()));
-        dependencies.addAll(asSet(tryCreateDependency(originOwner, targetOwner, access.getDescription(), access.getLineNumber())));
+        dependencies.addAll(asSet(tryCreateDependency(originOwner, targetOwner, access.getDescription(), access.getSourceCodeLocation())));
         return dependencies.build();
     }
 
@@ -97,7 +95,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
 
         String description = dependencyDescription + " in " + origin.getSourceCodeLocation();
-        Optional<Dependency> result = tryCreateDependency(origin, targetSupertype, description, 0);
+        Optional<Dependency> result = tryCreateDependency(origin, targetSupertype, description, origin.getSourceCodeLocation());
 
         if (!result.isPresent()) {
             throw new IllegalStateException(String.format("Tried to create illegal inheritance dependency '%s' (%s -> %s), this is likely a bug!",
@@ -214,7 +212,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + sourceCodeLocation;
-        dependencies.addAll(asSet(tryCreateDependency(originClass, targetClass, description, sourceCodeLocation.getLineNumber())));
+        dependencies.addAll(asSet(tryCreateDependency(originClass, targetClass, description, sourceCodeLocation)));
         return dependencies.build();
     }
 
@@ -227,17 +225,17 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
             String componentTypeTargetDescription = bracketFormat(componentType.get().getName());
             String componentTypeDependencyDescription = originDescription + " depends on component type " + componentTypeTargetDescription;
             String componentTypeDescription = componentTypeDependencyDescription + " in " + sourceCodeLocation;
-            result.addAll(asSet(tryCreateDependency(originClass, componentType.get(), componentTypeDescription, sourceCodeLocation.getLineNumber())));
+            result.addAll(asSet(tryCreateDependency(originClass, componentType.get(), componentTypeDescription, sourceCodeLocation)));
             componentType = componentType.get().tryGetComponentType();
         }
         return result.build();
     }
 
-    private static Optional<Dependency> tryCreateDependency(JavaClass originClass, JavaClass targetClass, String description, int lineNumber) {
+    private static Optional<Dependency> tryCreateDependency(JavaClass originClass, JavaClass targetClass, String description, SourceCodeLocation sourceCodeLocation) {
         if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
             return Optional.empty();
         }
-        return Optional.of(new Dependency(originClass, targetClass, lineNumber, description));
+        return Optional.of(new Dependency(originClass, targetClass, sourceCodeLocation, description));
     }
 
     private static String bracketFormat(String name) {
@@ -276,7 +274,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
     @PublicAPI(usage = ACCESS)
     public int compareTo(Dependency o) {
         return ComparisonChain.start()
-                .compare(lineNumber, o.lineNumber)
+                .compare(sourceCodeLocation.getLineNumber(), o.sourceCodeLocation.getLineNumber())
                 .compare(getDescription(), o.getDescription())
                 .result();
     }
@@ -297,7 +295,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         Dependency other = (Dependency) obj;
         return Objects.equals(this.originClass, other.originClass)
                 && Objects.equals(this.targetClass, other.targetClass)
-                && Objects.equals(this.lineNumber, other.lineNumber)
+                && Objects.equals(this.sourceCodeLocation.getLineNumber(), other.sourceCodeLocation.getLineNumber())
                 && Objects.equals(this.description, other.description);
     }
 
@@ -306,7 +304,7 @@ public final class Dependency implements HasDescription, Comparable<Dependency>,
         return MoreObjects.toStringHelper(this)
                 .add("originClass", originClass)
                 .add("targetClass", targetClass)
-                .add("lineNumber", lineNumber)
+                .add("sourceCodeLocation", sourceCodeLocation)
                 .add("description", description)
                 .toString();
     }

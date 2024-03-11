@@ -77,6 +77,7 @@ public final class JavaMethod extends JavaCodeUnit {
         return true;
     }
 
+    @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getCallsOfSelf() {
         return getReverseDependencies().getCallsTo(this);

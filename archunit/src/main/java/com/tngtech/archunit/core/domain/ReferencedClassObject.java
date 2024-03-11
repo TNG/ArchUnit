@@ -29,14 +29,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
     private final JavaCodeUnit owner;
     private final JavaClass value;
-    private final int lineNumber;
     private final SourceCodeLocation sourceCodeLocation;
     private final boolean declaredInLambda;
 
     private ReferencedClassObject(JavaCodeUnit owner, JavaClass value, int lineNumber, boolean declaredInLambda) {
         this.owner = checkNotNull(owner);
         this.value = checkNotNull(value);
-        this.lineNumber = lineNumber;
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
         this.declaredInLambda = declaredInLambda;
     }
@@ -66,7 +64,7 @@ public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUn
 
     @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
-        return lineNumber;
+        return sourceCodeLocation.getLineNumber();
     }
 
     @Override

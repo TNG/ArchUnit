@@ -37,15 +37,13 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     private final JavaCodeUnit origin;
     private final TARGET target;
-    private final int lineNumber;
     private final SourceCodeLocation sourceCodeLocation;
     private final boolean declaredInLambda;
 
     JavaAccess(JavaAccessBuilder<TARGET, ?> builder) {
         this.origin = checkNotNull(builder.getOrigin());
         this.target = checkNotNull(builder.getTarget());
-        this.lineNumber = builder.getLineNumber();
-        this.sourceCodeLocation = SourceCodeLocation.of(getOriginOwner(), lineNumber);
+        this.sourceCodeLocation = SourceCodeLocation.of(getOriginOwner(), builder.getLineNumber());
         this.declaredInLambda = builder.isDeclaredInLambda();
     }
 
@@ -77,7 +75,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
-        return lineNumber;
+        return sourceCodeLocation.getLineNumber();
     }
 
     @Override
@@ -100,7 +98,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @Override
     public String toString() {
         return getClass().getSimpleName() +
-                "{origin=" + origin + ", target=" + target + ", lineNumber=" + lineNumber + additionalToStringFields() + '}';
+                "{origin=" + origin + ", target=" + target + ", lineNumber=" + getLineNumber() + additionalToStringFields() + '}';
     }
 
     String additionalToStringFields() {
