@@ -658,11 +658,6 @@ public final class JavaClass
     }
 
     @Override
-    public Set<JavaClass> getAllInvolvedRawTypes() {
-        return ImmutableSet.of(getBaseComponentType());
-    }
-
-    @Override
     public void traverseSignature(SignatureVisitor visitor) {
         SignatureTraversal.from(visitor).visitClass(this);
     }

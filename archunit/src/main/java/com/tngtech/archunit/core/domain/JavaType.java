@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -91,7 +92,23 @@ public interface JavaType extends HasName {
      * @return All raw types involved in this {@link JavaType}
      */
     @PublicAPI(usage = ACCESS)
-    Set<JavaClass> getAllInvolvedRawTypes();
+    default Set<JavaClass> getAllInvolvedRawTypes() {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        traverseSignature(new SignatureVisitor() {
+            @Override
+            public Result visitClass(JavaClass type) {
+                result.add(type.getBaseComponentType());
+                return CONTINUE;
+            }
+
+            @Override
+            public Result visitParameterizedType(JavaParameterizedType type) {
+                result.add(type.toErasure());
+                return CONTINUE;
+            }
+        });
+        return result.build();
+    }
 
     /**
      * Traverses through the signature of this {@link JavaType}.<br>
