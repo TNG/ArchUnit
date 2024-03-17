@@ -46,6 +46,19 @@ public class JavaCodeUnitTest {
     }
 
     @Test
+    public void finding_all_involved_raw_types_terminates_for_recursive_type_parameters() {
+        @SuppressWarnings("unused")
+        abstract class SomeClass<T extends SomeClass<T>> {
+            public abstract T method();
+        }
+
+        JavaMethod method = new ClassFileImporter().importClass(SomeClass.class).getMethod("method");
+
+        assertThatTypes(method.getAllInvolvedRawTypes())
+                .matchInAnyOrder(SomeClass.class);
+    }
+
+    @Test
     public void offers_all_calls_from_Self() {
         JavaMethod method = importClassWithContext(ClassAccessingOtherClass.class).getMethod("access", ClassBeingAccessed.class);
 
