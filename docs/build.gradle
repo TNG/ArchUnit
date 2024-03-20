@@ -24,7 +24,7 @@ asciidoctor {
     asciidoctorj {
         modules {
             diagram.use()
-            diagram.version '2.2.4'
+            diagram.version '2.2.14'  // https://github.com/asciidoctor/asciidoctorj-diagram/releases/
         }
     }
 }
@@ -34,7 +34,7 @@ asciidoctor.doFirst {
 }
 
 asciidoctorj {
-    version = '2.3.0'
+    version = '2.5.11'  // https://github.com/asciidoctor/asciidoctorj/releases
 }
 
 asciidoctor.dependsOn cleanUserGuide

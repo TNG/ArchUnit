@@ -4,7 +4,7 @@ The following section illustrates some typical checks you could do with ArchUnit
 
 === Package Dependency Checks
 
-[plantuml, "package-deps-no-access"]
+[plantuml, "package-deps-no-access", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -23,7 +23,7 @@ noClasses().that().resideInAPackage("..source..")
     .should().dependOnClassesThat().resideInAPackage("..foo..")
 ----
 
-[plantuml, "package-deps-only-access"]
+[plantuml, "package-deps-only-access", svg, opts=interactive]
 ----
 skinparam componentStyle uml2
 skinparam component {
@@ -47,8 +47,10 @@ classes().that().resideInAPackage("..foo..")
 
 === Class Dependency Checks
 
-[plantuml, "class-naming-deps"]
+[plantuml, "class-naming-deps", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -69,6 +71,7 @@ note top on link #crimson: forbidden
 
 Bar --> FooBar #green
 note left on link #green: allowed
+@enduml
 ----
 
 [source,java]
@@ -79,8 +82,11 @@ classes().that().haveNameMatching(".*Bar")
 
 === Class and Package Containment Checks
 
-[plantuml, "class-package-contain"]
+[plantuml, "class-package-contain", svg, opts=interactive]
 ----
+@startuml
+hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -103,6 +109,7 @@ package com.wrong {
 
 note "resides in wrong package" as WrongPackage #crimson
 FooController .. WrongPackage
+@enduml
 ----
 
 [source,java]
@@ -113,8 +120,10 @@ classes().that().haveSimpleNameStartingWith("Foo")
 
 === Inheritance Checks
 
-[plantuml, "inheritance-naming-check"]
+[plantuml, "inheritance-naming-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -137,6 +146,7 @@ FtpConnection --|> Connection #green
 SshThing --|> Connection #crimson
 
 note right on link #crimson: Has wrong name
+@enduml
 ----
 
 [source,java]
@@ -145,8 +155,11 @@ classes().that().implement(Connection.class)
     .should().haveSimpleNameEndingWith("Connection")
 ----
 
-[plantuml, "inheritance-access-check"]
+[plantuml, "inheritance-access-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -173,6 +186,7 @@ ValidPersistenceUser --> EntityManager #green
 IllegalPersistenceUser --> EntityManager #crimson
 
 note right on link #crimson: Accessor resides in wrong package
+@enduml
 ----
 
 [source,java]
@@ -183,8 +197,10 @@ classes().that().areAssignableTo(EntityManager.class)
 
 === Annotation Checks
 
-[plantuml, "inheritance-annotation-check"]
+[plantuml, "inheritance-annotation-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
 skinparam componentStyle uml2
 
 skinparam component {
@@ -206,6 +222,7 @@ ValidPersistenceUser --> EntityManager #green
 IllegalPersistenceUser --> EntityManager #crimson
 
 note right on link #crimson: Accessor is not annotated with @Transactional
+@enduml
 ----
 
 [source,java]
@@ -216,8 +233,11 @@ classes().that().areAssignableTo(EntityManager.class)
 
 === Layer Checks
 
-[plantuml, "layer-check"]
+[plantuml, "layer-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -253,6 +273,7 @@ note right on link #crimson: Access goes against layers
 
 SomePersistenceManager -up--> SomeServiceOne #crimson
 note right on link #crimson: Access goes against layers
+@enduml
 ----
 
 [source,java]
@@ -270,8 +291,11 @@ layeredArchitecture()
 
 === Cycle Checks
 
-[plantuml, "cycle-check"]
+[plantuml, "cycle-check", svg, opts=interactive]
 ----
+@startuml
+hide empty members
+set separator none
 skinparam componentStyle uml2
 
 skinparam component {
@@ -301,6 +325,7 @@ ClassOneInModuleOne --> ClassTwoInModuleTwo #crimson
 ClassOneInModuleTwo --> ClassOneInModuleThree #crimson
 ClassTwoInModuleThree --> ClassOneInModuleOne #crimson
 note right on link #crimson: Combination of accesses forms cycle
+@enduml
 ----
 
 [source,java]
