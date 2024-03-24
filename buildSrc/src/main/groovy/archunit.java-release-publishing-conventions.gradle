@@ -40,7 +40,7 @@ publishing {
                     developer {
                         id = 'codecholeric'
                         name = 'Peter Gafert'
-                        email = 'peter.gafert@tngtech.com'
+                        email = 'peter.gafert@archunit.org'
                     }
                     developer {
                         id = 'rweisleder'
