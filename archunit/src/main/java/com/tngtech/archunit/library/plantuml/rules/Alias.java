@@ -19,7 +19,7 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class Alias {
+final class Alias {
     private final String value;
 
     Alias(String value) {

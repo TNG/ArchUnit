@@ -41,7 +41,7 @@ import static java.util.stream.Collectors.toList;
 @Internal
 interface ClassFileSource extends Iterable<ClassFileLocation> {
     @Internal
-    class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
+    final class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
         private final Set<ClassFileLocation> classFileLocations = new HashSet<>();
         private final ImportOptions importOptions;
 
@@ -87,7 +87,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
     }
 
     @Internal
-    class FromJar implements ClassFileSource {
+    final class FromJar implements ClassFileSource {
         private final Iterable<ClassFileLocation> classFileLocations;
 
         FromJar(URL jarUrl, String path, ImportOptions importOptions) {
