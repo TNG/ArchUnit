@@ -790,14 +790,18 @@ public final class Architectures {
                 Optional<DescribedPredicate<? super JavaClass>> domainServicePredicate,
                 Optional<DescribedPredicate<? super JavaClass>> applicationPredicate,
                 Map<String, DescribedPredicate<? super JavaClass>> adapterPredicates,
+                boolean optionalLayers,
                 List<IgnoredDependency> ignoredDependencies,
-                Optional<String> overriddenDescription) {
+                Optional<String> overriddenDescription,
+                AllClassesAreContainedInArchitectureCheck allClassesAreContainedInArchitectureCheck) {
             this.domainModelPredicate = domainModelPredicate;
             this.domainServicePredicate = domainServicePredicate;
             this.applicationPredicate = applicationPredicate;
             this.adapterPredicates = adapterPredicates;
+            this.optionalLayers = optionalLayers;
             this.ignoredDependencies = ignoredDependencies;
             this.overriddenDescription = overriddenDescription;
+            this.allClassesAreContainedInArchitectureCheck = allClassesAreContainedInArchitectureCheck;
         }
 
         /**
@@ -1036,8 +1040,8 @@ public final class Architectures {
         }
 
         @Override
-        public ArchRule because(String reason) {
-            return ArchRule.Factory.withBecause(this, reason);
+        public OnionArchitecture because(String reason) {
+            return (OnionArchitecture) Factory.withBecause(this, reason);
         }
 
         /**
@@ -1051,9 +1055,15 @@ public final class Architectures {
 
         @Override
         public OnionArchitecture as(String newDescription) {
-            return new OnionArchitecture(domainModelPredicate, domainServicePredicate,
-                    applicationPredicate, adapterPredicates, ignoredDependencies,
-                    Optional.of(newDescription));
+            return new OnionArchitecture(
+                    domainModelPredicate,
+                    domainServicePredicate,
+                    applicationPredicate,
+                    adapterPredicates,
+                    optionalLayers,
+                    ignoredDependencies,
+                    Optional.of(newDescription),
+                    allClassesAreContainedInArchitectureCheck);
         }
 
         @Override
