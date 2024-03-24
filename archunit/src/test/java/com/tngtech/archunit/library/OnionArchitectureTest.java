@@ -220,12 +220,13 @@ public class OnionArchitectureTest {
     }
 
     @Test
-    public void onion_architecture_ensure_all_classes_are_contained_in_architecture() {
+    @UseDataProvider("ruleTextModifications")
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture(Function<OnionArchitecture, OnionArchitecture> modifyRule) {
         JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class);
 
-        OnionArchitecture architectureNotCoveringAllClasses = onionArchitecture().withOptionalLayers(true)
+        OnionArchitecture architectureNotCoveringAllClasses = modifyRule.apply(onionArchitecture().withOptionalLayers(true)
                 .domainModels("..first..")
-                .ensureAllClassesAreContainedInArchitecture();
+                .ensureAllClassesAreContainedInArchitecture());
 
         assertThatRule(architectureNotCoveringAllClasses).checking(classes)
                 .hasOnlyOneViolation("Class <" + Second.class.getName() + "> is not contained in architecture");

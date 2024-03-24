@@ -792,7 +792,8 @@ public final class Architectures {
                 Map<String, DescribedPredicate<? super JavaClass>> adapterPredicates,
                 boolean optionalLayers,
                 List<IgnoredDependency> ignoredDependencies,
-                Optional<String> overriddenDescription) {
+                Optional<String> overriddenDescription,
+                AllClassesAreContainedInArchitectureCheck allClassesAreContainedInArchitectureCheck) {
             this.domainModelPredicate = domainModelPredicate;
             this.domainServicePredicate = domainServicePredicate;
             this.applicationPredicate = applicationPredicate;
@@ -800,6 +801,7 @@ public final class Architectures {
             this.optionalLayers = optionalLayers;
             this.ignoredDependencies = ignoredDependencies;
             this.overriddenDescription = overriddenDescription;
+            this.allClassesAreContainedInArchitectureCheck = allClassesAreContainedInArchitectureCheck;
         }
 
         /**
@@ -1053,9 +1055,15 @@ public final class Architectures {
 
         @Override
         public OnionArchitecture as(String newDescription) {
-            return new OnionArchitecture(domainModelPredicate, domainServicePredicate,
-                    applicationPredicate, adapterPredicates, optionalLayers, ignoredDependencies,
-                    Optional.of(newDescription));
+            return new OnionArchitecture(
+                    domainModelPredicate,
+                    domainServicePredicate,
+                    applicationPredicate,
+                    adapterPredicates,
+                    optionalLayers,
+                    ignoredDependencies,
+                    Optional.of(newDescription),
+                    allClassesAreContainedInArchitectureCheck);
         }
 
         @Override
