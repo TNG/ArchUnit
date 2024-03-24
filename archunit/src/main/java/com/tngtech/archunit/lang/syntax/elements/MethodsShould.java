@@ -16,6 +16,7 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaMethod;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -53,4 +54,22 @@ public interface MethodsShould<CONJUNCTION extends MethodsShouldConjunction> ext
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notBeFinal();
+
+    /**
+     * Asserts that methods override other methods.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     * @see JavaMethod#isOverriding()
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION beOverriding();
+
+    /**
+     * Asserts that methods do not override other methods.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     * @see JavaMethod#isOverriding()
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notBeOverriding();
 }
