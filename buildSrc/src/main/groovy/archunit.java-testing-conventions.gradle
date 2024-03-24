@@ -23,6 +23,7 @@ afterEvaluate {
 
     if (archUnitTest.hasSlowTests) {
         tasks.withType(Test) {
+            assert !it.testFramework.class.name.contains('JUnitPlatform'): "Slow tests are not yet supported for JUnit 5 tests"
             if (!project.hasProperty('allTests')) {
                 useJUnit {
                     excludeCategories 'com.tngtech.archunit.Slow'
