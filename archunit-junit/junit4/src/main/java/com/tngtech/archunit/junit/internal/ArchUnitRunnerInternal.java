@@ -92,7 +92,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
     }
 
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
-        boolean ignore = elementShouldBeIgnored(ruleField.getField());
+        boolean ignore = elementShouldBeIgnored(getTestClass().getJavaClass(), ruleField.getField());
         if (ruleField.getType() == ArchTests.class) {
             return asTestExecutions(getArchRules(ruleField.getField()), ignore);
         }
@@ -114,7 +114,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
     private Collection<ArchTestExecution> findArchRuleMethods() {
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
-            boolean ignore = elementShouldBeIgnored(testMethod.getMethod());
+            boolean ignore = elementShouldBeIgnored(getTestClass().getJavaClass(), testMethod.getMethod());
             result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
         }
         return result;
