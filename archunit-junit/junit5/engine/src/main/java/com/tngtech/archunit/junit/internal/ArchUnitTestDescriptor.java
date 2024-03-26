@@ -32,6 +32,7 @@ import com.tngtech.archunit.junit.LocationProvider;
 import com.tngtech.archunit.junit.engine_api.FieldSource;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -151,7 +152,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final Supplier<JavaClasses> classes;
 
         ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, TestMember<Field> field) {
-            super(uniqueId, determineDisplayName(field.getName()), FieldSource.from(field.member), field.member);
+            super(uniqueId, determineDisplayName(formatWithPath(uniqueId, field.getName())), FieldSource.from(field.member), field.member);
             this.rule = rule;
             this.classes = classes;
         }
@@ -174,7 +175,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         ArchUnitMethodDescriptor(UniqueId uniqueId, TestMember<Method> method, Supplier<JavaClasses> classes) {
             super(uniqueId.append("method", method.member.getName()),
-                    determineDisplayName(method.member.getName()),
+                    determineDisplayName(formatWithPath(uniqueId, method.member.getName())),
                     MethodSource.from(method.member),
                     method.member);
 
@@ -211,11 +212,19 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
             super(resolver.getUniqueId(),
                     archTests.getDisplayName(),
-                    ClassSource.from(archTests.getDefinitionLocation()),
+                    noSource(),
                     field.member,
                     archTests.getDefinitionLocation());
             this.archTests = archTests;
             this.classes = classes;
+        }
+
+        /**
+         * We don't pass a ClassSource for intermediary descriptors or it will be used as test location by test executors.
+         * We want the root class declaring <code>@AnalyzeClasses</code> to be used for this.
+         */
+        private static TestSource noSource() {
+            return null;
         }
 
         @Override
