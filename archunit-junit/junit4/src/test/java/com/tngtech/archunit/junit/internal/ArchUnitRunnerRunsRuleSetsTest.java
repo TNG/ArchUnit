@@ -2,6 +2,7 @@ package com.tngtech.archunit.junit.internal;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -47,6 +48,7 @@ import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.newRun
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -93,19 +95,41 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Test
     public void should_find_children_in_rule_set() {
         assertThat(runnerForRuleSet.getChildren()).as("Rules defined in Test Class").hasSize(2);
-        assertThat(runnerForRuleSet.getChildren())
-                .extracting(resultOf("describeSelf"))
-                .extractingResultOf("getMethodName")
-                .as("Descriptions").containsOnly(someFieldRuleName, someMethodRuleName);
+        Set<Description> descriptions = runnerForRuleSet.getChildren().stream().map(ArchTestExecution::describeSelf).collect(toSet());
+
+        assertThat(descriptions)
+                .containsExactlyInAnyOrder(
+                        Description.createTestDescription(
+                                ArchTestWithRuleSet.class,
+                                Rules.class.getSimpleName() + " > " + someFieldRuleName
+                        ),
+                        Description.createTestDescription(
+                                ArchTestWithRuleSet.class,
+                                Rules.class.getSimpleName() + " > " + someMethodRuleName
+                        )
+                );
     }
 
     @Test
     public void should_find_children_in_rule_library() {
         assertThat(runnerForRuleLibrary.getChildren()).as("Rules defined in Library").hasSize(3);
-        assertThat(runnerForRuleLibrary.getChildren())
-                .extracting(resultOf("describeSelf"))
-                .extractingResultOf("getMethodName")
-                .as("Descriptions").containsOnly(someFieldRuleName, someMethodRuleName, someOtherMethodRuleName);
+        Set<Description> descriptions = runnerForRuleLibrary.getChildren().stream().map(ArchTestExecution::describeSelf).collect(toSet());
+
+        assertThat(descriptions)
+                .containsExactlyInAnyOrder(
+                        Description.createTestDescription(
+                                ArchTestWithRuleLibrary.class,
+                                ArchTestWithRuleSet.class.getSimpleName() + " > " + Rules.class.getSimpleName() + " > " + someFieldRuleName
+                        ),
+                        Description.createTestDescription(
+                                ArchTestWithRuleLibrary.class,
+                                ArchTestWithRuleSet.class.getSimpleName() + " > " + Rules.class.getSimpleName() + " > " + someMethodRuleName
+                        ),
+                        Description.createTestDescription(
+                                ArchTestWithRuleLibrary.class.getName(),
+                                someOtherMethodRuleName
+                        )
+                );
     }
 
     @Test
@@ -116,13 +140,6 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Test
     public void can_run_rule_method() {
         run(someMethodRuleName, runnerForRuleSet, verifyTestRan());
-    }
-
-    @Test
-    public void describes_nested_rules_within_their_declaring_class() {
-        for (ArchTestExecution execution : runnerForRuleSet.getChildren()) {
-            assertThat(execution.describeSelf().getTestClass()).isEqualTo(Rules.class);
-        }
     }
 
     @Test

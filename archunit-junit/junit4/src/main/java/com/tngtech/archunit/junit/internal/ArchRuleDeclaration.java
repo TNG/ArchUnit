@@ -19,8 +19,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTests;
@@ -33,13 +35,13 @@ import static com.tngtech.archunit.junit.internal.ReflectionUtils.withAnnotation
 import static java.util.Collections.singleton;
 
 abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
-    private final Class<?> testClass;
+    final List<Class<?>> testClassBranch;
     final T declaration;
     final Class<?> owner;
     private final boolean forceIgnore;
 
-    ArchRuleDeclaration(Class<?> testClass, T declaration, Class<?> owner, boolean forceIgnore) {
-        this.testClass = testClass;
+    ArchRuleDeclaration(List<Class<?>> testClassBranch, T declaration, Class<?> owner, boolean forceIgnore) {
+        this.testClassBranch = testClassBranch;
         this.declaration = declaration;
         this.owner = owner;
         this.forceIgnore = forceIgnore;
@@ -47,12 +49,12 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
 
     abstract void handleWith(Handler handler);
 
-    private static ArchRuleDeclaration<Method> from(Class<?> testClass, Method method, Class<?> methodOwner, boolean forceIgnore) {
-        return new AsMethod(testClass, method, methodOwner, forceIgnore);
+    private static ArchRuleDeclaration<Method> from(List<Class<?>> testClassBranch, Method method, Class<?> methodOwner, boolean forceIgnore) {
+        return new AsMethod(testClassBranch, method, methodOwner, forceIgnore);
     }
 
-    private static ArchRuleDeclaration<Field> from(Class<?> testClass, Field field, Class<?> fieldOwner, boolean forceIgnore) {
-        return new AsField(testClass, field, fieldOwner, forceIgnore);
+    private static ArchRuleDeclaration<Field> from(List<Class<?>> testClassBranch, Field field, Class<?> fieldOwner, boolean forceIgnore) {
+        return new AsField(testClassBranch, field, fieldOwner, forceIgnore);
     }
 
     static boolean elementShouldBeIgnored(Class<?> owner, AnnotatedElement ruleDeclaration) {
@@ -65,25 +67,26 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     }
 
     static Set<ArchRuleDeclaration<?>> toDeclarations(
-            ArchTests archTests, Class<?> testClass, Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
+            ArchTests archTests, List<Class<?>> testClassBranch, Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
         ImmutableSet.Builder<ArchRuleDeclaration<?>> result = ImmutableSet.builder();
         Class<?> definitionLocation = archTests.getDefinitionLocation();
+        List<Class<?>> childTestClassBranch = ImmutableList.<Class<?>>builder().addAll(testClassBranch).add(definitionLocation).build();
         for (Field field : getAllFields(definitionLocation, withAnnotation(archTestAnnotationType))) {
-            result.addAll(archRuleDeclarationsFrom(testClass, field, definitionLocation, archTestAnnotationType, forceIgnore));
+            result.addAll(archRuleDeclarationsFrom(childTestClassBranch, field, definitionLocation, archTestAnnotationType, forceIgnore));
         }
         for (Method method : getAllMethods(definitionLocation, withAnnotation(archTestAnnotationType))) {
-            result.add(ArchRuleDeclaration.from(testClass, method, definitionLocation, forceIgnore));
+            result.add(ArchRuleDeclaration.from(childTestClassBranch, method, definitionLocation, forceIgnore));
         }
         return result.build();
     }
 
-    private static Set<ArchRuleDeclaration<?>> archRuleDeclarationsFrom(Class<?> testClass, Field field, Class<?> fieldOwner,
+    private static Set<ArchRuleDeclaration<?>> archRuleDeclarationsFrom(List<Class<?>> testClassBranch, Field field, Class<?> fieldOwner,
             Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
         return ArchTests.class.isAssignableFrom(field.getType()) ?
-                toDeclarations(getArchTestsIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(fieldOwner, field)) :
-                singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
+                toDeclarations(getArchTestsIn(field, fieldOwner), testClassBranch, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(fieldOwner, field)) :
+                singleton(ArchRuleDeclaration.from(testClassBranch, field, fieldOwner, forceIgnore));
     }
 
     private static ArchTests getArchTestsIn(Field field, Class<?> fieldOwner) {
@@ -92,30 +95,30 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     }
 
     private static class AsMethod extends ArchRuleDeclaration<Method> {
-        AsMethod(Class<?> testClass, Method method, Class<?> methodOwner, boolean forceIgnore) {
-            super(testClass, method, methodOwner, forceIgnore);
+        AsMethod(List<Class<?>> testClassBranch, Method method, Class<?> methodOwner, boolean forceIgnore) {
+            super(testClassBranch, method, methodOwner, forceIgnore);
         }
 
         @Override
         void handleWith(Handler handler) {
-            handler.handleMethodDeclaration(declaration, owner, shouldBeIgnored());
+            handler.handleMethodDeclaration(testClassBranch, declaration, owner, shouldBeIgnored());
         }
     }
 
     private static class AsField extends ArchRuleDeclaration<Field> {
-        AsField(Class<?> testClass, Field field, Class<?> fieldOwner, boolean forceIgnore) {
-            super(testClass, field, fieldOwner, forceIgnore);
+        AsField(List<Class<?>> testClassBranch, Field field, Class<?> fieldOwner, boolean forceIgnore) {
+            super(testClassBranch, field, fieldOwner, forceIgnore);
         }
 
         @Override
         void handleWith(Handler handler) {
-            handler.handleFieldDeclaration(declaration, owner, shouldBeIgnored());
+            handler.handleFieldDeclaration(testClassBranch, declaration, owner, shouldBeIgnored());
         }
     }
 
     interface Handler {
-        void handleFieldDeclaration(Field field, Class<?> fieldOwner, boolean ignore);
+        void handleFieldDeclaration(List<Class<?>> testClassBranch, Field field, Class<?> fieldOwner, boolean ignore);
 
-        void handleMethodDeclaration(Method method, Class<?> methodOwner, boolean ignore);
+        void handleMethodDeclaration(List<Class<?>> testClassBranch, Method method, Class<?> methodOwner, boolean ignore);
     }
 }
