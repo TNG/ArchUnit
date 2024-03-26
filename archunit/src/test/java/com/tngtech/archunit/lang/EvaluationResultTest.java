@@ -14,6 +14,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +27,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.exists;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
@@ -181,6 +184,27 @@ public class EvaluationResultTest {
         assertThat(handledViolations).containsOnly("third one more", "fourth");
     }
 
+    @Test
+    public void handles_converted_types() {
+        ConditionEvents events = events(
+                SimpleConditionEvent.violated(new CorrectType("correct type"), "message"),
+                SimpleConditionEvent.violated(new WrongType(), "message"),
+                SimpleConditionEvent.violated(new ConvertibleToSingleCorrectType("correctly converted"), "message"),
+                SimpleConditionEvent.violated(new ConvertibleToMultipleCorrectTypes("correctly converted1", "correctly converted2"), "message"));
+
+        EvaluationResult result = evaluationResultWith(events);
+
+        List<String> providedObjects = new ArrayList<>();
+        result.handleViolations((Collection<CorrectType> types, String __) ->
+                types.stream().map(it -> it.message).forEach(providedObjects::add));
+
+        assertThat(providedObjects).containsOnly(
+                "correct type",
+                "correctly converted",
+                "correctly converted1",
+                "correctly converted2");
+    }
+
     private EvaluationResult evaluationResultWith(ConditionEvents events) {
         return evaluationResultWith(events.getViolating().toArray(new ConditionEvent[0]));
     }
@@ -249,6 +273,42 @@ public class EvaluationResultTest {
     }
 
     private static class WrongSupertype {
+    }
+
+    private static class ConvertibleToSingleCorrectType implements Convertible {
+        String message;
+
+        ConvertibleToSingleCorrectType(String message) {
+            this.message = message;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Set<T> convertTo(Class<T> type) {
+            if (type.isAssignableFrom(CorrectType.class)) {
+                return (Set<T>) singleton(new CorrectType(message));
+            }
+            return emptySet();
+        }
+    }
+
+    private static class ConvertibleToMultipleCorrectTypes implements Convertible {
+        private final String message1;
+        private final String message2;
+
+        ConvertibleToMultipleCorrectTypes(String message1, String message2) {
+            this.message1 = message1;
+            this.message2 = message2;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Set<T> convertTo(Class<T> type) {
+            if (type.isAssignableFrom(CorrectType.class)) {
+                return (Set<T>) ImmutableSet.of(new CorrectType(message1), new CorrectType(message2));
+            }
+            return emptySet();
+        }
     }
 
     private static class TestEvent implements ConditionEvent {

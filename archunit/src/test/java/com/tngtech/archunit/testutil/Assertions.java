@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
@@ -38,6 +39,7 @@ import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
 import com.tngtech.archunit.testutil.assertion.ArchRuleAssertion;
 import com.tngtech.archunit.testutil.assertion.CodeUnitAccessAssertion;
 import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
+import com.tngtech.archunit.testutil.assertion.ConversionAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
@@ -169,6 +171,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaEnumConstantsAssertion assertThat(JavaEnumConstant[] enumConstants) {
         return new JavaEnumConstantsAssertion(enumConstants);
+    }
+
+    public static ConversionAssertion assertThatConversionOf(Convertible convertible) {
+        return new ConversionAssertion(convertible);
     }
 
     public static JavaClassDescriptorAssertion assertThat(JavaClassDescriptor javaClassDescriptor) {

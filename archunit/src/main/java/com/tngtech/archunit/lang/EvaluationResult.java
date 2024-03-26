@@ -20,6 +20,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +31,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
 
@@ -115,6 +119,12 @@ public final class EvaluationResult {
      * So, in general it is safer to use the wildcard {@code ?} for generic types, unless it is absolutely
      * certain from the context what the type parameter will be
      * (for example when only analyzing methods it might be clear that the type parameter will be {@link JavaMethod}).
+     * <br><br>
+     * For any {@link ViolationHandler ViolationHandler&lt;T&gt;} violating objects that are not of type <code>T</code>,
+     * but implement {@link Convertible} will be {@link Convertible#convertTo(Class) converted} to <code>T</code>
+     * and the result will be passed on to the {@link ViolationHandler}. This makes sense for example for a client
+     * who wants to handle {@link Dependency}, but the {@link ConditionEvents} corresponding objects are of type
+     * {@link JavaAccess} which does not share any common meaningful type.
      *
      * @param <T> Type of the relevant objects causing violations. E.g. {@code JavaAccess<?>}
      * @param violationHandler The violation handler that is supposed to handle all violations matching the
@@ -141,17 +151,24 @@ public final class EvaluationResult {
 
     private <ITEM> ConditionEvent.Handler convertToEventHandler(Class<? extends ITEM> correspondingObjectType, ViolationHandler<ITEM> violationHandler) {
         return (correspondingObjects, message) -> {
-            if (allElementTypesMatch(correspondingObjects, correspondingObjectType)) {
-                // If all elements are assignable to ITEM, covariance of ImmutableList allows this cast
-                @SuppressWarnings("unchecked")
-                Collection<ITEM> collection = ImmutableList.copyOf((Collection<ITEM>) correspondingObjects);
+            Collection<ITEM> collection = getObjectsToHandle(correspondingObjects, correspondingObjectType);
+            if (!collection.isEmpty()) {
                 violationHandler.handle(collection, message);
             }
         };
     }
 
-    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
-        return violatingObjects.stream().allMatch(supportedElementType::isInstance);
+    @SuppressWarnings("unchecked") // compatibility asserted via reflection
+    private <T> Collection<T> getObjectsToHandle(Collection<?> objects, Class<? extends T> supportedType) {
+        Set<T> result = new HashSet<>();
+        for (Object object : objects) {
+            if (supportedType.isInstance(object)) {
+                result.add((T) object);
+            } else if (object instanceof Convertible) {
+                result.addAll(((Convertible) object).convertTo(supportedType));
+            }
+        }
+        return result;
     }
 
     @PublicAPI(usage = ACCESS)

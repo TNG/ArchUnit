@@ -1,9 +1,13 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -68,13 +72,33 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ArchRuleCheckAssertion hasOnlyOneViolation(String violationMessage) {
+        return hasOnlyOneViolation(__ -> true, violationMessage);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public ArchRuleCheckAssertion hasOnlyOneViolation(Predicate<Object> correspondingObjectPredicate, String violationMessage) {
         assertThat(evaluationResult.getFailureReport().getDetails()).as("Failure report details")
                 .hasSize(1)
                 .first().isEqualTo(violationMessage);
         assertThat(error.get().getMessage()).contains(violationMessage);
+
+        Set<HandledViolation> handledViolations = getHandledViolations(evaluationResult);
+        HandledViolation handledViolation = getOnlyElement(handledViolations);
+        Object correspondingObject = getOnlyElement(handledViolation.correspondingObjects);
+        assertThat(correspondingObjectPredicate.test(correspondingObject))
+                .as("corresponding object satisfies predicate")
+                .isTrue();
+        assertThat(handledViolation.violationMessage).as("violation message").isEqualTo(violationMessage);
         return this;
+    }
+
+    private Set<HandledViolation> getHandledViolations(EvaluationResult evaluationResult) {
+        ImmutableSet.Builder<HandledViolation> result = ImmutableSet.builder();
+        evaluationResult.handleViolations((objects, message) -> {
+            result.add(new HandledViolation(objects, message));
+        });
+        return result.build();
     }
 
     public ArchRuleCheckAssertion hasOnlyOneViolationWithStandardPattern(Class<?> violatingClass, String violationDescription) {
@@ -132,5 +156,15 @@ public class ArchRuleCheckAssertion {
 
     private String toViolationMessage(Class<?> violatingClass, String violationDescription) {
         return "Class <" + violatingClass.getName() + "> " + violationDescription + " in (" + violatingClass.getSimpleName() + ".java:0)";
+    }
+
+    private static class HandledViolation {
+        private final Collection<Object> correspondingObjects;
+        private final String violationMessage;
+
+        HandledViolation(Collection<Object> correspondingObjects, String violationMessage) {
+            this.correspondingObjects = correspondingObjects;
+            this.violationMessage = violationMessage;
+        }
     }
 }

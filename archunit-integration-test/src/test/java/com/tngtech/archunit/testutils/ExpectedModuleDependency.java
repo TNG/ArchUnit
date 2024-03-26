@@ -5,9 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.testutils.ExpectedRelation.LineAssociation;
 
-import static com.tngtech.archunit.testutils.MessageAssertionChain.matchesLine;
 import static java.util.regex.Pattern.quote;
 
 public class ExpectedModuleDependency implements MessageAssertionChain.Link {
@@ -22,8 +21,13 @@ public class ExpectedModuleDependency implements MessageAssertionChain.Link {
         return new ModuleDependencyCreator(moduleName);
     }
 
-    public static UncontainedCreator uncontainedFrom(Class<?> origin) {
-        return new UncontainedCreator(origin);
+    public static MessageAssertionChain.Link uncontained(ExpectedRelation call) {
+        return new ExpectedUncontainedModuleDependency(call);
+    }
+
+    @Override
+    public void addTo(HandlingAssertion handlingAssertion) {
+        details.forEach(it -> it.addTo(handlingAssertion));
     }
 
     @Override
@@ -58,51 +62,38 @@ public class ExpectedModuleDependency implements MessageAssertionChain.Link {
         }
     }
 
-    public static class UncontainedCreator {
-        private final Class<?> origin;
+    private static class ExpectedUncontainedModuleDependency implements MessageAssertionChain.Link {
+        private final ExpectedRelation delegate;
 
-        private UncontainedCreator(Class<?> origin) {
-            this.origin = origin;
-        }
-
-        public ExpectedUncontainedModuleDependency to(Class<?> target) {
-            return new ExpectedUncontainedModuleDependency(origin, target);
-        }
-    }
-
-    private static class ExpectedUncontainedModuleDependency implements MessageAssertionChain.Link, ExpectedRelation {
-        private final String dependencyPattern;
-        private final MessageAssertionChain.Link delegate;
-
-        private ExpectedUncontainedModuleDependency(Class<?> origin, Class<?> target) {
-            dependencyPattern = String.format("Dependency not contained in any module: .*%s.*%s.*",
-                    quote(origin.getName()), quote(target.getName()));
-            this.delegate = matchesLine(dependencyPattern);
+        private ExpectedUncontainedModuleDependency(ExpectedRelation delegate) {
+            this.delegate = delegate;
         }
 
         @Override
         public void addTo(HandlingAssertion assertion) {
-            assertion.byDependency(this);
-        }
-
-        @Override
-        public void associateLines(LineAssociation association) {
-            association.associateIfPatternMatches(dependencyPattern);
-        }
-
-        @Override
-        public boolean correspondsTo(Object object) {
-            return object instanceof Dependency;
+            delegate.addTo(assertion);
         }
 
         @Override
         public Result filterMatching(List<String> lines) {
-            return delegate.filterMatching(lines);
+            Result.Builder builder = new Result.Builder();
+            delegate.associateLines(new LineAssociation() {
+                @Override
+                public void associateIfPatternMatches(String pattern) {
+                    builder.matchesLine("Dependency not contained in any module:" + pattern);
+                }
+
+                @Override
+                public void associateIfStringIsContained(String string) {
+                    associateIfPatternMatches(".*" + quote(string) + ".*");
+                }
+            });
+            return builder.build(lines);
         }
 
         @Override
         public String getDescription() {
-            return delegate.getDescription();
+            return "Uncontained module dependency: " + delegate;
         }
     }
 }

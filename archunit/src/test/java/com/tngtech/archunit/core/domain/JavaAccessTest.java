@@ -14,6 +14,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
+import static com.tngtech.archunit.testutil.Assertions.assertThatDependency;
 
 public class JavaAccessTest {
     @Test
@@ -56,6 +58,21 @@ public class JavaAccessTest {
 
         predicate = JavaAccess.Predicates.origin(alwaysFalse());
         assertThat(predicate).rejects(anyAccess());
+    }
+
+    @Test
+    public void convertTo() {
+        TestJavaAccess access = javaAccessFrom(importClassWithContext(String.class), "toString")
+                .to(Object.class, "toString")
+                .inLineNumber(11);
+
+        assertThatConversionOf(access)
+                .satisfiesStandardConventions()
+                .isPossibleToSingleElement(Dependency.class, dependency -> {
+                    assertThatDependency(dependency)
+                            .matches(String.class, Object.class)
+                            .hasDescription(access.getDescription());
+                });
     }
 
     private TestJavaAccess anyAccess() {

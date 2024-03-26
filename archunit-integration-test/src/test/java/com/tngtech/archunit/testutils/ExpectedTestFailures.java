@@ -372,9 +372,7 @@ public class ExpectedTestFailures {
 
         void by(MessageAssertionChain.Link assertion) {
             expectedViolation.by(assertion);
-            if (assertion instanceof ExpectedRelation) {
-                ((ExpectedRelation) assertion).addTo(handlingAssertion);
-            }
+            assertion.addTo(handlingAssertion);
         }
 
         ExpectedViolationToAssign copy() {

@@ -33,6 +33,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SortedSetMultimap;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -54,8 +55,10 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.cycle_detection.rules.CycleRuleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * A generic {@link ArchCondition} to check arbitrary {@code COMPONENT}s consisting of {@link JavaClass JavaClasses}
@@ -193,7 +196,7 @@ public final class CycleArchCondition<COMPONENT> extends ArchCondition<COMPONENT
         }
     }
 
-    private static class ComponentDependency<COMPONENT> implements Edge<COMPONENT> {
+    private static class ComponentDependency<COMPONENT> implements Edge<COMPONENT>, Convertible {
         private final COMPONENT origin;
         private final COMPONENT target;
         private final SortedSet<Dependency> classDependencies;
@@ -216,6 +219,15 @@ public final class CycleArchCondition<COMPONENT> extends ArchCondition<COMPONENT
 
         SortedSet<Dependency> toClassDependencies() {
             return classDependencies;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked") // compatibility is explicitly checked
+        public <T> Set<T> convertTo(Class<T> type) {
+            if (type.isAssignableFrom(getClass())) {
+                return (Set<T>) singleton(this);
+            }
+            return toClassDependencies().stream().flatMap(it -> it.convertTo(type).stream()).collect(toSet());
         }
     }
 

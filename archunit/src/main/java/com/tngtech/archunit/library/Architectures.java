@@ -452,7 +452,7 @@ public final class Architectures {
                         @Override
                         public void check(JavaClass javaClass, ConditionEvents events) {
                             if (!ignorePredicate.test(javaClass) && !classContainedInLayers.test(javaClass)) {
-                                events.add(violated(this, String.format("Class <%s> is not contained in architecture", javaClass.getName())));
+                                events.add(violated(javaClass, String.format("Class <%s> is not contained in architecture", javaClass.getName())));
                             }
                         }
                     };

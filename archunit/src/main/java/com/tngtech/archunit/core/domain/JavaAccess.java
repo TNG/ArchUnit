@@ -15,12 +15,14 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Collections;
 import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
@@ -33,7 +35,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public abstract class JavaAccess<TARGET extends AccessTarget>
-        implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
+        implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasSourceCodeLocation, Convertible {
 
     private final JavaCodeUnit origin;
     private final TARGET target;
@@ -93,6 +95,18 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @PublicAPI(usage = ACCESS)
     public boolean isDeclaredInLambda() {
         return declaredInLambda;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // compatibility is explicitly checked
+    public <T> Set<T> convertTo(Class<T> type) {
+        if (type.isAssignableFrom(getClass())) {
+            return (Set<T>) Collections.singleton(this);
+        }
+        if (type.isAssignableFrom(Dependency.class)) {
+            return (Set<T>) Dependency.tryCreateFromAccess(this);
+        }
+        return Collections.emptySet();
     }
 
     @Override
