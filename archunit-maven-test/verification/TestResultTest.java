@@ -17,9 +17,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.thirdparty.com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.thirdparty.com.google.common.collect.ImmutableList;
 import org.joox.Match;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -27,6 +28,8 @@ import org.xml.sax.SAXException;
 import static com.tngtech.archunit.thirdparty.com.google.common.base.Preconditions.checkState;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.joox.JOOX.$;
 
@@ -71,8 +74,8 @@ public class TestResultTest {
 
         private Set<SingleTest> getTestsIn(Class<?> clazz) {
             Set<SingleTest> result = new HashSet<>();
-            result.addAll(singleTestProvider.getTestMethods(ImmutableSet.copyOf(clazz.getDeclaredMethods())));
-            result.addAll(singleTestProvider.getTestFields(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            result.addAll(singleTestProvider.getTestMethods(clazz));
+            result.addAll(singleTestProvider.getTestFields(clazz));
             return result;
         }
 
@@ -236,16 +239,16 @@ public class TestResultTest {
     }
 
     private interface SingleTestProvider {
-        Set<SingleTest> getTestMethods(Collection<Method> methods);
+        Set<SingleTest> getTestMethods(Class<?> clazz);
 
-        Set<SingleTest> getTestFields(Collection<Field> fields);
+        Set<SingleTest> getTestFields(Class<?> clazz);
     }
 
     private static class PlainSingleTestProvider implements SingleTestProvider {
         @Override
-        public Set<SingleTest> getTestMethods(Collection<Method> methods) {
+        public Set<SingleTest> getTestMethods(Class<?> clazz) {
             Set<SingleTest> result = new HashSet<>();
-            for (Method method : methods) {
+            for (Method method : clazz.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(Test.class)) {
                     result.add(new SingleTest(method.getDeclaringClass().getName(), method.getName()));
                 }
@@ -254,7 +257,7 @@ public class TestResultTest {
         }
 
         @Override
-        public Set<SingleTest> getTestFields(Collection<Field> fields) {
+        public Set<SingleTest> getTestFields(Class<?> clazz) {
             return Collections.emptySet();
         }
     }
@@ -274,46 +277,62 @@ public class TestResultTest {
         }
 
         @Override
-        public Set<SingleTest> getTestMethods(Collection<Method> methods) {
+        public Set<SingleTest> getTestMethods(Class<?> clazz) {
+            return getTestMethods(singletonList(clazz), ImmutableList.copyOf(clazz.getDeclaredMethods()));
+        }
+
+        private Set<SingleTest> getTestMethods(List<Class<?>> testClassPath, Collection<Method> methods) {
             Set<SingleTest> result = new HashSet<>();
             for (Method method : methods) {
                 if (method.getAnnotation(archTestAnnotation) != null || method.getAnnotation(Test.class) != null) {
-                    result.add(new SingleTest(method.getDeclaringClass().getName(), method.getName()));
+                    result.add(createSingleTest(testClassPath, method.getName()));
                 }
             }
             return result;
+        }
+
+        private static SingleTest createSingleTest(List<Class<?>> testClassPath, String memberName) {
+            String testName = Stream.concat(
+                    testClassPath.stream().skip(1).map(Class::getSimpleName),
+                    Stream.of(memberName)
+            ).collect(joining(" > "));
+            return new SingleTest(testClassPath.get(0).getName(), testName);
         }
 
         @Override
-        public Set<SingleTest> getTestFields(Collection<Field> fields) {
+        public Set<SingleTest> getTestFields(Class<?> clazz) {
+            return getTestFields(singletonList(clazz), ImmutableList.copyOf(clazz.getDeclaredFields()));
+        }
+
+        private Set<SingleTest> getTestFields(List<Class<?>> testClassPath, Collection<Field> fields) {
             Set<SingleTest> result = new HashSet<>();
             for (Field field : fields) {
                 if (field.getAnnotation(archTestAnnotation) != null) {
-                    result.addAll(getTestFields(field));
+                    result.addAll(getTestFields(testClassPath, field));
                 }
             }
             return result;
         }
 
-        private Set<SingleTest> getTestFields(Field field) {
+        private Set<SingleTest> getTestFields(List<Class<?>> testClassPath, Field field) {
             if (ArchRule.class.isAssignableFrom(field.getType())) {
-                return Collections.singleton(new SingleTest(field.getDeclaringClass().getName(), field.getName()));
+                return Collections.singleton(createSingleTest(testClassPath, field.getName()));
             }
             if (archTestsClass.isAssignableFrom(field.getType())) {
-                return getTestsFrom(getValue(field, null));
+                return getTestsFrom(testClassPath, getValue(field, null));
             }
             throw new IllegalStateException("Unknown @ArchTest: " + field);
         }
 
-        private Set<SingleTest> getTestsFrom(Object archTests) {
+        private Set<SingleTest> getTestsFrom(List<Class<?>> testClassPath, Object archTests) {
             Set<SingleTest> result = new HashSet<>();
             Class<?> definitionLocation = getValue("definitionLocation", archTests);
-            result.addAll(getTestFields(asList(definitionLocation.getDeclaredFields())));
-            result.addAll(getTestMethods(asList(definitionLocation.getDeclaredMethods())));
+            List<Class<?>> childTestClassPath = ImmutableList.<Class<?>>builder().addAll(testClassPath).add(definitionLocation).build();
+            result.addAll(getTestFields(childTestClassPath, asList(definitionLocation.getDeclaredFields())));
+            result.addAll(getTestMethods(childTestClassPath, asList(definitionLocation.getDeclaredMethods())));
             return result;
         }
 
-        @SuppressWarnings("unchecked")
         private <T> T getValue(String fieldName, Object owner) {
             try {
                 return getValue(owner.getClass().getDeclaredField(fieldName), owner);

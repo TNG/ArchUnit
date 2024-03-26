@@ -16,6 +16,7 @@
 package com.tngtech.archunit.junit.internal;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
@@ -26,19 +27,19 @@ import static com.tngtech.archunit.junit.internal.DisplayNameResolver.determineD
 class ArchRuleExecution extends ArchTestExecution {
     private final Field ruleField;
 
-    ArchRuleExecution(Class<?> testClass, Field ruleField, boolean ignore) {
-        super(testClass, ignore);
+    ArchRuleExecution(List<Class<?>> testClassPath, Class<?> ruleDeclaringClass, Field ruleField, boolean ignore) {
+        super(testClassPath, ruleDeclaringClass, ignore);
 
         ArchTestInitializationException.check(ArchRule.class.isAssignableFrom(ruleField.getType()),
                 "Rule field %s.%s to check must be of type %s",
-                testClass.getSimpleName(), ruleField.getName(), ArchRule.class.getSimpleName());
+                ruleDeclaringClass.getSimpleName(), ruleField.getName(), ArchRule.class.getSimpleName());
 
         this.ruleField = ruleField;
     }
 
     @Override
     Result evaluateOn(JavaClasses classes) {
-        ArchRule rule = getValue(ruleField, testClass);
+        ArchRule rule = getValue(ruleField, ruleDeclaringClass);
         try {
             rule.check(classes);
         } catch (Exception | AssertionError e) {
@@ -49,7 +50,8 @@ class ArchRuleExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, determineDisplayName(ruleField.getName()), ruleField.getAnnotations());
+        String testName = formatWithPath(ruleField.getName());
+        return Description.createTestDescription(getTestClass(), determineDisplayName(testName), ruleField.getAnnotations());
     }
 
     @Override

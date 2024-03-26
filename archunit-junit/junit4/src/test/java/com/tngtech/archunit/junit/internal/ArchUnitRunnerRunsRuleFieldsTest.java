@@ -223,12 +223,15 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         verifyTestFinishedSuccessfully(runNotifier, descriptionCaptor, expectedDescriptionMethodName);
     }
 
-    static void verifyTestFinishedSuccessfully(RunNotifier runNotifier, ArgumentCaptor<Description> descriptionCaptor,
-            String expectedDescriptionMethodName) {
+    static void verifyTestFinishedSuccessfully(
+            RunNotifier runNotifier,
+            ArgumentCaptor<Description> descriptionCaptor,
+            String expectedDescriptionMethodName
+    ) {
         verify(runNotifier, never()).fireTestFailure(any(Failure.class));
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         Description description = descriptionCaptor.getValue();
-        assertThat(description.getMethodName()).isEqualTo(expectedDescriptionMethodName);
+        assertThat(description.getMethodName()).endsWith(expectedDescriptionMethodName);
     }
 
     @AnalyzeClasses(packages = "some.pkg")

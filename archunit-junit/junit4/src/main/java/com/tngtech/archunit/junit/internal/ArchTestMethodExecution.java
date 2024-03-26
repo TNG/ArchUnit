@@ -17,6 +17,7 @@ package com.tngtech.archunit.junit.internal;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -28,8 +29,8 @@ import static com.tngtech.archunit.junit.internal.ReflectionUtils.invokeMethod;
 class ArchTestMethodExecution extends ArchTestExecution {
     private final Method testMethod;
 
-    ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean ignore) {
-        super(testClass, ignore);
+    ArchTestMethodExecution(List<Class<?>> testClassPath, Class<?> ruleDeclaringClass, Method testMethod, boolean ignore) {
+        super(testClassPath, ruleDeclaringClass, ignore);
         this.testMethod = testMethod;
     }
 
@@ -49,12 +50,13 @@ class ArchTestMethodExecution extends ArchTestExecution {
                 "Methods annotated with @%s must have exactly one parameter of type %s",
                 ArchTest.class.getSimpleName(), JavaClasses.class.getSimpleName());
 
-        invokeMethod(testMethod, testClass, classes);
+        invokeMethod(testMethod, ruleDeclaringClass, classes);
     }
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, determineDisplayName(testMethod.getName()), testMethod.getAnnotations());
+        String testName = formatWithPath(testMethod.getName());
+        return Description.createTestDescription(getTestClass(), determineDisplayName(testName), testMethod.getAnnotations());
     }
 
     @Override

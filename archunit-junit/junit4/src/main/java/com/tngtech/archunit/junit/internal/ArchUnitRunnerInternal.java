@@ -43,6 +43,7 @@ import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.elementSho
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.internal.ArchTestExecution.getValue;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> implements ArchUnitRunner.InternalRunner<ArchTestExecution> {
@@ -96,12 +97,12 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         if (ruleField.getType() == ArchTests.class) {
             return asTestExecutions(getArchTests(ruleField.getField()), ignore);
         }
-        return singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
+        return singleton(new ArchRuleExecution(singletonList(getTestClass().getJavaClass()), getTestClass().getJavaClass(), ruleField.getField(), ignore));
     }
 
     private Set<ArchTestExecution> asTestExecutions(ArchTests archTests, boolean forceIgnore) {
         ExecutionTransformer executionTransformer = new ExecutionTransformer();
-        for (ArchRuleDeclaration<?> declaration : toDeclarations(archTests, getTestClass().getJavaClass(), ArchTest.class, forceIgnore)) {
+        for (ArchRuleDeclaration<?> declaration : toDeclarations(archTests, singletonList(getTestClass().getJavaClass()), ArchTest.class, forceIgnore)) {
             declaration.handleWith(executionTransformer);
         }
         return executionTransformer.getExecutions();
@@ -115,7 +116,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
             boolean ignore = elementShouldBeIgnored(getTestClass().getJavaClass(), testMethod.getMethod());
-            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
+            result.add(new ArchTestMethodExecution(singletonList(getTestClass().getJavaClass()), getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
         }
         return result;
     }
@@ -154,13 +155,13 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         private final ImmutableSet.Builder<ArchTestExecution> executions = ImmutableSet.builder();
 
         @Override
-        public void handleFieldDeclaration(Field field, Class<?> fieldOwner, boolean ignore) {
-            executions.add(new ArchRuleExecution(fieldOwner, field, ignore));
+        public void handleFieldDeclaration(List<Class<?>> testClassPath, Field field, Class<?> fieldOwner, boolean ignore) {
+            executions.add(new ArchRuleExecution(testClassPath, fieldOwner, field, ignore));
         }
 
         @Override
-        public void handleMethodDeclaration(Method method, Class<?> methodOwner, boolean ignore) {
-            executions.add(new ArchTestMethodExecution(methodOwner, method, ignore));
+        public void handleMethodDeclaration(List<Class<?>> testClassPath, Method method, Class<?> methodOwner, boolean ignore) {
+            executions.add(new ArchTestMethodExecution(testClassPath, methodOwner, method, ignore));
         }
 
         Set<ArchTestExecution> getExecutions() {

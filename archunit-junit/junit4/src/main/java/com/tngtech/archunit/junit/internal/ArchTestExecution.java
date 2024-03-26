@@ -16,6 +16,8 @@
 package com.tngtech.archunit.junit.internal;
 
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.runner.Description;
@@ -23,13 +25,16 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getValueOrThrowException;
+import static java.util.stream.Collectors.joining;
 
 abstract class ArchTestExecution {
-    final Class<?> testClass;
+    final List<Class<?>> testClassPath;
+    final Class<?> ruleDeclaringClass;
     private final boolean ignore;
 
-    ArchTestExecution(Class<?> testClass, boolean ignore) {
-        this.testClass = testClass;
+    ArchTestExecution(List<Class<?>> testClassPath, Class<?> ruleDeclaringClass, boolean ignore) {
+        this.testClassPath = testClassPath;
+        this.ruleDeclaringClass = ruleDeclaringClass;
         this.ignore = ignore;
     }
 
@@ -40,6 +45,21 @@ abstract class ArchTestExecution {
     @Override
     public String toString() {
         return describeSelf().toString();
+    }
+
+    Class<?> getTestClass() {
+        return testClassPath.get(0);
+    }
+
+    String formatWithPath(String testName) {
+        if (testClassPath.size() <= 1) {
+            return testName;
+        }
+
+        return Stream.concat(
+                testClassPath.subList(1, testClassPath.size()).stream().map(Class::getSimpleName),
+                Stream.of(testName)
+        ).collect(joining(" > "));
     }
 
     abstract String getName();
