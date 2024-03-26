@@ -94,7 +94,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
         boolean ignore = elementShouldBeIgnored(getTestClass().getJavaClass(), ruleField.getField());
         if (ruleField.getType() == ArchTests.class) {
-            return asTestExecutions(getArchRules(ruleField.getField()), ignore);
+            return asTestExecutions(getArchTests(ruleField.getField()), ignore);
         }
         return singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
     }
@@ -107,7 +107,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         return executionTransformer.getExecutions();
     }
 
-    private ArchTests getArchRules(Field field) {
+    private ArchTests getArchTests(Field field) {
         return getValue(field, field.getDeclaringClass());
     }
 

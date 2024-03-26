@@ -82,11 +82,11 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
             Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
         return ArchTests.class.isAssignableFrom(field.getType()) ?
-                toDeclarations(getArchRulesIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(fieldOwner, field)) :
+                toDeclarations(getArchTestsIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(fieldOwner, field)) :
                 singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
     }
 
-    private static ArchTests getArchRulesIn(Field field, Class<?> fieldOwner) {
+    private static ArchTests getArchTestsIn(Field field, Class<?> fieldOwner) {
         ArchTests value = getValue(field, fieldOwner);
         return checkNotNull(value, "Field %s.%s is not initialized", fieldOwner.getName(), field.getName());
     }
