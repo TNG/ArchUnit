@@ -18,7 +18,6 @@ package com.tngtech.archunit.junit.internal;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Set;
 
@@ -56,17 +55,13 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
         return new AsField(testClass, field, fieldOwner, forceIgnore);
     }
 
-    static <T extends AnnotatedElement & Member> boolean elementShouldBeIgnored(T member) {
-        return elementShouldBeIgnored(member.getDeclaringClass(), member);
-    }
-
-    static boolean elementShouldBeIgnored(Class<?> testClass, AnnotatedElement ruleDeclaration) {
-        return testClass.getAnnotation(ArchIgnore.class) != null ||
+    static boolean elementShouldBeIgnored(Class<?> owner, AnnotatedElement ruleDeclaration) {
+        return owner.getAnnotation(ArchIgnore.class) != null ||
                 ruleDeclaration.getAnnotation(ArchIgnore.class) != null;
     }
 
     boolean shouldBeIgnored() {
-        return forceIgnore || elementShouldBeIgnored(testClass, declaration);
+        return forceIgnore || elementShouldBeIgnored(owner, declaration);
     }
 
     static Set<ArchRuleDeclaration<?>> toDeclarations(
@@ -87,7 +82,7 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
             Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
         return ArchTests.class.isAssignableFrom(field.getType()) ?
-                toDeclarations(getArchRulesIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(field)) :
+                toDeclarations(getArchRulesIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(fieldOwner, field)) :
                 singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
     }
 
