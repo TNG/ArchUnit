@@ -1,6 +1,6 @@
 FROM jekyll/jekyll:stable
 
-MAINTAINER Peter Gafert <peter.gafert@tngtech.com>
+MAINTAINER Peter Gafert <peter.gafert@archunit.org>
 
 WORKDIR /srv/jekyll
 
