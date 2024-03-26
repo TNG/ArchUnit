@@ -27,6 +27,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.ArchTestWithPrivateInstanceField.PRIVATE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_ONE_IN_IGNORED_TEST;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTest.RULE_TWO_IN_IGNORED_TEST;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTestWithBaseClass.RULE_ONE_IN_IGNORED_BASE_CLASS;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.IgnoredArchTestWithBaseClass.RULE_TWO_IN_IGNORED_BASE_CLASS;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.FAILING_FIELD_NAME;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.IGNORED_FIELD_NAME;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleFieldsTest.SomeArchTest.SATISFIED_FIELD_NAME;
@@ -164,6 +166,19 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     }
 
     @Test
+    public void should_skip_ignored_test_with_rule_in_base_class() {
+        ArchUnitRunnerInternal runner = newRunnerFor(IgnoredArchTestWithBaseClass.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_ONE_IN_IGNORED_BASE_CLASS, runner), runNotifier);
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(RULE_TWO_IN_IGNORED_BASE_CLASS, runner), runNotifier);
+
+        verify(runNotifier, times(2)).fireTestIgnored(descriptionCaptor.capture());
+
+        assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
+                .contains(RULE_ONE_IN_IGNORED_BASE_CLASS, RULE_TWO_IN_IGNORED_BASE_CLASS);
+    }
+
+    @Test
     public void should_pass_annotations_of_rule_field() {
         ArchUnitRunnerInternal runner = newRunnerFor(ArchTestWithFieldWithAdditionalAnnotation.class, cache);
 
@@ -268,6 +283,21 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
         static final String RULE_ONE_IN_IGNORED_TEST = "someRuleOne";
         static final String RULE_TWO_IN_IGNORED_TEST = "someRuleTwo";
 
+        @ArchTest
+        public static final ArchRule someRuleOne = classes().should(NEVER_BE_SATISFIED);
+
+        @ArchTest
+        public static final ArchRule someRuleTwo = classes().should(NEVER_BE_SATISFIED);
+    }
+
+    @ArchIgnore
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class IgnoredArchTestWithBaseClass extends BaseClass {
+        static final String RULE_ONE_IN_IGNORED_BASE_CLASS = "someRuleOne";
+        static final String RULE_TWO_IN_IGNORED_BASE_CLASS = "someRuleTwo";
+    }
+
+    public static abstract class BaseClass {
         @ArchTest
         public static final ArchRule someRuleOne = classes().should(NEVER_BE_SATISFIED);
 
