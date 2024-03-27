@@ -54,6 +54,7 @@ import com.tngtech.archunit.junit.internal.testexamples.subtwo.SimpleRules;
 import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodNotStatic;
 import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodWrongParameters;
 import com.tngtech.archunit.junit.internal.testutil.LogCaptor;
+import com.tngtech.archunit.junit.internal.testutil.SystemPropertiesExtension;
 import com.tngtech.archunit.junit.internal.testutil.TestLogExtension;
 import com.tngtech.archunit.testutil.TestLogRecorder.RecordedLogEvent;
 import org.junit.jupiter.api.AfterEach;
@@ -117,7 +118,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, SystemPropertiesExtension.class})
 @MockitoSettings(strictness = Strictness.WARN)
 class ArchUnitTestEngineTest {
     @Mock
@@ -758,6 +759,42 @@ class ArchUnitTestEngineTest {
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
                     simpleRulesId(engineId));
+        }
+
+        @Test
+        void filtering_specific_rule_by_system_property() {
+            System.setProperty("archunit.junit.testFilter", SimpleRules.SIMPLE_RULE_FIELD_TWO_NAME);
+
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withPackageNameFilter(excludePackageNames(WrongRuleMethodNotStatic.class.getPackage().getName()));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Set<UniqueId> leafIds = getAllLeafUniqueIds(rootDescriptor);
+            assertThat(leafIds).isNotEmpty();
+            leafIds.forEach(leafId -> {
+                assertThat(leafId.getLastSegment().getType()).isEqualTo(FIELD_SEGMENT_TYPE);
+                assertThat(leafId.getLastSegment().getValue()).isEqualTo(SimpleRules.SIMPLE_RULE_FIELD_TWO_NAME);
+            });
+        }
+
+        @Test
+        void filtering_specific_rules_by_system_property() {
+            System.setProperty("archunit.junit.testFilter", "simple_rule_method_two,simple_rule,some_non_existing_rule");
+
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Set<UniqueId> leafIds = getAllLeafUniqueIds(rootDescriptor);
+            assertThat(leafIds).containsOnly(
+                    simpleRulesInLibraryId(engineId)
+                            .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_TWO_NAME),
+                    simpleRuleFieldTestId(engineId
+                            .append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName())
+                            .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_TWO_FIELD)));
         }
 
         @Test
