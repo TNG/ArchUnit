@@ -37,10 +37,6 @@ sourcesJar {
     from project(':archunit-junit').sourceSets.main.allSource
 }
 
-archUnitTest {
-    hasSlowTests = true
-}
-
 test {
     useJUnitPlatform() {
         excludeEngines 'archunit'
