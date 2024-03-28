@@ -3,6 +3,7 @@ package com.tngtech.archunit.junit.internal;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -13,6 +14,7 @@ import com.tngtech.archunit.junit.internal.ArchUnitRunnerInternal.SharedCache;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,12 +51,17 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class ArchUnitRunnerRunsRuleSetsTest {
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Mock
     private SharedCache cache;
@@ -136,6 +143,25 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Test
     public void can_run_rule_method() {
         run(someMethodRuleName, runnerForRuleSet, verifyTestRan());
+    }
+
+    @Test
+    public void allows_to_run_single_rule_via_configuration() {
+        ArchConfiguration.get().setProperty("junit.testFilter", someFieldRuleName);
+
+        newRunnerFor(ArchTestWithRuleSet.class).run(runNotifier);
+
+        verifyOnlyTestsRan("Rules > " + someFieldRuleName);
+    }
+
+    @Test
+    public void allows_to_run_selected_rules_via_configuration() {
+        ArchConfiguration.get().setProperty("junit.testFilter",
+                someFieldRuleName + "," + someOtherMethodRuleName + ",some_non_existing_rule");
+
+        newRunnerFor(ArchTestWithRuleLibrary.class).run(runNotifier);
+
+        verifyOnlyTestsRan("ArchTestWithRuleSet > Rules > " + someFieldRuleName, someOtherMethodRuleName);
     }
 
     @Test
@@ -244,6 +270,24 @@ public class ArchUnitRunnerRunsRuleSetsTest {
             verify(runNotifier).fireTestStarted(any(Description.class));
             verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         };
+    }
+
+    private void verifyOnlyTestsRan(String... memberNames) {
+        // Ignore these invocations as they are irrelevant
+        verify(runNotifier, atLeast(0)).fireTestSuiteStarted(any());
+        verify(runNotifier, atLeast(0)).fireTestFailure(any());
+        verify(runNotifier, atLeast(0)).fireTestSuiteFinished(any());
+
+        for (String memberName : memberNames) {
+            verify(runNotifier).fireTestStarted(descriptionMemberName(memberName));
+            verify(runNotifier).fireTestFinished(descriptionMemberName(memberName));
+        }
+
+        verifyNoMoreInteractions(runNotifier);
+    }
+
+    private static Description descriptionMemberName(String memberName) {
+        return argThat(description -> description.getMethodName().equals(memberName));
     }
 
     // extractingResultOf(..) only looks for public methods

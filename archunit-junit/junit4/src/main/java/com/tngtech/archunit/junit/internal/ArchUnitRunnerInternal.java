@@ -32,6 +32,7 @@ import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.junit.CacheMode;
 import com.tngtech.archunit.junit.LocationProvider;
 import org.junit.runner.Description;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.FrameworkField;
@@ -53,6 +54,12 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
     ArchUnitRunnerInternal(Class<?> testClass) throws InitializationError {
         super(testClass);
         checkAnnotation(testClass);
+
+        try {
+            ArchUnitSystemPropertyTestFilterJunit4.filter(this);
+        } catch (NoTestsRemainException e) {
+            throw new InitializationError(e);
+        }
     }
 
     private static AnalyzeClasses checkAnnotation(Class<?> testClass) {

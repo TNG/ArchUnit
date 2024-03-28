@@ -200,7 +200,7 @@ This also allows an easy reuse of a rule library in different projects or module
 
 ==== Executing Single Rules
 
-When using ArchUnit's JUnit 5 support it is possible to filter specific rules (e.g. `@ArchTest` fields) via `archunit.properties` (compare <<Advanced Configuration>>).
+It is possible to filter specific rules (e.g. `@ArchTest` fields) via `archunit.properties` (compare <<Advanced Configuration>>).
 
 [source,options="nowrap"]
 .archunit.properties
