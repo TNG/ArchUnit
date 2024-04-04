@@ -22,7 +22,7 @@ jobs:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
       - name: Build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: build
       - name: Check project files unmodified
@@ -57,7 +57,7 @@ jobs:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
       - name: Test
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }}
           cache-disabled: true
@@ -104,13 +104,13 @@ jobs:
               }
             }
       - name: Publish to Maven Local
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
           arguments: build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
       - name: Integration test
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
