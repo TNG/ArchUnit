@@ -14,6 +14,8 @@ dependencies {
     // `api` dependencies so we can access them within `archunit-integration-test`
     api dependency.jodaTime
     api dependency.javaxAnnotationApi
+    api dependency.jakartaInject
+    api dependency.jakartaAnnotations
     api dependency.springBeans
     api dependency.guice
     api dependency.geronimoEjb

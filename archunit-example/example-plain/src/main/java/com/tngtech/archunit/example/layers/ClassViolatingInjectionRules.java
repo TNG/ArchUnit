@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -21,8 +19,12 @@ public class ClassViolatingInjectionRules {
     private Set<?> badBecauseJavaxInjectField;
     @com.google.inject.Inject
     private Map<?, ?> badBecauseComGoogleInjectField;
-    @Resource
-    private File badBecauseResourceField;
+    @javax.annotation.Resource
+    private File badBecauseJavaxResourceField;
+    @jakarta.inject.Inject
+    private Object badBecauseJakartaInjectField;
+    @jakarta.annotation.Resource
+    private Object badBecauseJakartaResourceField;
 
     ClassViolatingInjectionRules(String okayBecauseNotInjected) {
     }
@@ -60,7 +62,15 @@ public class ClassViolatingInjectionRules {
     void someMethod(Map<?, ?> okayBecauseComGoogleInjectMethod) {
     }
 
-    @Resource
-    void someMethod(File okayBecauseResourceMethod) {
+    @javax.annotation.Resource
+    void someMethod(File okayBecauseJavaxResourceMethod) {
+    }
+
+    @jakarta.inject.Inject
+    void someMethod(Void okayBecauseJakartaInjectMethod) {
+    }
+
+    @jakarta.annotation.Resource
+    void someMethod(Integer okayBecauseJavaxResourceMethod) {
     }
 }
