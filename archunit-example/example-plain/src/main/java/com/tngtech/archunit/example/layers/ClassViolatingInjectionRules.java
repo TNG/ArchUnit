@@ -28,39 +28,39 @@ public class ClassViolatingInjectionRules {
     }
 
     @Autowired
-    ClassViolatingInjectionRules(Object badBecauseAutowiredField) {
+    ClassViolatingInjectionRules(Object okayBecauseAutowiredConstructor) {
     }
 
-    ClassViolatingInjectionRules(@Value("${name}") List<?> badBecauseValueField) {
+    ClassViolatingInjectionRules(@Value("${name}") List<?> okayBecauseValueConstructorParameter) {
     }
 
     @javax.inject.Inject
-    ClassViolatingInjectionRules(Set<?> badBecauseJavaxInjectField) {
+    ClassViolatingInjectionRules(Set<?> okayBecauseJavaxInjectConstructor) {
     }
 
     @com.google.inject.Inject
-    ClassViolatingInjectionRules(Map<?, ?> badBecauseComGoogleInjectField) {
+    ClassViolatingInjectionRules(Map<?, ?> okayBecauseComGoogleInjectConstructor) {
     }
 
     void someMethod(String okayBecauseNotInjected) {
     }
 
     @Autowired
-    void someMethod(Object badBecauseAutowiredField) {
+    void someMethod(Object okayBecauseAutowiredMethod) {
     }
 
-    void someMethod(@Value("${name}") List<?> badBecauseValueField) {
+    void someMethod(@Value("${name}") List<?> okayBecauseValueMethodParameter) {
     }
 
     @javax.inject.Inject
-    void someMethod(Set<?> badBecauseJavaxInjectField) {
+    void someMethod(Set<?> okayBecauseJavaxInjectMethod) {
     }
 
     @com.google.inject.Inject
-    void someMethod(Map<?, ?> badBecauseComGoogleInjectField) {
+    void someMethod(Map<?, ?> okayBecauseComGoogleInjectMethod) {
     }
 
     @Resource
-    void someMethod(File badBecauseResourceField) {
+    void someMethod(File okayBecauseResourceMethod) {
     }
 }
