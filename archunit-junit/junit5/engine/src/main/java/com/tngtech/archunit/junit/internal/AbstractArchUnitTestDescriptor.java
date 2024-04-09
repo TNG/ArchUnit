@@ -21,7 +21,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTag;
 import org.junit.platform.commons.support.AnnotationSupport;
@@ -33,6 +35,7 @@ import org.junit.platform.engine.support.descriptor.AbstractTestDescriptor;
 import org.junit.platform.engine.support.hierarchical.Node;
 
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor implements Node<ArchUnitEngineExecutionContext> {
@@ -68,5 +71,16 @@ abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor imp
         Set<TestTag> result = new HashSet<>(tags);
         result.addAll(getParent().map(TestDescriptor::getTags).orElse(emptySet()));
         return result;
+    }
+
+    static String formatWithPath(UniqueId uniqueId, String name) {
+        return Stream.concat(
+                uniqueId.getSegments().stream()
+                        .filter(it -> it.getType().equals(ArchUnitTestDescriptor.CLASS_SEGMENT_TYPE))
+                        .skip(1)
+                        .map(UniqueId.Segment::getValue)
+                        .map(Formatters::ensureSimpleName),
+                Stream.of(name)
+        ).collect(joining(" > "));
     }
 }

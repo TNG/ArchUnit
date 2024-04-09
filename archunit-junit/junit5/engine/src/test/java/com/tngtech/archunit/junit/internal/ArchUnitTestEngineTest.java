@@ -257,14 +257,33 @@ class ArchUnitTestEngineTest {
             List<TestDescriptor> archRulesDescriptors = getArchRulesDescriptorsOfOnlyChild(descriptor).collect(toList());
 
             TestDescriptor testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRules.class);
-            assertClassSource(testDescriptor, SimpleRules.class);
+            assertNoIntermediaryTestSource(testDescriptor);
             testDescriptor.getChildren().forEach(d ->
                     assertThat(d.getSource().isPresent()).as("source is present").isTrue());
 
             testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRuleField.class);
-            assertClassSource(testDescriptor, SimpleRuleField.class);
+            assertNoIntermediaryTestSource(testDescriptor);
             testDescriptor.getChildren().forEach(d ->
                     assertThat(d.getSource().isPresent()).as("source is present").isTrue());
+        }
+
+        @Test
+        void a_class_with_simple_hierarchy__display_name() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            List<TestDescriptor> archRulesDescriptors = getArchRulesDescriptorsOfOnlyChild(descriptor).collect(toList());
+
+            TestDescriptor testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRules.class);
+            assertThat(testDescriptor.getChildren().stream().map(TestDescriptor::getDisplayName)).contains(
+                    SimpleRules.class.getSimpleName() + " > " + SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME
+            );
+
+            testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRuleField.class);
+            assertThat(testDescriptor.getChildren().stream().map(TestDescriptor::getDisplayName)).contains(
+                    SimpleRuleField.class.getSimpleName() + " > " + SIMPLE_RULE_FIELD_NAME
+            );
         }
 
         @Test
@@ -276,6 +295,22 @@ class ArchUnitTestEngineTest {
             assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("all leaf unique ids of complex hierarchy")
                     .containsOnlyElementsOf(getExpectedIdsForComplexRuleLibrary(engineId));
+        }
+
+        @Test
+        void a_class_with_complex_hierarchy__display_names() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexRuleLibrary.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor complexRuleLibraryDescriptor = findRulesDescriptor(rootDescriptor.getChildren(), ComplexRuleLibrary.class);
+            TestDescriptor simpleRuleLibraryDescriptor = findRulesDescriptor(complexRuleLibraryDescriptor.getChildren(), SimpleRuleLibrary.class);
+            TestDescriptor simpleRulesDescriptor = findRulesDescriptor(simpleRuleLibraryDescriptor.getChildren(), SimpleRules.class);
+            assertThat(simpleRulesDescriptor.getChildren().stream().map(TestDescriptor::getDisplayName)).contains(
+                    SimpleRuleLibrary.class.getSimpleName() +
+                            " > " + SimpleRules.class.getSimpleName() +
+                            " > " + SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME
+            );
         }
 
         @Test
@@ -814,7 +849,14 @@ class ArchUnitTestEngineTest {
             assertThat(classSource.getPosition().isPresent()).as("position is present").isFalse();
         }
 
-        private TestDescriptor findRulesDescriptor(Collection<TestDescriptor> archRulesDescriptors, Class<?> clazz) {
+        private void assertNoIntermediaryTestSource(TestDescriptor testDescriptor) {
+            // Test executors like Gradle test support traverse up the descriptor hierarchy until they find
+            // a test descriptor with a class source that they then pick for the test report.
+            // We want to show the original class used to trigger the tests for this to avoid confusion.
+            assertThat(testDescriptor.getSource()).as("source of intermediary test descriptor").isEmpty();
+        }
+
+        private TestDescriptor findRulesDescriptor(Collection<? extends TestDescriptor> archRulesDescriptors, Class<?> clazz) {
             return archRulesDescriptors.stream().filter(d -> d.getUniqueId().toString().contains(clazz.getSimpleName())).findFirst().get();
         }
     }
@@ -919,13 +961,13 @@ class ArchUnitTestEngineTest {
                     .append(FIELD_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.FIELD_RULE_LIBRARY_NAME)
                     .append(CLASS_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithFieldRule.class.getName())
                     .append(FIELD_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithFieldRule.INSTANCE_FIELD_NAME)
-                    );
+            );
             testListener.verifySuccessful(engineId
                     .append(CLASS_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.class.getName())
                     .append(FIELD_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.METHOD_RULE_LIBRARY_NAME)
                     .append(CLASS_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithMethodRule.class.getName())
                     .append(METHOD_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithMethodRule.INSTANCE_METHOD_NAME)
-                    );
+            );
         }
 
         @Test
