@@ -31,6 +31,8 @@ import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsMethodsTest.
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsMethodsTest.ArchTestWithTestMethod.testSomething;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredOne;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsMethodsTest.IgnoredArchTest.toBeIgnoredTwo;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsMethodsTest.IgnoredArchTestWithBaseClass.toBeIgnoredOneInBaseClass;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsMethodsTest.IgnoredArchTestWithBaseClass.toBeIgnoredTwoInBaseClass;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.newRunnerFor;
@@ -117,6 +119,18 @@ public class ArchUnitRunnerRunsMethodsTest {
         assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
                 .contains(toBeIgnoredOne)
                 .contains(toBeIgnoredTwo);
+    }
+
+    @Test
+    public void ignores_all_methods_in_base_classes_of_classes_annotated_with_ArchIgnore() {
+        ArchUnitRunnerInternal runner = newRunnerFor(IgnoredArchTestWithBaseClass.class);
+
+        runner.runChild(getRule(toBeIgnoredOneInBaseClass, runner), runNotifier);
+        runner.runChild(getRule(toBeIgnoredTwoInBaseClass, runner), runNotifier);
+        verify(runNotifier, times(2)).fireTestIgnored(descriptionCaptor.capture());
+        assertThat(descriptionCaptor.getAllValues()).extractingResultOf("getMethodName")
+                .contains(toBeIgnoredOneInBaseClass)
+                .contains(toBeIgnoredTwoInBaseClass);
     }
 
     @Test
@@ -230,6 +244,23 @@ public class ArchUnitRunnerRunsMethodsTest {
         static final String toBeIgnoredOne = "toBeIgnoredOne";
         static final String toBeIgnoredTwo = "toBeIgnoredTwo";
 
+        @ArchTest
+        public static void toBeIgnoredOne(JavaClasses classes) {
+        }
+
+        @ArchTest
+        public static void toBeIgnoredTwo(JavaClasses classes) {
+        }
+    }
+
+    @ArchIgnore
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class IgnoredArchTestWithBaseClass extends BaseClass {
+        static final String toBeIgnoredOneInBaseClass = "toBeIgnoredOne";
+        static final String toBeIgnoredTwoInBaseClass = "toBeIgnoredTwo";
+    }
+
+    public static class BaseClass {
         @ArchTest
         public static void toBeIgnoredOne(JavaClasses classes) {
         }

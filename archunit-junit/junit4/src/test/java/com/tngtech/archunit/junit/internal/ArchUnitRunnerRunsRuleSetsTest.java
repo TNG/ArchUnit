@@ -29,12 +29,17 @@ import org.mockito.junit.MockitoRule;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.ArchTestWithRuleLibrary.someOtherMethodRuleName;
-import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.IgnoredRules.someIgnoredFieldRuleName;
-import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.IgnoredRules.someIgnoredMethodRuleName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.FullyIgnoredRules.someFieldRuleInBaseClassOfIgnoredClassName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.FullyIgnoredRules.someFieldRuleInIgnoredClassName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.FullyIgnoredRules.someMethodRuleInBaseClassOfIgnoredClassName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.FullyIgnoredRules.someMethodRuleInIgnoredClassName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.IgnoredSubRules.someIgnoredSubFieldRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.IgnoredSubRules.someIgnoredSubMethodRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.IgnoredSubRules.someNonIgnoredSubFieldRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.IgnoredSubRules.someNonIgnoredSubMethodRuleName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.OtherRules.someOtherFieldRuleName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.PartiallyIgnoredRules.someIgnoredFieldRuleName;
+import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.PartiallyIgnoredRules.someIgnoredMethodRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.Rules.someFieldRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.getRule;
@@ -73,6 +78,9 @@ public class ArchUnitRunnerRunsRuleSetsTest {
 
     @InjectMocks
     private ArchUnitRunnerInternal runnerForIgnoredRuleLibrary = newRunnerFor(ArchTestWithIgnoredRuleLibrary.class);
+
+    @InjectMocks
+    private ArchUnitRunnerInternal runnerForFullyIgnoredRuleLibrary = newRunnerFor(ArchTestWithFullyIgnoredRuleLibrary.class);
 
     private final JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
 
@@ -135,6 +143,31 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @Test
     public void ignores_nested_method_rule() {
         run(someIgnoredMethodRuleName, runnerForIgnoredRuleLibrary, verifyTestIgnored());
+    }
+
+    @Test
+    public void ignores_nested_field_rule_of_ignored_class() {
+        run(someFieldRuleInIgnoredClassName, runnerForFullyIgnoredRuleLibrary, verifyTestIgnored());
+    }
+
+    @Test
+    public void ignores_nested_method_rule_of_ignored_class() {
+        run(someMethodRuleInIgnoredClassName, runnerForFullyIgnoredRuleLibrary, verifyTestIgnored());
+    }
+
+    @Test
+    public void ignores_nested_field_rule_in_base_class_of_ignored_class() {
+        run(someFieldRuleInBaseClassOfIgnoredClassName, runnerForFullyIgnoredRuleLibrary, verifyTestIgnored());
+    }
+
+    @Test
+    public void ignores_nested_method_rule_in_base_class_of_ignored_class() {
+        run(someMethodRuleInBaseClassOfIgnoredClassName, runnerForFullyIgnoredRuleLibrary, verifyTestIgnored());
+    }
+
+    @Test
+    public void ignores_nested_rule_set_in_base_class_of_ignored_class() {
+        run(someOtherFieldRuleName, runnerForFullyIgnoredRuleLibrary, verifyTestIgnored());
     }
 
     @Test
@@ -248,7 +281,13 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithIgnoredRuleLibrary {
         @ArchTest
-        public static final ArchTests rules = ArchTests.in(IgnoredRules.class);
+        public static final ArchTests rules = ArchTests.in(PartiallyIgnoredRules.class);
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithFullyIgnoredRuleLibrary {
+        @ArchTest
+        public static final ArchTests rules = ArchTests.in(FullyIgnoredRules.class);
     }
 
     public static class Rules {
@@ -263,7 +302,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         }
     }
 
-    public static class IgnoredRules {
+    public static class PartiallyIgnoredRules {
         static final String someIgnoredFieldRuleName = "someIgnoredFieldRule";
         static final String someIgnoredMethodRuleName = "someIgnoredMethodRule";
 
@@ -282,6 +321,40 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         @ArchTest
         @ArchIgnore
         public static final ArchTests ignoredSubRules = ArchTests.in(Rules.class);
+    }
+
+    @ArchIgnore
+    public static class FullyIgnoredRules extends BaseClass {
+        static final String someFieldRuleInIgnoredClassName = "someFieldRuleInIgnoredClass";
+        static final String someMethodRuleInIgnoredClassName = "someMethodRuleInIgnoredClass";
+        static final String someFieldRuleInBaseClassOfIgnoredClassName = "someFieldRuleInBaseClass";
+        static final String someMethodRuleInBaseClassOfIgnoredClassName = "someMethodRuleInBaseClass";
+
+        @ArchTest
+        public static final ArchRule someFieldRuleInIgnoredClass = classes().should(satisfySomething());
+
+        @ArchTest
+        public static void someMethodRuleInIgnoredClass(JavaClasses classes) {
+        }
+    }
+
+    public static class BaseClass {
+        @ArchTest
+        public static final ArchRule someFieldRuleInBaseClass = classes().should(satisfySomething());
+
+        @ArchTest
+        public static void someMethodRuleInBaseClass(JavaClasses classes) {
+        }
+
+        @ArchTest
+        public static final ArchTests someSubRulesInBaseClass = ArchTests.in(OtherRules.class);
+    }
+
+    public static class OtherRules {
+        static final String someOtherFieldRuleName = "someOtherFieldRule";
+
+        @ArchTest
+        public static final ArchRule someOtherFieldRule = classes().should(satisfySomething());
     }
 
     public static class IgnoredSubRules {
