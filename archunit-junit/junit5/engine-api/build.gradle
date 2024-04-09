@@ -23,10 +23,6 @@ dependencies {
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
 
-archUnitTest {
-    hasSlowTests = true
-}
-
 test {
     useJUnitPlatform() {
         excludeEngines 'archunit'
