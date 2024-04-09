@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -30,15 +31,20 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
+import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
+import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
+import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.HAD_TO_BE_IMPORTED;
 import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.WAS_ALREADY_PRESENT;
 
 class ImportedClasses {
-    private static final ImmutableSet<JavaModifier> PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS =
-            Sets.immutableEnumSet(PUBLIC, ABSTRACT, FINAL);
+    private static final ImmutableSet<JavaModifier> PRIMITIVE_TYPE_MODIFIERS =
+            immutableEnumSet(PUBLIC, ABSTRACT, FINAL);
+    private static final ImmutableSet<JavaModifier> VISIBILITY_MODIFIERS =
+            immutableEnumSet(PUBLIC, PROTECTED, PRIVATE);
 
     private final ImmutableMap<String, JavaClass> directlyImported;
     private final Map<String, JavaClass> allClasses = new HashMap<>();
@@ -92,17 +98,35 @@ class ImportedClasses {
         return ImmutableSortedMap.copyOf(allClasses).values();
     }
 
-    private static JavaClass stubClassOf(String typeName) {
+    private JavaClass stubClassOf(String typeName) {
         JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(typeName);
         JavaClassBuilder builder = JavaClassBuilder.forStub().withDescriptor(descriptor);
         addModifiersIfPossible(builder, descriptor);
         return builder.build();
     }
 
-    private static void addModifiersIfPossible(JavaClassBuilder builder, JavaClassDescriptor descriptor) {
-        if (descriptor.isPrimitive() || descriptor.isArray()) {
-            builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
+    /**
+     * See {@link Class#getModifiers()}
+     */
+    private void addModifiersIfPossible(JavaClassBuilder builder, JavaClassDescriptor descriptor) {
+        if (descriptor.isPrimitive()) {
+            builder.withModifiers(PRIMITIVE_TYPE_MODIFIERS);
+        } else if (descriptor.isArray()) {
+            JavaClass elementType = getOrResolve(getElementType(descriptor).getFullyQualifiedClassName());
+            Set<JavaModifier> modifiers = ImmutableSet.<JavaModifier>builder()
+                    .addAll(getVisibility(elementType))
+                    .add(ABSTRACT, FINAL)
+                    .build();
+            builder.withModifiers(modifiers);
         }
+    }
+
+    private JavaClassDescriptor getElementType(JavaClassDescriptor descriptor) {
+        return descriptor.tryGetComponentType().map(this::getElementType).orElse(descriptor);
+    }
+
+    private Set<JavaModifier> getVisibility(JavaClass javaClass) {
+        return Sets.intersection(VISIBILITY_MODIFIERS, javaClass.getModifiers());
     }
 
     public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {

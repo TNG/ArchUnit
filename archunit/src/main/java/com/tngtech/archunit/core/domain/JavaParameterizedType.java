@@ -35,4 +35,9 @@ public interface JavaParameterizedType extends JavaType {
      */
     @PublicAPI(usage = ACCESS)
     List<JavaType> getActualTypeArguments();
+
+    @Override
+    default void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitParameterizedType(this);
+    }
 }

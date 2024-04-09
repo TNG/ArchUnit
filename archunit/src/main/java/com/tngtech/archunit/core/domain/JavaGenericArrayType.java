@@ -15,8 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Set;
-
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -70,8 +68,8 @@ public final class JavaGenericArrayType implements JavaType {
     }
 
     @Override
-    public Set<JavaClass> getAllInvolvedRawTypes() {
-        return this.componentType.getAllInvolvedRawTypes();
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitGenericArrayType(this);
     }
 
     @Override

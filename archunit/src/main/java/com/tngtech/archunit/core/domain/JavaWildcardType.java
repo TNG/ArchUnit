@@ -17,8 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.WildcardType;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasUpperBounds;
@@ -27,7 +25,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a wildcard type in a type signature (compare the JLS).
@@ -99,11 +96,8 @@ public final class JavaWildcardType implements JavaType, HasUpperBounds {
     }
 
     @Override
-    public Set<JavaClass> getAllInvolvedRawTypes() {
-        return Stream.concat(upperBounds.stream(), lowerBounds.stream())
-                .map(JavaType::getAllInvolvedRawTypes)
-                .flatMap(Set::stream)
-                .collect(toSet());
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitWildcardType(this);
     }
 
     @Override

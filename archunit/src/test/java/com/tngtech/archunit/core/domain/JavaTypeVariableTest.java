@@ -133,18 +133,6 @@ public class JavaTypeVariableTest {
     }
 
     @Test
-    public void all_involved_raw_types_of_generic_array() {
-        class SampleClass<T extends String & List<Serializable>> {
-            @SuppressWarnings("unused")
-            private T[][] field;
-        }
-
-        JavaGenericArrayType typeVariable = (JavaGenericArrayType) new ClassFileImporter().importClass(SampleClass.class).getField("field").getType();
-
-        assertThatTypes(typeVariable.getAllInvolvedRawTypes()).matchInAnyOrder(String.class, List.class, Serializable.class);
-    }
-
-    @Test
     public void toString_unbounded() {
         @SuppressWarnings("unused")
         class Unbounded<NAME> {

@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.TypeVariable;
 import java.util.List;
-import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
@@ -29,7 +28,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a type variable used by generic types and members.<br>
@@ -122,11 +120,8 @@ public final class JavaTypeVariable<OWNER extends HasDescription> implements Jav
     }
 
     @Override
-    public Set<JavaClass> getAllInvolvedRawTypes() {
-        return this.upperBounds.stream()
-                .map(JavaType::getAllInvolvedRawTypes)
-                .flatMap(Set::stream)
-                .collect(toSet());
+    public void traverseSignature(SignatureVisitor visitor) {
+        SignatureTraversal.from(visitor).visitTypeVariable(this);
     }
 
     @Override
