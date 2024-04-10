@@ -71,6 +71,8 @@ import static java.util.stream.Collectors.toList;
 public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
     static final String UNIQUE_ID = "archunit";
 
+    private final ArchUnitSystemPropertyTestFilterJUnit5 systemPropertyTestFilter = new ArchUnitSystemPropertyTestFilterJUnit5();
+
     @SuppressWarnings("FieldMayBeFinal")
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
@@ -89,6 +91,8 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         resolveRequestedMethods(discoveryRequest, uniqueId, result);
         resolveRequestedFields(discoveryRequest, uniqueId, result);
         resolveRequestedUniqueIds(discoveryRequest, uniqueId, result);
+
+        systemPropertyTestFilter.filter(result);
 
         return result;
     }

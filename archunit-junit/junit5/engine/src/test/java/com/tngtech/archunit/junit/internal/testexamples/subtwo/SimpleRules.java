@@ -32,5 +32,6 @@ public class SimpleRules {
     public static final String SIMPLE_RULE_FIELD_TWO_NAME = "simple_rule_field_two";
     public static final Set<String> RULE_FIELD_NAMES = ImmutableSet.of(SIMPLE_RULE_FIELD_ONE_NAME, SIMPLE_RULE_FIELD_TWO_NAME);
     public static final String SIMPLE_RULE_METHOD_ONE_NAME = "simple_rule_method_one";
-    public static final Set<String> RULE_METHOD_NAMES = ImmutableSet.of(SIMPLE_RULE_METHOD_ONE_NAME, "simple_rule_method_two");
+    public static final String SIMPLE_RULE_METHOD_TWO_NAME = "simple_rule_method_two";
+    public static final Set<String> RULE_METHOD_NAMES = ImmutableSet.of(SIMPLE_RULE_METHOD_ONE_NAME, SIMPLE_RULE_METHOD_TWO_NAME);
 }

@@ -23,7 +23,6 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import org.junit.runner.Description;
 
-import static com.tngtech.archunit.junit.internal.DisplayNameResolver.determineDisplayName;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.invokeMethod;
 
 class ArchTestMethodExecution extends ArchTestExecution {
@@ -55,8 +54,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        String testName = formatWithPath(testMethod.getName());
-        return Description.createTestDescription(getTestClass(), determineDisplayName(testName), testMethod.getAnnotations());
+        return createDescription(testMethod);
     }
 
     @Override

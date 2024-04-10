@@ -15,7 +15,11 @@
  */
 package com.tngtech.archunit.junit.internal;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -24,6 +28,7 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
+import static com.tngtech.archunit.junit.internal.DisplayNameResolver.determineDisplayName;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getValueOrThrowException;
 import static java.util.stream.Collectors.joining;
 
@@ -47,11 +52,16 @@ abstract class ArchTestExecution {
         return describeSelf().toString();
     }
 
-    Class<?> getTestClass() {
-        return testClassPath.get(0);
+    <T extends Member & AnnotatedElement> Description createDescription(T member) {
+        Annotation[] annotations = Stream.concat(
+                Arrays.stream(member.getAnnotations()),
+                Stream.of(new ArchTestMetaInfo.Instance(member.getName()))
+        ).toArray(Annotation[]::new);
+        String testName = formatWithPath(member.getName());
+        return Description.createTestDescription(testClassPath.get(0), determineDisplayName(testName), annotations);
     }
 
-    String formatWithPath(String testName) {
+    private String formatWithPath(String testName) {
         if (testClassPath.size() <= 1) {
             return testName;
         }

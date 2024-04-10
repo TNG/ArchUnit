@@ -198,6 +198,25 @@ The runner will include all `@ArchTest` annotated members within `ServiceRules` 
 them against the classes declared within `@AnalyzeClasses` on `ArchitectureTest`.
 This also allows an easy reuse of a rule library in different projects or modules.
 
+==== Executing Single Rules
+
+It is possible to filter specific rules (e.g. `@ArchTest` fields) via `archunit.properties` (compare <<Advanced Configuration>>).
+
+[source,options="nowrap"]
+.archunit.properties
+----
+# Specify the field or method name here. Multiple names can be joined by ','
+junit.testFilter=my_custom_rule_field
+----
+
+As always with `archunit.properties`, this can also be passed dynamically using a system property,
+E.g. passing
+
+[source,options="nowrap"]
+----
+-Darchunit.junit.testFilter=my_custom_rule_field
+----
+
 ==== Generating Display Names
 
 ArchUnit offers the possibility to generate more readable names in the test report by replacing underscores in the
