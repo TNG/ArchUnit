@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -371,19 +372,15 @@ public final class GeneralCodingRules {
      * @see #NO_CLASSES_SHOULD_USE_FIELD_INJECTION
      */
     @PublicAPI(usage = ACCESS)
-    public static final ArchCondition<JavaField> BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION = beAnnotatedWithAnInjectionAnnotation();
-
-    private static ArchCondition<JavaField> beAnnotatedWithAnInjectionAnnotation() {
-        ArchCondition<JavaField> annotatedWithSpringAutowired = beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired");
-        ArchCondition<JavaField> annotatedWithSpringValue = beAnnotatedWith("org.springframework.beans.factory.annotation.Value");
-        ArchCondition<JavaField> annotatedWithGuiceInject = beAnnotatedWith("com.google.inject.Inject");
-        ArchCondition<JavaField> annotatedWithJakartaInject = beAnnotatedWith("javax.inject.Inject");
-        ArchCondition<JavaField> annotatedWithJakartaResource = beAnnotatedWith("javax.annotation.Resource");
-        return annotatedWithSpringAutowired.or(annotatedWithSpringValue)
-                .or(annotatedWithGuiceInject)
-                .or(annotatedWithJakartaInject).or(annotatedWithJakartaResource)
-                .as("be annotated with an injection annotation");
-    }
+    public static final ArchCondition<JavaField> BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION =
+            ArchConditions.<JavaField>beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
+                    .or(beAnnotatedWith("org.springframework.beans.factory.annotation.Value"))
+                    .or(beAnnotatedWith("com.google.inject.Inject"))
+                    .or(beAnnotatedWith("javax.inject.Inject"))
+                    .or(beAnnotatedWith("javax.annotation.Resource"))
+                    .or(beAnnotatedWith("jakarta.inject.Inject"))
+                    .or(beAnnotatedWith("jakarta.annotation.Resource"))
+                    .as("be annotated with an injection annotation");
 
     /**
      * A rule that checks that none of the given classes uses field injection.

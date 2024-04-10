@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -21,46 +19,58 @@ public class ClassViolatingInjectionRules {
     private Set<?> badBecauseJavaxInjectField;
     @com.google.inject.Inject
     private Map<?, ?> badBecauseComGoogleInjectField;
-    @Resource
-    private File badBecauseResourceField;
+    @javax.annotation.Resource
+    private File badBecauseJavaxResourceField;
+    @jakarta.inject.Inject
+    private Object badBecauseJakartaInjectField;
+    @jakarta.annotation.Resource
+    private Object badBecauseJakartaResourceField;
 
     ClassViolatingInjectionRules(String okayBecauseNotInjected) {
     }
 
     @Autowired
-    ClassViolatingInjectionRules(Object badBecauseAutowiredField) {
+    ClassViolatingInjectionRules(Object okayBecauseAutowiredConstructor) {
     }
 
-    ClassViolatingInjectionRules(@Value("${name}") List<?> badBecauseValueField) {
+    ClassViolatingInjectionRules(@Value("${name}") List<?> okayBecauseValueConstructorParameter) {
     }
 
     @javax.inject.Inject
-    ClassViolatingInjectionRules(Set<?> badBecauseJavaxInjectField) {
+    ClassViolatingInjectionRules(Set<?> okayBecauseJavaxInjectConstructor) {
     }
 
     @com.google.inject.Inject
-    ClassViolatingInjectionRules(Map<?, ?> badBecauseComGoogleInjectField) {
+    ClassViolatingInjectionRules(Map<?, ?> okayBecauseComGoogleInjectConstructor) {
     }
 
     void someMethod(String okayBecauseNotInjected) {
     }
 
     @Autowired
-    void someMethod(Object badBecauseAutowiredField) {
+    void someMethod(Object okayBecauseAutowiredMethod) {
     }
 
-    void someMethod(@Value("${name}") List<?> badBecauseValueField) {
+    void someMethod(@Value("${name}") List<?> okayBecauseValueMethodParameter) {
     }
 
     @javax.inject.Inject
-    void someMethod(Set<?> badBecauseJavaxInjectField) {
+    void someMethod(Set<?> okayBecauseJavaxInjectMethod) {
     }
 
     @com.google.inject.Inject
-    void someMethod(Map<?, ?> badBecauseComGoogleInjectField) {
+    void someMethod(Map<?, ?> okayBecauseComGoogleInjectMethod) {
     }
 
-    @Resource
-    void someMethod(File badBecauseResourceField) {
+    @javax.annotation.Resource
+    void someMethod(File okayBecauseJavaxResourceMethod) {
+    }
+
+    @jakarta.inject.Inject
+    void someMethod(Void okayBecauseJakartaInjectMethod) {
+    }
+
+    @jakarta.annotation.Resource
+    void someMethod(Integer okayBecauseJavaxResourceMethod) {
     }
 }

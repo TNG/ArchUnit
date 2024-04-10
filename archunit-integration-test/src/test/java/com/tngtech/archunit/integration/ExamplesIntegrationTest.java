@@ -17,7 +17,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
@@ -266,7 +265,9 @@ class ExamplesIntegrationTest {
                 .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseValueField").beingAnnotatedWith(Value.class))
                 .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseJavaxInjectField").beingAnnotatedWith(javax.inject.Inject.class))
                 .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseComGoogleInjectField").beingAnnotatedWith(com.google.inject.Inject.class))
-                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseResourceField").beingAnnotatedWith(Resource.class));
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseJavaxResourceField").beingAnnotatedWith(javax.annotation.Resource.class))
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseJakartaInjectField").beingAnnotatedWith(jakarta.inject.Inject.class))
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseJakartaResourceField").beingAnnotatedWith(jakarta.annotation.Resource.class));
 
         expectFailures.ofRule("no classes should access standard streams and no classes should throw generic exceptions");
         expectAccessToStandardStreams(expectFailures);
