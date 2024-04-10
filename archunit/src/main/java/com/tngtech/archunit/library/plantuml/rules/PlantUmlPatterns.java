@@ -34,6 +34,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 class PlantUmlPatterns {
+    private static final String OPTIONAL_COMPONENT_KEYWORD_FORMAT = "(?:component)?";
     private static final String COMPONENT_NAME_GROUP_NAME = "componentName";
     private static final String COMPONENT_NAME_FORMAT = "\\[" + capture(anythingBut("\\[\\]"), COMPONENT_NAME_GROUP_NAME) + "]";
 
@@ -46,7 +47,13 @@ class PlantUmlPatterns {
     private static final String COLOR_FORMAT = "\\s*(?:#" + anyOf("\\w|/\\\\-") + "+)?";
 
     private static final Pattern PLANTUML_COMPONENT_PATTERN = Pattern.compile(
-            "^\\s*" + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + COLOR_FORMAT + "\\s*");
+            "^\\s*" + OPTIONAL_COMPONENT_KEYWORD_FORMAT
+                    + "\\s*" + COMPONENT_NAME_FORMAT
+                    + "\\s*" + STEREOTYPE_FORMAT + "*"
+                    + ALIAS_FORMAT
+                    + COLOR_FORMAT
+                    + "\\s*"
+    );
 
     private static String capture(String pattern) {
         return "(" + pattern + ")";
