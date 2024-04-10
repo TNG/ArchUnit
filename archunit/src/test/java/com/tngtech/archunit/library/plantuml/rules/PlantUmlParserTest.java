@@ -207,18 +207,6 @@ public class PlantUmlParserTest {
     }
 
     @Test
-    public void throws_exception_with_components_that_are_not_yet_defined() {
-        File file = TestDiagram.in(temporaryFolder)
-                .dependencyFrom("[NotYetDefined]").to("[AlsoNotYetDefined]")
-                .write();
-
-        assertThatThrownBy(() -> createDiagram(file))
-                .isInstanceOf(IllegalDiagramException.class)
-                .hasMessageContaining("There is no Component with name or alias = 'NotYetDefined'")
-                .hasMessageContaining("Components must be specified separately from dependencies");
-    }
-
-    @Test
     public void throws_exception_with_components_without_stereotypes() {
         File file = TestDiagram.in(temporaryFolder)
                 .rawLine("[componentWithoutStereotype]")
@@ -416,6 +404,37 @@ public class PlantUmlParserTest {
 
         assertThat(foo.getDependencies()).containsOnly(bar);
         assertThat(bar.getDependencies()).isEmpty();
+    }
+
+    @Test
+    public void ignores_components_that_are_not_yet_defined() {
+        File file = TestDiagram.in(temporaryFolder)
+                .dependencyFrom("[NotYetDefined]").to("[AlsoNotYetDefined]")
+                .write();
+
+        PlantUmlDiagram diagram = createDiagram(file);
+
+        assertThat(diagram.getComponentsWithAlias()).isEmpty();
+    }
+
+    @Test
+    public void ignores_database_components() {
+        File file = TestDiagram.in(temporaryFolder)
+                .rawLine("database \"DB\"")
+                .component("componentA").withAlias("aliasA").withStereoTypes("..packageA..")
+                .component("componentB").withAlias("aliasB").withStereoTypes("..packageB..")
+                .dependencyFrom("aliasA").to("aliasB")
+                .dependencyFrom("aliasB").to("DB")
+                .dependencyFrom("componentA").to("DB")
+                .write();
+
+        PlantUmlDiagram diagram = createDiagram(file);
+
+        PlantUmlComponent a = getComponentWithAlias(new Alias("aliasA"), diagram);
+        PlantUmlComponent b = getComponentWithAlias(new Alias("aliasB"), diagram);
+
+        assertThat(a.getDependencies()).containsOnly(b);
+        assertThat(b.getDependencies()).isEmpty();
     }
 
     private PlantUmlComponent getComponentWithName(String componentName, PlantUmlDiagram diagram) {
