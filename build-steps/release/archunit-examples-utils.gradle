@@ -1,12 +1,47 @@
+import groovy.transform.Field
+
 ext.archunitExamplesGitRepo = 'TNG/ArchUnit-Examples.git'
 ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
     fileTree(archUnitExampleDir) {
         include '**/build.gradle'
-    }.each {File buildFile ->
+    }.each { File buildFile ->
         buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\w.-]*/, "\$1${version}")
     }
 }
 ext.updateArchUnitExampleSources = { File targetArchUnitExampleDir ->
+    updateArchUnitExampleDependencies(targetArchUnitExampleDir)
+    updateArchUnitExampleJavaSources(targetArchUnitExampleDir)
+}
+
+@Field
+String archUnitExamplesRootBuildFileContent = """
+subprojects {
+    apply plugin: 'java-library'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        // These are the 'production' dependencies of the Demo src/main/java files -> just for Demo purposes, otherwise irrelevant
+#{dependencies}
+    }
+}
+""".trim()
+
+private void updateArchUnitExampleDependencies(File targetArchUnitExampleDir) {
+    def buildFile = new File(targetArchUnitExampleDir, 'build.gradle')
+
+    List<Map<String, String>> sortedDependencies = archUnitExamplesMainDependencies.collect()
+            .sort { first, second -> first.group <=> second.group ?: first.name <=> second.name }
+    def dependencyIndent = ' ' * 8
+    List<String> dependencyLines = sortedDependencies
+            .collect { "${dependencyIndent}implementation '${it.group}:${it.name}:${it.version}'".toString() }
+
+    buildFile.text = archUnitExamplesRootBuildFileContent.replace('#{dependencies}', dependencyLines.join('\n')) // always Unix line separator
+}
+
+private List updateArchUnitExampleJavaSources(File targetArchUnitExampleDir) {
     ['example-plain', 'example-junit4', 'example-junit5'].each { exampleFolder ->
         def targetSource = new File(new File(targetArchUnitExampleDir, exampleFolder), 'src')
         targetSource.deleteDir()
