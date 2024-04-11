@@ -10,16 +10,20 @@ archUnitTest {
     providesTestJar = true
 }
 
+rootProject.ext.archUnitExamplesMainDependencies = [
+        dependency.jodaTime,
+        dependency.javaxAnnotationApi,
+        dependency.jakartaInject,
+        dependency.jakartaAnnotations,
+        dependency.springBeans,
+        dependency.guice,
+        dependency.geronimoEjb,
+        dependency.geronimoJpa
+]
+
 dependencies {
     // `api` dependencies so we can access them within `archunit-integration-test`
-    api dependency.jodaTime
-    api dependency.javaxAnnotationApi
-    api dependency.jakartaInject
-    api dependency.jakartaAnnotations
-    api dependency.springBeans
-    api dependency.guice
-    api dependency.geronimoEjb
-    api dependency.geronimoJpa
+    archUnitExamplesMainDependencies.each { api it }
 
     testImplementation project(path: ':archunit')
 }
