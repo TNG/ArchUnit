@@ -1,10 +1,9 @@
 source "https://rubygems.org"
 
-# commented the line below to get rid of github authentication warnings
-# gem "github-pages", group: :jekyll_plugins
+gem "github-pages", "~> 231", group: :jekyll_plugins
 
-# added the following line, same reason as above
-gem "jekyll", group: :jekyll_plugins
+# meanwhile this dependency also seem to be necessary to run Jekyll with current Ruby
+gem "webrick"
 
 group :jekyll_plugins do
   gem "jekyll-paginate"
