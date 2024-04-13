@@ -8,39 +8,41 @@ import java.net.URLClassLoader;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.testutil.ContextClassLoaderRule;
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.Assert;
-import org.junit.rules.ExternalResource;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
-class IndependentClasspathRule extends ExternalResource {
+public class IndependentClasspathRule implements TestRule {
     private Setup setup;
-    private ClassLoader storedContextClassLoader;
     private final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
+    private final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
 
     @Override
-    protected void before() {
-        systemPropertiesRule.before();
+    public Statement apply(Statement base, Description description) {
+        Statement statement = new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                base.evaluate();
+                setup = null;
+            }
+        };
+        return systemPropertiesRule.apply(
+                contextClassLoaderRule.apply(statement, description),
+                description
+        );
     }
 
     void configureClasspath() {
-        storedContextClassLoader = Thread.currentThread().getContextClassLoader();
         setup = Setup.create();
         Thread.currentThread().setContextClassLoader(setup.classLoader);
         String pathEntry = new File(URI.create(getOnlyUrl().getFile().replaceAll("!/.*", ""))).getAbsolutePath();
         System.setProperty("java.class.path", pathEntry);
-    }
-
-    @Override
-    protected void after() {
-        if (setup != null) {
-            Thread.currentThread().setContextClassLoader(storedContextClassLoader);
-        }
-        storedContextClassLoader = null;
-        setup = null;
-        systemPropertiesRule.after();
     }
 
     String getNameOfSomeContainedClass() {
