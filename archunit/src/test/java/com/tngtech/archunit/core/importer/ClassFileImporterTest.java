@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -731,13 +730,13 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void imports_classes_outside_of_the_classpath() throws IOException {
-        Pattern missingPattern = Pattern.compile("^Missing.*");
-        Path targetDir = outsideOfClassPath
-                .onlyKeep(fileName -> !missingPattern.matcher(fileName).find())
-                .setUp(getClass().getResource("testexamples/outsideofclasspath"));
+    public void imports_classes_outside_of_the_classpath() {
+        Path classFileDir = outsideOfClassPath
+                .compileClassesFrom(getClass().getResource("testexamples/outsideofclasspath"))
+                .onlyKeep(fileName -> !fileName.startsWith("Missing"))
+                .getPath();
 
-        JavaClasses classes = new ClassFileImporter().importPath(targetDir);
+        JavaClasses classes = new ClassFileImporter().importPath(classFileDir);
 
         assertThat(classes).hasSize(5);
         assertThat(classes).extracting("name").containsOnly(

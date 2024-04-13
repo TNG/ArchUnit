@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -21,7 +19,6 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -108,14 +105,12 @@ public class ClassResolverFactoryTest {
 
     @Test
     public void loads_resolver_from_context_ClassLoader() throws IOException {
-        String resolverPackageName = "com.tngtech.archunit.core.importer.resolvers.testclasses.someresolver";
-        String resolverClassName = resolverPackageName + ".SomeResolver";
-        ArchConfiguration.get().setProperty("classResolver", resolverClassName);
+        Path targetDir = outsideOfClassPathRule
+                .compileClassesFrom(getClass().getResource("testclasses/someresolver"))
+                .getPath();
 
-        Path targetDir = outsideOfClassPathRule.setUp(
-                Paths.get(uriOf(getClass())).getParent().resolve("testclasses").resolve("someresolver").toUri().toURL(),
-                Splitter.on(".").splitToList(resolverPackageName)
-        );
+        String resolverClassName = "com.tngtech.archunit.core.importer.resolvers.testclasses.someresolver.SomeResolver";
+        ArchConfiguration.get().setProperty("classResolver", resolverClassName);
 
         URLClassLoader classLoaderThatKnowsResolver = new URLClassLoader(new URL[]{targetDir.toUri().toURL()}, getClass().getClassLoader());
         Thread.currentThread().setContextClassLoader(classLoaderThatKnowsResolver);
