@@ -27,6 +27,7 @@ import com.tngtech.archunit.junit.internal.testexamples.ComplexTags;
 import com.tngtech.archunit.junit.internal.testexamples.FullAnalyzeClassesSpec;
 import com.tngtech.archunit.junit.internal.testexamples.LibraryWithPrivateTests;
 import com.tngtech.archunit.junit.internal.testexamples.SimpleRuleLibrary;
+import com.tngtech.archunit.junit.internal.testexamples.TestClassWithMetaAnnotationForAnalyzeClasses;
 import com.tngtech.archunit.junit.internal.testexamples.TestClassWithMetaTag;
 import com.tngtech.archunit.junit.internal.testexamples.TestClassWithMetaTags;
 import com.tngtech.archunit.junit.internal.testexamples.TestClassWithTags;
@@ -167,6 +168,20 @@ class ArchUnitTestEngineTest {
             assertThat(child.getDisplayName()).isEqualTo(SimpleRuleField.class.getSimpleName());
             assertThat(child.getType()).isEqualTo(CONTAINER);
             assertThat(child.getParent().get()).isEqualTo(descriptor);
+        }
+
+        @Test
+        void a_test_class_with_meta_annotated_analyze_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithMetaAnnotationForAnalyzeClasses.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor child = getOnlyElement(descriptor.getChildren());
+            assertThat(child).isInstanceOf(ArchUnitTestDescriptor.class);
+            assertThat(child.getUniqueId()).isEqualTo(engineId.append(CLASS_SEGMENT_TYPE, TestClassWithMetaAnnotationForAnalyzeClasses.class.getName()));
+            assertThat(child.getDisplayName()).isEqualTo(TestClassWithMetaAnnotationForAnalyzeClasses.class.getSimpleName());
+            assertThat(child.getType()).isEqualTo(CONTAINER);
+            assertThat(child.getParent()).get().isEqualTo(descriptor);
         }
 
         @Test
@@ -505,10 +520,10 @@ class ArchUnitTestEngineTest {
             expectedLeafIds.add(simpleRuleFieldTestId(engineId));
             expectedLeafIds.add(simpleRuleMethodTestId(engineId));
             Stream.concat(
-                    SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName ->
-                            simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, fieldName)),
-                    SimpleRules.RULE_METHOD_NAMES.stream().map(methodName ->
-                            simpleRulesId(engineId).append(METHOD_SEGMENT_TYPE, methodName)))
+                            SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName ->
+                                    simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, fieldName)),
+                            SimpleRules.RULE_METHOD_NAMES.stream().map(methodName ->
+                                    simpleRulesId(engineId).append(METHOD_SEGMENT_TYPE, methodName)))
                     .forEach(expectedLeafIds::add);
 
             assertThat(getAllLeafUniqueIds(rootDescriptor))
@@ -1073,6 +1088,21 @@ class ArchUnitTestEngineTest {
             verify(classCache, times(1)).clear(SimpleRuleLibrary.class);
             verify(classCache, atLeastOnce()).getClassesToAnalyzeFor(any(Class.class), any(ClassAnalysisRequest.class));
             verifyNoMoreInteractions(classCache);
+        }
+
+        @Test
+        void a_class_with_analyze_classes_as_meta_annotation() {
+            execute(createEngineId(), TestClassWithMetaAnnotationForAnalyzeClasses.class);
+
+            verify(classCache).getClassesToAnalyzeFor(eq(TestClassWithMetaAnnotationForAnalyzeClasses.class), classAnalysisRequestCaptor.capture());
+            ClassAnalysisRequest request = classAnalysisRequestCaptor.getValue();
+            AnalyzeClasses expected = TestClassWithMetaAnnotationForAnalyzeClasses.class.getAnnotation(TestClassWithMetaAnnotationForAnalyzeClasses.MetaAnalyzeClasses.class)
+                    .annotationType().getAnnotation(AnalyzeClasses.class);
+            assertThat(request.getPackageNames()).isEqualTo(expected.packages());
+            assertThat(request.getPackageRoots()).isEqualTo(expected.packagesOf());
+            assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
+            assertThat(request.scanWholeClasspath()).as("scan whole classpath").isTrue();
+            assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
         }
     }
 

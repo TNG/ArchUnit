@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit.internal;
 
+import java.lang.annotation.Retention;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -11,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import static com.tngtech.archunit.base.Predicates.alwaysTrue;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ReflectionUtilsTest {
 
@@ -53,6 +56,41 @@ public class ReflectionUtilsTest {
                 .containsOnly(
                         field(SomeInterface.class, "SOME_CONSTANT"),
                         field(OtherInterface.class, "OTHER_CONSTANT"));
+    }
+
+    @Test
+    public void findAnnotation_should_find_direct_annotation() {
+        SomeAnnotation actual = ReflectionUtils.findAnnotation(DirectlyAnnotated.class, SomeAnnotation.class);
+
+        assertThat(actual).isInstanceOf(SomeAnnotation.class);
+        assertThat(actual.value()).as(SomeAnnotation.class.getSimpleName() + ".value()").isEqualTo("default");
+    }
+
+    @Test
+    public void findAnnotation_should_find_meta_annotation() {
+        SomeAnnotation actual = ReflectionUtils.findAnnotation(MetaAnnotated.class, SomeAnnotation.class);
+
+        assertThat(actual).isInstanceOf(SomeAnnotation.class);
+        assertThat(actual.value()).as(SomeAnnotation.class.getSimpleName() + ".value()").isEqualTo("Meta-Annotation");
+    }
+
+    @Test
+    void findAnnotation_should_reject_annotation_missing_from_hierarchy() {
+        assertThatThrownBy(() -> ReflectionUtils.findAnnotation(Object.class, SomeAnnotation.class))
+                .isInstanceOf(ArchTestInitializationException.class)
+                .hasMessage("Class %s is not (meta-)annotated with @%s", Object.class.getName(), SomeAnnotation.class.getSimpleName());
+    }
+
+    @Test
+    void tryFindAnnotation_should_return_empty_when_annotation_missing_from_hierarchy() {
+        assertThat(ReflectionUtils.tryFindAnnotation(Object.class, SomeAnnotation.class)).as("Optional.of(SomeAnnotation)").isEmpty();
+    }
+
+    @Test
+    void findAnnotation_should_return_depth_first_result_of_multiple_annotations_in_hierarchy() {
+        SomeAnnotation actual = ReflectionUtils.findAnnotation(AnnotationMultipleTimesInHierarchy.class, SomeAnnotation.class);
+
+        assertThat(actual.value()).isEqualTo("default");
     }
 
     private Predicate<Member> named(String name) {
@@ -149,5 +187,28 @@ public class ReflectionUtilsTest {
     }
 
     private interface Subinterface extends SomeInterface, OtherInterface {
+    }
+
+    @Retention(RUNTIME)
+    private @interface SomeAnnotation {
+        String value() default "default";
+    }
+
+    @SomeAnnotation
+    private static class DirectlyAnnotated {
+    }
+
+    @Retention(RUNTIME)
+    @SomeAnnotation("Meta-Annotation")
+    private @interface MetaAnnotatedWithSomeAnnotation {
+    }
+
+    @MetaAnnotatedWithSomeAnnotation
+    private static class MetaAnnotated {
+    }
+
+    @SomeAnnotation
+    @MetaAnnotatedWithSomeAnnotation
+    private static class AnnotationMultipleTimesInHierarchy {
     }
 }

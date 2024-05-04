@@ -39,12 +39,13 @@ import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.junit.internal.DisplayNameResolver.determineDisplayName;
+import static com.tngtech.archunit.junit.internal.ReflectionUtils.findAnnotation;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getValueOrThrowException;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.invokeMethod;
+import static com.tngtech.archunit.junit.internal.ReflectionUtils.tryFindAnnotation;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.withAnnotation;
 
 class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
@@ -71,8 +72,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver) {
-        if (clazz.getAnnotation(AnalyzeClasses.class) == null) {
-            LOG.warn("Class {} is not annotated with @{} and thus cannot run as a top level test. "
+        if (!tryFindAnnotation(clazz, AnalyzeClasses.class).isPresent()) {
+            LOG.warn("Class {} is not (meta-)annotated with @{} and thus cannot run as a top level test. "
                             + "This warning can be ignored if {} is only used as part of a rules library included via {}.in({}.class).",
                     clazz.getName(), AnalyzeClasses.class.getSimpleName(),
                     clazz.getSimpleName(), ArchTests.class.getSimpleName(), clazz.getSimpleName());
@@ -291,15 +292,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final AnalyzeClasses analyzeClasses;
 
         JUnit5ClassAnalysisRequest(Class<?> testClass) {
-            analyzeClasses = checkAnnotation(testClass);
-        }
-
-        private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
-            AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-            checkArgument(analyzeClasses != null,
-                    "Class %s must be annotated with @%s",
-                    testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
-            return analyzeClasses;
+            analyzeClasses = findAnnotation(testClass, AnalyzeClasses.class);
         }
 
         @Override
