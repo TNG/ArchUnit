@@ -56,10 +56,32 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
+      - name: Set up Test JDK
+        uses: actions/setup-java@v4.2.1
+        with:
+          distribution: 'zulu'
+          java-version: ${{ matrix.test_java_version }}
+      - name: Provide installed JDKs
+        uses: actions/github-script@v7
+        id: provideJdkPaths
+        with:
+          script: |
+            for ( let envVarName in process.env ) {
+              if (/JAVA_HOME_\d.*64/.test(envVarName)) {
+                const version = envVarName.match(/JAVA_HOME_(\d+).*64/)[1];
+                if (version === "${{ matrix.test_java_version }}") {
+                  core.exportVariable('test_jdk_path', process.env[envVarName]);
+                } else if (version === "${{ env.build_java_version }}") {
+                  core.exportVariable('build_jdk_path', process.env[envVarName]);
+                }
+              }
+            }
       - name: Test
         uses: gradle/actions/setup-gradle@v3
+        env:
+          JAVA_HOME: ${{ env.build_jdk_path }}
         with:
-          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }}
+          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}
           cache-disabled: true
 
   integration-test:
