@@ -47,6 +47,9 @@ jobs:
           - 8
           - 11
           - 17
+        exclude:
+          - os: macos-latest
+            test_java_version: 8
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
