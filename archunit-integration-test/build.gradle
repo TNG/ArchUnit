@@ -7,11 +7,8 @@ ext.moduleName = 'com.tngtech.archunit.integrationtest'
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
-    testImplementation dependency.junit5JupiterEngine
     testImplementation dependency.junitPlatform
     testImplementation dependency.assertj
-    testImplementation dependency.mockito
-    testImplementation dependency.guava
     testImplementation dependency.log4j_api
     testImplementation dependency.log4j_core
     testImplementation dependency.log4j_slf4j
