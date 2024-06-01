@@ -8,10 +8,6 @@ ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 dependencies {
     testImplementation project(path: ':archunit-junit5')
     testImplementation project(path: ':archunit-example:example-plain')
-
-    testRuntimeOnly dependency.log4j_api
-    testRuntimeOnly dependency.log4j_core
-    testRuntimeOnly dependency.log4j_slf4j
 }
 
 test {

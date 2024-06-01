@@ -19,7 +19,6 @@ dependencies {
     testImplementation dependency.mockito
     testImplementation dependency.mockito_junit5
     testImplementation dependency.log4j_core
-    testImplementation dependency.log4j_slf4j
 }
 
 gradle.projectsEvaluated {

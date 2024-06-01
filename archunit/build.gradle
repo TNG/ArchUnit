@@ -11,7 +11,6 @@ dependencies {
 
     testImplementation dependency.log4j_api
     testImplementation dependency.log4j_core
-    testImplementation dependency.log4j_slf4j
     testImplementation dependency.junit4
     testImplementation dependency.junit_dataprovider
     testImplementation dependency.mockito

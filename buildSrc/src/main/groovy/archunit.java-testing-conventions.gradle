@@ -13,6 +13,7 @@ dependencies {
 
     testRuntimeOnly dependency.junit5JupiterEngine
     testRuntimeOnly dependency.junit5VintageEngine
+    testRuntimeOnly dependency.log4j_slf4j
 }
 
 tasks.withType(Test) {
