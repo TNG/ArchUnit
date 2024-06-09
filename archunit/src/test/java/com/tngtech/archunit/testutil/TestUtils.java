@@ -98,4 +98,29 @@ public class TestUtils {
         }
         return result.build();
     }
+
+    public static void unchecked(ThrowingRunnable action) {
+        unchecked(() -> {
+            action.run();
+            return null;
+        });
+    }
+
+    public static <T> T unchecked(ThrowingSupplier<T> action) {
+        try {
+            return action.get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FunctionalInterface
+    public interface ThrowingRunnable {
+        void run() throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface ThrowingSupplier<T> {
+        T get() throws Exception;
+    }
 }

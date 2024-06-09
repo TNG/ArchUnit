@@ -1,146 +1,141 @@
 package com.tngtech.archunit.testutil;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
-import com.tngtech.archunit.base.Predicates;
-import org.junit.Assert;
-import org.junit.rules.ExternalResource;
+import javax.tools.ToolProvider;
+
+import com.google.common.base.Splitter;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
-import static java.nio.file.Files.createDirectories;
-import static java.util.Collections.emptyList;
+import static com.tngtech.archunit.testutil.TestUtils.unchecked;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class OutsideOfClassPathRule extends ExternalResource {
+public class OutsideOfClassPathRule implements TestRule {
+    private static final Pattern PACKAGE_DECLARATION_PATTERN = Pattern.compile("package (.*);");
+
     private final TemporaryFolder temporaryFolder = new TemporaryFolder(newTemporaryFolder());
-    private Path backup;
-    private Path originFolder;
-    private Predicate<String> fileNamePredicate = Predicates.alwaysTrue();
 
     @Override
     public Statement apply(Statement base, Description description) {
-        return temporaryFolder.apply(super.apply(base, description), description);
+        return temporaryFolder.apply(base, description);
     }
 
-    @SuppressWarnings("unchecked")
-    public OutsideOfClassPathRule onlyKeep(Predicate<? super String> fileNamePredicate) {
-        this.fileNamePredicate = (Predicate<String>) fileNamePredicate;
-        return this;
-    }
+    /**
+     * Compiles all classes from the directory at {@code url} to a temporary folder.
+     * Doesn't traverse the given directory, but only takes the direct children.
+     * @param url The folder where the Java source files reside
+     * @return The path of the remaining compiled class files
+     */
+    public CompiledClasses compileClassesFrom(URL url) {
+        return unchecked(() -> {
+            Path sourceFileDir = Paths.get(toUri(url));
+            Path classFileDir = temporaryFolder.newFolder().toPath();
 
-    public Path setUp(URL folder) throws IOException {
-        return setUp(folder, emptyList());
-    }
-
-    public Path setUp(URL folder, List<String> subfolder) throws IOException {
-        this.originFolder = new File(toUri(folder)).toPath();
-        return moveOutOfClassPath(subfolder);
-    }
-
-    private Path moveOutOfClassPath(List<String> subfolder) throws IOException {
-        String classNameToCheck = rememberClassNameForSanityCheck();
-        Path result = setupClassesOutsideOfClasspathWithMissingDependencies(subfolder);
-        assertNotPresent(classNameToCheck);
-        return result;
-    }
-
-    private String rememberClassNameForSanityCheck() throws IOException {
-        ClassNameRetrievingVisitor classNameRetriever = new ClassNameRetrievingVisitor();
-        Files.walkFileTree(this.originFolder, classNameRetriever);
-        return classNameRetriever.className;
-    }
-
-    private Path setupClassesOutsideOfClasspathWithMissingDependencies(List<String> subfolder) throws IOException {
-        File sourceDir = originFolder.toFile();
-        checkFolderFlat(sourceDir);
-        backup = temporaryFolder.newFolder().toPath();
-        copy(sourceDir, backup);
-        Path targetDir = temporaryFolder.newFolder().toPath();
-        Path subdir = targetDir;
-        for (String f : subfolder) {
-            subdir = subdir.resolve(f);
-        }
-        createDirectories(subdir);
-        moveMatchingFilesDeleteRest(sourceDir, subdir, fileNamePredicate);
-        return targetDir;
-    }
-
-    private void copy(File sourceDir, Path targetDir) throws IOException {
-        for (File file : sourceDir.listFiles()) {
-            Files.copy(file.toPath(), targetDir.resolve(file.getName()));
-        }
-    }
-
-    private void moveMatchingFilesDeleteRest(File sourceDir, Path targetDir, Predicate<String> predicate) throws IOException {
-        for (File file : sourceDir.listFiles()) {
-            if (predicate.test(file.getName())) {
-                Files.move(file.toPath(), targetDir.resolve(file.getName()));
-            } else {
-                checkState(file.delete());
+            try (Stream<Path> files = Files.list(sourceFileDir)) {
+                files.filter(it -> it.toString().endsWith(".java"))
+                        .forEach(javaSourceFile -> unchecked(() -> compileJavaSourceFile(javaSourceFile, classFileDir)));
             }
+
+            return new CompiledClasses(classFileDir);
+        });
+    }
+
+    private void compileJavaSourceFile(Path originalJavaSourceFile, Path targetDir) throws Exception {
+        String packageName = readPackageNameOf(originalJavaSourceFile);
+        Path packagePath = convertToRelativePath(packageName);
+
+        Path javaSourceDir = temporaryFolder.newFolder().toPath();
+        Path javaSourceFile = Files.copy(originalJavaSourceFile, javaSourceDir.resolve(originalJavaSourceFile.getFileName())).toAbsolutePath();
+        executeCompile(javaSourceFile);
+
+        Path targetClassFileDir = Files.createDirectories(targetDir.resolve(packagePath));
+        copy(javaSourceDir, targetClassFileDir, it -> it.endsWith(".class"));
+    }
+
+    private static String readPackageNameOf(Path originalJavaSourceFile) throws IOException {
+        return Files.readAllLines(originalJavaSourceFile, UTF_8).stream()
+                .flatMap(OutsideOfClassPathRule::tryMatchPackage)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Couldn't find package declaration in source file " + originalJavaSourceFile.toAbsolutePath()));
+    }
+
+    private static Stream<String> tryMatchPackage(String input) {
+        Matcher matcher = PACKAGE_DECLARATION_PATTERN.matcher(input);
+        return matcher.matches() ? Stream.of(matcher.group(1)) : Stream.empty();
+    }
+
+    private static Path convertToRelativePath(String packageName) {
+        List<String> parts = Splitter.on(".").splitToList(packageName);
+        return Paths.get(parts.get(0), parts.subList(1, parts.size()).toArray(new String[0]));
+    }
+
+    private static void executeCompile(Path javaSourceFile) throws UnsupportedEncodingException {
+        ByteArrayOutputStream toolSysOut = new ByteArrayOutputStream();
+        ByteArrayOutputStream toolSysErr = new ByteArrayOutputStream();
+        int exitCode = ToolProvider.getSystemJavaCompiler().run(null, toolSysOut, toolSysErr, javaSourceFile.toString());
+        if (exitCode != 0) {
+            throw new AssertionError(String.format(
+                    "Couldn't compile java file. file: %s%nOUT: %s%nERR: %s",
+                    javaSourceFile, toolSysOut.toString(UTF_8.name()), toolSysErr.toString(UTF_8.name())));
         }
     }
 
-    private void checkFolderFlat(File dir) {
-        for (File file : dir.listFiles()) {
-            if (file.isDirectory()) {
-                throw new UnsupportedOperationException(String.format(
-                        "Dealing with folders like %s is not implemented yet", file.getAbsolutePath()));
-            }
+    private static void copy(Path sourceDir, Path targetDir, Predicate<String> fileNamePredicate) {
+        try (Stream<Path> files = unchecked(() -> Files.list(sourceDir))) {
+            files.filter(it -> fileNamePredicate.test(it.getFileName().toString()))
+                    .forEach(it -> unchecked(() -> Files.copy(it, targetDir.resolve(it.getFileName()))));
         }
     }
 
-    private void assertNotPresent(String className) {
-        Preconditions.checkNotNull(className,
-                "Couldn't find any class file in given folder %s", originFolder.toAbsolutePath());
-        try {
-            Class.forName(className, false, getClass().getClassLoader());
-            Assert.fail("Should not be able to load class " + className);
-        } catch (ClassNotFoundException expected) {
-        }
-    }
+    public static class CompiledClasses {
+        private final Path classFileDir;
 
-    @Override
-    protected void after() {
-        if (backup != null) {
-            try {
-                moveMatchingFilesDeleteRest(backup.toFile(), originFolder, (__) -> true);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private static class ClassNameRetrievingVisitor extends SimpleFileVisitor<Path> {
-        private String className;
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            if (file.toString().endsWith(".class")) {
-                className = getClassName(file.toAbsolutePath().toString());
-                return FileVisitResult.TERMINATE;
-            }
-            return FileVisitResult.CONTINUE;
+        CompiledClasses(Path classFileDir) {
+            this.classFileDir = classFileDir;
         }
 
-        private String getClassName(String filePath) {
-            return filePath.replaceAll(".*/com/tngtech/archunit", "com/tngtech/archunit")
-                    .replace(".class", "")
-                    .replace('/', '.');
+        /**
+         * Removes all files in the class file folder where the file name doesn't match {@code onlyKeepFiles}
+         * @param onlyKeepFiles A predicate to determine which classes to keep in the class file folder
+         * @return The compiled classes
+         */
+        public CompiledClasses onlyKeep(Predicate<String> onlyKeepFiles) {
+            unchecked(() -> {
+                Files.walkFileTree(classFileDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if (Files.isRegularFile(file) && !onlyKeepFiles.test(file.getFileName().toString())) {
+                            Files.delete(file);
+                        }
+                        return super.visitFile(file, attrs);
+                    }
+                });
+            });
+            return this;
+        }
+
+        public Path getPath() {
+            return classFileDir;
         }
     }
 }

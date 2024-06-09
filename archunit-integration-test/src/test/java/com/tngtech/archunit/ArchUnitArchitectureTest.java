@@ -21,7 +21,6 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTests;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.origin;
@@ -35,7 +34,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
-@RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(
         packagesOf = ArchUnitArchitectureTest.class,
         importOptions = ArchUnitArchitectureTest.ArchUnitProductionCode.class)

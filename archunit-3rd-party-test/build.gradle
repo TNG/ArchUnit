@@ -9,7 +9,6 @@ dependencies {
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.springBootLoader
     dependency.addGuava { dependencyNotation, config -> testImplementation(dependencyNotation, config) }
-    testImplementation dependency.log4j_slf4j
     testImplementation dependency.junit4
     testImplementation dependency.junit_dataprovider
     testImplementation dependency.assertj

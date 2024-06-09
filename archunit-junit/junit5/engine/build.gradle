@@ -18,11 +18,7 @@ dependencies {
     testImplementation dependency.assertj
     testImplementation dependency.mockito
     testImplementation dependency.mockito_junit5
-    testImplementation dependency.junit5JupiterApi
     testImplementation dependency.log4j_core
-    testImplementation dependency.log4j_slf4j
-
-    testRuntimeOnly dependency.junit5JupiterEngine
 }
 
 gradle.projectsEvaluated {
@@ -38,7 +34,7 @@ sourcesJar {
 }
 
 test {
-    useJUnitPlatform() {
+    useJUnitPlatform {
         excludeEngines 'archunit'
     }
 }
