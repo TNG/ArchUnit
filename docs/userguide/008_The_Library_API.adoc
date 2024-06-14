@@ -382,6 +382,26 @@ The way this works is to use the respective package identifiers (compare
 @enduml
 ----
 
+Alternately, packages can be used instead of components:
+
+[plantuml, "long-plantuml-archrule-example", svg, opts=interactive]
+----
+package "Some Source" <<..some.source..>> as source
+package "Some Target" <<..some.target..>> as target
+
+source ..> target
+----
+
+[source,options="nowrap"]
+----
+@startuml
+package "Some Source" <<..some.source..>> as source
+package "Some Target" <<..some.target..>> as target
+
+source ..> target
+@enduml
+----
+
 Consider this diagram applied as a rule via `adhereToPlantUmlDiagram(..)`, then for example
 a class `some.target.Target` accessing `some.source.Source` would be reported as a violation.
 
@@ -418,15 +438,16 @@ classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate
 
 A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
 
-1. Components must be declared in the bracket notation (i.e. `[Some Component]`)
+1. Components must be declared using bracket notation (i.e. `[Some Component]`) or long notation
+(i.e. `component "Some Component"`. Alternately, packages can be used instead of components, e.g. `package "Some Package"`.
 2. Components must have at least one (possible multiple) stereotype(s). Each stereotype in the diagram
 must be unique and represent a valid <<Package Identifiers,package identifier>>
 (e.g. `\<<..example..>>` where `..` represents an arbitrary number of packages; compare the core API)
 3. Components may have an optional alias (e.g. `[Some Component] \<<..example..>> as myalias`). The alias must be alphanumeric and must not be quoted.
 4. Components may have an optional color (e.g. `[Some Component] \<<..example..>> #OrangeRed`)
-5. Dependencies must use arrows only consisting of dashes (e.g. `-\->`)
+5. Dependencies must use arrows only consisting of dashes (e.g. `-\->`) or points (e.g. `..>`)
 6. Dependencies may go from left to right `-\->` or right to left `\<--`
-7. Dependencies may consist of any number of dashes (e.g `\->` or `----\->`)
+7. Dependencies may consist of any number of dashes (e.g. `\->` or `----\->`) or points (e.g. `..>` or `.....>`)
 8. Dependencies may contain direction hints (e.g. `-up\->`) or color directives (e.g. `-[#green]\->`)
 
 You can compare this
