@@ -1,0 +1,9 @@
+@startuml
+package "Web API" <<..web>> as web
+package "Use Cases" <<..usecase>> as usecase
+package "Persistence" <<..persistence>> as persistence
+
+web --> usecase
+usecase --> persistence
+
+@enduml
