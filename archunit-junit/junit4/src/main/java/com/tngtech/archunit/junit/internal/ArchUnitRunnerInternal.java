@@ -63,11 +63,14 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
     }
 
     private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
-        AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-        ArchTestInitializationException.check(analyzeClasses != null,
+        List<AnalyzeClasses> analyzeClasses = new AnnotationFinder<>(AnalyzeClasses.class).findAnnotationsOn(testClass);
+        ArchTestInitializationException.check(!analyzeClasses.isEmpty(),
                 "Class %s must be annotated with @%s",
                 testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
-        return analyzeClasses;
+        ArchTestInitializationException.check(analyzeClasses.size() == 1,
+                "Multiple @%s annotations found on %s! This is not supported at the moment.",
+                AnalyzeClasses.class.getSimpleName(), testClass.getSimpleName());
+        return analyzeClasses.get(0);
     }
 
     @Override

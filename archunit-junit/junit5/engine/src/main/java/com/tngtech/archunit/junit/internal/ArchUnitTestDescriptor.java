@@ -19,6 +19,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -39,7 +40,6 @@ import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.junit.internal.DisplayNameResolver.determineDisplayName;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllMethods;
@@ -71,7 +71,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver) {
-        if (clazz.getAnnotation(AnalyzeClasses.class) == null) {
+        List<AnalyzeClasses> analyzeClasses = new AnnotationFinder<>(AnalyzeClasses.class).findAnnotationsOn(clazz);
+        if (analyzeClasses.isEmpty()) {
             LOG.warn("Class {} is not annotated with @{} and thus cannot run as a top level test. "
                             + "This warning can be ignored if {} is only used as part of a rules library included via {}.in({}.class).",
                     clazz.getName(), AnalyzeClasses.class.getSimpleName(),
@@ -79,6 +80,10 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
             return;
         }
+
+        ArchTestInitializationException.check(analyzeClasses.size() == 1,
+                "Multiple @%s annotations found on %s! This is not supported at the moment.",
+                AnalyzeClasses.class.getSimpleName(), clazz.getSimpleName());
 
         ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(childResolver, clazz, classCache);
         parent.addChild(classDescriptor);
@@ -295,11 +300,14 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
 
         private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
-            AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-            checkArgument(analyzeClasses != null,
+            List<AnalyzeClasses> analyzeClasses = new AnnotationFinder<>(AnalyzeClasses.class).findAnnotationsOn(testClass);
+            ArchTestInitializationException.check(!analyzeClasses.isEmpty(),
                     "Class %s must be annotated with @%s",
                     testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
-            return analyzeClasses;
+            ArchTestInitializationException.check(analyzeClasses.size() == 1,
+                    "Multiple @%s annotations found on %s! This is not supported at the moment.",
+                    AnalyzeClasses.class.getSimpleName(), testClass.getSimpleName());
+            return analyzeClasses.get(0);
         }
 
         @Override
