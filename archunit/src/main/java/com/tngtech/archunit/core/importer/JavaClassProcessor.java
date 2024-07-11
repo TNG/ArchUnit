@@ -19,8 +19,10 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -36,6 +38,7 @@ import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
@@ -74,9 +77,9 @@ import static java.util.stream.Collectors.toList;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
-
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
+    private final boolean analyzeLocalVariableInstantiations = ArchConfiguration.get().analyzeLocalVariableInstantiations();
     private DomainBuilders.JavaClassBuilder javaClassBuilder;
     private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
     private final SourceDescriptor sourceDescriptor;
@@ -258,7 +261,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withThrowsClause(throwsDeclarations);
         declarationHandler.onDeclaredThrowsClause(fullyQualifiedClassNamesOf(throwsDeclarations));
 
-        return new MethodProcessor(className, accessHandler, codeUnitBuilder, declarationHandler);
+        return new MethodProcessor(className, accessHandler, codeUnitBuilder, declarationHandler, analyzeLocalVariableInstantiations);
     }
 
     private Collection<String> fullyQualifiedClassNamesOf(List<JavaClassDescriptor> classDescriptors) {
@@ -318,14 +321,18 @@ class JavaClassProcessor extends ClassVisitor {
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
         private final SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
         private int actualLineNumber;
+        private final Map<Label, Integer> labelToLineNumber;
+        private final boolean analyzeLocalVariableInstantiations;
 
-        MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
+        MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler, boolean analyzeLocalVariableInstantiations) {
             super(ASM_API_VERSION);
             this.declaringClassName = declaringClassName;
             this.accessHandler = accessHandler;
             this.codeUnitBuilder = codeUnitBuilder;
             this.declarationHandler = declarationHandler;
             codeUnitBuilder.withParameterAnnotations(parameterAnnotationsByIndex);
+            this.analyzeLocalVariableInstantiations = analyzeLocalVariableInstantiations;
+            labelToLineNumber = analyzeLocalVariableInstantiations ? new HashMap<>() : null;
         }
 
         @Override
@@ -351,6 +358,9 @@ class JavaClassProcessor extends ClassVisitor {
         public void visitLabel(Label label) {
             LOG.trace("Examining label {}", label);
             accessHandler.onLabel(label);
+            if (analyzeLocalVariableInstantiations) {
+                labelToLineNumber.put(label, actualLineNumber);
+            }
         }
 
         @Override
@@ -379,6 +389,117 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             accessHandler.handleMethodInstruction(owner, name, desc);
+        }
+
+        @Override
+        public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+            if (!analyzeLocalVariableInstantiations) {
+                return;
+            }
+            if (name.equals("this") ||
+                    this.codeUnitBuilder.getModifiers().contains(JavaModifier.SYNTHETIC) ||
+                    this.codeUnitBuilder.getName().equals("<init>")) {
+                return;
+            }
+            int lineNumber = start != null ? labelToLineNumber.getOrDefault(start, actualLineNumber) : actualLineNumber;
+            JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
+            accessHandler.handleReferencedClassObject(type, lineNumber);
+            JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature, new DeclarationHandler() {
+                @Override
+                public boolean isNew(String className) {
+                    return false;
+                }
+
+                @Override
+                public void onNewClass(String className, Optional<String> superclassName, List<String> interfaceNames) {
+
+                }
+
+                @Override
+                public void onDeclaredTypeParameters(DomainBuilders.JavaClassTypeParametersBuilder typeParametersBuilder) {
+
+                }
+
+                @Override
+                public void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+
+                }
+
+                @Override
+                public void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+
+                }
+
+                @Override
+                public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder, String fieldTypeName) {
+
+                }
+
+                @Override
+                public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames) {
+
+                }
+
+                @Override
+                public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
+
+                }
+
+                @Override
+                public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+
+                }
+
+                @Override
+                public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) {
+
+                }
+
+                @Override
+                public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
+
+                }
+
+                @Override
+                public void onDeclaredAnnotationValueType(String valueTypeName) {
+
+                }
+
+                @Override
+                public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder) {
+
+                }
+
+                @Override
+                public void registerEnclosingClass(String ownerName, String enclosingClassName) {
+
+                }
+
+                @Override
+                public void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
+
+                }
+
+                @Override
+                public void onDeclaredClassObject(String typeName) {
+
+                }
+
+                @Override
+                public void onDeclaredInstanceofCheck(String typeName) {
+
+                }
+
+                @Override
+                public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
+
+                }
+
+                @Override
+                public void onDeclaredGenericSignatureType(String typeName) {
+                    accessHandler.handleReferencedClassObject(JavaClassDescriptor.From.name(typeName), lineNumber);
+                }
+            });
         }
 
         @Override
@@ -578,6 +699,7 @@ class JavaClassProcessor extends ClassVisitor {
             @Override
             public void onMethodEnd() {
             }
+
         }
     }
 
