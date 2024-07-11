@@ -57,6 +57,7 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -382,6 +383,113 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
+        public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+            if (name.equals("this") ||
+                    this.codeUnitBuilder.getModifiers().contains(JavaModifier.SYNTHETIC) ||
+                    this.codeUnitBuilder.getName().equals("<init>")) {
+                return;
+            }
+            JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(Type.getType(desc));
+            accessHandler.handleReferencedClassObject(type, actualLineNumber);
+            JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature, new DeclarationHandler() {
+                @Override
+                public boolean isNew(String className) {
+                    return false;
+                }
+
+                @Override
+                public void onNewClass(String className, Optional<String> superclassName, List<String> interfaceNames) {
+
+                }
+
+                @Override
+                public void onDeclaredTypeParameters(DomainBuilders.JavaClassTypeParametersBuilder typeParametersBuilder) {
+
+                }
+
+                @Override
+                public void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+
+                }
+
+                @Override
+                public void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+
+                }
+
+                @Override
+                public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder, String fieldTypeName) {
+
+                }
+
+                @Override
+                public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames) {
+
+                }
+
+                @Override
+                public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
+
+                }
+
+                @Override
+                public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+
+                }
+
+                @Override
+                public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) {
+
+                }
+
+                @Override
+                public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
+
+                }
+
+                @Override
+                public void onDeclaredAnnotationValueType(String valueTypeName) {
+
+                }
+
+                @Override
+                public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder) {
+
+                }
+
+                @Override
+                public void registerEnclosingClass(String ownerName, String enclosingClassName) {
+
+                }
+
+                @Override
+                public void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
+
+                }
+
+                @Override
+                public void onDeclaredClassObject(String typeName) {
+
+                }
+
+                @Override
+                public void onDeclaredInstanceofCheck(String typeName) {
+
+                }
+
+                @Override
+                public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
+
+                }
+
+                @Override
+                public void onDeclaredGenericSignatureType(String typeName) {
+                    accessHandler.handleReferencedClassObject(JavaClassDescriptor.From.name(typeName), actualLineNumber);
+                }
+            });
+        }
+
+        @Override
         public void visitTypeInsn(int opcode, String type) {
             if (opcode == Opcodes.INSTANCEOF) {
                 JavaClassDescriptor instanceOfCheckType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
@@ -578,6 +686,7 @@ class JavaClassProcessor extends ClassVisitor {
             @Override
             public void onMethodEnd() {
             }
+
         }
     }
 
