@@ -19,8 +19,10 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -36,6 +38,7 @@ import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
@@ -57,7 +60,6 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,9 +77,9 @@ import static java.util.stream.Collectors.toList;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
-
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
+    private final boolean analyzeLocalVariableInstantiations = ArchConfiguration.get().analyzeLocalVariableInstantiations();
     private DomainBuilders.JavaClassBuilder javaClassBuilder;
     private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
     private final SourceDescriptor sourceDescriptor;
@@ -259,7 +261,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withThrowsClause(throwsDeclarations);
         declarationHandler.onDeclaredThrowsClause(fullyQualifiedClassNamesOf(throwsDeclarations));
 
-        return new MethodProcessor(className, accessHandler, codeUnitBuilder, declarationHandler);
+        return new MethodProcessor(className, accessHandler, codeUnitBuilder, declarationHandler, analyzeLocalVariableInstantiations);
     }
 
     private Collection<String> fullyQualifiedClassNamesOf(List<JavaClassDescriptor> classDescriptors) {
@@ -319,14 +321,18 @@ class JavaClassProcessor extends ClassVisitor {
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
         private final SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
         private int actualLineNumber;
+        private final Map<Label, Integer> labelToLineNumber;
+        private final boolean analyzeLocalVariableInstantiations;
 
-        MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
+        MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler, boolean analyzeLocalVariableInstantiations) {
             super(ASM_API_VERSION);
             this.declaringClassName = declaringClassName;
             this.accessHandler = accessHandler;
             this.codeUnitBuilder = codeUnitBuilder;
             this.declarationHandler = declarationHandler;
             codeUnitBuilder.withParameterAnnotations(parameterAnnotationsByIndex);
+            this.analyzeLocalVariableInstantiations = analyzeLocalVariableInstantiations;
+            labelToLineNumber = analyzeLocalVariableInstantiations ? new HashMap<>() : null;
         }
 
         @Override
@@ -352,6 +358,9 @@ class JavaClassProcessor extends ClassVisitor {
         public void visitLabel(Label label) {
             LOG.trace("Examining label {}", label);
             accessHandler.onLabel(label);
+            if (analyzeLocalVariableInstantiations) {
+                labelToLineNumber.put(label, actualLineNumber);
+            }
         }
 
         @Override
@@ -384,13 +393,17 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+            if (!analyzeLocalVariableInstantiations) {
+                return;
+            }
             if (name.equals("this") ||
                     this.codeUnitBuilder.getModifiers().contains(JavaModifier.SYNTHETIC) ||
                     this.codeUnitBuilder.getName().equals("<init>")) {
                 return;
             }
-            JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(Type.getType(desc));
-            accessHandler.handleReferencedClassObject(type, actualLineNumber);
+            int lineNumber = start != null ? labelToLineNumber.getOrDefault(start, actualLineNumber) : actualLineNumber;
+            JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
+            accessHandler.handleReferencedClassObject(type, lineNumber);
             JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature, new DeclarationHandler() {
                 @Override
                 public boolean isNew(String className) {
@@ -484,7 +497,7 @@ class JavaClassProcessor extends ClassVisitor {
 
                 @Override
                 public void onDeclaredGenericSignatureType(String typeName) {
-                    accessHandler.handleReferencedClassObject(JavaClassDescriptor.From.name(typeName), actualLineNumber);
+                    accessHandler.handleReferencedClassObject(JavaClassDescriptor.From.name(typeName), lineNumber);
                 }
             });
         }
