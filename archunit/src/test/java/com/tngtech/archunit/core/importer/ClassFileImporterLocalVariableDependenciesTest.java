@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
+
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
