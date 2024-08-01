@@ -223,3 +223,40 @@ in particular by custom predicates and conditions,
 there is at the moment no more sophisticated way than plain text parsing.
 Users can tailor this to their specific environments where they know
 which sorts of failure formats can appear in practice.
+
+=== Analysis of Local Variable Instantiations
+
+ArchUnit does not analyze local variables by default. There is limited support for it by adding class dependencies
+for every local variable instantiation: from the surrounding method to the type of the variable and, if that type has
+generic type parameters, also from the method to any concrete generic type. Since this has
+a performance impact, it is disabled by default, but it can be activated the following way:
+
+[source,options="nowrap"]
+.archunit.properties
+----
+analyzeLocalVariableInstantiations=true
+----
+
+If this feature is enabled, the following code would add class dependencies
+
+* A.m() -> B
+* A.m() -> C
+* A.m() -> D
+* A.m() -> E
+
+which otherwise wouldn't be the case:
+
+[source,java,options="nowrap"]
+----
+public class A<T extends E> {
+
+    void m() {
+        B var1 = null;
+        D<C> var2 = null;
+        T var3 = null;
+    }
+
+}
+----
+
+Note that there are no other uses (method calls, field accesses) of types B, C and D in the code.
