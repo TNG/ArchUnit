@@ -21,10 +21,10 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Build
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: build
+        run: ./gradlew build
       - name: Check project files unmodified
         run: |
           directoryState="$(git status --porcelain)"
@@ -77,13 +77,12 @@ jobs:
                 }
               }
             }
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Test
-        uses: gradle/actions/setup-gradle@v3
+        run: ./gradlew test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} "-Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}"
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
-        with:
-          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}
-          cache-disabled: true
 
   integration-test:
     strategy:
@@ -127,15 +126,13 @@ jobs:
                 }
               }
             }
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Publish to Maven Local
-        uses: gradle/actions/setup-gradle@v3
+        run: ./gradlew build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
-        with:
-          arguments: build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
       - name: Integration test
-        uses: gradle/actions/setup-gradle@v3
+        run: ./gradlew runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} "-Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}"
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
-        with:
-          arguments: runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}
