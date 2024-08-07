@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "github-pages", "~> 231", group: :jekyll_plugins
+gem "github-pages", "~> 232", group: :jekyll_plugins
 
 # meanwhile this dependency also seem to be necessary to run Jekyll with current Ruby
 gem "webrick"
