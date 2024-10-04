@@ -40,7 +40,8 @@ class ArchUnitSystemPropertyTestFilterJUnit5 {
 
         String testFilterProperty = configuration.getProperty(JUNIT_TEST_FILTER_PROPERTY_NAME);
         List<String> memberNames = Splitter.on(",").splitToList(testFilterProperty);
-        Predicate<TestDescriptor> shouldRunPredicate = testDescriptor -> memberNameMatches(testDescriptor, memberNames);
+        Predicate<TestDescriptor> shouldRunPredicate =
+            testDescriptor -> !(testDescriptor instanceof AbstractArchUnitTestDescriptor) || memberNameMatches(testDescriptor, memberNames);
         removeNonMatching(descriptor, shouldRunPredicate);
     }
 
