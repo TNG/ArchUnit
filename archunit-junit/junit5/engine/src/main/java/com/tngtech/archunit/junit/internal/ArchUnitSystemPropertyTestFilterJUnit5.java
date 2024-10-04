@@ -48,7 +48,7 @@ class ArchUnitSystemPropertyTestFilterJUnit5 {
         ImmutableSet.copyOf(descriptor.getChildren())
                 .forEach(child -> removeNonMatching(child, shouldRunPredicate));
 
-        if (descriptor.getChildren().isEmpty() && !shouldRunPredicate.test(descriptor)) {
+        if (!descriptor.isRoot() && descriptor.getChildren().isEmpty() && !shouldRunPredicate.test(descriptor)) {
             descriptor.removeFromHierarchy();
         }
     }
