@@ -452,12 +452,16 @@ public final class GeneralCodingRules {
     private static ArchCondition<JavaClass> resideInTheSamePackageAsTheirTestClasses(String testClassSuffix) {
         return new ArchCondition<JavaClass>("reside in the same package as their test classes") {
             Map<String, List<JavaClass>> testClassesBySimpleClassName = new HashMap<>();
+            Map<String, List<JavaClass>> classesByPackageName = new HashMap<>();
 
             @Override
             public void init(Collection<JavaClass> allClasses) {
                 testClassesBySimpleClassName = allClasses.stream()
                         .filter(clazz -> clazz.getName().endsWith(testClassSuffix))
                         .collect(groupingBy(JavaClass::getSimpleName));
+
+                classesByPackageName = allClasses.stream()
+                        .collect(groupingBy(JavaClass::getPackageName));
             }
 
             @Override
@@ -468,7 +472,8 @@ public final class GeneralCodingRules {
                 List<JavaClass> possibleTestClasses = testClassesBySimpleClassName.getOrDefault(possibleTestClassName, emptyList());
 
                 boolean isTestClassInWrongPackage = !possibleTestClasses.isEmpty()
-                        && possibleTestClasses.stream().noneMatch(clazz -> clazz.getPackageName().equals(implementationClassPackageName));
+                        && possibleTestClasses.stream().noneMatch(clazz -> clazz.getPackageName().equals(implementationClassPackageName))
+                        && !allPossibleTestClassesHaveImplementationInRightPackage(possibleTestClasses);
 
                 if (isTestClassInWrongPackage) {
                     possibleTestClasses.forEach(wrongTestClass -> {
@@ -477,6 +482,13 @@ public final class GeneralCodingRules {
                         events.add(violated(wrongTestClass, message));
                     });
                 }
+            }
+
+            private boolean allPossibleTestClassesHaveImplementationInRightPackage(List<JavaClass> possibleTestClasses) {
+                return possibleTestClasses.stream()
+                        .allMatch(testClazz -> classesByPackageName.getOrDefault(testClazz.getPackageName(), emptyList())
+                                .stream()
+                                 .anyMatch(clazz -> testClazz.getSimpleName().equals(clazz.getSimpleName() + testClassSuffix)));
             }
         };
     }
