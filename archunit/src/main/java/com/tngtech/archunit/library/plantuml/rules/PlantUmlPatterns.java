@@ -36,6 +36,7 @@ import static java.util.Collections.singletonList;
 class PlantUmlPatterns {
     private static final String OPTIONAL_COMPONENT_KEYWORD_FORMAT = "(?:component)?";
     private static final String COMPONENT_NAME_GROUP_NAME = "componentName";
+    private static final String LONG_COMPONENT_NAME_GROUP_NAME = "longComponentName";
     private static final String COMPONENT_NAME_FORMAT = "\\[" + capture(anythingBut("\\[\\]"), COMPONENT_NAME_GROUP_NAME) + "]";
 
     private static final String STEREOTYPE_FORMAT = "(?:<<" + capture(anythingBut("<>")) + ">>\\s*)";
@@ -46,9 +47,12 @@ class PlantUmlPatterns {
 
     private static final String COLOR_FORMAT = "\\s*(?:#" + anyOf("\\w|/\\\\-") + "+)?";
 
+    private static final String COMPONENT_PACKAGE_IDENTIFIER = "(?:component|package)";
     private static final Pattern PLANTUML_COMPONENT_PATTERN = Pattern.compile(
-            "^\\s*" + OPTIONAL_COMPONENT_KEYWORD_FORMAT
-                    + "\\s*" + COMPONENT_NAME_FORMAT
+            "^\\s*"
+                    + "(?:" + OPTIONAL_COMPONENT_KEYWORD_FORMAT + "\\s*" + COMPONENT_NAME_FORMAT
+                    + "|" + COMPONENT_PACKAGE_IDENTIFIER + "\\s+\""
+                    + capture("[^\"]*", "longComponentName") + "\")"
                     + "\\s*" + STEREOTYPE_FORMAT + "*"
                     + ALIAS_FORMAT
                     + COLOR_FORMAT
@@ -105,7 +109,11 @@ class PlantUmlPatterns {
         }
 
         String matchComponentName() {
-            return componentMatcher.group(COMPONENT_NAME_GROUP_NAME);
+            String name = componentMatcher.group(COMPONENT_NAME_GROUP_NAME);
+            if (name == null) {
+                return componentMatcher.group(LONG_COMPONENT_NAME_GROUP_NAME);
+            }
+            return name;
         }
 
         Set<String> matchStereoTypes() {
