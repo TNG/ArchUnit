@@ -44,6 +44,9 @@ import static java.util.stream.Collectors.toList;
  * com.mycompany.myapp.user
  * com.mycompany.myapp.authorization
  * </code></pre>
+ * Please, note that a {@link Slice} does not necesserlly represent set of subpackages inside the given root package,
+ * although it is often the case. The example above is just a common use case, but {@link Slice slice} can, technically,
+ * represent any set of {@link JavaClass JavaClasses}.
  * The top level packages under 'myapp' could be considered slices according to different domain aspects.<br>
  * Thus there could be a slice 'Order' housing all the classes from the {@code order} package, a slice 'Customer'
  * housing all the classes from the {@code customer} package and so on.
