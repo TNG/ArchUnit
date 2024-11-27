@@ -48,13 +48,7 @@ import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Pred
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.accessTargetWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.*;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -509,4 +503,17 @@ public final class GeneralCodingRules {
                     .should(accessTargetWhere(JavaAccess.Predicates.target(annotatedWith(Deprecated.class))).as("access @Deprecated members"))
                     .orShould(dependOnClassesThat(annotatedWith(Deprecated.class)).as("depend on @Deprecated classes"))
                     .because("there should be a better alternative");
+
+    /**
+     * A rule checking that no classes uses old date and time classes and point out to use the Java 8 time API.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchRule OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED =
+      noClasses()
+        .should().dependOnClassesThat().haveFullyQualifiedName("java.sql.Date")
+        .orShould().dependOnClassesThat().haveFullyQualifiedName("java.sql.Time")
+        .orShould().dependOnClassesThat().haveFullyQualifiedName("java.sql.Timestamp")
+        .orShould().dependOnClassesThat().haveFullyQualifiedName("java.util.Calendar")
+        .orShould().dependOnClassesThat().haveFullyQualifiedName("java.util.Date")
+        .because("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
 }
