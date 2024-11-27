@@ -509,4 +509,18 @@ public final class GeneralCodingRules {
                     .should(accessTargetWhere(JavaAccess.Predicates.target(annotatedWith(Deprecated.class))).as("access @Deprecated members"))
                     .orShould(dependOnClassesThat(annotatedWith(Deprecated.class)).as("depend on @Deprecated classes"))
                     .because("there should be a better alternative");
+
+    /**
+     * A rule checking that no classes uses old date and time classes and point out to use the Java 8 time API.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchRule OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED =
+            noClasses()
+                    .should().dependOnClassesThat().haveFullyQualifiedName("java.sql.Date")
+                    .orShould().dependOnClassesThat().haveFullyQualifiedName("java.sql.Time")
+                    .orShould().dependOnClassesThat().haveFullyQualifiedName("java.sql.Timestamp")
+                    .orShould().dependOnClassesThat().haveFullyQualifiedName("java.util.Calendar")
+                    .orShould().dependOnClassesThat().haveFullyQualifiedName("java.util.Date")
+                    .as("java.time API should be used")
+                    .because("legacy date/time APIs have been replaced since Java 8 (JSR 310)");
 }
