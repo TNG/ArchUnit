@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -32,7 +31,6 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
-
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -48,7 +46,13 @@ import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Pred
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.*;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessTargetWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
