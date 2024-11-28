@@ -515,5 +515,6 @@ public final class GeneralCodingRules {
         .orShould().dependOnClassesThat().haveFullyQualifiedName("java.sql.Timestamp")
         .orShould().dependOnClassesThat().haveFullyQualifiedName("java.util.Calendar")
         .orShould().dependOnClassesThat().haveFullyQualifiedName("java.util.Date")
+        .as("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.")
         .because("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
 }

@@ -1,7 +1,6 @@
 package com.tngtech.archunit.library;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import static com.tngtech.archunit.library.GeneralCodingRules.*;
 import com.tngtech.archunit.library.testclasses.packages.correct.customsuffix.ImplementationClassWithCorrectPackageCustomSuffix;
 import com.tngtech.archunit.library.testclasses.packages.correct.defaultsuffix.ImplementationClassWithCorrectPackage;
 import com.tngtech.archunit.library.testclasses.packages.correct.notest.ImplementationClassWithoutTestClass;
@@ -19,6 +18,10 @@ import com.tngtech.archunit.library.testclasses.timeapi.incorrect.UsesJavaUtilDa
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.library.GeneralCodingRules.ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE;
+import static com.tngtech.archunit.library.GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED;
+import static com.tngtech.archunit.library.GeneralCodingRules.OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED;
+import static com.tngtech.archunit.library.GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 
 public class GeneralCodingRulesTest {
@@ -189,35 +192,40 @@ public class GeneralCodingRulesTest {
     @Test
     public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_util_date() {
         assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+          .hasDescriptionContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.")
           .checking(new ClassFileImporter().importClasses(UsesJavaUtilDate.class))
-          .hasViolationContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
+          .hasViolationContaining("calls method <java.util.Date");
     }
 
     @Test
     public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_sql_timestamp() {
         assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+          .hasDescriptionContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.")
           .checking(new ClassFileImporter().importClasses(UsesJavaSqlTimestamp.class))
-          .hasViolationContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
+          .hasViolationContaining("calls constructor <java.sql.Timestamp");
     }
 
     @Test
     public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_sql_time() {
         assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+          .hasDescriptionContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.")
           .checking(new ClassFileImporter().importClasses(UsesJavaSqlTime.class))
-          .hasViolationContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
+          .hasViolationContaining("calls constructor <java.sql.Time");
     }
 
     @Test
     public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_sql_date() {
         assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+          .hasDescriptionContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.")
           .checking(new ClassFileImporter().importClasses(UsesJavaSqlDate.class))
-          .hasViolationContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
+          .hasViolationContaining("calls constructor <java.sql.Date");
     }
 
     @Test
     public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_util_calender() {
         assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+          .hasDescriptionContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.")
           .checking(new ClassFileImporter().importClasses(UsesJavaUtilCalender.class))
-          .hasViolationContaining("since Java 8 (and JavaEE 7 if JPA is needed) java.time-API should be used.");
+          .hasViolationContaining("calls method <java.util.Calendar");
     }
 }
