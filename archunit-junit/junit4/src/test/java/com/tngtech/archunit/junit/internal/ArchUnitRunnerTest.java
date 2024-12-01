@@ -1,5 +1,7 @@
 package com.tngtech.archunit.junit.internal;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -50,6 +52,8 @@ public class ArchUnitRunnerTest {
     private ArchUnitRunnerInternal runner = newRunner(SomeArchTest.class);
     @InjectMocks
     private ArchUnitRunnerInternal runnerOfMaxTest = newRunner(MaxAnnotatedTest.class);
+    @InjectMocks
+    private ArchUnitRunnerInternal runnerOfMetaAnnotatedAnalyzerClasses = newRunner(MetaAnnotatedTest.class);
 
     @Before
     public void setUp() {
@@ -94,6 +98,35 @@ public class ArchUnitRunnerTest {
                 .hasMessageContaining(Object.class.getSimpleName())
                 .hasMessageContaining("must be annotated")
                 .hasMessageContaining(AnalyzeClasses.class.getSimpleName());
+    }
+
+    @Test
+    public void runner_creates_correct_analysis_request_for_meta_annotated_class() {
+        runnerOfMetaAnnotatedAnalyzerClasses.run(new RunNotifier());
+
+        verify(cache).getClassesToAnalyzeFor(eq(MetaAnnotatedTest.class), analysisRequestCaptor.capture());
+
+        AnalyzeClasses analyzeClasses = MetaAnnotatedTest.class.getAnnotation(MetaAnnotatedTest.MetaAnalyzeCls.class)
+                .annotationType().getAnnotation(AnalyzeClasses.class);
+        ClassAnalysisRequest analysisRequest = analysisRequestCaptor.getValue();
+        assertThat(analysisRequest.getPackageNames()).isEqualTo(analyzeClasses.packages());
+        assertThat(analysisRequest.getPackageRoots()).isEqualTo(analyzeClasses.packagesOf());
+        assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
+        assertThat(analysisRequest.scanWholeClasspath()).as("scan whole classpath").isTrue();
+        assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());
+    }
+
+    @Test
+    public void rejects_if_multiple_analyze_annotations() {
+        assertThatThrownBy(
+                () -> new ArchUnitRunnerInternal(MultipleAnalyzeClzAnnotationsTest.class)
+        )
+                .isInstanceOf(ArchTestInitializationException.class)
+                .hasMessageContaining("Multiple")
+                .hasMessageContaining(AnalyzeClasses.class.getSimpleName())
+                .hasMessageContaining("found")
+                .hasMessageContaining(MultipleAnalyzeClzAnnotationsTest.class.getSimpleName())
+                .hasMessageContaining("not supported");
     }
 
     private ArchUnitRunnerInternal newRunner(Class<?> testClass) {
@@ -159,5 +192,26 @@ public class ArchUnitRunnerTest {
         @ArchTest
         public static void someTest(JavaClasses classes) {
         }
+    }
+
+    @MetaAnnotatedTest.MetaAnalyzeCls
+    public static class MetaAnnotatedTest {
+        @ArchTest
+        public static void someTest(JavaClasses classes) {
+        }
+
+        @Retention(RetentionPolicy.RUNTIME)
+        @AnalyzeClasses(
+                packages = {"com.forty", "com.two"},
+                wholeClasspath = true
+        )
+        public @interface MetaAnalyzeCls {
+        }
+    }
+
+    @MetaAnnotatedTest.MetaAnalyzeCls
+    @AnalyzeClasses
+    public static class MultipleAnalyzeClzAnnotationsTest {
+
     }
 }
