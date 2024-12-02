@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -41,7 +42,7 @@ public final class TransitiveDependencyCondition extends ArchCondition<JavaClass
 
     private final DescribedPredicate<? super JavaClass> conditionPredicate;
     private final TransitiveDependencyPath transitiveDependencyPath = new TransitiveDependencyPath();
-    private Collection<JavaClass> allClasses;
+    private Set<JavaClass> allClasses;
 
     public TransitiveDependencyCondition(DescribedPredicate<? super JavaClass> conditionPredicate) {
         super("transitively depend on classes that " + conditionPredicate.getDescription());
@@ -51,7 +52,7 @@ public final class TransitiveDependencyCondition extends ArchCondition<JavaClass
 
     @Override
     public void init(Collection<JavaClass> allObjectsToTest) {
-        this.allClasses = allObjectsToTest;
+        this.allClasses = ImmutableSet.copyOf(allObjectsToTest);
     }
 
     @Override
