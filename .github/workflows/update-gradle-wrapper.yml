@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Gradle JDK
-        uses: actions/setup-java@v4.5.0
+        uses: actions/setup-java@v4.6.0
         with:
           distribution: 'zulu'
           java-version: 17
