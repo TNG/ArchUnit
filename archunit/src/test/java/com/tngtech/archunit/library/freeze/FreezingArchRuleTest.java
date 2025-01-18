@@ -1,6 +1,7 @@
 package com.tngtech.archunit.library.freeze;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -53,8 +54,11 @@ public class FreezingArchRuleTest {
 
     private static final String STORE_PROPERTY_NAME = "freeze.store";
     private static final String STORE_DEFAULT_PATH_PROPERTY_NAME = "freeze.store.default.path";
+    private static final String FREEZE_REFREEZE = "freeze.refreeze";
     private static final String ALLOW_STORE_CREATION_PROPERTY_NAME = "freeze.store.default.allowStoreCreation";
     private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "freeze.store.default.allowStoreUpdate";
+    private static final String DELETE_EMPTY_RULE_VIOLATION_PROPERTY_NAME = "freeze.store.default.deleteEmptyRuleViolation";
+    private static final String WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME = "freeze.store.default.warnEmptyRuleViolation";
     private static final String LINE_MATCHER_PROPERTY_NAME = "freeze.lineMatcher";
 
     @Rule
@@ -152,13 +156,13 @@ public class FreezingArchRuleTest {
         ArchRule anotherViolation = rule("some description").withViolations("first violation", "second violation").create();
         ArchRule frozenWithNewViolation = freeze(anotherViolation).persistIn(violationStore);
 
-        ArchConfiguration.get().setProperty("freeze.refreeze", Boolean.TRUE.toString());
+        ArchConfiguration.get().setProperty(FREEZE_REFREEZE, Boolean.TRUE.toString());
 
         assertThatRule(frozenWithNewViolation)
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
 
-        ArchConfiguration.get().setProperty("freeze.refreeze", Boolean.FALSE.toString());
+        ArchConfiguration.get().setProperty(FREEZE_REFREEZE, Boolean.FALSE.toString());
 
         assertThatRule(frozenWithNewViolation)
                 .checking(importClasses(getClass()))
@@ -483,6 +487,72 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void warns_when_default_ViolationStore_is_empty() throws IOException {
+        useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+        ArchConfiguration.get().setProperty(FREEZE_REFREEZE, "true");
+        FreezingArchRule frozenRule = freeze(rule("some description").withoutViolations().create());
+        frozenRule.check(importClasses(getClass()));
+
+        // disallowing empty violation file should throw
+        ArchConfiguration.get().setProperty(WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME, "true");
+        assertThatThrownBy(() -> frozenRule.check(importClasses(getClass())))
+                .isInstanceOf(StoreEmptyException.class)
+                .hasMessageContaining("Saving empty violations for freezing rule is disabled (enable by configuration " + WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME + "=true)");
+    }
+
+    @Test
+    public void warns_when_default_ViolationStore_gets_empty() throws IOException {
+        useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+        RuleCreator someRule = rule("some description");
+        freeze(someRule.withViolations("remaining", "will be solved").create()).check(importClasses(getClass()));
+
+        // disallowing empty violation file should throw
+        ArchConfiguration.get().setProperty(WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME, "true");
+        FreezingArchRule frozenRule = freeze(someRule.withoutViolations().create());
+        assertThatThrownBy(() -> frozenRule.check(importClasses(getClass())))
+                .isInstanceOf(StoreEmptyException.class)
+                .hasMessageContaining("Saving empty violations for freezing rule is disabled (enable by configuration " + WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME + "=true)");
+    }
+
+    @Test
+    public void can_skip_default_ViolationStore_creation_for_empty_violations() throws IOException {
+        File storeFolder = useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(STORE_PROPERTY_NAME, MyTextFileBasedViolationStore.class.getName());
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+        ArchConfiguration.get().setProperty(DELETE_EMPTY_RULE_VIOLATION_PROPERTY_NAME, "true");
+
+        ArchRule rule = rule("some description").withoutViolations().create();
+        freeze(rule).check(importClasses(getClass()));
+
+        assertThat(storeFolder.list()).containsOnly("stored.rules");
+        Properties properties = readProperties(storeFolder.toPath().resolve("stored.rules").toFile());
+        assertThat(properties).isEmpty();
+    }
+
+    @Test
+    public void can_delete_default_ViolationStore_rule_file_for_empty_violations() throws IOException {
+        // given
+        File storeFolder = useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(STORE_PROPERTY_NAME, MyTextFileBasedViolationStore.class.getName());
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+        ArchConfiguration.get().setProperty(DELETE_EMPTY_RULE_VIOLATION_PROPERTY_NAME, "true");
+
+        freeze(rule("some description").withViolations("violation 1").create()).check(importClasses(getClass()));
+        assertThat(storeFolder.list()).containsOnly("stored.rules", "some description test");
+
+        // when
+        ArchRule rule = rule("some description").withoutViolations().create();
+        freeze(rule).check(importClasses(getClass()));
+
+        // then
+        assertThat(storeFolder.list()).containsOnly("stored.rules");
+        Properties properties = readProperties(storeFolder.toPath().resolve("stored.rules").toFile());
+        assertThat(properties).isEmpty();
+    }
+
+    @Test
     public void allows_to_adjust_default_store_file_names_via_delegation() throws IOException {
         // GIVEN
         File storeFolder = useTemporaryDefaultStorePath();
@@ -536,6 +606,14 @@ public class FreezingArchRuleTest {
         File folder = temporaryFolder.newFolder();
         ArchConfiguration.get().setProperty(STORE_DEFAULT_PATH_PROPERTY_NAME, folder.getAbsolutePath());
         return folder;
+    }
+
+    private Properties readProperties(File file) throws IOException {
+        Properties properties = new Properties();
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            properties.load(inputStream);
+        }
+        return properties;
     }
 
     private static RuleCreator rule(String description) {
