@@ -38,20 +38,6 @@ class ReflectionUtils {
     private ReflectionUtils() {
     }
 
-    static Set<Class<?>> getAllSupertypes(Class<?> type) {
-        if (type == null) {
-            return Collections.emptySet();
-        }
-
-        ImmutableSet.Builder<Class<?>> result = ImmutableSet.<Class<?>>builder()
-                .add(type)
-                .addAll(getAllSupertypes(type.getSuperclass()));
-        for (Class<?> c : type.getInterfaces()) {
-            result.addAll(getAllSupertypes(c));
-        }
-        return result.build();
-    }
-
     static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
         return getAll(owner, Class::getDeclaredFields).filter(predicate).collect(toList());
     }
@@ -64,6 +50,20 @@ class ReflectionUtils {
         Stream.Builder<T> result = Stream.builder();
         for (Class<?> t : getAllSupertypes(type)) {
             stream(collector.apply(t)).forEach(result);
+        }
+        return result.build();
+    }
+
+    private static Set<Class<?>> getAllSupertypes(Class<?> type) {
+        if (type == null) {
+            return Collections.emptySet();
+        }
+
+        ImmutableSet.Builder<Class<?>> result = ImmutableSet.<Class<?>>builder()
+                .add(type)
+                .addAll(getAllSupertypes(type.getSuperclass()));
+        for (Class<?> c : type.getInterfaces()) {
+            result.addAll(getAllSupertypes(c));
         }
         return result.build();
     }

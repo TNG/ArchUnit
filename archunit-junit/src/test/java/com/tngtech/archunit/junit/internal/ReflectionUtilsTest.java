@@ -39,14 +39,6 @@ public class ReflectionUtilsTest {
     }
 
     @Test
-    public void getAllSupertypes() {
-        assertThat(ReflectionUtils.getAllSupertypes(Child.class)).containsOnly(
-                Child.class, ChildInterface.class, UpperMiddle.class, LowerMiddle.class, Parent.class,
-                SomeInterface.class, OtherInterface.class, Object.class
-        );
-    }
-
-    @Test
     public void getAllMethods_of_interface() {
         assertThat(ReflectionUtils.getAllMethods(Subinterface.class, alwaysTrue()))
                 .containsOnly(
