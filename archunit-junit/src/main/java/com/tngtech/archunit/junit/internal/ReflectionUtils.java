@@ -72,16 +72,6 @@ class ReflectionUtils {
         return com.tngtech.archunit.base.ReflectionUtils.newInstanceOf(type);
     }
 
-    @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
-    private static <T> T getValue(Field field, Object owner) {
-        try {
-            field.setAccessible(true);
-            return (T) field.get(owner);
-        } catch (IllegalAccessException e) {
-            throw new ReflectionException(e);
-        }
-    }
-
     static <T> T getValueOrThrowException(Field field, Class<?> fieldOwner, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
         try {
             if (Modifier.isStatic(field.getModifiers())) {
@@ -94,6 +84,16 @@ class ReflectionUtils {
         }
     }
 
+    @SuppressWarnings("unchecked") // callers must know what they do here, we can't make this compile safe anyway
+    private static <T> T getValue(Field field, Object owner) {
+        try {
+            field.setAccessible(true);
+            return (T) field.get(owner);
+        } catch (IllegalAccessException e) {
+            throw new ReflectionException(e);
+        }
+    }
+
     static <T> T invokeMethod(Method method, Class<?> methodOwner, Object... args) {
         if (Modifier.isStatic(method.getModifiers())) {
             return invoke(null, method, args);
@@ -102,7 +102,7 @@ class ReflectionUtils {
         }
     }
 
-    @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
+    @SuppressWarnings("unchecked") // callers must know what they do here, we can't make this compile safe anyway
     private static <T> T invoke(Object owner, Method method, Object... args) {
         method.setAccessible(true);
         try {
