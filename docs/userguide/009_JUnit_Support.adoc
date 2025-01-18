@@ -73,7 +73,7 @@ For further information see <<Controlling the Cache>>.
 ==== Controlling the Import
 
 Which classes will be imported can be controlled in a declarative way through `@AnalyzeClasses`.
-If no packages or locations are provided, the whole classpath will be imported.
+If no packages or locations are provided, the package of the annotated test class will be imported.
 You can specify packages to import as strings:
 
 [source,java,options="nowrap"]
@@ -115,6 +115,13 @@ production code, and only consider code that is directly supplied and does not c
 
 As explained in <<The Core API>>, you can write your own custom implementation of `ImportOption`
 and then supply the type to `@AnalyzeClasses`.
+
+To import the whole classpath, instead of just the package of the test class, use the option
+
+[source,java,options="nowrap"]
+----
+@AnalyzeClasses(wholeClasspath = true)
+----
 
 ==== Controlling the Cache
 
