@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.function.Predicate;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.base.Predicates.alwaysTrue;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
@@ -14,6 +14,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReflectionUtilsTest {
+
     @Test
     public void getAllFields() {
         Collection<Field> fields = ReflectionUtils.getAllFields(Child.class, named("field"));
