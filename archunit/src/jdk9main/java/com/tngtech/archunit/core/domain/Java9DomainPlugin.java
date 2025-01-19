@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
@@ -23,8 +22,7 @@ import com.tngtech.archunit.core.PluginLoader;
  * Resolved via {@link PluginLoader}
  */
 @SuppressWarnings("unused")
-@Internal
-public class Java9DomainPlugin implements DomainPlugin {
+class Java9DomainPlugin implements DomainPlugin {
     @Override
     public void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> propertiesFormatter) {
         propertiesFormatter.set(AnnotationPropertiesFormatter.configure()
