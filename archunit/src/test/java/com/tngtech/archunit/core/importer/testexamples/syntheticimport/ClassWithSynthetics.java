@@ -4,8 +4,12 @@ import java.util.Comparator;
 
 @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
 public class ClassWithSynthetics implements Comparator<String> {
-    // for (non-static) inner classes the compiler must create a synthetic field, holding a reference to the outer class
+    // for (non-static) inner classes the compiler must create a synthetic field, holding a reference to the outer class,
+    // if it's used from somewhere outside the constructor
     public class ClassWithSyntheticField {
+        String causeSyntheticOuterClassFieldToBeCreated() {
+            return ClassWithSynthetics.this.toString();
+        }
     }
 
     abstract class Parent {

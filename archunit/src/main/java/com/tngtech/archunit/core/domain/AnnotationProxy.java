@@ -37,10 +37,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 @MayResolveTypesViaReflection(reason = "We depend on the classpath, if we proxy an annotation type")
 class AnnotationProxy {
-    private static final InitialConfiguration<AnnotationPropertiesFormatter> propertiesFormatter = new InitialConfiguration<>();
+    private static final InitialConfiguration<AnnotationFormatter> annotationFormatter = new InitialConfiguration<>();
 
     static {
-        DomainPlugin.Loader.loadForCurrentPlatform().plugInAnnotationPropertiesFormatter(propertiesFormatter);
+        DomainPlugin.Loader.loadForCurrentPlatform().plugInAnnotationFormatter(annotationFormatter);
     }
 
     public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation<?> toProxy) {
@@ -277,12 +277,7 @@ class AnnotationProxy {
 
         @Override
         public Object handle(Object proxy, Method method, Object[] args) {
-            return String.format("@%s(%s)", toProxy.getRawType().getName(), propertiesString());
-        }
-
-        private String propertiesString() {
-            Map<String, Object> unwrappedProperties = unwrapProxiedProperties();
-            return propertiesFormatter.get().formatProperties(unwrappedProperties);
+            return annotationFormatter.get().format(toProxy.getRawType(), unwrapProxiedProperties());
         }
 
         private Map<String, Object> unwrapProxiedProperties() {

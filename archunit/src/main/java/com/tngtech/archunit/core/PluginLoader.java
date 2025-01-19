@@ -139,7 +139,8 @@ public class PluginLoader<T> {
     public enum JavaVersion {
 
         JAVA_9(9),
-        JAVA_14(14);
+        JAVA_14(14),
+        JAVA_21(21);
 
         private final int releaseVersion;
 

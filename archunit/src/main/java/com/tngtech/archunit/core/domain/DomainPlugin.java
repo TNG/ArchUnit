@@ -20,10 +20,11 @@ import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
 import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_14;
+import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_21;
 import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_9;
 
 interface DomainPlugin {
-    void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> valueFormatter);
+    void plugInAnnotationFormatter(InitialConfiguration<AnnotationFormatter> annotationFormatter);
 
     @Internal
     class Loader {
@@ -31,6 +32,7 @@ interface DomainPlugin {
                 .forType(DomainPlugin.class)
                 .ifVersionGreaterOrEqualTo(JAVA_9).load("com.tngtech.archunit.core.domain.Java9DomainPlugin")
                 .ifVersionGreaterOrEqualTo(JAVA_14).load("com.tngtech.archunit.core.domain.Java14DomainPlugin")
+                .ifVersionGreaterOrEqualTo(JAVA_21).load("com.tngtech.archunit.core.domain.Java21DomainPlugin")
                 .fallback(new LegacyDomainPlugin());
 
         static DomainPlugin loadForCurrentPlatform() {
@@ -39,11 +41,13 @@ interface DomainPlugin {
 
         private static class LegacyDomainPlugin implements DomainPlugin {
             @Override
-            public void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> valueFormatter) {
-                valueFormatter.set(AnnotationPropertiesFormatter.configure()
-                        .formattingArraysWithSquareBrackets()
-                        .formattingTypesToString()
-                        .build());
+            public void plugInAnnotationFormatter(InitialConfiguration<AnnotationFormatter> annotationFormatter) {
+                annotationFormatter.set(
+                        AnnotationFormatter
+                                .formatAnnotationType(JavaClass::getName)
+                                .formatProperties(config -> config
+                                        .formattingArraysWithSquareBrackets()
+                                        .formattingTypesToString()));
             }
         }
     }

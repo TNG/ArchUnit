@@ -22,15 +22,17 @@ import com.tngtech.archunit.core.PluginLoader;
  * Resolved via {@link PluginLoader}
  */
 @SuppressWarnings("unused")
-class Java9DomainPlugin implements DomainPlugin {
+class Java21DomainPlugin implements DomainPlugin {
     @Override
     public void plugInAnnotationFormatter(InitialConfiguration<AnnotationFormatter> propertiesFormatter) {
         propertiesFormatter.set(
-                AnnotationFormatter.formatAnnotationType(JavaClass::getName)
+                AnnotationFormatter
+                        .formatAnnotationType(javaClass -> javaClass.getName().replace("$", "."))
                         .formatProperties(config -> config
                                 .formattingArraysWithCurlyBrackets()
                                 .formattingTypesAsClassNames()
                                 .quotingStrings()
+                                .omitOptionalIdentifierForSingleElementAnnotations()
                         ));
     }
 }

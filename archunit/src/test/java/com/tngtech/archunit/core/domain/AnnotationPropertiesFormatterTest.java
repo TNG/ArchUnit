@@ -3,6 +3,7 @@ package com.tngtech.archunit.core.domain;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.domain.AnnotationFormatter.AnnotationPropertiesFormatter;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

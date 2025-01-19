@@ -42,4 +42,15 @@ public class ReflectionTestUtils {
         }
         return result;
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getFieldValue(Object object, String fieldName) {
+        try {
+            Field field = field(object.getClass(), fieldName);
+            field.setAccessible(true);
+            return (T) field.get(object);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
