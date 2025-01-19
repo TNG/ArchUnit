@@ -23,6 +23,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -36,20 +38,6 @@ import static java.util.stream.Collectors.toList;
 
 class ReflectionUtils {
     private ReflectionUtils() {
-    }
-
-    static Set<Class<?>> getAllSupertypes(Class<?> type) {
-        if (type == null) {
-            return Collections.emptySet();
-        }
-
-        ImmutableSet.Builder<Class<?>> result = ImmutableSet.<Class<?>>builder()
-                .add(type)
-                .addAll(getAllSupertypes(type.getSuperclass()));
-        for (Class<?> c : type.getInterfaces()) {
-            result.addAll(getAllSupertypes(c));
-        }
-        return result.build();
     }
 
     static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
@@ -68,18 +56,22 @@ class ReflectionUtils {
         return result.build();
     }
 
-    static <T> T newInstanceOf(Class<T> type) {
-        return com.tngtech.archunit.base.ReflectionUtils.newInstanceOf(type);
+    private static Set<Class<?>> getAllSupertypes(Class<?> type) {
+        if (type == null) {
+            return Collections.emptySet();
+        }
+
+        ImmutableSet.Builder<Class<?>> result = ImmutableSet.<Class<?>>builder()
+                .add(type)
+                .addAll(getAllSupertypes(type.getSuperclass()));
+        for (Class<?> c : type.getInterfaces()) {
+            result.addAll(getAllSupertypes(c));
+        }
+        return result.build();
     }
 
-    @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
-    private static <T> T getValue(Field field, Object owner) {
-        try {
-            field.setAccessible(true);
-            return (T) field.get(owner);
-        } catch (IllegalAccessException e) {
-            throw new ReflectionException(e);
-        }
+    static <T> T newInstanceOf(Class<T> type) {
+        return com.tngtech.archunit.base.ReflectionUtils.newInstanceOf(type);
     }
 
     static <T> T getValueOrThrowException(Field field, Class<?> fieldOwner, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
@@ -94,6 +86,16 @@ class ReflectionUtils {
         }
     }
 
+    @SuppressWarnings("unchecked") // callers must know what they do here, we can't make this compile safe anyway
+    private static <T> T getValue(Field field, Object owner) {
+        try {
+            field.setAccessible(true);
+            return (T) field.get(owner);
+        } catch (IllegalAccessException e) {
+            throw new ReflectionException(e);
+        }
+    }
+
     static <T> T invokeMethod(Method method, Class<?> methodOwner, Object... args) {
         if (Modifier.isStatic(method.getModifiers())) {
             return invoke(null, method, args);
@@ -102,7 +104,7 @@ class ReflectionUtils {
         }
     }
 
-    @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
+    @SuppressWarnings("unchecked") // callers must know what they do here, we can't make this compile safe anyway
     private static <T> T invoke(Object owner, Method method, Object... args) {
         method.setAccessible(true);
         try {
@@ -123,5 +125,42 @@ class ReflectionUtils {
 
     static Predicate<AnnotatedElement> withAnnotation(Class<? extends Annotation> annotationType) {
         return input -> input.isAnnotationPresent(annotationType);
+    }
+
+    /**
+     * Same as {@link #tryFindAnnotation(Class, Class)}, but throws an exception if no annotation can be found.
+     */
+    static <T extends Annotation> T findAnnotation(final Class<?> clazz, Class<T> annotationType) {
+        return tryFindAnnotation(clazz, annotationType).orElseThrow(() ->
+                new ArchTestInitializationException("Class %s is not (meta-)annotated with @%s", clazz.getName(), annotationType.getSimpleName()));
+    }
+
+    /**
+     * Recursively searches for an annotation of type {@link T} on the given {@code clazz}.
+     * Returns the first matching annotation that is found.
+     * Any further matching annotation possibly present within the meta-annotation hierarchy will be ignored.
+     * If no matching annotation can be found {@link Optional#empty()} will be returned.
+     *
+     * @param clazz The {@link Class} from which to retrieve the annotation
+     * @return The first found annotation instance reachable in the meta-annotation hierarchy or {@link Optional#empty()} if none can be found
+     */
+    static <T extends Annotation> Optional<T> tryFindAnnotation(final Class<?> clazz, Class<T> annotationType) {
+        return tryFindAnnotation(clazz.getAnnotations(), annotationType, new HashSet<>());
+    }
+
+    private static <T extends Annotation> Optional<T> tryFindAnnotation(final Annotation[] annotations, Class<T> annotationType, Set<Annotation> visited) {
+        for (Annotation annotation : annotations) {
+            if (!visited.add(annotation)) {
+                continue;
+            }
+
+            Optional<T> result = annotationType.isInstance(annotation)
+                    ? Optional.of(annotationType.cast(annotation))
+                    : tryFindAnnotation(annotation.annotationType().getAnnotations(), annotationType, visited);
+            if (result.isPresent()) {
+                return result;
+            }
+        }
+        return Optional.empty();
     }
 }

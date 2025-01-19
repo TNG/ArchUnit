@@ -43,6 +43,7 @@ import org.junit.runners.model.Statement;
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.internal.ArchTestExecution.getValue;
+import static com.tngtech.archunit.junit.internal.ReflectionUtils.findAnnotation;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -53,7 +54,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
 
     ArchUnitRunnerInternal(Class<?> testClass) throws InitializationError {
         super(testClass);
-        checkAnnotation(testClass);
+        checkTestRunnable(testClass);
 
         try {
             ArchUnitSystemPropertyTestFilterJunit4.filter(this);
@@ -62,12 +63,8 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         }
     }
 
-    private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
-        AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-        ArchTestInitializationException.check(analyzeClasses != null,
-                "Class %s must be annotated with @%s",
-                testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
-        return analyzeClasses;
+    private static void checkTestRunnable(Class<?> testClass) {
+        findAnnotation(testClass, AnalyzeClasses.class);
     }
 
     @Override
@@ -180,7 +177,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         private final AnalyzeClasses analyzeClasses;
 
         JUnit4ClassAnalysisRequest(Class<?> testClass) {
-            analyzeClasses = checkAnnotation(testClass);
+            analyzeClasses = findAnnotation(testClass, AnalyzeClasses.class);
         }
 
         @Override

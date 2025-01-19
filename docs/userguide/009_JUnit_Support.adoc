@@ -123,6 +123,25 @@ To import the whole classpath, instead of just the package of the test class, us
 @AnalyzeClasses(wholeClasspath = true)
 ----
 
+Note that `@AnalyzeClasses` can also be used as a meta-annotation to avoid repeating the same configuration:
+
+[source,java,options="nowrap"]
+----
+@Retention(RetentionPolicy.RUNTIME)
+@AnalyzeClasses(packagesOf = MyApplicationRoot.class, importOptions = DoNotIncludeTests.class)
+public @interface AnalyzeMainClasses {}
+----
+
+This annotation can then be used on test classes without repeating the specific configuration of `@AnalyzeClasses`:
+
+[source,java,options="nowrap"]
+----
+@AnalyzeMainClasses
+public class ArchitectureTest {
+    // ...
+}
+----
+
 ==== Controlling the Cache
 
 By default, all classes will be cached by location. This means that between different

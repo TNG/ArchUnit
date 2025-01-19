@@ -1,5 +1,6 @@
 package com.tngtech.archunit.junit.internal;
 
+import java.lang.annotation.Retention;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -28,6 +29,7 @@ import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +51,9 @@ public class ArchUnitRunnerTest {
     @InjectMocks
     private ArchUnitRunnerInternal runner = newRunner(SomeArchTest.class);
     @InjectMocks
-    private ArchUnitRunnerInternal runnerOfMaxTest = newRunner(MaxAnnotatedTest.class);
+    private ArchUnitRunnerInternal runnerOfMaxAnnotatedTest = newRunner(MaxAnnotatedTest.class);
+    @InjectMocks
+    private ArchUnitRunnerInternal runnerOfMetaAnnotatedTest = newRunner(MetaAnnotatedTest.class);
 
     @Before
     public void setUp() {
@@ -58,7 +62,7 @@ public class ArchUnitRunnerTest {
 
     @Test
     public void runner_creates_correct_analysis_request() {
-        runnerOfMaxTest.run(new RunNotifier());
+        runnerOfMaxAnnotatedTest.run(new RunNotifier());
 
         verify(cache).getClassesToAnalyzeFor(eq(MaxAnnotatedTest.class), analysisRequestCaptor.capture());
 
@@ -92,8 +96,24 @@ public class ArchUnitRunnerTest {
         )
                 .isInstanceOf(ArchTestInitializationException.class)
                 .hasMessageContaining(Object.class.getSimpleName())
-                .hasMessageContaining("must be annotated")
+                .hasMessageContaining("is not (meta-)annotated")
                 .hasMessageContaining(AnalyzeClasses.class.getSimpleName());
+    }
+
+    @Test
+    public void runner_creates_correct_analysis_request_for_meta_annotated_class() {
+        runnerOfMetaAnnotatedTest.run(new RunNotifier());
+
+        verify(cache).getClassesToAnalyzeFor(eq(MetaAnnotatedTest.class), analysisRequestCaptor.capture());
+
+        AnalyzeClasses analyzeClasses = MetaAnnotatedTest.class.getAnnotation(MetaAnnotatedTest.MetaAnalyzeClasses.class)
+                .annotationType().getAnnotation(AnalyzeClasses.class);
+        ClassAnalysisRequest analysisRequest = analysisRequestCaptor.getValue();
+        assertThat(analysisRequest.getPackageNames()).isEqualTo(analyzeClasses.packages());
+        assertThat(analysisRequest.getPackageRoots()).isEqualTo(analyzeClasses.packagesOf());
+        assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
+        assertThat(analysisRequest.scanWholeClasspath()).as("scan whole classpath").isTrue();
+        assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());
     }
 
     private ArchUnitRunnerInternal newRunner(Class<?> testClass) {
@@ -158,6 +178,21 @@ public class ArchUnitRunnerTest {
     public static class MaxAnnotatedTest {
         @ArchTest
         public static void someTest(JavaClasses classes) {
+        }
+    }
+
+    @MetaAnnotatedTest.MetaAnalyzeClasses
+    public static class MetaAnnotatedTest {
+        @ArchTest
+        public static void someTest(JavaClasses classes) {
+        }
+
+        @Retention(RUNTIME)
+        @AnalyzeClasses(
+                packages = {"com.foo", "com.bar"},
+                wholeClasspath = true
+        )
+        public @interface MetaAnalyzeClasses {
         }
     }
 }

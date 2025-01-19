@@ -1,7 +1,7 @@
 package com.tngtech.archunit.junit.internal;
 
 class ArchTestInitializationException extends RuntimeException {
-    private ArchTestInitializationException(String message, Object... args) {
+    ArchTestInitializationException(String message, Object... args) {
         super(String.format(message, args));
     }
 
