@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
@@ -23,15 +22,17 @@ import com.tngtech.archunit.core.PluginLoader;
  * Resolved via {@link PluginLoader}
  */
 @SuppressWarnings("unused")
-@Internal
-public class Java14DomainPlugin implements DomainPlugin {
+class Java14DomainPlugin implements DomainPlugin {
     @Override
-    public void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> propertiesFormatter) {
-        propertiesFormatter.set(AnnotationPropertiesFormatter.configure()
-                .formattingArraysWithCurlyBrackets()
-                .formattingTypesAsClassNames()
-                .quotingStrings()
-                .omitOptionalIdentifierForSingleElementAnnotations()
-                .build());
+    public void plugInAnnotationFormatter(InitialConfiguration<AnnotationFormatter> propertiesFormatter) {
+        propertiesFormatter.set(
+                AnnotationFormatter
+                        .formatAnnotationType(JavaClass::getName)
+                        .formatProperties(config -> config
+                                .formattingArraysWithCurlyBrackets()
+                                .formattingTypesAsClassNames()
+                                .quotingStrings()
+                                .omitOptionalIdentifierForSingleElementAnnotations()
+                        ));
     }
 }
