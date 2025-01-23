@@ -47,6 +47,11 @@ import static java.util.stream.Collectors.toList;
  * The top level packages under 'myapp' could be considered slices according to different domain aspects.<br>
  * Thus there could be a slice 'Order' housing all the classes from the {@code order} package, a slice 'Customer'
  * housing all the classes from the {@code customer} package and so on.
+ * <p>
+ * Note that a {@link Slice} does not necessarily represent a subpackage inside some root package.
+ * The example above is just a common use case, but a {@link Slice} can technically represent any set
+ * of {@link JavaClass}es.
+ * </p>
  */
 @PublicAPI(usage = ACCESS)
 public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
