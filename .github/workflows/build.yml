@@ -80,7 +80,7 @@ jobs:
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Test
-        run: ./gradlew test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths="${{ env.test_jdk_path }}"
+        run: ./gradlew test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths='${{ env.test_jdk_path }}'
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
 
@@ -133,6 +133,6 @@ jobs:
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
       - name: Integration test
-        run: ./gradlew runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths="${{ env.test_jdk_path }}"
+        run: ./gradlew runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths='${{ env.test_jdk_path }}'
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
