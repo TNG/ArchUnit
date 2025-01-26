@@ -10,11 +10,17 @@ import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.c
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.customsuffix.subdir.ImplementationClassWithWrongTestClassPackageCustomSuffixTestingScenario;
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.defaultsuffix.ImplementationClassWithWrongTestClassPackage;
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.defaultsuffix.subdir.ImplementationClassWithWrongTestClassPackageTest;
+import com.tngtech.archunit.library.testclasses.timeapi.incorrect.UsesJavaSqlDate;
+import com.tngtech.archunit.library.testclasses.timeapi.incorrect.UsesJavaSqlTime;
+import com.tngtech.archunit.library.testclasses.timeapi.incorrect.UsesJavaSqlTimestamp;
+import com.tngtech.archunit.library.testclasses.timeapi.incorrect.UsesJavaUtilCalender;
+import com.tngtech.archunit.library.testclasses.timeapi.incorrect.UsesJavaUtilDate;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.library.GeneralCodingRules.ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE;
 import static com.tngtech.archunit.library.GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED;
+import static com.tngtech.archunit.library.GeneralCodingRules.OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED;
 import static com.tngtech.archunit.library.GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 
@@ -179,5 +185,45 @@ public class GeneralCodingRulesTest {
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
     private @interface DeprecatedAnnotation {
+    }
+
+    @Test
+    public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_util_date() {
+        assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+                .hasDescription("java.time API should be used, because legacy date/time APIs have been replaced since Java 8 (JSR 310)")
+                .checking(new ClassFileImporter().importClasses(UsesJavaUtilDate.class))
+                .hasViolationContaining("calls method <java.util.Date");
+    }
+
+    @Test
+    public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_sql_timestamp() {
+        assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+                .hasDescription("java.time API should be used, because legacy date/time APIs have been replaced since Java 8 (JSR 310)")
+                .checking(new ClassFileImporter().importClasses(UsesJavaSqlTimestamp.class))
+                .hasViolationContaining("calls constructor <java.sql.Timestamp");
+    }
+
+    @Test
+    public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_sql_time() {
+        assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+                .hasDescription("java.time API should be used, because legacy date/time APIs have been replaced since Java 8 (JSR 310)")
+                .checking(new ClassFileImporter().importClasses(UsesJavaSqlTime.class))
+                .hasViolationContaining("calls constructor <java.sql.Time");
+    }
+
+    @Test
+    public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_sql_date() {
+        assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+                .hasDescription("java.time API should be used, because legacy date/time APIs have been replaced since Java 8 (JSR 310)")
+                .checking(new ClassFileImporter().importClasses(UsesJavaSqlDate.class))
+                .hasViolationContaining("calls constructor <java.sql.Date");
+    }
+
+    @Test
+    public void OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED_should_fail_when_class_uses_java_util_calender() {
+        assertThatRule(OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED)
+                .hasDescription("java.time API should be used, because legacy date/time APIs have been replaced since Java 8 (JSR 310)")
+                .checking(new ClassFileImporter().importClasses(UsesJavaUtilCalender.class))
+                .hasViolationContaining("calls method <java.util.Calendar");
     }
 }
