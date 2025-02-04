@@ -76,6 +76,7 @@ public final class JavaClass
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaClassDescriptor descriptor;
+    private final Optional<JavaClassVersion> version;
     private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
@@ -133,6 +134,7 @@ public final class JavaClass
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
         descriptor = checkNotNull(builder.getDescriptor());
+        version = Optional.ofNullable(builder.getVersion());
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
         isAnnotation = builder.isAnnotation();
@@ -187,6 +189,16 @@ public final class JavaClass
     @PublicAPI(usage = ACCESS)
     public String getSimpleName() {
         return descriptor.getSimpleClassName();
+    }
+
+    /**
+     * @return The version of the class file this {@link JavaClass} was imported from,
+     *         or {@link Optional#empty()} for classes that are not backed by a class file,
+     *         e.g. classes that only exist as stubs to complete the import context.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaClassVersion> getJavaVersion() {
+        return version;
     }
 
     @PublicAPI(usage = ACCESS)

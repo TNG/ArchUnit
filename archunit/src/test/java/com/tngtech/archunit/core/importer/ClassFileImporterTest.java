@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -83,6 +84,7 @@ import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.runner.RunWith;
@@ -107,13 +109,16 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassFileImporterTest {
     @RegisterExtension
@@ -892,6 +897,27 @@ public class ClassFileImporterTest {
 
         classes = new ClassFileImporter().importUrl(new File("/broken.jar").toURI().toURL());
         assertThat(classes).isEmpty();
+    }
+
+    static Stream<Arguments> class_files_of_the_java_lts_releases() {
+        // The class files have been compiled with `javac --release ${javaVersion}` and checked in, so their
+        // class file versions 52, 55, 61, 65 and 69 cover the Java LTS releases 8, 11, 17, 21 and 25
+        return Stream.of(
+                arguments("ClassCompiledForJava8.class", 8),
+                arguments("ClassCompiledForJava11.class", 11),
+                arguments("ClassCompiledForJava17.class", 17),
+                arguments("ClassCompiledForJava21.class", 21),
+                arguments("ClassCompiledForJava25.class", 25));
+    }
+
+    @ParameterizedTest
+    @MethodSource("class_files_of_the_java_lts_releases")
+    public void determines_Java_version_of_imported_class_file(String classFileResourceName, int expectedJavaVersion) {
+        JavaClass javaClass = getOnlyElement(new ClassFileImporter().importLocations(singleton(Location.of(
+                relativeResourceUri(getClass(), "testexamples/classversions/" + classFileResourceName)))));
+
+        assertThat(javaClass.getJavaVersion()).as("Java version of %s", classFileResourceName).isPresent();
+        assertThat(javaClass.getJavaVersion().get().getJavaVersion()).isEqualTo(expectedJavaVersion);
     }
 
     private void assertSameSimpleNameOfArchUnitAndReflection(JavaClasses classes, String className) throws ClassNotFoundException {
