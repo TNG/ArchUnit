@@ -77,6 +77,7 @@ public final class JavaClass
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaClassDescriptor descriptor;
+    private final JavaClassVersion version;
     private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
@@ -133,6 +134,7 @@ public final class JavaClass
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
         descriptor = checkNotNull(builder.getDescriptor());
+        version = checkNotNull(builder.getVersion());
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
         isAnnotation = builder.isAnnotation();
@@ -187,6 +189,13 @@ public final class JavaClass
     @PublicAPI(usage = ACCESS)
     public String getSimpleName() {
         return descriptor.getSimpleClassName();
+    }
+
+    /**
+     * @return The version of this {@link JavaClass}.
+     */
+    public JavaClassVersion getJavaVersion() {
+        return version;
     }
 
     @PublicAPI(usage = ACCESS)
