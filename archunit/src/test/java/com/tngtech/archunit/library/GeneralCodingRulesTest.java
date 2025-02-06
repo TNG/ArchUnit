@@ -5,6 +5,7 @@ import com.tngtech.archunit.library.testclasses.packages.correct.customsuffix.Im
 import com.tngtech.archunit.library.testclasses.packages.correct.defaultsuffix.ImplementationClassWithCorrectPackage;
 import com.tngtech.archunit.library.testclasses.packages.correct.notest.ImplementationClassWithoutTestClass;
 import com.tngtech.archunit.library.testclasses.packages.correct.onedirmatching.ImplementationClassWithOneTestPackageMatchingOutOfTwo;
+import com.tngtech.archunit.library.testclasses.packages.correct.twoimplementationsonetestdir1.SimpleNameThatOccursInSeveralPackages;
 import com.tngtech.archunit.library.testclasses.packages.incorrect.nodirmatching.ImplementationClassWithMultipleTestsNotMatchingImplementationClassPackage;
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.customsuffix.ImplementationClassWithWrongTestClassPackageCustomSuffix;
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.customsuffix.subdir.ImplementationClassWithWrongTestClassPackageCustomSuffixTestingScenario;
@@ -87,6 +88,16 @@ public class GeneralCodingRulesTest {
                         "does not reside in same package as implementation class <"
                                 + ImplementationClassWithMultipleTestsNotMatchingImplementationClassPackage.class.getName() + ">"
                 );
+    }
+
+    @Test
+    public void should_pass_when_only_one_of_two_implementations_have_test_class_and_it_is_in_implementation_package() {
+        assertThatRule(testClassesShouldResideInTheSamePackageAsImplementation())
+                .checking(new ClassFileImporter().importPackagesOf(
+                        SimpleNameThatOccursInSeveralPackages.class,
+                        com.tngtech.archunit.library.testclasses.packages.incorrect.twoimplementationsonetestdir2.SimpleNameThatOccursInSeveralPackages.class
+                ))
+                .hasNoViolation();
     }
 
     @Test
