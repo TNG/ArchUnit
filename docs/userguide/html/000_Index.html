@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -450,7 +450,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 1.3.0</span>
+<span id="revnumber">version 1.4.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -619,7 +619,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;1.3.0&lt;/version&gt;
+    &lt;version&gt;1.4.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -628,7 +628,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:1.3.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:1.4.0'
 }</code></pre>
 </div>
 </div>
@@ -649,7 +649,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;1.3.0&lt;/version&gt;
+    &lt;version&gt;1.4.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -658,7 +658,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
 }</code></pre>
 </div>
 </div>
@@ -675,7 +675,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;1.3.0&lt;/version&gt;
+    &lt;version&gt;1.4.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -684,7 +684,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:1.3.0'
+   testImplementation 'com.tngtech.archunit:archunit:1.4.0'
 }</code></pre>
 </div>
 </div>
@@ -2658,7 +2658,7 @@ For further information see <a href="#_controlling_the_cache">Controlling the Ca
 <h4 id="_controlling_the_import"><a class="anchor" href="#_controlling_the_import"></a>9.1.2. Controlling the Import</h4>
 <div class="paragraph">
 <p>Which classes will be imported can be controlled in a declarative way through <code>@AnalyzeClasses</code>.
-If no packages or locations are provided, the whole classpath will be imported.
+If no packages or locations are provided, the package of the annotated test class will be imported.
 You can specify packages to import as strings:</p>
 </div>
 <div class="listingblock">
@@ -2704,6 +2704,35 @@ production code, and only consider code that is directly supplied and does not c
 <div class="paragraph">
 <p>As explained in <a href="#_the_core_api">The Core API</a>, you can write your own custom implementation of <code>ImportOption</code>
 and then supply the type to <code>@AnalyzeClasses</code>.</p>
+</div>
+<div class="paragraph">
+<p>To import the whole classpath, instead of just the package of the test class, use the option</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(wholeClasspath = true)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that <code>@AnalyzeClasses</code> can also be used as a meta-annotation to avoid repeating the same configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Retention(RetentionPolicy.RUNTIME)
+@AnalyzeClasses(packagesOf = MyApplicationRoot.class, importOptions = DoNotIncludeTests.class)
+public @interface AnalyzeMainClasses {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This annotation can then be used on test classes without repeating the specific configuration of <code>@AnalyzeClasses</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeMainClasses
+public class ArchitectureTest {
+    // ...
+}</code></pre>
+</div>
 </div>
 </div>
 <div class="sect3">
