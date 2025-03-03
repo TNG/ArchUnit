@@ -18,6 +18,6 @@ jobs:
           java-version: 17
 
       - name: Update Gradle Wrapper
-        uses: gradle-update/update-gradle-wrapper-action@v2.0.1
+        uses: gradle-update/update-gradle-wrapper-action@v2.1.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
