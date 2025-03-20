@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
 import com.tngtech.archunit.example.cycles.complexcycles.slice3.ClassCallingConstructorInSliceFive;
+import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.library.dependencies.SliceAssignment;
 import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 import org.junit.Test;
@@ -80,7 +81,7 @@ public class CyclicDependencyRulesTest {
 
     @Test
     public void no_cycles_in_freely_customized_slices() {
-        slices().assignedFrom(inComplexSliceOneOrTwo())
+        slices().assignedFrom(inComplexSliceOneOrTwo(), Priority.HIGH)
                 .namingSlices("$1[$2]")
                 .should().beFreeOfCycles()
                 .check(classes);
