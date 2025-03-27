@@ -68,11 +68,27 @@ public final class SlicesRuleDefinition {
         }
 
         /**
+         * @see Slices#matching(String)
+         */
+        @PublicAPI(usage = ACCESS)
+        public GivenSlices matching(String packageIdentifier, Priority priority) {
+            return new GivenSlicesInternal(priority, Slices.matching(packageIdentifier));
+        }
+
+        /**
          * @see Slices#assignedFrom(SliceAssignment)
          */
         @PublicAPI(usage = ACCESS)
         public GivenSlices assignedFrom(SliceAssignment assignment) {
             return new GivenSlicesInternal(Priority.MEDIUM, Slices.assignedFrom(assignment));
+        }
+
+        /**
+         * @see Slices#assignedFrom(SliceAssignment)
+         */
+        @PublicAPI(usage = ACCESS)
+        public GivenSlices assignedFrom(SliceAssignment assignment, Priority priority) {
+            return new GivenSlicesInternal(priority, Slices.assignedFrom(assignment));
         }
     }
 }
