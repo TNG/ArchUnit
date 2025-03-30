@@ -36,12 +36,11 @@ ext {
 
     dependency = [
             asm                 : [group: 'org.ow2.asm', name: 'asm', version: '9.8'],
-            guava               : [group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'],
+            guava               : [group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'],
             addGuava            : { dependencyHandler ->
                 dependencyHandler(dependency.guava) {
                     exclude module: 'listenablefuture'
-                    exclude module: 'jsr305'
-                    exclude module: 'checker-qual'
+                    exclude module: 'jspecify'
                     exclude module: 'error_prone_annotations'
                     exclude module: 'j2objc-annotations'
                 }
