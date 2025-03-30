@@ -35,7 +35,7 @@ ext {
     googleRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
-            asm                 : [group: 'org.ow2.asm', name: 'asm', version: '9.7.1'],
+            asm                 : [group: 'org.ow2.asm', name: 'asm', version: '9.8'],
             guava               : [group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'],
             addGuava            : { dependencyHandler ->
                 dependencyHandler(dependency.guava) {
