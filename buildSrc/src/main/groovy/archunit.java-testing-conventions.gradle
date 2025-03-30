@@ -12,6 +12,7 @@ dependencies {
     testImplementation dependency.junit5Jupiter
 
     testRuntimeOnly dependency.junit5VintageEngine
+    testRuntimeOnly dependency.junitPlatformLauncher
     testRuntimeOnly dependency.log4j_slf4j
 }
 
