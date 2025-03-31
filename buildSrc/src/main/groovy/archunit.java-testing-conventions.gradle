@@ -9,9 +9,8 @@ abstract class ArchUnitTestExtension {
 ext.archUnitTest = extensions.create('archUnitTest', ArchUnitTestExtension)
 
 dependencies {
-    testImplementation dependency.junit5JupiterApi
+    testImplementation dependency.junit5Jupiter
 
-    testRuntimeOnly dependency.junit5JupiterEngine
     testRuntimeOnly dependency.junit5VintageEngine
     testRuntimeOnly dependency.log4j_slf4j
 }
