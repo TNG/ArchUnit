@@ -9,6 +9,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.library.LayeredArchitectureTest;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
@@ -72,7 +73,7 @@ public class GivenSlicesTest {
     }
 
     private GivenSlices testSlices() {
-        return slices().matching(TEST_CLASSES_PACKAGE + ".(*)..");
+        return slices().matching(TEST_CLASSES_PACKAGE + ".(*)..", Priority.HIGH);
     }
 
     private DescribedPredicate<Slice> descriptionMatching(String regex) {
