@@ -118,6 +118,7 @@ def addMavenTest = { IntegrationTestConfig config ->
                         createAllRepositoryTags(getRepoUrls(project.getProperty('mavenRepos'))) :
                         ''
 
+                def versionCatalog = versionCatalogs.named("libs")
                 mavenPom.text = mavenPom.text
                                         .replace('#{archunit.version}', "${version}")
                                         .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
@@ -125,8 +126,10 @@ def addMavenTest = { IntegrationTestConfig config ->
                                         .replace('#{javaVersion}', "${config.javaVersion}")
                                         .replace('#{additionalDependencies}', config.additionalDependencies ?: '')
                                         .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
-                                        .replaceAll(/#\{dependency.([^}:]+):?([^}]*)}/) { all, dependencyReference, scope ->
-                                                def targetDependency = dependency[dependencyReference]
+                                        .replaceAll(/#\{(dependency|libs).([^}:]+):?([^}]*)}/) { all, catalog, dependencyReference, scope ->
+                                                def targetDependency = catalog == "libs" ?
+                                                        versionCatalog.findLibrary(dependencyReference).get().get() :
+                                                        dependency[dependencyReference]
                                                 def scopePart = scope ? "\n            <scope>${scope}</scope>" : ''
                                                 """
                                                 |        <dependency>
@@ -212,7 +215,7 @@ List<IntegrationTestConfig> integrationTestConfigs = [
         )
 ]
 
-def vintageEngine = dependency.junit5VintageEngine
+def vintageEngine = libs.junit5VintageEngine.get()
 integrationTestConfigs << new IntegrationTestConfig(
         javaVersion: integrationTestJavaVersion,
         testType: TestType.JUNIT5,

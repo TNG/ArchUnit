@@ -9,7 +9,7 @@ dependencies {
 
     // we still use JUnit 4 as the test runner, but we don't use JUnit 4 support within this project
     // so tests could well be run using TestNG, etc.
-    testImplementation dependency.junit4
+    testImplementation libs.junit4
 }
 
 test {

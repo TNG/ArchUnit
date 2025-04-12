@@ -7,11 +7,11 @@ ext.moduleName = 'com.tngtech.archunit.junit5.engineapi'
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
-    api dependency.junitPlatformEngine
+    api libs.junitPlatformEngine
     implementation project(path: ':archunit')
 
     testImplementation project(path: ':archunit-junit5-api')
-    testImplementation dependency.assertj
+    testImplementation libs.assertj
 }
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive

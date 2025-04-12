@@ -57,9 +57,9 @@
         #{dependency.jakartaInject}
         #{dependency.jakartaAnnotations}
         #{dependency.guice}
-        #{dependency.junit4:test}
-        #{dependency.junit_dataprovider:test}
-        #{dependency.assertj:test}
+        #{libs.junit4:test}
+        #{libs.junitDataprovider:test}
+        #{libs.assertj:test}
         #{dependency.joox:test}
         #{additionalDependencies}
     </dependencies>

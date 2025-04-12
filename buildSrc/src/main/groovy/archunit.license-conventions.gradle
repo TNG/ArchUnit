@@ -8,12 +8,12 @@ def fillTemplateFile = { String resourceName ->
             replace('${owner}', "${company.name}")
 }
 
-def pomOf = { Map<String, String> dep ->
-    "${dep.group}:${dep.name}:${dep.version}@pom"
+def pomOf = { MinimalExternalModuleDependency dep, nameSuffix = "" ->
+    "${dep.module.group}:${dep.module.name}${nameSuffix}:${dep.version}@pom"
 }
 
-def parentPomOf = { Map<String, String> dep ->
-    pomOf(dep + [name: "${dep.name}-parent"])
+def parentPomOf = { MinimalExternalModuleDependency dep ->
+    pomOf(dep, "-parent")
 }
 
 configurations {
@@ -22,8 +22,8 @@ configurations {
 }
 
 dependencies {
-    thirdpartyAsm pomOf(dependency.asm)
-    thirdpartyGuava parentPomOf(dependency.guava)
+    thirdpartyAsm pomOf(libs.asm.get())
+    thirdpartyGuava parentPomOf(libs.guava.get())
 }
 
 def parseLicenseInfoFrom = { config ->

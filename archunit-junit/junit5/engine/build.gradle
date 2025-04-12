@@ -12,13 +12,13 @@ dependencies {
     api project(path: ':archunit-junit5-engine-api')
     implementation project(path: ':archunit-junit')
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
-    implementation dependency.slf4j
+    implementation libs.slf4j
 
     testImplementation project(path: ':archunit', configuration: 'tests')
-    testImplementation dependency.assertj
-    testImplementation dependency.mockito
-    testImplementation dependency.mockito_junit5
-    testImplementation dependency.log4j_core
+    testImplementation libs.assertj
+    testImplementation libs.mockito
+    testImplementation libs.mockito.junit5
+    testImplementation libs.log4j.core
 }
 
 gradle.projectsEvaluated {
