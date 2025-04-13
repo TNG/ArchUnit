@@ -12,7 +12,6 @@ dependencies {
     api project(path: ':archunit-junit5-engine-api')
     implementation project(path: ':archunit-junit')
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
-    implementation dependency.slf4j
 
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.assertj

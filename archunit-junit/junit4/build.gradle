@@ -10,18 +10,11 @@ dependencies {
     api dependency.junit4
     implementation project(path: ':archunit-junit', configuration: 'shadow')
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
-    implementation dependency.slf4j
 
     testImplementation dependency.junit4
-    testImplementation dependency.junit_dataprovider
     testImplementation dependency.mockito
     testImplementation dependency.assertj
-    testImplementation(dependency.assertj_guava) {
-        exclude module: 'assertj-core'
-        exclude module: 'guava'
-    }
     testImplementation project(path: ':archunit', configuration: 'tests')
-    testImplementation project(path: ':archunit-junit', configuration: 'tests')
 
     // This is a hack for running tests with IntelliJ instead of delegating to Gradle,
     // because for some reason this dependency cannot be resolved otherwise :-(
