@@ -26,7 +26,7 @@ shadowJar {
     exclude 'META-INF/maven/**'
 
     dependencies {
-        exclude(dependency { it.name != dependency.guava })
+        exclude(dependency { true })
     }
 }
 

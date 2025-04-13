@@ -45,7 +45,7 @@ shadowJar {
     dependencies {
         exclude(dependency {
             def isApi = it.configuration == 'archJunitApi'
-            def isUnwantedDependency = it.name != dependency.guava && it.moduleName != 'archunit-junit'
+            def isUnwantedDependency = it.moduleName != 'archunit-junit'
             isUnwantedDependency || isApi
         })
     }
