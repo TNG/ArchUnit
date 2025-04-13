@@ -9,13 +9,9 @@ ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 dependencies {
     api dependency.junitPlatformEngine
     implementation project(path: ':archunit')
-    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
-    implementation dependency.slf4j
 
     testImplementation project(path: ':archunit-junit5-api')
-    testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.assertj
-    testImplementation dependency.mockito
 }
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
