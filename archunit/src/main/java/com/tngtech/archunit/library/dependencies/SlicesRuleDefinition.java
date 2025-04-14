@@ -64,7 +64,15 @@ public final class SlicesRuleDefinition {
          */
         @PublicAPI(usage = ACCESS)
         public GivenSlices matching(String packageIdentifier) {
-            return new GivenSlicesInternal(Priority.MEDIUM, Slices.matching(packageIdentifier));
+            return matching(packageIdentifier, Priority.MEDIUM);
+        }
+
+        /**
+         * @see Slices#matching(String)
+         */
+        @PublicAPI(usage = ACCESS)
+        public GivenSlices matching(String packageIdentifier, Priority priority) {
+            return new GivenSlicesInternal(priority, Slices.matching(packageIdentifier));
         }
 
         /**
@@ -72,7 +80,15 @@ public final class SlicesRuleDefinition {
          */
         @PublicAPI(usage = ACCESS)
         public GivenSlices assignedFrom(SliceAssignment assignment) {
-            return new GivenSlicesInternal(Priority.MEDIUM, Slices.assignedFrom(assignment));
+            return assignedFrom(assignment, Priority.MEDIUM);
+        }
+
+        /**
+         * @see Slices#assignedFrom(SliceAssignment)
+         */
+        @PublicAPI(usage = ACCESS)
+        public GivenSlices assignedFrom(SliceAssignment assignment, Priority priority) {
+            return new GivenSlicesInternal(priority, Slices.assignedFrom(assignment));
         }
     }
 }
