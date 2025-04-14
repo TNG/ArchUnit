@@ -35,6 +35,13 @@ import static java.util.stream.Collectors.toSet;
 
 @Category(Slow.class)
 public class ClassFileImporterSlowTest {
+    /**
+     * Importing the full classpath may give thousands of classes in {@link sun} and (especially for Java 8) {@link com.sun} packages.
+     * Importing those would increase the memory footprint of the test tremendously, but not give an additional benefit for the test,
+     * so they are excluded for convenience.
+     */
+    private static final ImportOption EXCLUDE_SUN_PACKAGES = l -> !l.contains("/sun/");
+
     @Rule
     public final TransientCopyRule copyRule = new TransientCopyRule();
     @Rule
@@ -53,6 +60,7 @@ public class ClassFileImporterSlowTest {
         assertThatTypes(classes).doNotContain(File.class); // Default does not import JDK classes
 
         classes = new ClassFileImporter()
+                .withImportOption(EXCLUDE_SUN_PACKAGES)
                 .withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
                 .importClasspath();
 
@@ -73,10 +81,12 @@ public class ClassFileImporterSlowTest {
     @Test
     public void importing_the_default_package_equals_importing_the_classpath() {
         Set<String> classNamesOfDefaultPackageImport = new ClassFileImporter()
+                .withImportOption(EXCLUDE_SUN_PACKAGES)
                 .withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
                 .importPackages("")
                 .stream().map(JavaClass::getName).collect(toSet());
         Set<String> classNamesOfClasspathImport = new ClassFileImporter()
+                .withImportOption(EXCLUDE_SUN_PACKAGES)
                 .withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
                 .importClasspath()
                 .stream().map(JavaClass::getName).collect(toSet());
@@ -180,6 +190,7 @@ public class ClassFileImporterSlowTest {
 
     private JavaClasses importJavaBase() {
         return new ClassFileImporter()
+                .withImportOption(EXCLUDE_SUN_PACKAGES)
                 .withImportOption(location ->
                         // before Java 9 packages like java.lang were in rt.jar
                         location.contains("rt.jar") ||
