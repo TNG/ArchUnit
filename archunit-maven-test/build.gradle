@@ -118,7 +118,6 @@ def addMavenTest = { IntegrationTestConfig config ->
                         createAllRepositoryTags(getRepoUrls(project.getProperty('mavenRepos'))) :
                         ''
 
-                def versionCatalog = versionCatalogs.named("libs")
                 mavenPom.text = mavenPom.text
                                         .replace('#{archunit.version}', "${version}")
                                         .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
@@ -126,10 +125,9 @@ def addMavenTest = { IntegrationTestConfig config ->
                                         .replace('#{javaVersion}', "${config.javaVersion}")
                                         .replace('#{additionalDependencies}', config.additionalDependencies ?: '')
                                         .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
-                                        .replaceAll(/#\{(dependency|libs).([^}:]+):?([^}]*)}/) { all, catalog, dependencyReference, scope ->
-                                                def targetDependency = catalog == "libs" ?
-                                                        versionCatalog.findLibrary(dependencyReference).get().get() :
-                                                        dependency[dependencyReference]
+                                        .replaceAll(/#\{(libs|exampleLibs).([^}:]+):?([^}]*)}/) { all, catalog, dependencyReference, scope ->
+                                                def versionCatalog = versionCatalogs.named(catalog)
+                                                def targetDependency = versionCatalog.findLibrary(dependencyReference).get().get()
                                                 def scopePart = scope ? "\n            <scope>${scope}</scope>" : ''
                                                 """
                                                 |        <dependency>
