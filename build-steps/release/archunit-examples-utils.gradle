@@ -12,6 +12,7 @@ ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
 ext.updateArchUnitExampleSources = { File targetArchUnitExampleDir ->
     updateArchUnitExampleDependencies(targetArchUnitExampleDir)
     updateArchUnitExampleJavaSources(targetArchUnitExampleDir)
+    updateArchUnitExampleGradleWrapper(targetArchUnitExampleDir)
 }
 
 @Field
@@ -54,5 +55,17 @@ private List updateArchUnitExampleJavaSources(File targetArchUnitExampleDir) {
             from new File(project(":archunit-example:${exampleFolder}").projectDir, 'src/test')
             into new File(targetSource, 'test')
         }
+    }
+}
+
+private void updateArchUnitExampleGradleWrapper(File targetArchUnitExampleDir) {
+    copy {
+        from(['gradlew', 'gradlew.bat'].collect { new File(rootProject.projectDir, it) })
+        into targetArchUnitExampleDir.toPath()
+    }
+    String wrapperDir = 'gradle/wrapper'
+    copy {
+        from(['gradle-wrapper.properties', 'gradle-wrapper.jar'].collect { new File(rootProject.projectDir, "${wrapperDir}/${it}") })
+        into new File(targetArchUnitExampleDir, wrapperDir)
     }
 }
