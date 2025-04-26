@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -21,23 +22,18 @@ import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.InitialConfigurationTest;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolverFactoryTest;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.Condition;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.primitives.Bytes.asList;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class LocationTest {
     @Test
     public void file_resources_are_not_detected_as_JARs() {
@@ -195,17 +191,16 @@ public class LocationTest {
         assertThat(location).isNotEqualTo(new Object());
     }
 
-    @DataProvider
-    public static Object[][] file_locations_pointing_to_jar() throws MalformedURLException {
+    static Stream<Location> file_locations_pointing_to_jar() throws MalformedURLException {
         String jarFileName = new TestJarFile().withEntry(classFileResource(LocationTest.class)).createAndReturnName();
-        return $$(
-                $(Location.of(new File(jarFileName).toURI().toURL())),
-                $(Location.of(new File(jarFileName).toURI())));
+        return Stream.of(
+                Location.of(new File(jarFileName).toURI().toURL()),
+                Location.of(new File(jarFileName).toURI()));
     }
 
-    @Test
-    @UseDataProvider("file_locations_pointing_to_jar")
-    public void JAR_protocol_is_added_to_file_urls_that_point_to_JARs(Location location) throws MalformedURLException {
+    @ParameterizedTest
+    @MethodSource("file_locations_pointing_to_jar")
+    void JAR_protocol_is_added_to_file_urls_that_point_to_JARs(Location location) throws MalformedURLException {
         assertThat(location.uri.toString()).startsWith("jar:");
         assertThat(location.uri.toString()).endsWith("!/");
         assertThat(location.uri.toURI().toURL().getProtocol()).isEqualTo("jar");
@@ -247,25 +242,24 @@ public class LocationTest {
                         asList(toByteArray(streamOfClass(Location.class))));
     }
 
-    @DataProvider
-    public static Object[][] locations_of_own_class() throws URISyntaxException {
-        return $$(
-                $(Location.of(urlOfClass(LocationTest.class))),
-                $(Location.of(urlOfClass(LocationTest.class).toURI())));
+    static Stream<Location> locations_of_own_class() throws URISyntaxException {
+        return Stream.of(
+                Location.of(urlOfClass(LocationTest.class)),
+                Location.of(urlOfClass(LocationTest.class).toURI()));
     }
 
-    @Test
-    @UseDataProvider("locations_of_own_class")
-    public void contains(Location location) {
+    @ParameterizedTest
+    @MethodSource("locations_of_own_class")
+    void contains(Location location) {
         assertThat(location.contains("archunit")).as("location contains 'archunit'").isTrue();
         assertThat(location.contains("/archunit/")).as("location contains '/archunit/'").isTrue();
         assertThat(location.contains(getClass().getSimpleName())).as("location contains own simple class name").isTrue();
         assertThat(location.contains("wrong")).as("location contains 'wrong'").isFalse();
     }
 
-    @Test
-    @UseDataProvider("locations_of_own_class")
-    public void matches(Location location) {
+    @ParameterizedTest
+    @MethodSource("locations_of_own_class")
+    void matches(Location location) {
         assertThat(location.matches(Pattern.compile("archunit.*"))).as("location matches 'archunit.*'").isFalse();
         assertThat(location.matches(Pattern.compile(".*archunit.*"))).as("location matches '.*archunit.*'").isTrue();
         assertThat(location.matches(Pattern.compile(".*/archunit/.*"))).as("location contains '/archunit/'").isTrue();
@@ -286,11 +280,10 @@ public class LocationTest {
         assertThat(Location.of(Paths.get(url.toURI())).asURI()).isEqualTo(url.toURI());
     }
 
-    @DataProvider
-    public static Object[][] base_locations() {
-        return $$(
-                $(Location.of(withoutTrailingSlash(Paths.get("/some/path").toUri()))),
-                $(Location.of(withTrailingSlash(Paths.get("/some/path/").toUri()))));
+    static Stream<Location> base_locations() {
+        return Stream.of(
+                Location.of(withoutTrailingSlash(Paths.get("/some/path").toUri())),
+                Location.of(withTrailingSlash(Paths.get("/some/path/").toUri())));
     }
 
     private static URI withoutTrailingSlash(URI uri) {
@@ -301,9 +294,9 @@ public class LocationTest {
         return URI.create(uri.toString().replaceAll("/*$", "/"));
     }
 
-    @Test
-    @UseDataProvider("base_locations")
-    public void append(Location location) {
+    @ParameterizedTest
+    @MethodSource("base_locations")
+    void append(Location location) {
         Location appendAbsolute = location.append("/bar/baz");
         Location appendRelative = location.append("bar/baz");
 

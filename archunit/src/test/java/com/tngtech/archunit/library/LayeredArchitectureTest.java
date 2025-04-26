@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
@@ -29,13 +30,9 @@ import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.origin.MayOn
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.DataProviders;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
@@ -44,19 +41,17 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.archunit.testutil.TestUtils.union;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.fail;
 
-@RunWith(DataProviderRunner.class)
 public class LayeredArchitectureTest {
     private static final String NEW_LINE_REPLACE = "###";
 
-    @DataProvider
-    public static Object[][] layeredArchitectureDefinitions() {
-        return testForEach(
+    static Stream<LayeredArchitecture> layeredArchitectureDefinitions() {
+        return Stream.of(
                 layeredArchitecture()
                         .consideringAllDependencies()
                         .layer("One").definedBy("..library.testclasses.some.pkg..")
@@ -81,9 +76,9 @@ public class LayeredArchitectureTest {
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"));
     }
 
-    @Test
-    @UseDataProvider("layeredArchitectureDefinitions")
-    public void layered_architecture_description(LayeredArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource("layeredArchitectureDefinitions")
+    void layered_architecture_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
                 "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                         "layer 'One' ('..library.testclasses.some.pkg..')" + lineSeparator() +
@@ -199,9 +194,9 @@ public class LayeredArchitectureTest {
         assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
     }
 
-    @Test
-    @UseDataProvider("layeredArchitectureDefinitions")
-    public void layered_architecture_gathers_all_layer_violations(LayeredArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource("layeredArchitectureDefinitions")
+    void layered_architecture_gathers_all_layer_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
         EvaluationResult result = architecture.evaluate(classes);
@@ -216,14 +211,13 @@ public class LayeredArchitectureTest {
                         expectedFieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class)));
     }
 
-    @DataProvider
-    public static Object[][] toIgnore() {
+    static Stream<RuleWithIgnore> toIgnore() {
         LayeredArchitecture layeredArchitecture = layeredArchitecture()
                 .consideringAllDependencies()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer();
 
-        return DataProviders.testForEach(
+        return Stream.of(
                 new RuleWithIgnore(
                         layeredArchitecture.ignoreDependency(FirstAnyPkgClass.class, SomePkgSubclass.class),
                         "rule with ignore specified as class objects"),
@@ -235,9 +229,9 @@ public class LayeredArchitectureTest {
                         "rule with ignore specified as predicates"));
     }
 
-    @Test
-    @UseDataProvider("toIgnore")
-    public void layered_architecture_ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
+    @ParameterizedTest
+    @MethodSource("toIgnore")
+    void layered_architecture_ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
         JavaClasses classes = new ClassFileImporter().importClasses(
                 FirstAnyPkgClass.class, SomePkgSubclass.class,
                 SecondThreeAnyClass.class, SomePkgClass.class);
@@ -271,9 +265,8 @@ public class LayeredArchitectureTest {
         assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
     }
 
-    @DataProvider
-    public static Object[][] layeredArchitectureMayOnlyAccessLayersDefinitions() {
-        return testForEach(
+    static Stream<LayeredArchitecture> layeredArchitectureMayOnlyAccessLayersDefinitions() {
+        return Stream.of(
                 layeredArchitecture()
                         .consideringAllDependencies()
                         .layer("Allowed").definedBy("..library.testclasses.mayonlyaccesslayers.allowed..")
@@ -296,9 +289,9 @@ public class LayeredArchitectureTest {
                         .whereLayer("Forbidden").mayNotAccessAnyLayer());
     }
 
-    @Test
-    @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
-    public void layered_architecture_may_only_access_layers_description(LayeredArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource("layeredArchitectureMayOnlyAccessLayersDefinitions")
+    void layered_architecture_may_only_access_layers_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
                 "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                         "layer 'Allowed' ('..library.testclasses.mayonlyaccesslayers.allowed..')" + lineSeparator() +
@@ -308,9 +301,9 @@ public class LayeredArchitectureTest {
                         "where layer 'Forbidden' may not access any layer");
     }
 
-    @Test
-    @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
-    public void layered_architecture_gathers_may_only_access_layers_violations(LayeredArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource("layeredArchitectureMayOnlyAccessLayersDefinitions")
+    void layered_architecture_gathers_may_only_access_layers_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
 
         EvaluationResult result = architecture.evaluate(classes);
@@ -327,9 +320,9 @@ public class LayeredArchitectureTest {
                         expectedFieldTypePattern(MayOnlyAccessLayersOriginClass.class, "illegalTarget", MayOnlyAccessLayersForbiddenClass.class)));
     }
 
-    @Test
-    @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
-    public void layered_architecture_can_ignore_may_only_access_layers_violations(LayeredArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource("layeredArchitectureMayOnlyAccessLayersDefinitions")
+    void layered_architecture_can_ignore_may_only_access_layers_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
 
         architecture = architecture.ignoreDependency(MayOnlyAccessLayersOriginClass.class, MayOnlyAccessLayersForbiddenClass.class)
@@ -498,7 +491,7 @@ public class LayeredArchitectureTest {
         Set<String> toMatch = new HashSet<>(expectedRegexes);
         for (String line : input) {
             if (!matchIteratorAndRemove(toMatch, line)) {
-                Assert.fail("Line '" + line + "' didn't match any pattern in " + expectedRegexes);
+                fail("Line '" + line + "' didn't match any pattern in " + expectedRegexes);
             }
         }
         assertThat(toMatch).as("Unmatched Patterns").isEmpty();

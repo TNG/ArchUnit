@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
@@ -13,11 +14,9 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition.ConditionByPredicate;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
@@ -25,11 +24,8 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.singleton;
 
-@RunWith(DataProviderRunner.class)
 public class ArchConditionTest {
     @Test
     public void as_inits_delegate() {
@@ -128,27 +124,26 @@ public class ArchConditionTest {
                 1, "1 is not greater than 1 and 1 is not greater than 2 and 1 is not greater than 3"));
     }
 
-    @DataProvider
-    public static Object[][] conditionCombinations() {
-        return $$(
-                $(new ConditionCombination("and") {
+    static Stream<ConditionCombination> conditionCombinations() {
+        return Stream.of(
+                new ConditionCombination("and") {
                     @Override
                     <T> ArchCondition<T> combine(ArchCondition<T> first, ArchCondition<T> second) {
                         return first.and(second);
                     }
-                }),
-                $(new ConditionCombination("or") {
+                },
+                new ConditionCombination("or") {
                     @Override
                     <T> ArchCondition<T> combine(ArchCondition<T> first, ArchCondition<T> second) {
                         return first.or(second);
                     }
-                })
+                }
         );
     }
 
-    @Test
-    @UseDataProvider("conditionCombinations")
-    public void join_inits_all_conditions(ConditionCombination combination) {
+    @ParameterizedTest
+    @MethodSource("conditionCombinations")
+    void join_inits_all_conditions(ConditionCombination combination) {
         ConditionWithInitAndFinish one = someCondition("one");
         ConditionWithInitAndFinish two = someCondition("two");
 
@@ -158,9 +153,9 @@ public class ArchConditionTest {
         assertThat(two.allObjectsToTest).containsExactly("init");
     }
 
-    @Test
-    @UseDataProvider("conditionCombinations")
-    public void join_finishes_all_conditions(ConditionCombination combination) {
+    @ParameterizedTest
+    @MethodSource("conditionCombinations")
+    void join_finishes_all_conditions(ConditionCombination combination) {
         ConditionWithInitAndFinish one = someCondition("one");
         ConditionWithInitAndFinish two = someCondition("two");
 
@@ -171,9 +166,9 @@ public class ArchConditionTest {
         assertThat(two.eventsFromFinish).isEqualTo(events);
     }
 
-    @Test
-    @UseDataProvider("conditionCombinations")
-    public void and_joins_descriptions(ConditionCombination combination) {
+    @ParameterizedTest
+    @MethodSource("conditionCombinations")
+    void and_joins_descriptions(ConditionCombination combination) {
         ConditionWithInitAndFinish one = someCondition("one");
         ConditionWithInitAndFinish two = someCondition("two");
 

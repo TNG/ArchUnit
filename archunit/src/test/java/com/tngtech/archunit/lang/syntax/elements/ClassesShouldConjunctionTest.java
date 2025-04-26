@@ -1,15 +1,13 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.FailureReport;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
@@ -19,27 +17,23 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class ClassesShouldConjunctionTest {
-    @DataProvider
-    public static Object[][] ORed_conditions() {
-        return $$(
-                $(classes()
+    static Stream<ArchRule> ORed_conditions() {
+        return Stream.of(
+                classes()
                         .should(haveFullyQualifiedName(RightOne.class.getName()))
-                        .orShould(haveFullyQualifiedName(RightTwo.class.getName()))),
-                $(classes()
+                        .orShould(haveFullyQualifiedName(RightTwo.class.getName())),
+                classes()
                         .should().haveFullyQualifiedName(RightOne.class.getName())
-                        .orShould().haveFullyQualifiedName(RightTwo.class.getName())));
+                        .orShould().haveFullyQualifiedName(RightTwo.class.getName()));
     }
 
-    @Test
-    @UseDataProvider("ORed_conditions")
-    public void orShould_ORs_conditions(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("ORed_conditions")
+    void orShould_ORs_conditions(ArchRule rule) {
         EvaluationResult result = rule
                 .evaluate(importClasses(RightOne.class, RightTwo.class, Wrong.class));
 
@@ -54,20 +48,19 @@ public class ClassesShouldConjunctionTest {
                         doesntHaveFqnMessage(Wrong.class, RightTwo.class)));
     }
 
-    @DataProvider
-    public static Object[][] ORed_conditions_that() {
-        return $$(
-                $(noClasses()
+    static Stream<ArchRule> ORed_conditions_that() {
+        return Stream.of(
+                noClasses()
                         .should(accessClassesThat(have(fullyQualifiedName(Wrong.class.getName()))))
-                        .orShould(haveFullyQualifiedName(Wrong.class.getName()))),
-                $(noClasses()
+                        .orShould(haveFullyQualifiedName(Wrong.class.getName())),
+                noClasses()
                         .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
-                        .orShould().haveFullyQualifiedName(Wrong.class.getName())));
+                        .orShould().haveFullyQualifiedName(Wrong.class.getName()));
     }
 
-    @Test
-    @UseDataProvider("ORed_conditions_that")
-    public void orShould_ORs_conditions_that(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("ORed_conditions_that")
+    void orShould_ORs_conditions_that(ArchRule rule) {
         EvaluationResult result = rule
                 .evaluate(importClasses(RightOne.class, RightTwo.class, Wrong.class, OtherWrong.class));
 
@@ -81,20 +74,19 @@ public class ClassesShouldConjunctionTest {
                 otherWrongCallsWrongRegex());
     }
 
-    @DataProvider
-    public static Object[][] ANDed_conditions() {
-        return $$(
-                $(classes()
+    static Stream<ArchRule> ANDed_conditions() {
+        return Stream.of(
+                classes()
                         .should(haveFullyQualifiedName(RightOne.class.getName()))
-                        .andShould(haveFullyQualifiedName(RightTwo.class.getName()))),
-                $(classes()
+                        .andShould(haveFullyQualifiedName(RightTwo.class.getName())),
+                classes()
                         .should().haveFullyQualifiedName(RightOne.class.getName())
-                        .andShould().haveFullyQualifiedName(RightTwo.class.getName())));
+                        .andShould().haveFullyQualifiedName(RightTwo.class.getName()));
     }
 
-    @Test
-    @UseDataProvider("ANDed_conditions")
-    public void andShould_ANDs_conditions(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("ANDed_conditions")
+    void andShould_ANDs_conditions(ArchRule rule) {
         EvaluationResult result = rule
                 .evaluate(importClasses(RightOne.class, RightTwo.class, Wrong.class));
 
@@ -119,20 +111,19 @@ public class ClassesShouldConjunctionTest {
         return clazz.getEnclosingClass() != null ? clazz.getEnclosingClass() : clazz;
     }
 
-    @DataProvider
-    public static Object[][] ANDed_conditions_that() {
-        return $$(
-                $(noClasses()
+    static Stream<ArchRule> ANDed_conditions_that() {
+        return Stream.of(
+                noClasses()
                         .should(accessClassesThat(have(fullyQualifiedName(Wrong.class.getName()))))
-                        .andShould(haveFullyQualifiedName(OtherWrong.class.getName()))),
-                $(noClasses()
+                        .andShould(haveFullyQualifiedName(OtherWrong.class.getName())),
+                noClasses()
                         .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
-                        .andShould().haveFullyQualifiedName(OtherWrong.class.getName())));
+                        .andShould().haveFullyQualifiedName(OtherWrong.class.getName()));
     }
 
-    @Test
-    @UseDataProvider("ANDed_conditions_that")
-    public void andShould_ANDs_conditions_that(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("ANDed_conditions_that")
+    void andShould_ANDs_conditions_that(ArchRule rule) {
         EvaluationResult result = rule
                 .evaluate(importClasses(RightOne.class, RightTwo.class, Wrong.class, OtherWrong.class));
 

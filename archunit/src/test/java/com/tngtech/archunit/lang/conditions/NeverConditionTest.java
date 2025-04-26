@@ -1,23 +1,20 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchConditionTest.ConditionWithInitAndFinish;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.lang.ArchConditionTest.someCondition;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class NeverConditionTest {
     private static final String ORIGINALLY_MISMATCH = "originally mismatch";
     private static final String ORIGINALLY_NO_MISMATCH = "originally no mismatch";
@@ -47,14 +44,13 @@ public class NeverConditionTest {
         events.add(new SimpleConditionEvent(item, true, ORIGINALLY_NO_MISMATCH));
     }
 
-    @DataProvider
-    public static Object[][] conditions() {
-        return testForEach(ONE_VIOLATED_ONE_SATISFIED, ONE_VIOLATED_ONE_SATISFIED_IN_FINISH);
+    static Stream<ArchCondition<Object>> conditions() {
+        return Stream.of(ONE_VIOLATED_ONE_SATISFIED, ONE_VIOLATED_ONE_SATISFIED_IN_FINISH);
     }
 
-    @Test
-    @UseDataProvider("conditions")
-    public void inverts_condition(ArchCondition<Object> condition) {
+    @ParameterizedTest
+    @MethodSource("conditions")
+    void inverts_condition(ArchCondition<Object> condition) {
         ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(new Object(), events);
         condition.finish(events);

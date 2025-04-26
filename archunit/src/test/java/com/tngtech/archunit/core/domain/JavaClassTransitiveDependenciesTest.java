@@ -2,19 +2,16 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.DataProviders;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_TRANSITIVE_DEPENDENCIES_FROM_SELF;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 
-@RunWith(DataProviderRunner.class)
 public class JavaClassTransitiveDependenciesTest {
 
     @SuppressWarnings("unused")
@@ -37,17 +34,16 @@ public class JavaClassTransitiveDependenciesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_finds_transitive_dependencies_in_acyclic_graph() {
-        return DataProviders.testForEach(
-                (Function<JavaClass, Set<Dependency>>) JavaClass::getTransitiveDependenciesFromSelf,
+    static Stream<Function<JavaClass, Set<Dependency>>> finds_transitive_dependencies_in_acyclic_graph() {
+        return Stream.of(
+                JavaClass::getTransitiveDependenciesFromSelf,
                 GET_TRANSITIVE_DEPENDENCIES_FROM_SELF
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_finds_transitive_dependencies_in_acyclic_graph(Function<JavaClass, Set<Dependency>> getTransitiveDependenciesFromSelf) {
+    @ParameterizedTest
+    @MethodSource
+    void finds_transitive_dependencies_in_acyclic_graph(Function<JavaClass, Set<Dependency>> getTransitiveDependenciesFromSelf) {
         Class<?> a = AcyclicGraph.A.class;
         Class<?> b = AcyclicGraph.B.class;
         Class<?> c = AcyclicGraph.C.class;

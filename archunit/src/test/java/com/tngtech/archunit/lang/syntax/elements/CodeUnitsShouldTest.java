@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
@@ -21,11 +22,10 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.A;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.ClassWithVariousMembers;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.FirstException;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;
@@ -56,11 +56,9 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_CON
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
 
-@RunWith(DataProviderRunner.class)
 public class CodeUnitsShouldTest {
 
     @Test
@@ -126,9 +124,8 @@ public class CodeUnitsShouldTest {
         assertThat(Joiner.on(" ").join(result.getFailureReport().getDetails())).contains("expected violation");
     }
 
-    @DataProvider
-    public static Object[][] restricted_parameter_types_rules() {
-        return $$(
+    static Stream<Arguments> restricted_parameter_types_rules() {
+        return Stream.of(
                 $(codeUnits().should().haveRawParameterTypes(String.class),
                         union(allMethodsExcept(METHOD_ONE_ARG), allConstructorsExcept(CONSTRUCTOR_ONE_ARG))),
                 $(codeUnits().should().haveRawParameterTypes(String.class.getName()),
@@ -170,18 +167,17 @@ public class CodeUnitsShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_parameter_types_rules")
-    public void parameter_types_predicates(ArchRule rule, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_parameter_types_rules")
+    void parameter_types_predicates(ArchRule rule, Collection<String> expectedMembers) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMembers = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
         assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
-    @DataProvider
-    public static Object[][] restricted_return_type_rules() {
-        return $$(
+    static Stream<Arguments> restricted_return_type_rules() {
+        return Stream.of(
                 $(codeUnits().should().haveRawReturnType(String.class),
                         union(allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS), ALL_CONSTRUCTOR_DESCRIPTIONS)),
                 $(codeUnits().should().haveRawReturnType(String.class.getName()),
@@ -223,18 +219,17 @@ public class CodeUnitsShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_return_type_rules")
-    public void return_type_predicates(ArchRule rule, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_return_type_rules")
+    void return_type_predicates(ArchRule rule, Collection<String> expectedMembers) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMembers = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
         assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
-    @DataProvider
-    public static Object[][] restricted_throwable_type_rules() {
-        return $$(
+    static Stream<Arguments> restricted_throwable_type_rules() {
+        return Stream.of(
                 $(codeUnits().should().declareThrowableOfType(FirstException.class),
                         ImmutableSet.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS, CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
                 $(codeUnits().should().declareThrowableOfType(FirstException.class.getName()),
@@ -276,27 +271,26 @@ public class CodeUnitsShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_throwable_type_rules")
-    public void throwable_type_predicates(ArchRule rule, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_throwable_type_rules")
+    void throwable_type_predicates(ArchRule rule, Collection<String> expectedMembers) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMembers = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
         assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
-    @DataProvider
-    public static Object[][] restricted_constructor_calls_by_classes_rules() {
-        return $$(
+    static Stream<Arguments> restricted_constructor_calls_by_classes_rules() {
+        return Stream.of(
                 $(constructors().should(onlyBeCalledByClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(constructors().should().onlyBeCalled().byClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))),
                 $(constructors().should().onlyBeCalled().byClassesThat().belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_constructor_calls_by_classes_rules")
-    public void restricted_constructor_calls_by_classes_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_constructor_calls_by_classes_rules")
+    void restricted_constructor_calls_by_classes_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -309,18 +303,17 @@ public class CodeUnitsShouldTest {
                         quote(CONSTRUCTOR_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_method_calls_by_classes_rules() {
-        return $$(
+    static Stream<Arguments> restricted_method_calls_by_classes_rules() {
+        return Stream.of(
                 $(methods().should(onlyBeCalledByClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(methods().should().onlyBeCalled().byClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))),
                 $(methods().should().onlyBeCalled().byClassesThat().belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_method_calls_by_classes_rules")
-    public void restricted_method_calls_by_classes_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_method_calls_by_classes_rules")
+    void restricted_method_calls_by_classes_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -333,18 +326,17 @@ public class CodeUnitsShouldTest {
                         quote(METHOD_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_code_unit_calls_by_classes_rules() {
-        return $$(
+    static Stream<Arguments> restricted_code_unit_calls_by_classes_rules() {
+        return Stream.of(
                 $(codeUnits().should(onlyBeCalledByClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(codeUnits().should().onlyBeCalled().byClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))),
                 $(codeUnits().should().onlyBeCalled().byClassesThat().belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_code_unit_calls_by_classes_rules")
-    public void restricted_code_units_calls_by_classes_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_code_unit_calls_by_classes_rules")
+    void restricted_code_units_calls_by_classes_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -362,17 +354,16 @@ public class CodeUnitsShouldTest {
                         quote(CONSTRUCTOR_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_code_unit_calls_by_methods_rules() {
-        return $$(
+    static Stream<Arguments> restricted_code_unit_calls_by_methods_rules() {
+        return Stream.of(
                 $(codeUnits().should(onlyBeCalledByMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(codeUnits().should().onlyBeCalled().byMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_code_unit_calls_by_methods_rules")
-    public void restricted_code_units_calls_by_methods_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_code_unit_calls_by_methods_rules")
+    void restricted_code_units_calls_by_methods_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -400,17 +391,16 @@ public class CodeUnitsShouldTest {
                         quote(METHOD_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_code_unit_calls_by_constructors_rules() {
-        return $$(
+    static Stream<Arguments> restricted_code_unit_calls_by_constructors_rules() {
+        return Stream.of(
                 $(codeUnits().should(onlyBeCalledByConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(codeUnits().should().onlyBeCalled().byConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_code_unit_calls_by_constructors_rules")
-    public void restricted_code_units_calls_by_constructors_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_code_unit_calls_by_constructors_rules")
+    void restricted_code_units_calls_by_constructors_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -438,17 +428,16 @@ public class CodeUnitsShouldTest {
                         quote(METHOD_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_code_unit_calls_by_code_units_rules() {
-        return $$(
+    static Stream<Arguments> restricted_code_unit_calls_by_code_units_rules() {
+        return Stream.of(
                 $(codeUnits().should(onlyBeCalledByCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(codeUnits().should().onlyBeCalled().byCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_code_unit_calls_by_code_units_rules")
-    public void restricted_code_units_calls_by_code_units_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_code_unit_calls_by_code_units_rules")
+    void restricted_code_units_calls_by_code_units_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -466,17 +455,16 @@ public class CodeUnitsShouldTest {
                         quote(CONSTRUCTOR_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_methods_calls_by_methods_rules() {
-        return $$(
+    static Stream<Arguments> restricted_methods_calls_by_methods_rules() {
+        return Stream.of(
                 $(methods().should(onlyBeCalledByMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(methods().should().onlyBeCalled().byMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_methods_calls_by_methods_rules")
-    public void restricted_methods_calls_by_methods_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_methods_calls_by_methods_rules")
+    void restricted_methods_calls_by_methods_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -494,17 +482,16 @@ public class CodeUnitsShouldTest {
                         quote(METHOD_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_methods_calls_by_constructors_rules() {
-        return $$(
+    static Stream<Arguments> restricted_methods_calls_by_constructors_rules() {
+        return Stream.of(
                 $(methods().should(onlyBeCalledByConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(methods().should().onlyBeCalled().byConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_methods_calls_by_constructors_rules")
-    public void restricted_methods_calls_by_constructors_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_methods_calls_by_constructors_rules")
+    void restricted_methods_calls_by_constructors_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -522,17 +509,16 @@ public class CodeUnitsShouldTest {
                         quote(METHOD_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_methods_calls_by_code_units_rules() {
-        return $$(
+    static Stream<Arguments> restricted_methods_calls_by_code_units_rules() {
+        return Stream.of(
                 $(methods().should(onlyBeCalledByCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(methods().should().onlyBeCalled().byCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_methods_calls_by_code_units_rules")
-    public void restricted_methods_calls_by_code_units_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_methods_calls_by_code_units_rules")
+    void restricted_methods_calls_by_code_units_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -545,17 +531,16 @@ public class CodeUnitsShouldTest {
                         quote(METHOD_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_constructors_calls_by_methods_rules() {
-        return $$(
+    static Stream<Arguments> restricted_constructors_calls_by_methods_rules() {
+        return Stream.of(
                 $(constructors().should(onlyBeCalledByMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(constructors().should().onlyBeCalled().byMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_constructors_calls_by_methods_rules")
-    public void restricted_constructors_calls_by_methods_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_constructors_calls_by_methods_rules")
+    void restricted_constructors_calls_by_methods_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -573,17 +558,16 @@ public class CodeUnitsShouldTest {
                         quote(CONSTRUCTOR_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_constructors_calls_by_constructors_rules() {
-        return $$(
+    static Stream<Arguments> restricted_constructors_calls_by_constructors_rules() {
+        return Stream.of(
                 $(constructors().should(onlyBeCalledByConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
                 $(constructors().should().onlyBeCalled().byConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_constructors_calls_by_constructors_rules")
-    public void restricted_constructors_calls_by_constructors_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_constructors_calls_by_constructors_rules")
+    void restricted_constructors_calls_by_constructors_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 
@@ -601,17 +585,16 @@ public class CodeUnitsShouldTest {
                         quote(CONSTRUCTOR_ONE_ARG)));
     }
 
-    @DataProvider
-    public static Object[][] restricted_constructors_calls_by_code_units_rules() {
-        return $$(
+    static Stream<Arguments> restricted_constructors_calls_by_code_units_rules() {
+        return Stream.of(
                 $(constructors().should().onlyBeCalled().byCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class))),
                 $(constructors().should(onlyBeCalledByCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class))))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_constructors_calls_by_code_units_rules")
-    public void restricted_constructors_calls_by_code_units_predicate(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("restricted_constructors_calls_by_code_units_rules")
+    void restricted_constructors_calls_by_code_units_predicate(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
                 ClassWronglyCallingMethodAndConstructor.class));
 

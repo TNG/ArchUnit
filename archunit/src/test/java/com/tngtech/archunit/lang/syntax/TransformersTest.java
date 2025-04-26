@@ -2,6 +2,7 @@ package com.tngtech.archunit.lang.syntax;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.DescribedIterable;
@@ -9,20 +10,17 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ClassesTransformer;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class TransformersTest {
     @Test
     public void test_classes() {
@@ -33,9 +31,8 @@ public class TransformersTest {
         assertThat(output).hasSameElementsAs(input);
     }
 
-    @DataProvider
-    public static Object[][] members_testcases() {
-        return $$(
+    static Stream<Arguments> members_testcases() {
+        return Stream.of(
                 $(Transformers.members(),
                         Sets.union(
                                 createMemberStrings(ClassWithMembers.class,
@@ -61,9 +58,9 @@ public class TransformersTest {
         );
     }
 
-    @Test
-    @UseDataProvider("members_testcases")
-    public void test_members(ClassesTransformer<JavaMember> transformer, Set<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("members_testcases")
+    void test_members(ClassesTransformer<JavaMember> transformer, Set<String> expectedMembers) {
         DescribedIterable<JavaMember> actualMembers = transformer.transform(importClasses(ClassWithMembers.class, AnotherClassWithMembers.class));
 
         assertThat(createMemberStrings(actualMembers)).isEqualTo(expectedMembers);

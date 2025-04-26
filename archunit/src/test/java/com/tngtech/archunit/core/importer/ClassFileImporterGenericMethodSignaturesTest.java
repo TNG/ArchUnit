@@ -8,16 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
@@ -31,13 +29,10 @@ import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.Expec
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericMethodSignaturesTest {
 
-    @DataProvider
-    public static Object[][] data_imports_empty_list_of_type_parameters_for_non_generic_code_unit() {
+    static Stream<JavaCodeUnit> imports_empty_list_of_type_parameters_for_non_generic_code_unit() {
         @SuppressWarnings("unused")
         class NoGenericSignatureOnConstructor {
             NoGenericSignatureOnConstructor() {
@@ -51,14 +46,13 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(NoGenericSignatureOnConstructor.class, NoGenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_empty_list_of_type_parameters_for_non_generic_code_unit(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_empty_list_of_type_parameters_for_non_generic_code_unit(JavaCodeUnit codeUnit) {
         assertThat(codeUnit.getTypeParameters()).as("type parameters of non generic code unit").isEmpty();
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_generic_type_parameter_of_code_unit() {
+    static Stream<JavaCodeUnit> imports_single_generic_type_parameter_of_code_unit() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T> GenericSignatureOnConstructor() {
@@ -72,14 +66,13 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_generic_type_parameter_of_code_unit(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_generic_type_parameter_of_code_unit(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T").withBoundsMatching(Object.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_generic_type_parameters_of_code_unit() {
+    static Stream<JavaCodeUnit> imports_multiple_generic_type_parameters_of_code_unit() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <A, B, C> GenericSignatureOnConstructor() {
@@ -93,14 +86,13 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_generic_type_parameters_of_code_unit(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_multiple_generic_type_parameters_of_code_unit(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("A", "B", "C");
     }
 
-    @DataProvider
-    public static Object[][] data_imports_simple_class_bound_of_type_variable() {
+    static Stream<JavaCodeUnit> imports_simple_class_bound_of_type_variable() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends String> GenericSignatureOnConstructor() {
@@ -114,14 +106,13 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_simple_class_bound_of_type_variable(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_simple_class_bound_of_type_variable(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T").withBoundsMatching(String.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_simple_class_bounds_of_multiple_type_variables() {
+    static Stream<JavaCodeUnit> imports_single_simple_class_bounds_of_multiple_type_variables() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <A extends String, B extends System, C extends File> GenericSignatureOnConstructor() {
@@ -135,9 +126,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_simple_class_bounds_of_multiple_type_variables(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_simple_class_bounds_of_multiple_type_variables(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameters("A", "B", "C")
                 .hasTypeParameter("A").withBoundsMatching(String.class)
@@ -145,8 +136,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 .hasTypeParameter("C").withBoundsMatching(File.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_simple_interface_bound_of_single_type_variable() {
+    static Stream<JavaCodeUnit> imports_simple_interface_bound_of_single_type_variable() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends Serializable> GenericSignatureOnConstructor() {
@@ -160,14 +150,13 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_simple_interface_bound_of_single_type_variable(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_simple_interface_bound_of_single_type_variable(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T").withBoundsMatching(Serializable.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_simple_bounds_of_single_type_variable() {
+    static Stream<JavaCodeUnit> imports_multiple_simple_bounds_of_single_type_variable() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends String & Serializable & Runnable> GenericSignatureOnConstructor() {
@@ -181,14 +170,13 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_simple_bounds_of_single_type_variable(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_multiple_simple_bounds_of_single_type_variable(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T").withBoundsMatching(String.class, Serializable.class, Runnable.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_simple_bounds_of_multiple_type_variables() {
+    static Stream<JavaCodeUnit> imports_multiple_simple_bounds_of_multiple_type_variables() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <A extends String & Serializable, B extends System & Runnable, C extends File & Serializable & Closeable> GenericSignatureOnConstructor() {
@@ -202,9 +190,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_simple_bounds_of_multiple_type_variables(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_multiple_simple_bounds_of_multiple_type_variables(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameters("A", "B", "C")
                 .hasTypeParameter("A").withBoundsMatching(String.class, Serializable.class)
@@ -212,8 +200,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 .hasTypeParameter("C").withBoundsMatching(File.class, Serializable.class, Closeable.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_class_bound_with_single_type_parameter_assigned_to_concrete_class() {
+    static Stream<JavaCodeUnit> imports_single_class_bound_with_single_type_parameter_assigned_to_concrete_class() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends ClassParameterWithSingleTypeParameter<String>> GenericSignatureOnConstructor() {
@@ -227,15 +214,14 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_class_bound_with_single_type_parameter_assigned_to_concrete_class(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_class_bound_with_single_type_parameter_assigned_to_concrete_class(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T")
                 .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_class_bound_with_single_type_parameter_assigned_to_array_type_argument() {
+    static Stream<JavaCodeUnit> imports_single_class_bound_with_single_type_parameter_assigned_to_array_type_argument() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends ClassParameterWithSingleTypeParameter<String[]>> GenericSignatureOnConstructor() {
@@ -249,15 +235,14 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_class_bound_with_single_type_parameter_assigned_to_array_type_argument(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_class_bound_with_single_type_parameter_assigned_to_array_type_argument(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T")
                 .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String[].class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_class_bound_with_single_type_parameter_assigned_to_primitive_array_type_argument() {
+    static Stream<JavaCodeUnit> imports_single_class_bound_with_single_type_parameter_assigned_to_primitive_array_type_argument() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends ClassParameterWithSingleTypeParameter<int[]>> GenericSignatureOnConstructor() {
@@ -271,15 +256,14 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_class_bound_with_single_type_parameter_assigned_to_primitive_array_type_argument(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_class_bound_with_single_type_parameter_assigned_to_primitive_array_type_argument(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasOnlyTypeParameter("T")
                 .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(int[].class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_class_bounds_with_single_type_parameters_assigned_to_concrete_types() {
+    static Stream<JavaCodeUnit> imports_multiple_class_bounds_with_single_type_parameters_assigned_to_concrete_types() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <
@@ -301,17 +285,16 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_class_bounds_with_single_type_parameters_assigned_to_concrete_types(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_multiple_class_bounds_with_single_type_parameters_assigned_to_concrete_types(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("A", "B", "C")
                 .hasTypeParameter("A").withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(File.class))
                 .hasTypeParameter("B").withBoundsMatching(parameterizedType(InterfaceParameterWithSingleTypeParameter.class).withTypeArguments(Serializable.class))
                 .hasTypeParameter("C").withBoundsMatching(parameterizedType(InterfaceParameterWithSingleTypeParameter.class).withTypeArguments(String.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_class_bounds_with_multiple_type_parameters_assigned_to_concrete_types() {
+    static Stream<JavaCodeUnit> imports_multiple_class_bounds_with_multiple_type_parameters_assigned_to_concrete_types() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <
@@ -329,9 +312,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_class_bounds_with_multiple_type_parameters_assigned_to_concrete_types(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_multiple_class_bounds_with_multiple_type_parameters_assigned_to_concrete_types(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("A", "B")
                 .hasTypeParameter("A")
                 .withBoundsMatching(
@@ -344,8 +327,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                         parameterizedType(Function.class).withTypeArguments(Integer.class, Long.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_unbound_wildcard() {
+    static Stream<JavaCodeUnit> imports_single_type_bound_with_unbound_wildcard() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends List<?>> GenericSignatureOnConstructor() {
@@ -359,15 +341,14 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_unbound_wildcard(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_unbound_wildcard(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("T").withBoundsMatching(parameterizedType(List.class).withWildcardTypeParameter());
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_wildcard_upper_bound_by_class() {
+    static Stream<JavaCodeUnit> imports_single_type_bound_with_wildcard_upper_bound_by_class() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends List<? extends String>> GenericSignatureOnConstructor() {
@@ -383,17 +364,16 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_wildcard_upper_bound_by_class(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_wildcard_upper_bound_by_class(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("T")
                 .withBoundsMatching(parameterizedType(List.class)
                         .withWildcardTypeParameterWithUpperBound(String.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_wildcard_upper_bound_by_interface() {
+    static Stream<JavaCodeUnit> imports_single_type_bound_with_wildcard_upper_bound_by_interface() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends List<? extends Serializable>> GenericSignatureOnConstructor() {
@@ -409,17 +389,16 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_wildcard_upper_bound_by_interface(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_wildcard_upper_bound_by_interface(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("T")
                 .withBoundsMatching(parameterizedType(List.class)
                         .withWildcardTypeParameterWithUpperBound(Serializable.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_wildcard_lower_bound_by_class() {
+    static Stream<JavaCodeUnit> imports_single_type_bound_with_wildcard_lower_bound_by_class() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends List<? super String>> GenericSignatureOnConstructor() {
@@ -435,17 +414,16 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_wildcard_lower_bound_by_class(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_wildcard_lower_bound_by_class(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("T")
                 .withBoundsMatching(parameterizedType(List.class)
                         .withWildcardTypeParameterWithLowerBound(String.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_wildcard_lower_bound_by_interface() {
+    static Stream<JavaCodeUnit> imports_single_type_bound_with_wildcard_lower_bound_by_interface() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends List<? super Serializable>> GenericSignatureOnConstructor() {
@@ -461,17 +439,16 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_wildcard_lower_bound_by_interface(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_wildcard_lower_bound_by_interface(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("T")
                 .withBoundsMatching(parameterizedType(List.class)
                         .withWildcardTypeParameterWithLowerBound(Serializable.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_type_bounds_with_multiple_wildcards_with_various_bounds() {
+    static Stream<JavaCodeUnit> imports_multiple_type_bounds_with_multiple_wildcards_with_various_bounds() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <A extends Map<? extends Serializable, ? super File>, B extends Reference<? super String> & Map<?, ?>> GenericSignatureOnConstructor() {
@@ -485,9 +462,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_type_bounds_with_multiple_wildcards_with_various_bounds(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_multiple_type_bounds_with_multiple_wildcards_with_various_bounds(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("A", "B")
                 .hasTypeParameter("A")
                 .withBoundsMatching(
@@ -509,8 +486,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                                 ));
     }
 
-    @DataProvider
-    public static Object[][] data_references_type_variable_bound() {
+    static Stream<JavaCodeUnit> references_type_variable_bound() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <U extends T, T extends String, V extends T> GenericSignatureOnConstructor() {
@@ -524,16 +500,15 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_references_type_variable_bound(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void references_type_variable_bound(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("U", "T", "V")
                 .hasTypeParameter("U").withBoundsMatching(typeVariable("T").withUpperBounds(String.class))
                 .hasTypeParameter("V").withBoundsMatching(typeVariable("T").withUpperBounds(String.class));
     }
 
-    @DataProvider
-    public static Object[][] data_references_type_variable_bound_for_inner_classes() {
+    static Stream<JavaCodeUnit> references_type_variable_bound_for_inner_classes() {
         @SuppressWarnings("unused")
         class Outer<U extends T, T extends String> {
             class SomeInner {
@@ -561,9 +536,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_references_type_variable_bound_for_inner_classes(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void references_type_variable_bound_for_inner_classes(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
                 .hasTypeParameter("MOST_INNER1")
                 .withBoundsMatching(
@@ -575,8 +550,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                                         typeVariable("T").withUpperBounds(String.class))));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_inner_class_as_type_variable_bound() {
+    static Stream<JavaCodeUnit> imports_inner_class_as_type_variable_bound() {
         @SuppressWarnings("unused")
         class ConstructorWithTypeParameterBoundByInnerClass<A, B> {
             <T extends ConstructorWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>, U extends ConstructorWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>.EvenMoreInner> ConstructorWithTypeParameterBoundByInnerClass() {
@@ -604,9 +578,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_inner_class_as_type_variable_bound(JavaCodeUnit codeUnit) throws ClassNotFoundException {
+    @ParameterizedTest
+    @MethodSource
+    void imports_inner_class_as_type_variable_bound(JavaCodeUnit codeUnit) throws ClassNotFoundException {
         Class<?> expectedInnerClass = Class.forName(codeUnit.getOwner().getName() + "$SomeInner");
         Class<?> expectedMoreInnerClass = Class.forName(codeUnit.getOwner().getName() + "$SomeInner$EvenMoreInner");
 
@@ -618,8 +592,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 .withBoundsMatching(expectedMoreInnerClass);
     }
 
-    @DataProvider
-    public static Object[][] data_creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context() {
+    static Stream<JavaCodeUnit> creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context() {
         @SuppressWarnings("unused")
         class Outer<U extends T, T extends String> {
             @SuppressWarnings("InnerClassMayBeStatic")
@@ -647,15 +620,15 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class);
         });
 
-        return testForEach(
+        return Stream.of(
                 getOnlyElement(classes.get(Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class).getConstructors()),
                 getOnlyElement(classes.get(Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class).getMethods())
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
                 .hasTypeParameter("MOST_INNER1")
                 .withBoundsMatching(typeVariable("T").withoutUpperBounds())
@@ -663,8 +636,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 .withBoundsMatching(typeVariable("MORE_INNER2").withoutUpperBounds());
     }
 
-    @DataProvider
-    public static Object[][] data_considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
+    static Stream<JavaCodeUnit> considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
         @SuppressWarnings("unused")
         class Level1<T1 extends String> {
             <T2 extends T1> void level2() {
@@ -691,9 +663,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 Level1.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_considers_hierarchy_of_methods_and_classes_for_type_parameter_context(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void considers_hierarchy_of_methods_and_classes_for_type_parameter_context(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("T41", "T42")
                 .hasTypeParameter("T41")
                 .withBoundsMatching(
@@ -704,8 +676,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 .withBoundsMatching(typeVariable("T1").withUpperBounds(String.class));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_wild_cards_bound_by_type_variables() {
+    static Stream<JavaCodeUnit> imports_wild_cards_bound_by_type_variables() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <T extends String, U extends List<? extends T>, V extends List<? super T>> GenericSignatureOnConstructor() {
@@ -722,9 +693,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_wild_cards_bound_by_type_variables(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_wild_cards_bound_by_type_variables(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("T", "U", "V")
                 .hasTypeParameter("U")
                 .withBoundsMatching(
@@ -736,8 +707,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                                 typeVariable("T").withUpperBounds(String.class)));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_wild_cards_bound_by_type_variables_of_enclosing_classes() {
+    static Stream<JavaCodeUnit> imports_wild_cards_bound_by_type_variables_of_enclosing_classes() {
         @SuppressWarnings("unused")
         class Outer<T extends String, U extends List<? extends T>, V extends List<? super T>> {
             class Inner<MORE_INNER extends List<? extends U>> {
@@ -762,9 +732,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_wild_cards_bound_by_type_variables_of_enclosing_classes(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_wild_cards_bound_by_type_variables_of_enclosing_classes(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
                 .hasTypeParameter("MOST_INNER1")
                 .withBoundsMatching(
@@ -778,8 +748,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                                                 typeVariable("T").withUpperBounds(String.class)))));
     }
 
-    @DataProvider
-    public static Object[][] data_creates_new_stub_type_variables_for_wildcards_bound_by_type_variables_of_enclosing_classes_that_are_out_of_context() {
+    static Stream<JavaCodeUnit> creates_new_stub_type_variables_for_wildcards_bound_by_type_variables_of_enclosing_classes_that_are_out_of_context() {
         @SuppressWarnings("unused")
         class Outer<T extends String, U extends List<? extends T>, V extends List<? super T>> {
             class Inner<MORE_INNER extends List<? extends U>> {
@@ -805,15 +774,15 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     List.class);
         });
 
-        return testForEach(
+        return Stream.of(
                 getOnlyElement(classes.get(Outer.Inner.GenericSignatureOnConstructor.class).getConstructors()),
                 getOnlyElement(classes.get(Outer.Inner.GenericSignatureOnMethod.class).getMethods())
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_creates_new_stub_type_variables_for_wildcards_bound_by_type_variables_of_enclosing_classes_that_are_out_of_context(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void creates_new_stub_type_variables_for_wildcards_bound_by_type_variables_of_enclosing_classes_that_are_out_of_context(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
                 .hasTypeParameter("MOST_INNER1")
                 .withBoundsMatching(
@@ -825,8 +794,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                                 typeVariable("V").withoutUpperBounds()));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_complex_type_with_multiple_nested_parameters_with_various_bounds_and_recursive_type_definitions() {
+    static Stream<JavaCodeUnit> imports_complex_type_with_multiple_nested_parameters_with_various_bounds_and_recursive_type_definitions() {
         @SuppressWarnings({"unused", "rawtypes"})
         class GenericSignatureOnConstructor {
             <
@@ -860,9 +828,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_complex_type_with_multiple_nested_parameters_with_various_bounds_and_recursive_type_definitions(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_complex_type_with_multiple_nested_parameters_with_various_bounds_and_recursive_type_definitions(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("A")
                 .withBoundsMatching(
@@ -897,8 +865,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 .hasTypeParameter("RAW").withBoundsMatching(List.class);
     }
 
-    @DataProvider
-    public static Object[][] data_imports_complex_type_with_multiple_nested_parameters_with_concrete_array_bounds() {
+    static Stream<JavaCodeUnit> imports_complex_type_with_multiple_nested_parameters_with_concrete_array_bounds() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <
@@ -920,9 +887,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_complex_type_with_multiple_nested_parameters_with_concrete_array_bounds(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_complex_type_with_multiple_nested_parameters_with_concrete_array_bounds(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("A")
                 .withBoundsMatching(
@@ -942,8 +909,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 );
     }
 
-    @DataProvider
-    public static Object[][] data_imports_type_with_parameterized_array_bounds() {
+    static Stream<JavaCodeUnit> imports_type_with_parameterized_array_bounds() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <
@@ -961,9 +927,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_type_with_parameterized_array_bounds(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_type_with_parameterized_array_bounds(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("T")
                 .withBoundsMatching(
@@ -979,8 +945,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                                                         parameterizedType(List.class).withTypeArguments(String[][].class))))));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_complex_type_with_multiple_nested_parameters_with_generic_array_bounds() {
+    static Stream<JavaCodeUnit> imports_complex_type_with_multiple_nested_parameters_with_generic_array_bounds() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {
             <
@@ -1006,9 +971,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_complex_type_with_multiple_nested_parameters_with_generic_array_bounds(JavaCodeUnit codeUnit) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_complex_type_with_multiple_nested_parameters_with_generic_array_bounds(JavaCodeUnit codeUnit) {
         assertThatCodeUnit(codeUnit)
                 .hasTypeParameter("A")
                 .withBoundsMatching(
@@ -1041,7 +1006,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
     }
 
     @SuppressWarnings("rawtypes")
-    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(
+    private static Stream<JavaCodeUnit> testCasesFromSameGenericSignatureOnConstructorAndMethod(
             Class<?> genericSignatureOnConstructor,
             Class<?> genericSignatureOnMethod,
             Class<?>... additionalClasses
@@ -1050,7 +1015,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 FluentIterable.<Class>from(additionalClasses).append(genericSignatureOnConstructor, genericSignatureOnMethod).toArray(Class.class)
         );
 
-        return testForEach(
+        return Stream.of(
                 getOnlyElement(classes.get(genericSignatureOnConstructor).getConstructors()),
                 getOnlyElement(classes.get(genericSignatureOnMethod).getMethods())
         );

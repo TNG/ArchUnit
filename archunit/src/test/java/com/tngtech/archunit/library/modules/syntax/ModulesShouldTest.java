@@ -1,6 +1,7 @@
 package com.tngtech.archunit.library.modules.syntax;
 
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -14,11 +15,9 @@ import com.tngtech.archunit.library.modules.testexamples.default_annotation.modu
 import com.tngtech.archunit.library.modules.testexamples.default_annotation.module2.InternalClassInModule2;
 import com.tngtech.archunit.library.modules.testexamples.default_annotation.module2.api.ApiClassInModule2;
 import com.tngtech.archunit.library.modules.testexamples.default_annotation.module3.ClassInModule3;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
@@ -32,11 +31,9 @@ import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.
 import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.consideringOnlyDependenciesInAnyPackage;
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class ModulesShouldTest {
 
     @Test
@@ -140,19 +137,18 @@ public class ModulesShouldTest {
                 .hasMessageContaining(String.format("Property @%s.name() must be of type %s", TestModule.class.getSimpleName(), String[].class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] ruleModificationsToIgnoreViolationsFromModuleTwoToArchRule() {
-        return testForEach(
-                (Function<ModulesRule<?>, ModulesRule<?>>) modulesRule -> modulesRule.ignoreDependency(ModuleTwo.class, ArchRule.class),
-                (Function<ModulesRule<?>, ModulesRule<?>>) modulesRule -> modulesRule.ignoreDependency(ModuleTwo.class.getName(), ArchRule.class.getName()),
-                (Function<ModulesRule<?>, ModulesRule<?>>) modulesRule -> modulesRule.ignoreDependency(equivalentTo(ModuleTwo.class), equivalentTo(ArchRule.class)),
-                (Function<ModulesRule<?>, ModulesRule<?>>) modulesRule -> modulesRule.ignoreDependency(dependency(ModuleTwo.class, ArchRule.class))
+    static Stream<Function<ModulesRule<?>, ModulesRule<?>>> ruleModificationsToIgnoreViolationsFromModuleTwoToArchRule() {
+        return Stream.of(
+                modulesRule -> modulesRule.ignoreDependency(ModuleTwo.class, ArchRule.class),
+                modulesRule -> modulesRule.ignoreDependency(ModuleTwo.class.getName(), ArchRule.class.getName()),
+                modulesRule -> modulesRule.ignoreDependency(equivalentTo(ModuleTwo.class), equivalentTo(ArchRule.class)),
+                modulesRule -> modulesRule.ignoreDependency(dependency(ModuleTwo.class, ArchRule.class))
         );
     }
 
-    @Test
-    @UseDataProvider("ruleModificationsToIgnoreViolationsFromModuleTwoToArchRule")
-    public void respectTheirAllowedDependencies_ignores_dependencies(Function<ModulesRule<?>, ModulesRule<?>> modifyRuleToIgnoreViolationsFromModuleTwoToArchRule) {
+    @ParameterizedTest
+    @MethodSource("ruleModificationsToIgnoreViolationsFromModuleTwoToArchRule")
+    void respectTheirAllowedDependencies_ignores_dependencies(Function<ModulesRule<?>, ModulesRule<?>> modifyRuleToIgnoreViolationsFromModuleTwoToArchRule) {
         ModulesRule<?> rule = modulesByClassName().should().respectTheirAllowedDependencies(alwaysFalse(), consideringAllDependencies());
 
         rule = modifyRuleToIgnoreViolationsFromModuleTwoToArchRule.apply(rule);
@@ -175,17 +171,16 @@ public class ModulesShouldTest {
                 .hasNoViolationContaining(ArchRule.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] data_onlyDependOnEachOtherThroughClassesThat_ignores_dependencies() {
-        return testForEach(
+    static Stream<ModulesRule<?>> onlyDependOnEachOtherThroughClassesThat_ignores_dependencies() {
+        return Stream.of(
                 modulesByClassName().should().onlyDependOnEachOtherThroughClassesThat(have(simpleName(ModuleTwo.class.getSimpleName()))),
                 modulesByClassName().should().onlyDependOnEachOtherThroughClassesThat().haveSimpleName(ModuleTwo.class.getSimpleName())
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_onlyDependOnEachOtherThroughClassesThat_ignores_dependencies(ModulesRule<?> rule) {
+    @ParameterizedTest
+    @MethodSource
+    void onlyDependOnEachOtherThroughClassesThat_ignores_dependencies(ModulesRule<?> rule) {
         rule = rule
                 .ignoreDependency(d -> d.getDescription().contains("cyclicDependencyOne"));
 

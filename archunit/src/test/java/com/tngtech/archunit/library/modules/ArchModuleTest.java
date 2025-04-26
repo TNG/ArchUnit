@@ -1,17 +1,16 @@
 package com.tngtech.archunit.library.modules;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
 
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class ArchModuleTest {
 
     @Test
@@ -36,17 +35,16 @@ public class ArchModuleTest {
         assertThat(identifier.getPart(3)).isEqualTo("three");
     }
 
-    @DataProvider
-    public static Object[][] illegal_indices() {
-        return $$(
+    static Stream<Arguments> illegal_indices() {
+        return Stream.of(
                 $(ArchModule.Identifier.from("one"), 0),
                 $(ArchModule.Identifier.from("one"), 2)
         );
     }
 
-    @Test
-    @UseDataProvider("illegal_indices")
-    public void rejects_index_out_of_range(ArchModule.Identifier identifier, int illegalIndex) {
+    @ParameterizedTest
+    @MethodSource("illegal_indices")
+    void rejects_index_out_of_range(ArchModule.Identifier identifier, int illegalIndex) {
         assertThatThrownBy(() -> identifier.getPart(illegalIndex))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.valueOf(illegalIndex))

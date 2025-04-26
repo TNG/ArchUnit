@@ -1,28 +1,26 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.util.Collection;
+import java.util.stream.Stream;
+
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.Collection;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.*;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class GivenMethodsTest {
 
-    @DataProvider
-    public static Object[][] restricted_property_rule_starts() {
-        return $$(
+    static Stream<Arguments> restricted_property_rule_starts() {
+        return Stream.of(
                 $(described(methods().that().areFinal()), ImmutableSet.of(METHOD_A, METHOD_B)),
                 $(described(methods().that().areNotFinal()), ImmutableSet.of(METHOD_C, METHOD_D)),
                 $(described(methods().that().areStatic()), ImmutableSet.of(METHOD_B, METHOD_D)),
@@ -32,9 +30,9 @@ public class GivenMethodsTest {
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_property_rule_starts")
-    public void property_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_property_rule_starts")
+    void property_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 

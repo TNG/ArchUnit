@@ -1,20 +1,17 @@
 package com.tngtech.archunit.core.importer;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
 
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class NormalizedResourceNameTest {
-    @DataProvider
-    public static Object[][] resource_name_starts_with_cases() {
-        return $$(
+    static Stream<Arguments> resource_name_starts_with_cases() {
+        return Stream.of(
                 $("com", "com", true),
                 $("com/foo", "com", true),
                 $("/com/", "/com", true),
@@ -29,9 +26,9 @@ public class NormalizedResourceNameTest {
         );
     }
 
-    @Test
-    @UseDataProvider("resource_name_starts_with_cases")
-    public void resource_name_starts_with_other_resource_name(
+    @ParameterizedTest
+    @MethodSource("resource_name_starts_with_cases")
+    void resource_name_starts_with_other_resource_name(
             String resourceName, String startsWith, boolean expectedResult) {
 
         assertThat(NormalizedResourceName.from(resourceName).startsWith(NormalizedResourceName.from(startsWith)))
@@ -39,9 +36,8 @@ public class NormalizedResourceNameTest {
                 .isEqualTo(expectedResult);
     }
 
-    @DataProvider
-    public static Object[][] names_to_absolute_names() {
-        return $$(
+    static Stream<Arguments> names_to_absolute_names() {
+        return Stream.of(
                 $("", "/"),
                 $("com", "/com/"),
                 $("com/foo", "/com/foo/"),
@@ -50,17 +46,16 @@ public class NormalizedResourceNameTest {
         );
     }
 
-    @Test
-    @UseDataProvider("names_to_absolute_names")
-    public void creates_absolute_path(String input, String expectedAbsolutePath) {
+    @ParameterizedTest
+    @MethodSource("names_to_absolute_names")
+    void creates_absolute_path(String input, String expectedAbsolutePath) {
         NormalizedResourceName resourceName = NormalizedResourceName.from(input);
 
         assertThat(resourceName.toAbsolutePath()).isEqualTo(expectedAbsolutePath);
     }
 
-    @DataProvider
-    public static Object[][] names_to_entry_names() {
-        return $$(
+    static Stream<Arguments> names_to_entry_names() {
+        return Stream.of(
                 $("", ""),
                 $("/com", "com/"),
                 $("/com/foo", "com/foo/"),
@@ -69,9 +64,9 @@ public class NormalizedResourceNameTest {
         );
     }
 
-    @Test
-    @UseDataProvider("names_to_entry_names")
-    public void creates_entry_name(String input, String expectedEntryName) {
+    @ParameterizedTest
+    @MethodSource("names_to_entry_names")
+    void creates_entry_name(String input, String expectedEntryName) {
         NormalizedResourceName resourceName = NormalizedResourceName.from(input);
 
         assertThat(resourceName.toEntryName()).isEqualTo(expectedEntryName);

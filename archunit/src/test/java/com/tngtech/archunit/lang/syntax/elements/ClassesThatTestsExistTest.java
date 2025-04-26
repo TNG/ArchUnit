@@ -7,6 +7,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
@@ -37,7 +38,9 @@ public class ClassesThatTestsExistTest {
 
     private Set<Method> getMethodsStartingWith(String prefix, Class<?> testClass) {
         return stream(testClass.getDeclaredMethods())
-                .filter(method -> method.getAnnotation(Test.class) != null)
+                .filter(method -> method.getAnnotation(Test.class) != null ||
+                        method.getAnnotation(org.junit.jupiter.api.Test.class) != null ||
+                        method.getAnnotation(ParameterizedTest.class) != null)
                 .filter(method -> method.getName().startsWith(prefix))
                 .collect(toSet());
     }

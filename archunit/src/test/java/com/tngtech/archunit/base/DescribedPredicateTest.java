@@ -3,13 +3,12 @@ package com.tngtech.archunit.base;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.allElements;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
@@ -26,12 +25,9 @@ import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 
-@RunWith(DataProviderRunner.class)
 public class DescribedPredicateTest {
 
     @Test
@@ -197,39 +193,38 @@ public class DescribedPredicateTest {
                 .rejects(5);
     }
 
-    @DataProvider
-    public static Object[][] not_scenarios() {
-        return $$(
-                $(new NotScenario("not", ".negate") {
+    static Stream<NotScenario> not_scenarios() {
+        return Stream.of(
+                new NotScenario("not", ".negate") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return input.negate();
                     }
-                }),
-                $(new NotScenario("not", "not") {
+                },
+                new NotScenario("not", "not") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return not(input);
                     }
-                }),
-                $(new NotScenario("do not", "doNot") {
+                },
+                new NotScenario("do not", "doNot") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return doNot(input);
                     }
-                }),
-                $(new NotScenario("does not", "doesNot") {
+                },
+                new NotScenario("does not", "doesNot") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return doesNot(input);
                     }
-                })
+                }
         );
     }
 
-    @Test
-    @UseDataProvider("not_scenarios")
-    public void not_works(NotScenario scenario) {
+    @ParameterizedTest
+    @MethodSource("not_scenarios")
+    void not_works(NotScenario scenario) {
         assertThat(scenario.apply(equalTo(5)))
                 .accepts(4)
                 .hasDescription(scenario.expectedPrefix + " equal to '5'")
