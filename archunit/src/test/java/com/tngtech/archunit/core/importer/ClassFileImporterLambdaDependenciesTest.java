@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
@@ -23,12 +24,11 @@ import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.CheckingInstanceofFromLambda;
 import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjectsFromLambda;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.Condition;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
@@ -42,15 +42,13 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatInstanceofChecks;
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
 import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 import static com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion.tryCatchBlock;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.stream.Collectors.toSet;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterLambdaDependenciesTest {
     @Test
     public void imports_method_call_from_lambda_without_parameter() {
@@ -474,8 +472,7 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_adds_information_about_being_declared_inside_a_lambda_to_accesses() {
+    static Stream<Arguments> adds_information_about_being_declared_inside_a_lambda_to_accesses() {
         @SuppressWarnings("unused")
         class FieldAccessCase {
             Object fieldAccessDirect(Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target target) {
@@ -529,7 +526,7 @@ public class ClassFileImporterLambdaDependenciesTest {
             }
         }
 
-        return $$(
+        return Stream.of(
                 $(FieldAccessCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
                 $(MethodCallCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
                 $(ConstructorCallCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
@@ -538,9 +535,9 @@ public class ClassFileImporterLambdaDependenciesTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_adds_information_about_being_declared_inside_a_lambda_to_accesses(Class<?> caller, Class<?> target) {
+    @ParameterizedTest
+    @MethodSource
+    void adds_information_about_being_declared_inside_a_lambda_to_accesses(Class<?> caller, Class<?> target) {
         Set<JavaAccess<?>> accesses = new ClassFileImporter()
                 .importClasses(caller, target)
                 .get(caller).getAccessesFromSelf().stream()

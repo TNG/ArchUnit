@@ -8,21 +8,17 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class JavaParameterizedTypeTest {
 
-    @DataProvider
     @SuppressWarnings("unused")
-    public static Object[][] parameterized_types() {
+    static Stream<Arguments> parameterized_types() {
         class WithConcreteTypeName<TEST extends List<String>> {
         }
         class WithTypeVariable<X, TEST extends List<X>> {
@@ -42,11 +38,11 @@ public class JavaParameterizedTypeTest {
                 WithArrays.class,
                 WithTypeVariableArrays.class,
                 WithWildcards.class
-        ).map(JavaParameterizedTypeTest::createTestInput).toArray(Object[][]::new);
+        ).map(JavaParameterizedTypeTest::createTestInput);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private static Object[] createTestInput(Class<?> testClass) {
+    private static Arguments createTestInput(Class<?> testClass) {
         Type reflectionType = Arrays.stream(testClass.getTypeParameters())
                 .filter(v -> v.getName().equals("TEST"))
                 .map(v -> v.getBounds()[0])
@@ -59,9 +55,9 @@ public class JavaParameterizedTypeTest {
         return $(javaType, reflectionType);
     }
 
-    @Test
-    @UseDataProvider("parameterized_types")
-    public void name_of_parameterized_type_matches_Reflection_API(JavaType javaType, Type reflectionType) {
+    @ParameterizedTest
+    @MethodSource("parameterized_types")
+    void name_of_parameterized_type_matches_Reflection_API(JavaType javaType, Type reflectionType) {
         assertThat(javaType.getName()).isEqualTo(reflectionType.getTypeName());
     }
 }

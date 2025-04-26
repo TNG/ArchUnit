@@ -9,6 +9,7 @@ import java.nio.file.FileSystem;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -20,11 +21,10 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.testutil.Assertions;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.MoreCollectors.onlyElement;
@@ -41,29 +41,25 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class DependencyTest {
 
-    @DataProvider
-    public static Object[][] field_array_types() throws NoSuchFieldException {
+    static Stream<Field> field_array_types() throws NoSuchFieldException {
         @SuppressWarnings("unused")
         class ClassWithArrayDependencies {
             private String[] oneDimArray;
             private String[][] multiDimArray;
         }
-        return testForEach(
+        return Stream.of(
                 ClassWithArrayDependencies.class.getDeclaredField("oneDimArray"),
                 ClassWithArrayDependencies.class.getDeclaredField("multiDimArray"));
     }
 
-    @Test
-    @UseDataProvider("field_array_types")
-    public void Dependencies_from_field_with_component_type(Field reflectionArrayField) {
+    @ParameterizedTest
+    @MethodSource("field_array_types")
+    void dependencies_from_field_with_component_type(Field reflectionArrayField) {
         Class<?> reflectionDeclaringClass = reflectionArrayField.getDeclaringClass();
         JavaField field = new ClassFileImporter().importClasses(reflectionDeclaringClass).get(reflectionDeclaringClass).getField(reflectionArrayField.getName());
 
@@ -92,8 +88,7 @@ public class DependencyTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_dependency_from_access() {
+    static Stream<JavaAccess<?>> dependency_from_access() {
         @SuppressWarnings("unused")
         class Origin {
             String fieldAccess(Data_dependency_from_access.Target target) {
@@ -117,7 +112,7 @@ public class DependencyTest {
             }
         }
         JavaClass origin = new ClassFileImporter().importClasses(Origin.class, Data_dependency_from_access.Target.class).get(Origin.class);
-        return testForEach(
+        return Stream.of(
                 getOnlyElement(origin.getMethod("fieldAccess", Data_dependency_from_access.Target.class).getFieldAccesses()),
                 getOnlyElement(origin.getMethod("constructorCall").getConstructorCallsFromSelf()),
                 getOnlyElement(origin.getMethod("methodCall", Data_dependency_from_access.Target.class).getMethodCallsFromSelf()),
@@ -126,25 +121,24 @@ public class DependencyTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_dependency_from_access(JavaAccess<?> access) {
+    @ParameterizedTest
+    @MethodSource
+    void dependency_from_access(JavaAccess<?> access) {
         Dependency dependency = getOnlyElement(Dependency.tryCreateFromAccess(access));
         assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(access.getTargetOwner());
         assertThat(dependency.getDescription()).as("description").isEqualTo(access.getDescription());
     }
 
-    @DataProvider
-    public static Object[][] method_calls_to_array_types() {
-        return $$(
+    static Stream<Arguments> method_calls_to_array_types() {
+        return Stream.of(
                 $(ClassWithArrayDependencies.class, "oneDimArray", String[].class, 6),
                 $(ClassWithArrayDependencies.class, "multiDimArray", String[][].class, 10)
         );
     }
 
-    @Test
-    @UseDataProvider("method_calls_to_array_types")
-    public void Dependency_from_access_with_component_type(Class<?> classDependingOnArray, String nameOfMethodWithArrayMethodCall, Class<?> arrayType, int expectedLineNumber) throws NoSuchMethodException {
+    @ParameterizedTest
+    @MethodSource("method_calls_to_array_types")
+    void dependency_from_access_with_component_type(Class<?> classDependingOnArray, String nameOfMethodWithArrayMethodCall, Class<?> arrayType, int expectedLineNumber) throws NoSuchMethodException {
         Method reflectionMethodWithArrayMethodCall = classDependingOnArray.getDeclaredMethod(nameOfMethodWithArrayMethodCall);
         Class<?> reflectionDeclaringClass = reflectionMethodWithArrayMethodCall.getDeclaringClass();
         JavaMethod method = new ClassFileImporter().importClasses(reflectionDeclaringClass)
@@ -200,20 +194,19 @@ public class DependencyTest {
                 .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
     }
 
-    @DataProvider
-    public static Object[][] with_instanceof_check_members() {
+    static Stream<Arguments> with_instanceof_check_members() {
         JavaClass javaClass = importClassesWithContext(ClassWithDependencyOnInstanceofCheck.class, InstanceOfCheckTarget.class)
                 .get(ClassWithDependencyOnInstanceofCheck.class);
 
-        return $$(
+        return Stream.of(
                 $(javaClass.getStaticInitializer().get(), 6),
                 $(javaClass.getConstructor(Object.class), 9),
                 $(javaClass.getMethod("method", Object.class), 13));
     }
 
-    @Test
-    @UseDataProvider("with_instanceof_check_members")
-    public void Dependency_from_instanceof_check_in_code_unit(JavaCodeUnit memberWithInstanceofCheck, int expectedLineNumber) {
+    @ParameterizedTest
+    @MethodSource("with_instanceof_check_members")
+    void dependency_from_instanceof_check_in_code_unit(JavaCodeUnit memberWithInstanceofCheck, int expectedLineNumber) {
         InstanceofCheck instanceofCheck = getOnlyElement(memberWithInstanceofCheck.getInstanceofChecks());
 
         Dependency dependency = getOnlyElement(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
@@ -224,19 +217,18 @@ public class DependencyTest {
                 .inLocation(ClassWithDependencyOnInstanceofCheck.class, expectedLineNumber);
     }
 
-    @DataProvider
-    public static Object[][] annotated_classes() {
+    static Stream<JavaClass> annotated_classes() {
         JavaClasses classes = importClassesWithContext(
                 ClassWithDependencyOnAnnotation.class, InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class, SomeMemberType.class);
 
-        return testForEach(
+        return Stream.of(
                 classes.get(ClassWithDependencyOnAnnotation.class),
                 classes.get(InterfaceWithDependencyOnAnnotation.class));
     }
 
-    @Test
-    @UseDataProvider("annotated_classes")
-    public void Dependency_from_annotation_on_class(JavaClass annotatedClass) {
+    @ParameterizedTest
+    @MethodSource("annotated_classes")
+    void dependency_from_annotation_on_class(JavaClass annotatedClass) {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
@@ -247,20 +239,19 @@ public class DependencyTest {
                 .contains("Class <" + annotatedClass.getName() + "> is annotated with <" + annotationClass.getName() + ">");
     }
 
-    @DataProvider
-    public static Object[][] annotated_members() {
+    static Stream<JavaMember> annotated_members() {
         JavaClass javaClass = importClassesWithContext(ClassWithAnnotatedMembers.class, SomeAnnotation.class, SomeMemberType.class)
                 .get(ClassWithAnnotatedMembers.class);
 
-        return testForEach(
+        return Stream.of(
                 javaClass.getField("annotatedField"),
                 javaClass.getConstructor(Object.class),
                 javaClass.getMethod("annotatedMethod"));
     }
 
-    @Test
-    @UseDataProvider("annotated_members")
-    public void Dependency_from_annotation_on_member(JavaMember annotatedMember) {
+    @ParameterizedTest
+    @MethodSource("annotated_members")
+    void dependency_from_annotation_on_member(JavaMember annotatedMember) {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
@@ -292,9 +283,9 @@ public class DependencyTest {
                         + "is annotated with <" + SomeAnnotation.class.getName() + ">");
     }
 
-    @Test
-    @UseDataProvider("annotated_classes")
-    public void Dependency_from_class_annotation_member(JavaClass annotatedClass) {
+    @ParameterizedTest
+    @MethodSource("annotated_classes")
+    void dependency_from_class_annotation_member(JavaClass annotatedClass) {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
@@ -305,9 +296,9 @@ public class DependencyTest {
                 .contains("Class <" + annotatedClass.getName() + "> has annotation member of type <" + memberType.getName() + ">");
     }
 
-    @Test
-    @UseDataProvider("annotated_members")
-    public void Dependency_from_member_annotation_member(JavaMember annotatedMember) {
+    @ParameterizedTest
+    @MethodSource("annotated_members")
+    void dependency_from_member_annotation_member(JavaMember annotatedMember) {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
@@ -482,8 +473,7 @@ public class DependencyTest {
                 getClass().getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] data_Dependency_from_generic_code_unit_parameter_type_arguments() {
+    static Stream<Arguments> dependency_from_generic_code_unit_parameter_type_arguments() {
         @SuppressWarnings("unused")
         class SomeGenericType<T> {
         }
@@ -503,14 +493,14 @@ public class DependencyTest {
         JavaMethod method = importClassesWithContext(GenericTypeOnMethod.class, SomeGenericType.class, String.class)
                 .get(GenericTypeOnMethod.class).getMethod("genericTypeOnMethod", SomeGenericType.class);
         String expectedGenericParameterTypeName = SomeGenericType.class.getName() + "<" + String.class.getName() + ">";
-        return $$(
+        return Stream.of(
                 $(constructor, expectedGenericParameterTypeName),
                 $(method, expectedGenericParameterTypeName));
     }
 
-    @Test
-    @UseDataProvider
-    public void test_Dependency_from_generic_code_unit_parameter_type_arguments(JavaCodeUnit codeUnit, String expectedGenericParameterTypeName) {
+    @ParameterizedTest
+    @MethodSource
+    void dependency_from_generic_code_unit_parameter_type_arguments(JavaCodeUnit codeUnit, String expectedGenericParameterTypeName) {
         JavaType parameterType = getOnlyElement(codeUnit.getParameterTypes());
         JavaClass typeArgumentDependency = (JavaClass) ((JavaParameterizedType) parameterType).getActualTypeArguments().get(0);
 

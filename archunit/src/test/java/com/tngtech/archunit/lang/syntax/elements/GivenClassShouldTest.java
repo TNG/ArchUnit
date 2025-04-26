@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -13,11 +14,9 @@ import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.ClassWithPublicAndPrivateConstructor;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
@@ -34,19 +33,15 @@ import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locati
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
 
-@RunWith(DataProviderRunner.class)
 public class GivenClassShouldTest {
 
     private static final String ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX = "[^" + FAILURE_REPORT_NEWLINE_MARKER + "]*";
 
-    @DataProvider
-    public static Object[][] theClass_should_haveFullyQualifiedName_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_haveFullyQualifiedName_rules() {
+        return Stream.of(
                 $(theClass(SomeClass.class).should().haveFullyQualifiedName(SomeClass.class.getName()),
                         theClass(SomeClass.class).should().notHaveFullyQualifiedName(SomeClass.class.getName())),
                 $(theClass(SomeClass.class).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())),
@@ -58,9 +53,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveFullyQualifiedName_rules")
-    public void theClass_should_haveFullyQualifiedName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveFullyQualifiedName_rules")
+    void theClass_should_haveFullyQualifiedName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should have fully qualified name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getName())
@@ -74,9 +69,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveFullyQualifiedName_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_haveFullyQualifiedName_rules() {
+        return Stream.of(
                 $(noClass(SomeClass.class).should().notHaveFullyQualifiedName(SomeClass.class.getName()),
                         noClass(SomeClass.class).should().haveFullyQualifiedName(SomeClass.class.getName())),
                 $(noClass(SomeClass.class).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName())),
@@ -88,9 +82,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveFullyQualifiedName_rules")
-    public void noClass_should_haveFullyQualifiedName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveFullyQualifiedName_rules")
+    void noClass_should_haveFullyQualifiedName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not have fully qualified name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getName())
@@ -103,9 +97,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveSimpleName_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_haveSimpleName_rules() {
+        return Stream.of(
                 $(theClass(SomeClass.class).should().haveSimpleName(SomeClass.class.getSimpleName()),
                         theClass(SomeClass.class).should().notHaveSimpleName(SomeClass.class.getSimpleName())),
                 $(theClass(SomeClass.class).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())),
@@ -117,9 +110,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveSimpleName_rules")
-    public void haveSimpleName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveSimpleName_rules")
+    void haveSimpleName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should have simple name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getSimpleName())
@@ -132,9 +125,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveSimpleName_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_haveSimpleName_rules() {
+        return Stream.of(
                 $(noClass(SomeClass.class).should().notHaveSimpleName(SomeClass.class.getSimpleName()),
                         noClass(SomeClass.class).should().haveSimpleName(SomeClass.class.getSimpleName())),
                 $(noClass(SomeClass.class).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName())),
@@ -146,9 +138,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveSimpleName_rules")
-    public void noClass_should_haveSimpleName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveSimpleName_rules")
+    void noClass_should_haveSimpleName(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not have simple name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getSimpleName())
@@ -161,10 +153,9 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveNameMatching_rules() {
+    static Stream<Arguments> theClass_should_haveNameMatching_rules() {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
-        return $$(
+        return Stream.of(
                 $(theClass(SomeClass.class).should().haveNameMatching(regex),
                         theClass(SomeClass.class).should().haveNameNotMatching(regex)),
                 $(theClass(SomeClass.class).should(ArchConditions.haveNameMatching(regex)),
@@ -176,9 +167,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveNameMatching_rules")
-    public void theClass_should_haveNameMatching(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveNameMatching_rules")
+    void theClass_should_haveNameMatching(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
 
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -193,10 +184,9 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(regex));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveNameMatching_rules() {
+    static Stream<Arguments> noClass_should_haveNameMatching_rules() {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
-        return $$(
+        return Stream.of(
                 $(noClass(SomeClass.class).should().haveNameNotMatching(regex),
                         noClass(SomeClass.class).should().haveNameMatching(regex)),
                 $(noClass(SomeClass.class).should(ArchConditions.haveNameNotMatching(regex)),
@@ -208,9 +198,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveNameMatching_rules")
-    public void noClass_should_haveNameMatching(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveNameMatching_rules")
+    void noClass_should_haveNameMatching(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
 
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -225,11 +215,10 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(regex));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveSimpleNameStartingWith_rules() {
+    static Stream<Arguments> theClass_should_haveSimpleNameStartingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(theClass(SomeClass.class).should().haveSimpleNameStartingWith(prefix),
                         theClass(SomeClass.class).should().haveSimpleNameNotStartingWith(prefix)),
                 $(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameStartingWith(prefix)),
@@ -241,9 +230,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveSimpleNameStartingWith_rules")
-    public void theClass_should_haveSimpleNameStartingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveSimpleNameStartingWith_rules")
+    void theClass_should_haveSimpleNameStartingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -258,12 +247,10 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveSimpleNameStartingWith_rules() {
-
+    static Stream<Arguments> noClass_should_haveSimpleNameStartingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(noClass(SomeClass.class).should().haveSimpleNameNotStartingWith(prefix),
                         noClass(SomeClass.class).should().haveSimpleNameStartingWith(prefix)),
                 $(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotStartingWith(prefix)),
@@ -275,9 +262,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveSimpleNameStartingWith_rules")
-    public void noClass_should_haveSimpleNameStartingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveSimpleNameStartingWith_rules")
+    void noClass_should_haveSimpleNameStartingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -292,12 +279,10 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveSimpleNameContaining_rules() {
+    static Stream<Arguments> theClass_should_haveSimpleNameContaining_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
-
-        return $$(
+        return Stream.of(
                 $(theClass(SomeClass.class).should().haveSimpleNameContaining(infix),
                         theClass(SomeClass.class).should().haveSimpleNameNotContaining(infix)),
                 $(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameContaining(infix)),
@@ -309,9 +294,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveSimpleNameContaining_rules")
-    public void theClass_should_haveSimpleNameContaining(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveSimpleNameContaining_rules")
+    void theClass_should_haveSimpleNameContaining(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -326,12 +311,10 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveSimpleNameContaining_rules() {
-
+    static Stream<Arguments> noClass_should_haveSimpleNameContaining_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(noClass(SomeClass.class).should().haveSimpleNameNotContaining(infix),
                         noClass(SomeClass.class).should().haveSimpleNameContaining(infix)),
                 $(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotContaining(infix)),
@@ -343,9 +326,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveSimpleNameContaining_rules")
-    public void noClass_should_haveSimpleNameContaining(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveSimpleNameContaining_rules")
+    void noClass_should_haveSimpleNameContaining(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -360,12 +343,11 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveSimpleNameEndingWith_rules() {
+    static Stream<Arguments> theClass_should_haveSimpleNameEndingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
 
-        return $$(
+        return Stream.of(
                 $(theClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix),
                         theClass(SomeClass.class).should().haveSimpleNameNotEndingWith(suffix)),
                 $(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameEndingWith(suffix)),
@@ -377,9 +359,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveSimpleNameEndingWith_rules")
-    public void theClass_should_haveSimpleNameEndingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveSimpleNameEndingWith_rules")
+    void theClass_should_haveSimpleNameEndingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -394,12 +376,10 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveSimpleNameEndingWith_rules() {
-
+    static Stream<Arguments> noClass_should_haveSimpleNameEndingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
-        return $$(
+        return Stream.of(
                 $(noClass(SomeClass.class).should().haveSimpleNameNotEndingWith(suffix),
                         noClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix)),
                 $(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotEndingWith(suffix)),
@@ -411,9 +391,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveSimpleNameEndingWith_rules")
-    public void noClass_should_haveSimpleNameEndingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveSimpleNameEndingWith_rules")
+    void noClass_should_haveSimpleNameEndingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -428,10 +408,9 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_resideInAPackage_rules() {
+    static Stream<Arguments> theClass_should_resideInAPackage_rules() {
         String thePackage = SomeClass.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(theClass(SomeClass.class).should().resideInAPackage(thePackage),
                         theClass(SomeClass.class).should().resideOutsideOfPackage(thePackage)),
                 $(theClass(SomeClass.class).should(ArchConditions.resideInAPackage(thePackage)),
@@ -443,9 +422,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_resideInAPackage_rules")
-    public void theClass_should_resideInAPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_resideInAPackage_rules")
+    void theClass_should_resideInAPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String thePackage = SomeClass.class.getPackage().getName();
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should reside in a package '%s'",
@@ -459,10 +438,9 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_resideInAPackage_rules() {
+    static Stream<Arguments> noClass_should_resideInAPackage_rules() {
         String thePackage = SomeClass.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(noClass(SomeClass.class).should().resideOutsideOfPackage(thePackage),
                         noClass(SomeClass.class).should().resideInAPackage(thePackage)),
                 $(noClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackage(thePackage)),
@@ -474,9 +452,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_resideInAPackage_rules")
-    public void noClass_should_resideInAPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_resideInAPackage_rules")
+    void noClass_should_resideInAPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String thePackage = SomeClass.class.getPackage().getName();
 
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
@@ -491,12 +469,10 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_resideInAnyPackage_rules() {
-
+    static Stream<Arguments> theClass_should_resideInAnyPackage_rules() {
         String firstPackage = SomeClass.class.getPackage().getName();
         String secondPackage = Object.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(theClass(SomeClass.class).should().resideInAnyPackage(firstPackage, secondPackage),
                         theClass(SomeClass.class).should().resideOutsideOfPackages(firstPackage, secondPackage)),
                 $(theClass(SomeClass.class).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
@@ -508,9 +484,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_resideInAnyPackage_rules")
-    public void theClass_should_resideInAnyPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_resideInAnyPackage_rules")
+    void theClass_should_resideInAnyPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String firstPackage = SomeClass.class.getPackage().getName();
         String secondPackage = Object.class.getPackage().getName();
         String[] packageIdentifiers = {firstPackage, secondPackage};
@@ -529,12 +505,11 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_resideInAnyPackage_rules() {
+    static Stream<Arguments> noClass_should_resideInAnyPackage_rules() {
         String firstPackage = SomeClass.class.getPackage().getName();
         String secondPackage = Object.class.getPackage().getName();
 
-        return $$(
+        return Stream.of(
                 $(noClass(SomeClass.class).should().resideOutsideOfPackages(firstPackage, secondPackage),
                         noClass(SomeClass.class).should().resideInAnyPackage(firstPackage, secondPackage)),
                 $(noClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
@@ -546,9 +521,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_resideInAnyPackage_rules")
-    public void noClass_should_resideInAnyPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_resideInAnyPackage_rules")
+    void noClass_should_resideInAnyPackage(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String firstPackage = SomeClass.class.getPackage().getName();
         String secondPackage = Object.class.getPackage().getName();
         String[] packageIdentifiers = {firstPackage, secondPackage};
@@ -567,9 +542,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_bePublic_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_bePublic_rules() {
+        return Stream.of(
                 $(theClass(SomeClass.class).should().bePublic(),
                         theClass(SomeClass.class).should().notBePublic()),
                 $(theClass(SomeClass.class).should(ArchConditions.bePublic()),
@@ -581,9 +555,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_bePublic_rules")
-    public void theClass_should_bePublic(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_bePublic_rules")
+    void theClass_should_bePublic(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should be public",
                         SomeClass.class.getName())
@@ -596,9 +570,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_bePublic_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_bePublic_rules() {
+        return Stream.of(
                 $(noClass(SomeClass.class).should().notBePublic(),
                         noClass(SomeClass.class).should().bePublic()),
                 $(noClass(SomeClass.class).should(ArchConditions.notBePublic()),
@@ -610,9 +583,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_bePublic_rules")
-    public void noClass_should_bePublic(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_bePublic_rules")
+    void noClass_should_bePublic(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not be public",
                         SomeClass.class.getName())
@@ -625,9 +598,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_bePrivate_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_bePrivate_rules() {
+        return Stream.of(
                 $(theClass(PrivateClass.class).should().bePrivate(),
                         theClass(PrivateClass.class).should().notBePrivate()),
                 $(theClass(PrivateClass.class).should(ArchConditions.bePrivate()),
@@ -639,9 +611,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_bePrivate_rules")
-    public void theClass_should_bePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_bePrivate_rules")
+    void theClass_should_bePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, PrivateClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should be private",
                         PrivateClass.class.getName())
@@ -654,9 +626,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_bePrivate_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_bePrivate_rules() {
+        return Stream.of(
                 $(noClass(PrivateClass.class).should().notBePrivate(),
                         noClass(PrivateClass.class).should().bePrivate()),
                 $(noClass(PrivateClass.class).should(ArchConditions.notBePrivate()),
@@ -668,9 +639,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_bePrivate_rules")
-    public void noClass_should_bePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_bePrivate_rules")
+    void noClass_should_bePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, PrivateClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not be private",
                         PrivateClass.class.getName())
@@ -683,9 +654,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveOnlyFinalFields_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_haveOnlyFinalFields_rules() {
+        return Stream.of(
                 $(theClass(ClassWithFinalFields.class).should().haveOnlyFinalFields(),
                         theClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields()),
                 $(theClass(ClassWithFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
@@ -697,9 +667,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveOnlyFinalFields_rules")
-    public void theClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveOnlyFinalFields_rules")
+    void theClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithFinalFields.class, ClassWithNonFinalFields.class)
                 .haveSuccessfulRuleText("the class %s should have only final fields",
                         ClassWithFinalFields.class.getName())
@@ -714,9 +684,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassWithFinalFields.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveOnlyFinalFields_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_haveOnlyFinalFields_rules() {
+        return Stream.of(
                 $(noClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields(),
                         noClass(ClassWithFinalFields.class).should().haveOnlyFinalFields()),
                 $(noClass(ClassWithNonFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
@@ -728,9 +697,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveOnlyFinalFields_rules")
-    public void noClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveOnlyFinalFields_rules")
+    void noClass_should_haveOnlyFinalFields(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithFinalFields.class, ClassWithNonFinalFields.class)
                 .haveSuccessfulRuleText("no class %s should have only final fields",
                         ClassWithNonFinalFields.class.getName())
@@ -742,16 +711,15 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] classes_should_have_only_private_constructor_rules() {
-        return testForEach(
+    static Stream<ArchRule> classes_should_have_only_private_constructor_rules() {
+        return Stream.of(
                 classes().should().haveOnlyPrivateConstructors(),
                 classes().should(haveOnlyPrivateConstructors()));
     }
 
-    @Test
-    @UseDataProvider("classes_should_have_only_private_constructor_rules")
-    public void classes_should_have_only_private_constructor(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("classes_should_have_only_private_constructor_rules")
+    void classes_should_have_only_private_constructor(ArchRule rule) {
         assertThatRule(rule).hasDescriptionContaining("classes should have only private constructors");
         assertThatRule(rule).checking(importClasses(ClassWithPrivateConstructors.class))
                 .hasNoViolation();
@@ -761,9 +729,8 @@ public class GivenClassShouldTest {
                         ClassWithPublicAndPrivateConstructor.class.getSimpleName(), 5));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_beProtected_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_beProtected_rules() {
+        return Stream.of(
                 $(theClass(ProtectedClass.class).should().beProtected(),
                         theClass(ProtectedClass.class).should().notBeProtected()),
                 $(theClass(ProtectedClass.class).should(ArchConditions.beProtected()),
@@ -775,9 +742,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_beProtected_rules")
-    public void theClass_should_beProtected(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_beProtected_rules")
+    void theClass_should_beProtected(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ProtectedClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should be protected",
                         ProtectedClass.class.getName())
@@ -790,9 +757,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_beProtected_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_beProtected_rules() {
+        return Stream.of(
                 $(noClass(ProtectedClass.class).should().notBeProtected(),
                         noClass(ProtectedClass.class).should().beProtected()),
                 $(noClass(ProtectedClass.class).should(ArchConditions.notBeProtected()),
@@ -804,9 +770,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_beProtected_rules")
-    public void noClass_should_beProtected(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_beProtected_rules")
+    void noClass_should_beProtected(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ProtectedClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not be protected",
                         ProtectedClass.class.getName())
@@ -819,9 +785,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_bePackagePrivate_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_bePackagePrivate_rules() {
+        return Stream.of(
                 $(theClass(PackagePrivateClass.class).should().bePackagePrivate(),
                         theClass(PackagePrivateClass.class).should().notBePackagePrivate()),
                 $(theClass(PackagePrivateClass.class).should(ArchConditions.bePackagePrivate()),
@@ -833,9 +798,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_bePackagePrivate_rules")
-    public void theClass_should_bePackagePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_bePackagePrivate_rules")
+    void theClass_should_bePackagePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, PackagePrivateClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should be package private",
                         PackagePrivateClass.class.getName())
@@ -856,9 +821,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_bePackagePrivate_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_bePackagePrivate_rules() {
+        return Stream.of(
                 $(noClass(PackagePrivateClass.class).should().notBePackagePrivate(),
                         noClass(PackagePrivateClass.class).should().bePackagePrivate()),
                 $(noClass(PackagePrivateClass.class).should(ArchConditions.notBePackagePrivate()),
@@ -870,9 +834,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_bePackagePrivate_rules")
-    public void noClass_should_bePackagePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_bePackagePrivate_rules")
+    void noClass_should_bePackagePrivate(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, PackagePrivateClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not be package private",
                         PackagePrivateClass.class.getName())
@@ -893,9 +857,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_haveModifier_public_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_haveModifier_public_rules() {
+        return Stream.of(
                 $(theClass(PublicClass.class).should().haveModifier(PUBLIC),
                         theClass(PublicClass.class).should().notHaveModifier(PUBLIC)),
                 $(theClass(PublicClass.class).should(ArchConditions.haveModifier(PUBLIC)),
@@ -907,9 +870,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_haveModifier_public_rules")
-    public void theClass_should_haveModifier_public(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_haveModifier_public_rules")
+    void theClass_should_haveModifier_public(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, PublicClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should have modifier %s",
                         PublicClass.class.getName(), PUBLIC)
@@ -922,9 +885,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_haveModifier_public_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_haveModifier_public_rules() {
+        return Stream.of(
                 $(noClass(PublicClass.class).should().notHaveModifier(PUBLIC),
                         noClass(PublicClass.class).should().haveModifier(PUBLIC)),
                 $(noClass(PublicClass.class).should(ArchConditions.notHaveModifier(PUBLIC)),
@@ -936,9 +898,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_haveModifier_public_rules")
-    public void noClass_should_haveModifier_public(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_haveModifier_public_rules")
+    void noClass_should_haveModifier_public(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, PublicClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not have modifier %s",
                         PublicClass.class.getName(), PUBLIC)
@@ -951,9 +913,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_beAnnotatedWith_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_beAnnotatedWith_rules() {
+        return Stream.of(
                 $(theClass(SomeAnnotatedClass.class).should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
                         theClass(SomeAnnotatedClass.class).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
                 $(theClass(SomeAnnotatedClass.class).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
@@ -965,9 +926,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_beAnnotatedWith_rules")
-    public void theClass_should_beAnnotatedWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_beAnnotatedWith_rules")
+    void theClass_should_beAnnotatedWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeAnnotatedClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should be annotated with @%s",
                         SomeAnnotatedClass.class.getName(), RuntimeRetentionAnnotation.class.getSimpleName())
@@ -980,9 +941,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_beAnnotatedWith_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_beAnnotatedWith_rules() {
+        return Stream.of(
                 $(noClass(SomeAnnotatedClass.class).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
                         noClass(SomeAnnotatedClass.class).should().beAnnotatedWith(RuntimeRetentionAnnotation.class)),
                 $(noClass(SomeAnnotatedClass.class).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
@@ -994,9 +954,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_beAnnotatedWith_rules")
-    public void noClass_should_beAnnotatedWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_beAnnotatedWith_rules")
+    void noClass_should_beAnnotatedWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeAnnotatedClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not be annotated with @%s",
                         SomeAnnotatedClass.class.getName(), RuntimeRetentionAnnotation.class.getSimpleName())
@@ -1009,9 +969,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_implement_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_implement_rules() {
+        return Stream.of(
                 $(theClass(ArrayList.class).should().implement(Collection.class),
                         theClass(ArrayList.class).should().notImplement(Collection.class)),
                 $(theClass(ArrayList.class).should(ArchConditions.implement(Collection.class)),
@@ -1023,9 +982,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_implement_rules")
-    public void theClass_should_implement(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_implement_rules")
+    void theClass_should_implement(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ArrayList.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should implement %s",
                         ArrayList.class.getName(), Collection.class.getName())
@@ -1038,9 +997,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_implement_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_implement_rules() {
+        return Stream.of(
                 $(noClass(ArrayList.class).should().notImplement(Collection.class),
                         noClass(ArrayList.class).should().implement(Collection.class)),
                 $(noClass(ArrayList.class).should(ArchConditions.notImplement(Collection.class)),
@@ -1052,9 +1010,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_implement_rules")
-    public void noClass_should_implement(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_implement_rules")
+    void noClass_should_implement(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ArrayList.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should not implement %s",
                         ArrayList.class.getName(), Collection.class.getName())
@@ -1067,9 +1025,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_beAssignableTo_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_beAssignableTo_rules() {
+        return Stream.of(
                 $(theClass(List.class).should().beAssignableTo(Collection.class),
                         theClass(List.class).should().notBeAssignableTo(Collection.class)),
                 $(theClass(List.class).should(ArchConditions.beAssignableTo(Collection.class)),
@@ -1081,9 +1038,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_beAssignableTo_rules")
-    public void theClass_should_beAssignableTo(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_beAssignableTo_rules")
+    void theClass_should_beAssignableTo(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, List.class, Collection.class)
                 .haveSuccessfulRuleText("the class %s should be assignable to %s",
                         List.class.getName(), Collection.class.getName())
@@ -1096,9 +1053,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_beAssignableTo_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_beAssignableTo_rules() {
+        return Stream.of(
                 $(noClass(List.class).should().notBeAssignableTo(Collection.class),
                         noClass(List.class).should().beAssignableTo(Collection.class)),
                 $(noClass(List.class).should(ArchConditions.notBeAssignableTo(Collection.class)),
@@ -1110,9 +1066,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_beAssignableTo_rules")
-    public void noClass_should_beAssignableTo(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_beAssignableTo_rules")
+    void noClass_should_beAssignableTo(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, List.class, Collection.class)
                 .haveSuccessfulRuleText("no class %s should not be assignable to %s",
                         List.class.getName(), Collection.class.getName())
@@ -1125,9 +1081,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_beAssignableFrom_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_beAssignableFrom_rules() {
+        return Stream.of(
                 $(theClass(Collection.class).should().beAssignableFrom(List.class),
                         theClass(Collection.class).should().notBeAssignableFrom(List.class)),
                 $(theClass(Collection.class).should(ArchConditions.beAssignableFrom(List.class)),
@@ -1139,9 +1094,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_beAssignableFrom_rules")
-    public void theClass_should_beAssignableFrom(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_beAssignableFrom_rules")
+    void theClass_should_beAssignableFrom(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, Collection.class, List.class)
                 .haveSuccessfulRuleText("the class %s should be assignable from %s",
                         Collection.class.getName(), List.class.getName())
@@ -1154,9 +1109,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_beAssignableFrom_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_beAssignableFrom_rules() {
+        return Stream.of(
                 $(noClass(Collection.class).should().notBeAssignableFrom(List.class),
                         noClass(Collection.class).should().beAssignableFrom(List.class)),
                 $(noClass(Collection.class).should(ArchConditions.notBeAssignableFrom(List.class)),
@@ -1168,9 +1122,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_beAssignableFrom_rules")
-    public void noClass_should_beAssignableFrom(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_beAssignableFrom_rules")
+    void noClass_should_beAssignableFrom(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, Collection.class, List.class)
                 .haveSuccessfulRuleText("no class %s should not be assignable from %s",
                         Collection.class.getName(), List.class.getName())
@@ -1183,9 +1137,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_getField_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_getField_rules() {
+        return Stream.of(
                 $(theClass(ClassAccessingField.class).should().getField(ClassWithField.class, "field"),
                         theClass(ClassAccessingWrongField.class).should().getField(ClassWithField.class, "field")),
                 $(theClass(ClassAccessingField.class).should(ArchConditions.getField(ClassWithField.class, "field")),
@@ -1197,9 +1150,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_getField_rules")
-    public void theClass_should_getField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_getField_rules")
+    void theClass_should_getField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("the class %s should get field %s.%s",
                         ClassAccessingField.class.getName(), ClassWithField.class.getSimpleName(), "field")
@@ -1211,9 +1164,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingField.class.getName()) + ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX + "get");
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_getField_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_getField_rules() {
+        return Stream.of(
                 $(noClass(ClassAccessingWrongField.class).should().getField(ClassWithField.class, "field"),
                         noClass(ClassAccessingField.class).should().getField(ClassWithField.class, "field")),
                 $(noClass(ClassAccessingWrongField.class).should(ArchConditions.getField(ClassWithField.class, "field")),
@@ -1225,9 +1177,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_getField_rules")
-    public void noClass_should_getField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_getField_rules")
+    void noClass_should_getField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("no class %s should get field %s.%s",
                         ClassAccessingWrongField.class.getName(), ClassWithField.class.getSimpleName(), "field")
@@ -1239,9 +1191,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_accessField_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_accessField_rules() {
+        return Stream.of(
                 $(theClass(ClassAccessingField.class).should().accessField(ClassWithField.class, "field"),
                         theClass(ClassAccessingWrongField.class).should().accessField(ClassWithField.class, "field")),
                 $(theClass(ClassAccessingField.class).should(ArchConditions.accessField(ClassWithField.class, "field")),
@@ -1253,9 +1204,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_accessField_rules")
-    public void theClass_should_accessField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_accessField_rules")
+    void theClass_should_accessField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("the class %s should access field %s.%s",
                         ClassAccessingField.class.getName(), ClassWithField.class.getSimpleName(), "field")
@@ -1267,9 +1218,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingField.class.getName()) + ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX + "accesses");
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_accessField_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_accessField_rules() {
+        return Stream.of(
                 $(noClass(ClassAccessingWrongField.class).should().accessField(ClassWithField.class, "field"),
                         noClass(ClassAccessingField.class).should().accessField(ClassWithField.class, "field")),
                 $(noClass(ClassAccessingWrongField.class).should(ArchConditions.accessField(ClassWithField.class, "field")),
@@ -1281,9 +1231,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_accessField_rules")
-    public void noClass_should_accessField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_accessField_rules")
+    void noClass_should_accessField(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("no class %s should access field %s.%s",
                         ClassAccessingWrongField.class.getName(), ClassWithField.class.getSimpleName(), "field")
@@ -1295,9 +1245,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_getFieldWhere_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_getFieldWhere_rules() {
+        return Stream.of(
                 $(theClass(ClassAccessingField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
                         theClass(ClassAccessingWrongField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class))),
                 $(theClass(ClassAccessingField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
@@ -1309,9 +1258,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_getFieldWhere_rules")
-    public void theClass_should_getFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_getFieldWhere_rules")
+    void theClass_should_getFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("the class %s should get field where target is %s",
                         ClassAccessingField.class.getName(), ClassWithField.class.getSimpleName())
@@ -1323,9 +1272,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingField.class.getSimpleName()) + ".*accesses");
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_getFieldWhere_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_getFieldWhere_rules() {
+        return Stream.of(
                 $(noClass(ClassAccessingWrongField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
                         noClass(ClassAccessingField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class))),
                 $(noClass(ClassAccessingWrongField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
@@ -1337,9 +1285,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_getFieldWhere_rules")
-    public void noClass_should_getFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_getFieldWhere_rules")
+    void noClass_should_getFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("no class %s should get field where target is %s",
                         ClassAccessingWrongField.class.getName(), ClassWithField.class.getSimpleName())
@@ -1351,9 +1299,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] theClass_should_accessFieldWhere_rules() {
-        return $$(
+    static Stream<Arguments> theClass_should_accessFieldWhere_rules() {
+        return Stream.of(
                 $(theClass(ClassAccessingField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
                         theClass(ClassAccessingWrongField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class))),
                 $(theClass(ClassAccessingField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
@@ -1366,9 +1313,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("theClass_should_accessFieldWhere_rules")
-    public void theClass_should_accessFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("theClass_should_accessFieldWhere_rules")
+    void theClass_should_accessFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("the class %s should access field where target is %s",
                         ClassAccessingField.class.getName(), ClassWithField.class.getSimpleName())
@@ -1380,9 +1327,8 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingField.class.getSimpleName()) + ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX + "accesses");
     }
 
-    @DataProvider
-    public static Object[][] noClass_should_accessFieldWhere_rules() {
-        return $$(
+    static Stream<Arguments> noClass_should_accessFieldWhere_rules() {
+        return Stream.of(
                 $(noClass(ClassAccessingWrongField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
                         noClass(ClassAccessingField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class))),
                 $(noClass(ClassAccessingWrongField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
@@ -1394,9 +1340,9 @@ public class GivenClassShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("noClass_should_accessFieldWhere_rules")
-    public void noClass_should_accessFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
+    @ParameterizedTest
+    @MethodSource("noClass_should_accessFieldWhere_rules")
+    void noClass_should_accessFieldWhere(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         assertThatRules(satisfiedRule, unsatisfiedRule, ClassWithField.class, ClassAccessingWrongField.class, ClassAccessingField.class)
                 .haveSuccessfulRuleText("no class %s should access field where target is %s",
                         ClassAccessingWrongField.class.getName(), ClassWithField.class.getSimpleName())

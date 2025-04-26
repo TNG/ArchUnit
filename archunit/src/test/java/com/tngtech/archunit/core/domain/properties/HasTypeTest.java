@@ -1,34 +1,31 @@
 package com.tngtech.archunit.core.domain.properties;
 
+import java.util.stream.Stream;
+
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class HasTypeTest {
-    @DataProvider
-    public static Object[][] type_predicates() {
-        return testForEach(
+    static Stream<DescribedPredicate<?>> type_predicates() {
+        return Stream.of(
                 HasType.Predicates.rawType(String.class),
                 HasType.Predicates.rawType(String.class.getName()),
                 HasType.Predicates.rawType(equivalentTo(String.class)));
     }
 
-    @Test
-    @UseDataProvider("type_predicates")
-    public void predicate_type(DescribedPredicate<HasType> predicate) {
+    @ParameterizedTest
+    @MethodSource("type_predicates")
+    void predicate_type(DescribedPredicate<HasType> predicate) {
         HasType matchingField = newHasType(String.class);
         HasType nonmatchingField = newHasType(Object.class);
 

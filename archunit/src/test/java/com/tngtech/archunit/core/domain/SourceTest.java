@@ -11,32 +11,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.Source.Md5sum;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.After;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 
-@RunWith(DataProviderRunner.class)
 public class SourceTest {
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         ArchConfiguration.get().reset();
     }
 
@@ -49,42 +47,40 @@ public class SourceTest {
         assertThat(source.getFileName()).as("source file name").isEmpty();
     }
 
-    @DataProvider
-    public static List<List<?>> expectedHexCodes() {
-        List<List<?>> testCases = new ArrayList<>();
-        testCases.add(ImmutableList.of(new byte[]{0}, "00"));
-        testCases.add(ImmutableList.of(new byte[]{15}, "0f"));
-        testCases.add(ImmutableList.of(new byte[]{16}, "10"));
-        testCases.add(ImmutableList.of(new byte[]{31}, "1f"));
-        testCases.add(ImmutableList.of(new byte[]{32}, "20"));
-        testCases.add(ImmutableList.of(new byte[]{(byte) 255}, "ff"));
-        testCases.add(ImmutableList.of(new byte[]{(byte) 128, 37, 45, 22, 99}, "80252d1663"));
-        return testCases;
+    static Stream<Arguments> expectedHexCodes() {
+        return Stream.of(
+            $(new byte[]{0}, "00"),
+            $(new byte[]{15}, "0f"),
+            $(new byte[]{16}, "10"),
+            $(new byte[]{31}, "1f"),
+            $(new byte[]{32}, "20"),
+            $(new byte[]{(byte) 255}, "ff"),
+            $(new byte[]{(byte) 128, 37, 45, 22, 99}, "80252d1663")
+        );
     }
 
-    @Test
-    @UseDataProvider("expectedHexCodes")
-    public void toHex_works(byte[] input, String expectedHexString) {
+    @ParameterizedTest
+    @MethodSource("expectedHexCodes")
+    void toHex_works(byte[] input, String expectedHexString) {
         assertThat(Md5sum.toHex(input)).as("Bytes").isEqualTo(expectedHexString);
     }
 
-    @DataProvider
-    public static Object[][] classes() {
-        return $$($(fileUrl()), $(jarUrl()));
+    static Stream<URL> classes() {
+        return Stream.of(fileUrl(), jarUrl());
     }
 
-    @Test
-    @UseDataProvider("classes")
-    public void calculates_md5_correctly(URL url) throws Exception {
+    @ParameterizedTest
+    @MethodSource("classes")
+    void calculates_md5_correctly(URL url) throws Exception {
         Source source = newSource(url);
 
         assertThat(source.getUri()).as("source URI").isEqualTo(url.toURI());
         assertThat(source.getMd5sum().asBytes()).isEqualTo(expectedMd5BytesAt(url));
     }
 
-    @Test
-    @UseDataProvider("classes")
-    public void equals_hashcode_and_toString(URL url) throws Exception {
+    @ParameterizedTest
+    @MethodSource("classes")
+    void equals_hashcode_and_toString(URL url) throws Exception {
         Source source = newSource(url);
         Source equalSource = newSource(url);
 
@@ -95,23 +91,21 @@ public class SourceTest {
         assertThat(source.toString()).as("source.toString()").isEqualTo(expectedToString);
     }
 
-    @DataProvider
-    public static Object[][] equalMd5Sums() {
-        return $$(
+    static Stream<Arguments> equalMd5Sums() {
+        return Stream.of(
                 $(Md5sum.UNDETERMINED, Md5sum.UNDETERMINED),
                 $(Md5sum.NOT_SUPPORTED, Md5sum.NOT_SUPPORTED),
                 $(md5sumOf("anything"), md5sumOf("anything")));
     }
 
-    @Test
-    @UseDataProvider("equalMd5Sums")
-    public void positive_equals_hashcode_of_md5sums(Md5sum first, Md5sum second) {
+    @ParameterizedTest
+    @MethodSource("equalMd5Sums")
+    void positive_equals_hashcode_of_md5sums(Md5sum first, Md5sum second) {
         assertThat(first).isEqualTo(second);
         assertThat(first.hashCode()).isEqualTo(second.hashCode());
     }
 
-    @DataProvider
-    public static List<List<?>> unequalMd5Sums() {
+    static List<Arguments> unequalMd5Sums() {
         return createUnequalTestCasesFor(
                 Md5sum.UNDETERMINED,
                 Md5sum.NOT_SUPPORTED,
@@ -119,8 +113,8 @@ public class SourceTest {
                 md5sumOf("totallyDifferent"));
     }
 
-    private static List<List<?>> createUnequalTestCasesFor(Md5sum... md5sums) {
-        List<List<?>> result = new ArrayList<>();
+    private static List<Arguments> createUnequalTestCasesFor(Md5sum... md5sums) {
+        List<Arguments> result = new ArrayList<>();
         List<Md5sum> input = ImmutableList.copyOf(md5sums);
         ArrayList<Md5sum> shifting = Lists.newArrayList(md5sums);
         for (int i = 1; i < md5sums.length; i++) {
@@ -130,15 +124,15 @@ public class SourceTest {
         return result;
     }
 
-    private static List<List<?>> zip(List<?> first, List<?> second) {
+    private static List<Arguments> zip(List<?> first, List<?> second) {
         return IntStream.range(0, first.size())
-                .mapToObj(i -> ImmutableList.of(first.get(i), second.get(i)))
+                .mapToObj(i -> $(first.get(i), second.get(i)))
                 .collect(toList());
     }
 
-    @Test
-    @UseDataProvider("unequalMd5Sums")
-    public void negative_equals_of_md5sums(Md5sum first, Md5sum second) {
+    @ParameterizedTest
+    @MethodSource("unequalMd5Sums")
+    void negative_equals_of_md5sums(Md5sum first, Md5sum second) {
         assertThat(first).isNotEqualTo(second);
     }
 
@@ -179,11 +173,11 @@ public class SourceTest {
         return ByteStreams.toByteArray(url.openStream());
     }
 
-    private static Object fileUrl() {
+    private static URL fileUrl() {
         return urlOf(SourceTest.class);
     }
 
-    private static Object jarUrl() {
+    private static URL jarUrl() {
         return urlOf(Rule.class);
     }
 }

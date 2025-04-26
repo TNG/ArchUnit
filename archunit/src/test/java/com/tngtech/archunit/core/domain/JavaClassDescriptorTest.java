@@ -5,22 +5,21 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class JavaClassDescriptorTest {
 
-    @Test
-    @UseDataProvider("primitives")
-    public void primitive_types_by_name_and_descriptor(String name, Class<?> expected) {
+    @ParameterizedTest
+    @MethodSource("primitives")
+    void primitive_types_by_name_and_descriptor(String name, Class<?> expected) {
         JavaClassDescriptor primitiveType = JavaClassDescriptor.From.name(name);
         assertThat(primitiveType.isPrimitive()).isTrue();
         assertThat(primitiveType.isArray()).isFalse();
@@ -29,9 +28,9 @@ public class JavaClassDescriptorTest {
         assertThat(primitiveType).isEquivalentTo(expected);
     }
 
-    @Test
-    @UseDataProvider("arrays")
-    public void array_types_by_name_and_canonical_name(String name, Class<?> expected) {
+    @ParameterizedTest
+    @MethodSource("arrays")
+    void array_types_by_name_and_canonical_name(String name, Class<?> expected) {
         JavaClassDescriptor arrayType = JavaClassDescriptor.From.name(name);
         assertThat(arrayType.isPrimitive()).isFalse();
         assertThat(arrayType.isArray()).isTrue();
@@ -50,15 +49,15 @@ public class JavaClassDescriptorTest {
         assertThat(objectType).isEquivalentTo(Object.class);
     }
 
-    @Test
-    @UseDataProvider(value = "primitives")
-    public void resolves_primitive_type_names(String name, Class<?> expected) {
+    @ParameterizedTest
+    @MethodSource(value = "primitives")
+    void resolves_primitive_type_names(String name, Class<?> expected) {
         assertThat(JavaClassDescriptor.From.name(name).resolveClass()).isEqualTo(expected);
     }
 
-    @Test
-    @UseDataProvider(value = "arrays")
-    public void resolves_arrays_type_names(String name, Class<?> expected) {
+    @ParameterizedTest
+    @MethodSource(value = "arrays")
+    void resolves_arrays_type_names(String name, Class<?> expected) {
         assertThat(JavaClassDescriptor.From.name(name).resolveClass()).isEqualTo(expected);
     }
 
@@ -104,9 +103,8 @@ public class JavaClassDescriptorTest {
         assertThat(specialChars.getPackageName()).isEmpty();
     }
 
-    @DataProvider
-    public static List<List<Object>> primitives() {
-        return ImmutableList.<List<Object>>builder()
+    static List<Arguments> primitives() {
+        return ImmutableList.<Arguments>builder()
                 .addAll(namesToPrimitive(void.class))
                 .addAll(namesToPrimitive(boolean.class))
                 .addAll(namesToPrimitive(byte.class))
@@ -156,15 +154,14 @@ public class JavaClassDescriptorTest {
         assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
     }
 
-    private static List<List<Object>> namesToPrimitive(Class<?> primitiveType) {
+    private static List<Arguments> namesToPrimitive(Class<?> primitiveType) {
         return ImmutableList.of(
-                ImmutableList.of(primitiveType.getName(), primitiveType),
-                ImmutableList.of(Type.getType(primitiveType).getDescriptor(), primitiveType));
+                $(primitiveType.getName(), primitiveType),
+                $(Type.getType(primitiveType).getDescriptor(), primitiveType));
     }
 
-    @DataProvider
-    public static List<List<Object>> arrays() {
-        return ImmutableList.<List<Object>>builder()
+    static List<Arguments> arrays() {
+        return ImmutableList.<Arguments>builder()
                 .addAll(namesToArray(boolean[].class))
                 .addAll(namesToArray(byte[].class))
                 .addAll(namesToArray(char[].class))
@@ -186,9 +183,9 @@ public class JavaClassDescriptorTest {
                 .build();
     }
 
-    private static List<List<Object>> namesToArray(Class<?> arrayType) {
+    private static List<Arguments> namesToArray(Class<?> arrayType) {
         return ImmutableList.of(
-                ImmutableList.of(arrayType.getName(), arrayType),
-                ImmutableList.of(arrayType.getCanonicalName(), arrayType));
+                $(arrayType.getName(), arrayType),
+                $(arrayType.getCanonicalName(), arrayType));
     }
 }

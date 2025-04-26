@@ -1,6 +1,7 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -8,20 +9,17 @@ import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg1.SomeTestClass1;
 import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg2.SomeTestClass2;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.library.metrics.TestElement.GET_DEPENDENCIES;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.fromNode;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.graph;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class LakosMetricsTest {
 
     @Test
@@ -33,9 +31,8 @@ public class LakosMetricsTest {
         assertMetrics(metrics, ExpectedMetrics.ccd(1).acd(1.0).racd(1.0).nccd(1.0));
     }
 
-    @DataProvider
-    public static Object[][] dependency_graphs_with_expected_metrics() {
-        return $$(
+    static Stream<Arguments> dependency_graphs_with_expected_metrics() {
+        return Stream.of(
                 $(
                         graph(fromNode("A").toNodes("B")),
                         ExpectedMetrics.ccd(3).acd(1.5).racd(0.75).nccd(1)
@@ -131,9 +128,9 @@ public class LakosMetricsTest {
         );
     }
 
-    @Test
-    @UseDataProvider("dependency_graphs_with_expected_metrics")
-    public void lakos_metrics_are_calculated_correctly(TestMetricsComponentDependencyGraph graph, ExpectedMetrics expectedMetrics) {
+    @ParameterizedTest
+    @MethodSource("dependency_graphs_with_expected_metrics")
+    void lakos_metrics_are_calculated_correctly(TestMetricsComponentDependencyGraph graph, ExpectedMetrics expectedMetrics) {
         LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(graph.toComponents(), GET_DEPENDENCIES);
 
         assertMetrics(metrics, " of " + graph, expectedMetrics);

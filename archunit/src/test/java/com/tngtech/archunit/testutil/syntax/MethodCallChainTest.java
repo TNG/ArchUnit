@@ -1,5 +1,7 @@
 package com.tngtech.archunit.testutil.syntax;
 
+import java.util.stream.Stream;
+
 import com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy.FiveStepsHierarchyImplementationStep1;
 import com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy.FiveStepsHierarchyImplementationStep2;
 import com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy.FiveStepsHierarchyImplementationStep3;
@@ -28,22 +30,16 @@ import com.tngtech.archunit.testutil.syntax.callchainexamples.threestepswithgene
 import com.tngtech.archunit.testutil.syntax.callchainexamples.threestepswithgenerics.ThreeStepsInterfaceStep1;
 import com.tngtech.archunit.testutil.syntax.callchainexamples.threestepswithgenerics.ThreeStepsInterfaceStep2;
 import com.tngtech.archunit.testutil.syntax.callchainexamples.threestepswithgenerics.ThreeStepsInterfaceStep3;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.testutil.syntax.MethodChoiceStrategy.chooseAllArchUnitSyntaxMethods;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class MethodCallChainTest {
-    @DataProvider
-    public static Object[][] callChainTestCases() {
-        return testForEach(
+    static Stream<CallChainTestCase<?>> callChainTestCases() {
+        return Stream.of(
                 CallChainTestCase
                         .start(ThreeStepsInterfaceStep1.class, new ThreeStepsImplementationStep1())
                         .numberOfInvocations(1)
@@ -91,9 +87,9 @@ public class MethodCallChainTest {
         );
     }
 
-    @Test
-    @UseDataProvider("callChainTestCases")
-    public <T> void run_test_cases(CallChainTestCase<T> testCase) {
+    @ParameterizedTest
+    @MethodSource("callChainTestCases")
+    <T> void run_test_cases(CallChainTestCase<T> testCase) {
         MethodCallChain callChain = createCallChainStart(testCase.startInterface, testCase.startImplementation);
 
         for (int i = 0; i < testCase.numberOfInvocations; i++) {

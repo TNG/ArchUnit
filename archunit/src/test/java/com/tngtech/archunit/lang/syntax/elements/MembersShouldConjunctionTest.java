@@ -1,27 +1,23 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.util.stream.Stream;
+
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.FailureReport;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.beDeclaredIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class MembersShouldConjunctionTest {
-    @DataProvider
-    public static Object[][] ORed_conditions() {
-        return testForEach(
+    static Stream<ArchRule> ORed_conditions() {
+        return Stream.of(
                 members()
                         .should(beDeclaredIn(RightOne.class))
                         .orShould(beDeclaredIn(RightTwo.class)),
@@ -31,9 +27,9 @@ public class MembersShouldConjunctionTest {
         );
     }
 
-    @Test
-    @UseDataProvider("ORed_conditions")
-    public void orShould_ORs_conditions(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("ORed_conditions")
+    void orShould_ORs_conditions(ArchRule rule) {
         EvaluationResult result = rule
                 .evaluate(importClasses(RightOne.class, RightTwo.class, WrongOne.class));
 
@@ -44,16 +40,15 @@ public class MembersShouldConjunctionTest {
                         RightOne.class.getName(), RightTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
                 String.format("%s and %s",
-                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightOne.class, 111),
-                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightTwo.class, 111)),
+                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightOne.class, 106),
+                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightTwo.class, 106)),
                 String.format("%s and %s",
-                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightOne.class, 113),
-                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightTwo.class, 113)));
+                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightOne.class, 108),
+                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightTwo.class, 108)));
     }
 
-    @DataProvider
-    public static Object[][] ANDed_conditions() {
-        return testForEach(
+    static Stream<ArchRule> ANDed_conditions() {
+        return Stream.of(
                 members()
                         .should(not(beDeclaredIn(WrongOne.class)))
                         .andShould(not(beDeclaredIn(WrongTwo.class))),
@@ -63,9 +58,9 @@ public class MembersShouldConjunctionTest {
         );
     }
 
-    @Test
-    @UseDataProvider("ANDed_conditions")
-    public void andShould_ANDs_conditions(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("ANDed_conditions")
+    void andShould_ANDs_conditions(ArchRule rule) {
         EvaluationResult result = rule
                 .evaluate(importClasses(RightOne.class, RightTwo.class, WrongOne.class, WrongTwo.class));
 
@@ -75,10 +70,10 @@ public class MembersShouldConjunctionTest {
                         "members should not be declared in %s and should not be declared in %s",
                         WrongOne.class.getName(), WrongTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                isDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, 111),
-                isDeclaredInMessage(WrongOne.class, "wrongMethod1", 113),
-                isDeclaredInMessage(WrongTwo.class, CONSTRUCTOR_NAME, 117),
-                isDeclaredInMessage(WrongTwo.class, "wrongMethod2", 119));
+                isDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, 106),
+                isDeclaredInMessage(WrongOne.class, "wrongMethod1", 108),
+                isDeclaredInMessage(WrongTwo.class, CONSTRUCTOR_NAME, 112),
+                isDeclaredInMessage(WrongTwo.class, "wrongMethod2", 114));
     }
 
     private String isDeclaredInMessage(Class<?> clazz, String methodName, int lineNumber) {

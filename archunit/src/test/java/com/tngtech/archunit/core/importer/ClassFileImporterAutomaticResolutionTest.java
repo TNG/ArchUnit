@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
@@ -44,11 +44,10 @@ import com.tngtech.archunit.core.importer.testexamples.annotationresolution.Anot
 import com.tngtech.archunit.core.importer.testexamples.annotationresolution.SomeAnnotationWithAnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.annotationresolution.SomeAnnotationWithClassParameter;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyresolution.Child;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getMethodCallsFromClassWithoutAutomaticNullCheck;
@@ -68,12 +67,9 @@ import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigura
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
@@ -264,10 +260,9 @@ public class ClassFileImporterAutomaticResolutionTest {
         assertThatType(someMetaMetaMetaAnnotation.getType()).matches(SomeMetaMetaMetaAnnotationWithParameters.class);
     }
 
-    @DataProvider
-    public static Object[][] elementsAnnotatedWithSomeAnnotation() {
+    static Stream<HasAnnotations<?>> elementsAnnotatedWithSomeAnnotation() {
         ImporterWithAdjustedResolutionRuns importer = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME);
-        return testForEach(
+        return Stream.of(
                 importer.importClass(MetaAnnotatedClass.class),
                 importer.importClass(ClassWithMetaAnnotatedField.class).getField("metaAnnotatedField"),
                 importer.importClass(ClassWithMetaAnnotatedMethod.class).getMethod("metaAnnotatedMethod"),
@@ -277,9 +272,9 @@ public class ClassFileImporterAutomaticResolutionTest {
         );
     }
 
-    @Test
-    @UseDataProvider("elementsAnnotatedWithSomeAnnotation")
-    public void automatically_resolves_parameters_of_meta_annotations(HasAnnotations<?> annotatedWithSomeAnnotation) {
+    @ParameterizedTest
+    @MethodSource("elementsAnnotatedWithSomeAnnotation")
+    void automatically_resolves_parameters_of_meta_annotations(HasAnnotations<?> annotatedWithSomeAnnotation) {
         JavaAnnotation<?> someAnnotation = annotatedWithSomeAnnotation
                 .getAnnotationOfType(MetaAnnotatedAnnotation.class.getName());
         JavaAnnotation<?> metaAnnotationWithParameters = someAnnotation.getRawType()
@@ -438,8 +433,7 @@ public class ClassFileImporterAutomaticResolutionTest {
         assertThat(stubType).isFullyImported(false);
     }
 
-    @DataProvider
-    public static Object[][] data_automatically_resolves_annotation_parameter_types() {
+    static List<Arguments> automatically_resolves_annotation_parameter_types() {
         @SomeAnnotationWithClassParameter(String.class)
         @SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(File.class))
         @AnotherAnnotationWithAnnotationParameter(@SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(Serializable.class)))
@@ -476,16 +470,16 @@ public class ClassFileImporterAutomaticResolutionTest {
         }
 
         ImporterWithAdjustedResolutionRuns importer = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME);
-        return FluentIterable.concat(
-                nestedAnnotationValueTestCases(importer.importClass(OnClass.class)),
-                nestedAnnotationValueTestCases(importer.importClass(OnField.class).getField("field")),
-                nestedAnnotationValueTestCases(importer.importClass(OnMethod.class).getMethod("method")),
-                nestedAnnotationValueTestCases(getOnlyElement(importer.importClass(OnConstructor.class).getConstructors())),
-                nestedAnnotationValueTestCases(getOnlyElement(importer.importClass(OnParameter.class).getConstructors()).getParameters().get(0))
-        ).toArray(Object[].class);
+        return ImmutableList.<Arguments>builder()
+                .addAll(nestedAnnotationValueTestCases(importer.importClass(OnClass.class)))
+                .addAll(nestedAnnotationValueTestCases(importer.importClass(OnField.class).getField("field")))
+                .addAll(nestedAnnotationValueTestCases(importer.importClass(OnMethod.class).getMethod("method")))
+                .addAll(nestedAnnotationValueTestCases(getOnlyElement(importer.importClass(OnConstructor.class).getConstructors())))
+                .addAll(nestedAnnotationValueTestCases(getOnlyElement(importer.importClass(OnParameter.class).getConstructors()).getParameters().get(0)))
+                .build();
     }
 
-    private static Iterable<Object[]> nestedAnnotationValueTestCases(HasAnnotations<?> hasAnnotations) {
+    private static List<Arguments> nestedAnnotationValueTestCases(HasAnnotations<?> hasAnnotations) {
         return ImmutableList.of(
                 $(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithClassParameter.class), expect(String.class)),
                 $(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithAnnotationParameter.class), expect(File.class)),
@@ -506,9 +500,9 @@ public class ClassFileImporterAutomaticResolutionTest {
         return clazz;
     }
 
-    @Test
-    @UseDataProvider
-    public void test_automatically_resolves_annotation_parameter_types(JavaClass annotationValue, Class<?> expectedType) {
+    @ParameterizedTest
+    @MethodSource
+    void automatically_resolves_annotation_parameter_types(JavaClass annotationValue, Class<?> expectedType) {
         assertThat(annotationValue).isFullyImported(true);
         assertThatType(annotationValue).matches(expectedType);
     }
@@ -621,8 +615,7 @@ public class ClassFileImporterAutomaticResolutionTest {
         assertThatType(outermost).matches(Outermost.class);
     }
 
-    @DataProvider
-    public static Object[][] data_automatically_resolves_generic_type_parameter_bounds() {
+    static Stream<Arguments> automatically_resolves_generic_type_parameter_bounds() {
         @SuppressWarnings("unused")
         class TypeParameterOnClassWithClassBound<T extends String> {
         }
@@ -668,7 +661,7 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        return $$(
+        return Stream.of(
                 $(importFirstTypeParameterClassBound(TypeParameterOnClassWithClassBound.class), String.class),
                 $(importFirstTypeParameterClassBound(TypeParameterOnClassWithInterfaceBound.class), Serializable.class),
                 $(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithClassBound.class), String.class),
@@ -682,15 +675,14 @@ public class ClassFileImporterAutomaticResolutionTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_automatically_resolves_generic_type_parameter_bounds(JavaClass bound, Class<String> expectedType) {
+    @ParameterizedTest
+    @MethodSource
+    void automatically_resolves_generic_type_parameter_bounds(JavaClass bound, Class<String> expectedType) {
         assertThat(bound).isFullyImported(true);
         assertThatType(bound).matches(expectedType);
     }
 
-    @DataProvider
-    public static Object[][] data_automatically_resolves_parameterized_generic_type_bounds() {
+    static Stream<Arguments> automatically_resolves_parameterized_generic_type_bounds() {
         @SuppressWarnings("unused")
         class InterfaceTypeParameterBoundsOnClass<T extends List<? extends Map<?, ? super Serializable>>> {
         }
@@ -736,7 +728,7 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        return $$(
+        return Stream.of(
                 $(importFirstTypeParameterClassBound(InterfaceTypeParameterBoundsOnClass.class), List.class, Map.class, Serializable.class),
                 $(importFirstTypeParameterClassBound(ClassTypeParameterBoundsOnClass.class), ArrayList.class, HashMap.class, String.class),
                 $(importFirstTypeParameterMethodBound(InterfaceTypeParameterBoundsOnMethod.class), List.class, Map.class, Serializable.class),
@@ -750,9 +742,9 @@ public class ClassFileImporterAutomaticResolutionTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_automatically_resolves_parameterized_generic_type_bounds(
+    @ParameterizedTest
+    @MethodSource
+    void automatically_resolves_parameterized_generic_type_bounds(
             JavaParameterizedType actual1stLevel,
             Class<?> expected1stLevel, Class<?> expected2ndLevel, Class<?> expected3rdLevel
     ) {

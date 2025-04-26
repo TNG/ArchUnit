@@ -2,6 +2,7 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -14,34 +15,28 @@ import com.tngtech.archunit.library.testclasses.second.any.pkg.SecondAnyClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.library.dependencies.GivenSlicesTest.TEST_CLASSES_PACKAGE;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
-@RunWith(DataProviderRunner.class)
 public class SlicesShouldTest {
-    @DataProvider
-    public static Object[][] rules() {
-        return testForEach(
+    static Stream<SliceRule> rules() {
+        return Stream.of(
                 slices().matching(TEST_CLASSES_PACKAGE + ".(*)..").should().notDependOnEachOther(),
                 slices().matching(TEST_CLASSES_PACKAGE + ".(*)..").should().beFreeOfCycles());
     }
 
-    @Test
-    @UseDataProvider("rules")
-    public void slice_rules_should_ignore_configured_dependencies(SliceRule rule) {
+    @ParameterizedTest
+    @MethodSource("rules")
+    void slice_rules_should_ignore_configured_dependencies(SliceRule rule) {
         JavaClasses classes = new ClassFileImporter().importPackages(TEST_CLASSES_PACKAGE);
 
         assertViolations(classes, rule)
@@ -79,18 +74,17 @@ public class SlicesShouldTest {
                 .doNotContain(SecondThreeAnyClass.class, SomePkgClass.class);
     }
 
-    @DataProvider
-    public static Object[][] rules_with_expected_base_description() {
-        return $$(
+    static Stream<Arguments> rules_with_expected_base_description() {
+        return Stream.of(
                 $(slices().matching("foo.(*)..").should().notDependOnEachOther(),
                         "slices matching 'foo.(*)..' should not depend on each other"),
                 $(slices().matching("foo.(*)..").should().beFreeOfCycles(),
                         "slices matching 'foo.(*)..' should be free of cycles"));
     }
 
-    @Test
-    @UseDataProvider("rules_with_expected_base_description")
-    public void chaining_messages(SliceRule rule, String baseDescription) {
+    @ParameterizedTest
+    @MethodSource("rules_with_expected_base_description")
+    void chaining_messages(SliceRule rule, String baseDescription) {
         assertThat(rule.getDescription()).isEqualTo(baseDescription);
 
         rule = rule.because("reason one");
@@ -128,14 +122,14 @@ public class SlicesShouldTest {
 
         ViolationsAssertion contain(Class<?> from, Class<?> to) {
             if (!containsMessage(from, to)) {
-                Assert.fail(String.format("Expected a message to report a dependency from %s to %s", from.getName(), to.getName()));
+                fail(String.format("Expected a message to report a dependency from %s to %s", from.getName(), to.getName()));
             }
             return this;
         }
 
         ViolationsAssertion doNotContain(Class<?> from, Class<?> to) {
             if (containsMessage(from, to)) {
-                Assert.fail(String.format("Expected no message to reports a dependency from %s to %s", from.getName(), to.getName()));
+                fail(String.format("Expected no message to reports a dependency from %s to %s", from.getName(), to.getName()));
             }
             return this;
         }

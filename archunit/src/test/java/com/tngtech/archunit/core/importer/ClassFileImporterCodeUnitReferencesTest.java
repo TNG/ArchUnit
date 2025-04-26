@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -11,19 +12,16 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.importer.testexamples.codeunitreferences.Origin;
 import com.tngtech.archunit.core.importer.testexamples.codeunitreferences.Target;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterCodeUnitReferencesTest {
 
     @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
@@ -51,9 +49,8 @@ public class ClassFileImporterCodeUnitReferencesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_static_method_references() {
-        return $$(
+    static Stream<Arguments> imports_static_method_references() {
+        return Stream.of(
                 $(
                         Data_imports_static_method_references.OriginReferencingInterface.class,
                         Data_imports_static_method_references.ReferencedInterfaceTarget.class
@@ -64,9 +61,9 @@ public class ClassFileImporterCodeUnitReferencesTest {
                 ));
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_static_method_references(Class<?> originClassInput, Class<?> targetClassInput) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_static_method_references(Class<?> originClassInput, Class<?> targetClassInput) {
         JavaClasses javaClasses = new ClassFileImporter().importClasses(originClassInput, targetClassInput);
         JavaClass originClass = javaClasses.get(originClassInput);
         JavaClass targetClass = javaClasses.get(targetClassInput);
@@ -108,9 +105,8 @@ public class ClassFileImporterCodeUnitReferencesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_instance_method_references_bound_to_instance() {
-        return $$(
+    static Stream<Arguments> imports_instance_method_references_bound_to_instance() {
+        return Stream.of(
                 $(
                         Data_imports_instance_method_references_bound_to_instance.OriginReferencingInterface.class,
                         Data_imports_instance_method_references_bound_to_instance.ReferencedInterfaceTarget.class
@@ -121,9 +117,9 @@ public class ClassFileImporterCodeUnitReferencesTest {
                 ));
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_instance_method_references_bound_to_instance(Class<?> originClassInput, Class<?> targetClassInput) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_instance_method_references_bound_to_instance(Class<?> originClassInput, Class<?> targetClassInput) {
         JavaClasses javaClasses = new ClassFileImporter().importClasses(originClassInput, targetClassInput);
         JavaClass originClass = javaClasses.get(originClassInput);
         JavaClass targetClass = javaClasses.get(targetClassInput);
@@ -161,9 +157,8 @@ public class ClassFileImporterCodeUnitReferencesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_instance_method_references_not_bound_to_instance() {
-        return $$(
+    static Stream<Arguments> imports_instance_method_references_not_bound_to_instance() {
+        return Stream.of(
                 $(
                         Data_imports_instance_method_references_not_bound_to_instance.OriginReferencingInterface.class,
                         Data_imports_instance_method_references_not_bound_to_instance.ReferencedInterfaceTarget.class
@@ -174,9 +169,9 @@ public class ClassFileImporterCodeUnitReferencesTest {
                 ));
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_instance_method_references_not_bound_to_instance(Class<?> originClassInput, Class<?> targetClassInput) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_instance_method_references_not_bound_to_instance(Class<?> originClassInput, Class<?> targetClassInput) {
         JavaClasses javaClasses = new ClassFileImporter().importClasses(originClassInput, targetClassInput);
         JavaClass originClass = javaClasses.get(originClassInput);
         JavaClass targetClass = javaClasses.get(targetClassInput);

@@ -1,7 +1,6 @@
 package com.tngtech.archunit.library;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -21,11 +20,9 @@ import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.R
 import com.tngtech.archunit.library.testclasses.onionarchitecture.application.ApplicationLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.model.DomainModelLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.service.DomainServiceLayerClass;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -40,19 +37,15 @@ import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedAcces
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedEmptyLayerPattern;
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedFieldTypePattern;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class OnionArchitectureTest {
 
-    @DataProvider
-    public static Object[][] data_onion_architecture_description() {
-        return testForEach(
+    static Stream<OnionArchitecture> onion_architecture_description() {
+        return Stream.of(
                 onionArchitecture()
                         .domainModels("onionarchitecture.domain.model..")
                         .domainServices("onionarchitecture.domain.service..")
@@ -70,9 +63,9 @@ public class OnionArchitectureTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_onion_architecture_description(OnionArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource
+    void onion_architecture_description(OnionArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
                 "Onion architecture consisting of" + lineSeparator() +
                         "domain models ('onionarchitecture.domain.model..')" + lineSeparator() +
@@ -120,9 +113,8 @@ public class OnionArchitectureTest {
         assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
     }
 
-    @DataProvider
-    public static Object[][] data_onion_architecture_gathers_all_violations() {
-        return testForEach(
+    static Stream<OnionArchitecture> onion_architecture_gathers_all_violations() {
+        return Stream.of(
                 getTestOnionArchitecture(),
                 onionArchitecture()
                         .domainModels(resideInAnyPackage(absolute("onionarchitecture.domain.model")))
@@ -134,9 +126,9 @@ public class OnionArchitectureTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_onion_architecture_gathers_all_violations(OnionArchitecture architecture) {
+    @ParameterizedTest
+    @MethodSource
+    void onion_architecture_gathers_all_violations(OnionArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
         EvaluationResult result = architecture.evaluate(classes);
@@ -182,8 +174,7 @@ public class OnionArchitectureTest {
         assertFailureOnionArchitectureWithEmptyLayers(result);
     }
 
-    @DataProvider
-    public static List<Object> ruleTextModifications() {
+    static Stream<Function<OnionArchitecture, OnionArchitecture>> ruleTextModifications() {
         return Stream.<Function<OnionArchitecture, OnionArchitecture>>of(
                 Function.identity(),
                 onionArchitecture -> onionArchitecture
@@ -193,12 +184,12 @@ public class OnionArchitectureTest {
                 onionArchitecture -> onionArchitecture
                         .as("Onion architecture consisting of (optional) changed")
                         .because("changed")
-        ).collect(toList());
+        );
     }
 
-    @Test
-    @UseDataProvider("ruleTextModifications")
-    public void onion_architecture_allows_empty_layers_if_all_layers_are_optional(Function<OnionArchitecture, OnionArchitecture> modifyRule) {
+    @ParameterizedTest
+    @MethodSource("ruleTextModifications")
+    void onion_architecture_allows_empty_layers_if_all_layers_are_optional(Function<OnionArchitecture, OnionArchitecture> modifyRule) {
         OnionArchitecture architecture = modifyRule.apply(anOnionArchitectureWithEmptyLayers().withOptionalLayers(true));
         assertThat(architecture.getDescription()).startsWith("Onion architecture consisting of (optional)");
 
@@ -219,9 +210,9 @@ public class OnionArchitectureTest {
         assertFailureOnionArchitectureWithEmptyLayers(result);
     }
 
-    @Test
-    @UseDataProvider("ruleTextModifications")
-    public void onion_architecture_ensure_all_classes_are_contained_in_architecture(Function<OnionArchitecture, OnionArchitecture> modifyRule) {
+    @ParameterizedTest
+    @MethodSource("ruleTextModifications")
+    void onion_architecture_ensure_all_classes_are_contained_in_architecture(Function<OnionArchitecture, OnionArchitecture> modifyRule) {
         JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class);
 
         OnionArchitecture architectureNotCoveringAllClasses = modifyRule.apply(onionArchitecture().withOptionalLayers(true)

@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
@@ -41,15 +42,13 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingOneDimensionalArray;
 import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingTwoDimensionalArray;
 import com.tngtech.archunit.core.importer.testexamples.arrays.ClassUsedInArray;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
@@ -98,18 +97,16 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.fail;
 
-@RunWith(DataProviderRunner.class)
 @SuppressWarnings("SameParameterValue")
 public class JavaClassTest {
 
@@ -164,8 +161,7 @@ public class JavaClassTest {
         assertThatType(twoDimArray.tryGetComponentType().get().tryGetComponentType().get()).isEqualTo(type);
     }
 
-    @DataProvider
-    public static Object[][] data_imported_array_types_match_Reflection_API() {
+    static Stream<Arguments> imported_array_types_match_reflection_api() {
         @SuppressWarnings("unused")
         class PublicClassArray {
             String[] array;
@@ -196,7 +192,7 @@ public class JavaClassTest {
         class InnerPackagePrivateClassArray {
             SomePackagePrivateClass[] array;
         }
-        return $$(
+        return Stream.of(
                 $(PublicClassArray.class, String[].class),
                 $(PublicClassMultiDimArray.class, String[][].class),
                 $(PrimitiveClassArray.class, int[].class),
@@ -207,9 +203,9 @@ public class JavaClassTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imported_array_types_match_Reflection_API(Class<?> classWithArrayField, Class<?> expectedReflectionType) {
+    @ParameterizedTest
+    @MethodSource
+    void imported_array_types_match_reflection_api(Class<?> classWithArrayField, Class<?> expectedReflectionType) {
         JavaClass classWithArray = new ClassFileImporter().importClass(classWithArrayField);
         JavaClass arrayClassObject = classWithArray.getField("array").getRawType();
 
@@ -928,8 +924,7 @@ public class JavaClassTest {
                 );
     }
 
-    @DataProvider
-    public static Object[][] data_direct_dependencies_from_self_by_code_unit_type_parameters() {
+    static Stream<JavaClass> direct_dependencies_from_self_by_code_unit_type_parameters() {
         @SuppressWarnings("unused")
         class TypeParametersOnConstructor {
             <
@@ -954,15 +949,15 @@ public class JavaClassTest {
                     > void typeParametersOnMethod() {
             }
         }
-        return testForEach(
+        return Stream.of(
                 importClasses(TypeParametersOnConstructor.class).get(TypeParametersOnConstructor.class),
                 importClasses(TypeParametersOnMethod.class).get(TypeParametersOnMethod.class)
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_direct_dependencies_from_self_by_code_unit_type_parameters(JavaClass javaClass) {
+    @ParameterizedTest
+    @MethodSource
+    void direct_dependencies_from_self_by_code_unit_type_parameters(JavaClass javaClass) {
         assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
                 .contain(from(javaClass)
                         .withExpectedDescriptionTemplate("type parameter 'FIRST' depending on")
@@ -1464,8 +1459,7 @@ public class JavaClassTest {
                 );
     }
 
-    @DataProvider
-    public static Object[][] data_direct_dependencies_to_self_by_code_unit_type_parameters() {
+    static Stream<Arguments> direct_dependencies_to_self_by_code_unit_type_parameters() {
         class ClassOtherConstructorTypeSignaturesDependOn {
         }
         @SuppressWarnings("unused")
@@ -1508,7 +1502,7 @@ public class JavaClassTest {
                 FirstDependingOnOtherThroughMethodTypeParameter.class,
                 SecondDependingOnOtherThroughMethodTypeParameter.class
         );
-        return $$(
+        return Stream.of(
                 $(
                         dependenciesThroughConstructorTypeParameters.get(FirstDependingOnOtherThroughConstructorTypeParameter.class),
                         dependenciesThroughConstructorTypeParameters.get(SecondDependingOnOtherThroughConstructorTypeParameter.class),
@@ -1522,9 +1516,9 @@ public class JavaClassTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_direct_dependencies_to_self_by_code_unit_type_parameters(JavaClass firstOrigin, JavaClass secondOrigin, JavaClass expectedTarget) {
+    @ParameterizedTest
+    @MethodSource
+    void direct_dependencies_to_self_by_code_unit_type_parameters(JavaClass firstOrigin, JavaClass secondOrigin, JavaClass expectedTarget) {
         assertThatDependencies(expectedTarget.getDirectDependenciesToSelf())
                 .contain(from(firstOrigin).to(expectedTarget).inLocation(getClass(), 0)
                         .withDescriptionContaining("type parameter 'T' depending on")
@@ -1796,9 +1790,8 @@ public class JavaClassTest {
         assertThat(assignableTo(System.class)).hasDescription("assignable to java.lang.System");
     }
 
-    @DataProvider
-    public static Object[][] implement_match_cases() {
-        return testForEach(
+    static Stream<DescribedPredicate<JavaClass>> predicate_implement_matches() {
+        return Stream.of(
                 implement(List.class),
                 implement(Collection.class),
                 implement(List.class.getName()),
@@ -1807,9 +1800,9 @@ public class JavaClassTest {
                 implement(name(Collection.class.getName())));
     }
 
-    @Test
-    @UseDataProvider("implement_match_cases")
-    public void predicate_implement_matches(DescribedPredicate<JavaClass> expectedMatch) {
+    @ParameterizedTest
+    @MethodSource
+    void predicate_implement_matches(DescribedPredicate<JavaClass> expectedMatch) {
         assertThat(expectedMatch).accepts(classWithHierarchy(ArrayList.class));
     }
 
@@ -1827,9 +1820,8 @@ public class JavaClassTest {
                 .hasMessageContaining("interface");
     }
 
-    @DataProvider
-    public static Object[][] implement_mismatch_cases() {
-        return testForEach(
+    static Stream<DescribedPredicate<JavaClass>> predicate_implement_mismatches() {
+        return Stream.of(
                 implement(HasDescription.class),
                 implement(Set.class),
                 implement(HasDescription.class.getName()),
@@ -1840,9 +1832,9 @@ public class JavaClassTest {
                 implement(name(String.class.getName())));
     }
 
-    @Test
-    @UseDataProvider("implement_mismatch_cases")
-    public void predicate_implement_mismatches(DescribedPredicate<JavaClass> expectedMismatch) {
+    @ParameterizedTest
+    @MethodSource
+    void predicate_implement_mismatches(DescribedPredicate<JavaClass> expectedMismatch) {
         assertThat(expectedMismatch).rejects(classWithHierarchy(ArrayList.class));
     }
 
@@ -1897,9 +1889,8 @@ public class JavaClassTest {
                 .hasDescription("equivalent to " + Parent.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] data_predicate_belong_to() {
-        return testForEach(
+    static Stream<DescribedPredicate<JavaClass>> predicate_belong_to() {
+        return Stream.of(
                 belongToAnyOf(Object.class, ClassWithNamedAndAnonymousInnerClasses.class),
                 belongTo(describe(
                         String.format("any of [%s, %s]", Object.class.getName(), ClassWithNamedAndAnonymousInnerClasses.class.getName()),
@@ -1907,9 +1898,9 @@ public class JavaClassTest {
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_predicate_belong_to(DescribedPredicate<JavaClass> belongToPredicate) {
+    @ParameterizedTest
+    @MethodSource
+    void predicate_belong_to(DescribedPredicate<JavaClass> belongToPredicate) {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(getClass());
         JavaClass outerAnonymous =
                 getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingOuterAnonymousInnerClass);
@@ -2207,7 +2198,7 @@ public class JavaClassTest {
     private void assertIllegalArgumentException(String expectedMessagePart, Runnable runnable) {
         try {
             runnable.run();
-            Assert.fail("Should have thrown an " + IllegalArgumentException.class.getSimpleName());
+            fail("Should have thrown an " + IllegalArgumentException.class.getSimpleName());
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage())
                     .as("Messagee of %s", IllegalArgumentException.class.getSimpleName())
