@@ -6,16 +6,13 @@ import java.util.function.Supplier;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static java.util.stream.Collectors.toSet;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterLambdaAccessesNewerJavaVersionTest {
     /**
      * This is a special case: For local constructors the Java compiler actually adds a lambda calling the constructor

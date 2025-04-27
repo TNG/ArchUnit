@@ -88,9 +88,7 @@ import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithComplex
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithSimpleTryCatchBlocks;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithTryCatchBlockWithoutThrowables;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithTryWithResources;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -124,7 +122,6 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterAccessesTest {
 
     @Test
