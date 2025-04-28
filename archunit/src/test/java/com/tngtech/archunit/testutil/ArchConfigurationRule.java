@@ -1,48 +1,38 @@
 package com.tngtech.archunit.testutil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.tngtech.archunit.ArchConfiguration;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.rules.ExternalResource;
 
+/**
+ * @deprecated use JUnit 5 and {@link ArchConfigurationExtension} instead
+ */
+@Deprecated
 public class ArchConfigurationRule extends ExternalResource {
-    public static final String FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME = "archRule.failOnEmptyShould";
-
-    private boolean beforeHasBeenExecuted = false;
-    private final List<Runnable> configurationInitializers = new ArrayList<>();
+    private final ArchConfigurationExtension configuration = new ArchConfigurationExtension();
 
     public ArchConfigurationRule resolveAdditionalDependenciesFromClassPath(boolean enabled) {
-        addConfigurationInitializer(() -> ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(enabled));
+        configuration.resolveAdditionalDependenciesFromClassPath(enabled);
         return this;
     }
 
     public ArchConfigurationRule setFailOnEmptyShould(boolean failOnEmptyShould) {
-        addConfigurationInitializer(() -> ArchConfiguration.get().setProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, String.valueOf(failOnEmptyShould)));
+        configuration.setFailOnEmptyShould(failOnEmptyShould);
         return this;
-    }
-
-    private void addConfigurationInitializer(Runnable initializer) {
-        if (beforeHasBeenExecuted) {
-            initializer.run();
-        } else {
-            configurationInitializers.add(initializer);
-        }
     }
 
     @Override
     protected void before() {
-        ArchConfiguration.get().reset();
-        for (Runnable initializer : configurationInitializers) {
-            initializer.run();
-        }
-        beforeHasBeenExecuted = true;
+        ExtensionContext unusedContext = null; // good enough for now, and ArchConfigurationRule is deprecated anyways
+        configuration.beforeEach(unusedContext);
     }
 
     @Override
     protected void after() {
-        ArchConfiguration.get().reset();
+        ExtensionContext unusedContext = null; // good enough for now, and ArchConfigurationRule is deprecated anyways
+        configuration.afterEach(unusedContext);
     }
 
     public static <T> T resetConfigurationAround(Callable<T> callable) {

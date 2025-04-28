@@ -1,8 +1,7 @@
 package com.tngtech.archunit.library.modules;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedFunction;
@@ -17,15 +16,13 @@ import com.tngtech.archunit.testutil.syntax.Parameter;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxSeed;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxTestBase;
 import com.tngtech.archunit.testutil.syntax.SingleParameterProvider;
-import com.tngtech.java.junit.dataprovider.DataProvider;
+import org.junit.jupiter.params.provider.Arguments;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.testutil.syntax.MethodChoiceStrategy.chooseAllArchUnitSyntaxMethods;
-import static java.util.stream.Collectors.toList;
 
 public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
-    @DataProvider
-    public static List<List<?>> random_rules() {
+    static Stream<Arguments> random_rules() {
         return createRandomRulesForSeeds(
                 new RandomSyntaxSeed<>(
                         givenModulesClass(),
@@ -55,9 +52,9 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
     }
 
     @SafeVarargs
-    private static List<List<?>> createRandomRulesForSeeds(RandomSyntaxSeed<? extends GivenModules<?>>... seeds) {
-        return Arrays.stream(seeds)
-                .map(seed -> RandomSyntaxTestBase.createRandomRules(
+    private static Stream<Arguments> createRandomRulesForSeeds(RandomSyntaxSeed<? extends GivenModules<?>>... seeds) {
+        return Arrays.stream(seeds).flatMap(seed ->
+                RandomSyntaxTestBase.createRandomRules(
                         RandomRulesBlueprint
                                 .seed(seed)
                                 .methodChoiceStrategy(chooseAllArchUnitSyntaxMethods().exceptMethodsWithName("ignoreDependency"))
@@ -117,10 +114,8 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                                         new ReplaceEverythingSoFar("as '([^']+)'.*", "$1"),
                                         new SingleStringReplacement("meta annotated", "meta-annotated")
                                 )
-                        )
                 )
-                .flatMap(Collection::stream)
-                .collect(toList());
+        );
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

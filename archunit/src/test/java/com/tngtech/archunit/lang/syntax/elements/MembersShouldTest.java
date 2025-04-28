@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -19,14 +20,13 @@ import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ClassWithVario
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.MetaAnnotation;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.OtherClassWithMembers;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
 import org.assertj.core.api.ThrowableAssert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
@@ -87,8 +87,7 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.allMeth
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFieldsWithType;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Collections.emptySet;
 import static java.util.regex.Pattern.quote;
 import static java.util.stream.Collectors.toList;
@@ -96,11 +95,10 @@ import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class MembersShouldTest {
 
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
 
     @Test
     public void complex_members_syntax() {
@@ -120,197 +118,195 @@ public class MembersShouldTest {
                 .matches(String.format(".*Field .*%s.* is not annotated with @B.*", FIELD_D));
     }
 
-    @DataProvider
-    public static Object[][] restricted_property_rule_ends() {
+    static List<Arguments> restricted_property_rule_ends() {
         String classNameDot = ClassWithVariousMembers.class.getName() + ".";
-        ImmutableList.Builder<Object[]> data = ImmutableList.<Object[]>builder().add(
-                $(members().should().haveName(FIELD_A), allMembersExcept(FIELD_A)),
-                $(codeUnits().should().haveName(FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS),
-                $(fields().should().haveName(FIELD_A), allFieldsExcept(FIELD_A)),
-                $(codeUnits().should().haveName("methodA"), allCodeUnitsExcept(METHOD_A)),
-                $(methods().should().haveName("methodA"), allMethodsExcept(METHOD_A)),
-                $(codeUnits().should().haveName(CONSTRUCTOR_NAME), ALL_METHOD_DESCRIPTIONS),
-                $(constructors().should().haveName(CONSTRUCTOR_NAME), emptySet()),
-                $(members().should().notHaveName(FIELD_A), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().notHaveName("methodA"), ImmutableSet.of(METHOD_A)),
-                $(fields().should().notHaveName(FIELD_A), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().notHaveName("methodA"), ImmutableSet.of(METHOD_A)),
-                $(methods().should().notHaveName("methodA"), ImmutableSet.of(METHOD_A)),
-                $(codeUnits().should().notHaveName(CONSTRUCTOR_NAME), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(constructors().should().notHaveName(CONSTRUCTOR_NAME), ALL_CONSTRUCTOR_DESCRIPTIONS),
+        return ImmutableList.<Arguments>builder().add(
+                        $(members().should().haveName(FIELD_A), allMembersExcept(FIELD_A)),
+                        $(codeUnits().should().haveName(FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS),
+                        $(fields().should().haveName(FIELD_A), allFieldsExcept(FIELD_A)),
+                        $(codeUnits().should().haveName("methodA"), allCodeUnitsExcept(METHOD_A)),
+                        $(methods().should().haveName("methodA"), allMethodsExcept(METHOD_A)),
+                        $(codeUnits().should().haveName(CONSTRUCTOR_NAME), ALL_METHOD_DESCRIPTIONS),
+                        $(constructors().should().haveName(CONSTRUCTOR_NAME), emptySet()),
+                        $(members().should().notHaveName(FIELD_A), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().notHaveName("methodA"), ImmutableSet.of(METHOD_A)),
+                        $(fields().should().notHaveName(FIELD_A), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().notHaveName("methodA"), ImmutableSet.of(METHOD_A)),
+                        $(methods().should().notHaveName("methodA"), ImmutableSet.of(METHOD_A)),
+                        $(codeUnits().should().notHaveName(CONSTRUCTOR_NAME), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(constructors().should().notHaveName(CONSTRUCTOR_NAME), ALL_CONSTRUCTOR_DESCRIPTIONS),
 
-                $(members().should().haveNameMatching("f.*A"), allMembersExcept(FIELD_A)),
-                $(codeUnits().should().haveNameMatching("f.*A"), ALL_CODE_UNIT_DESCRIPTIONS),
-                $(fields().should().haveNameMatching("f.*A"), allFieldsExcept(FIELD_A)),
-                $(codeUnits().should().haveNameMatching("m.*A"), allCodeUnitsExcept(METHOD_A)),
-                $(methods().should().haveNameMatching("m.*A"), allMethodsExcept(METHOD_A)),
-                $(codeUnits().should().haveNameMatching(".*init.*"), ALL_METHOD_DESCRIPTIONS),
-                $(constructors().should().haveNameMatching(".*init.*"), emptySet()),
-                $(members().should().haveNameNotMatching("f.*A"), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().haveNameNotMatching("f.*A"), emptySet()),
-                $(fields().should().haveNameNotMatching("f.*A"), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().haveNameNotMatching("m.*A"), ImmutableSet.of(METHOD_A)),
-                $(methods().should().haveNameNotMatching("m.*A"), ImmutableSet.of(METHOD_A)),
-                $(codeUnits().should().haveNameNotMatching(".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(constructors().should().haveNameNotMatching(".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(members().should().haveNameMatching("f.*A"), allMembersExcept(FIELD_A)),
+                        $(codeUnits().should().haveNameMatching("f.*A"), ALL_CODE_UNIT_DESCRIPTIONS),
+                        $(fields().should().haveNameMatching("f.*A"), allFieldsExcept(FIELD_A)),
+                        $(codeUnits().should().haveNameMatching("m.*A"), allCodeUnitsExcept(METHOD_A)),
+                        $(methods().should().haveNameMatching("m.*A"), allMethodsExcept(METHOD_A)),
+                        $(codeUnits().should().haveNameMatching(".*init.*"), ALL_METHOD_DESCRIPTIONS),
+                        $(constructors().should().haveNameMatching(".*init.*"), emptySet()),
+                        $(members().should().haveNameNotMatching("f.*A"), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().haveNameNotMatching("f.*A"), emptySet()),
+                        $(fields().should().haveNameNotMatching("f.*A"), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().haveNameNotMatching("m.*A"), ImmutableSet.of(METHOD_A)),
+                        $(methods().should().haveNameNotMatching("m.*A"), ImmutableSet.of(METHOD_A)),
+                        $(codeUnits().should().haveNameNotMatching(".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(constructors().should().haveNameNotMatching(".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
 
-                $(members().should().haveFullName(classNameDot + FIELD_A), allMembersExcept(FIELD_A)),
-                $(fields().should().haveFullName(classNameDot + FIELD_A), allFieldsExcept(FIELD_A)),
-                $(codeUnits().should().haveFullName(classNameDot + FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS),
-                $(methods().should().haveFullName(classNameDot + METHOD_A), allMethodsExcept(METHOD_A)),
-                $(codeUnits().should().haveFullName(classNameDot + METHOD_A), allCodeUnitsExcept(METHOD_A)),
-                $(members().should().notHaveFullName(classNameDot + FIELD_A), ImmutableSet.of(FIELD_A)),
-                $(fields().should().notHaveFullName(classNameDot + FIELD_A), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().notHaveFullName(classNameDot + FIELD_A), emptySet()),
-                $(methods().should().notHaveFullName(classNameDot + METHOD_A), ImmutableSet.of(METHOD_A)),
-                $(codeUnits().should().notHaveFullName(classNameDot + METHOD_A), ImmutableSet.of(METHOD_A)),
+                        $(members().should().haveFullName(classNameDot + FIELD_A), allMembersExcept(FIELD_A)),
+                        $(fields().should().haveFullName(classNameDot + FIELD_A), allFieldsExcept(FIELD_A)),
+                        $(codeUnits().should().haveFullName(classNameDot + FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS),
+                        $(methods().should().haveFullName(classNameDot + METHOD_A), allMethodsExcept(METHOD_A)),
+                        $(codeUnits().should().haveFullName(classNameDot + METHOD_A), allCodeUnitsExcept(METHOD_A)),
+                        $(members().should().notHaveFullName(classNameDot + FIELD_A), ImmutableSet.of(FIELD_A)),
+                        $(fields().should().notHaveFullName(classNameDot + FIELD_A), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().notHaveFullName(classNameDot + FIELD_A), emptySet()),
+                        $(methods().should().notHaveFullName(classNameDot + METHOD_A), ImmutableSet.of(METHOD_A)),
+                        $(codeUnits().should().notHaveFullName(classNameDot + METHOD_A), ImmutableSet.of(METHOD_A)),
 
-                $(members().should().haveFullNameMatching(quote(classNameDot) + ".*A\\(?\\)?"), allMembersExcept(FIELD_A, METHOD_A)),
-                $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A"), ALL_CODE_UNIT_DESCRIPTIONS),
-                $(fields().should().haveFullNameMatching(quote(classNameDot) + ".*A"), allFieldsExcept(FIELD_A)),
-                $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allCodeUnitsExcept(METHOD_A)),
-                $(methods().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allMethodsExcept(METHOD_A)),
-                $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + "..*init.*"), ALL_METHOD_DESCRIPTIONS),
-                $(constructors().should().haveFullNameMatching(quote(classNameDot) + ".*init.*String\\)"),
-                        allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
-                $(members().should().haveFullNameNotMatching(quote(classNameDot) + ".*A\\(?\\)?"), ImmutableSet.of(FIELD_A, METHOD_A)),
-                $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), emptySet()),
-                $(fields().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
-                $(methods().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
-                $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(constructors().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*String\\)"), ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
+                        $(members().should().haveFullNameMatching(quote(classNameDot) + ".*A\\(?\\)?"), allMembersExcept(FIELD_A, METHOD_A)),
+                        $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A"), ALL_CODE_UNIT_DESCRIPTIONS),
+                        $(fields().should().haveFullNameMatching(quote(classNameDot) + ".*A"), allFieldsExcept(FIELD_A)),
+                        $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allCodeUnitsExcept(METHOD_A)),
+                        $(methods().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allMethodsExcept(METHOD_A)),
+                        $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + "..*init.*"), ALL_METHOD_DESCRIPTIONS),
+                        $(constructors().should().haveFullNameMatching(quote(classNameDot) + ".*init.*String\\)"),
+                                allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
+                        $(members().should().haveFullNameNotMatching(quote(classNameDot) + ".*A\\(?\\)?"), ImmutableSet.of(FIELD_A, METHOD_A)),
+                        $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), emptySet()),
+                        $(fields().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
+                        $(methods().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
+                        $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(constructors().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*String\\)"), ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
 
-                $(members().should().haveNameStartingWith("fi"), ALL_CODE_UNIT_DESCRIPTIONS),
-                $(fields().should().haveNameStartingWith("m"), ALL_FIELD_DESCRIPTIONS),
-                $(codeUnits().should().haveNameStartingWith("<in"), ALL_METHOD_DESCRIPTIONS),
-                $(methods().should().haveNameStartingWith("met"), emptySet()),
-                $(constructors().should().haveNameStartingWith("c"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(members().should().haveNameNotStartingWith("fi"), ALL_FIELD_DESCRIPTIONS),
-                $(fields().should().haveNameNotStartingWith("m"), emptySet()),
-                $(codeUnits().should().haveNameNotStartingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(methods().should().haveNameNotStartingWith("met"), ALL_METHOD_DESCRIPTIONS),
-                $(constructors().should().haveNameNotStartingWith("c"), emptySet()),
+                        $(members().should().haveNameStartingWith("fi"), ALL_CODE_UNIT_DESCRIPTIONS),
+                        $(fields().should().haveNameStartingWith("m"), ALL_FIELD_DESCRIPTIONS),
+                        $(codeUnits().should().haveNameStartingWith("<in"), ALL_METHOD_DESCRIPTIONS),
+                        $(methods().should().haveNameStartingWith("met"), emptySet()),
+                        $(constructors().should().haveNameStartingWith("c"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(members().should().haveNameNotStartingWith("fi"), ALL_FIELD_DESCRIPTIONS),
+                        $(fields().should().haveNameNotStartingWith("m"), emptySet()),
+                        $(codeUnits().should().haveNameNotStartingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(methods().should().haveNameNotStartingWith("met"), ALL_METHOD_DESCRIPTIONS),
+                        $(constructors().should().haveNameNotStartingWith("c"), emptySet()),
 
-                $(members().should().haveNameContaining("B"), allMembersExcept(FIELD_B, METHOD_B)),
-                $(fields().should().haveNameContaining("A"), allFieldsExcept(FIELD_A)),
-                $(codeUnits().should().haveNameContaining("dB"), allCodeUnitsExcept(METHOD_B)),
-                $(methods().should().haveNameContaining("D"), allMethodsExcept(METHOD_D)),
-                $(constructors().should().haveNameContaining("ni"), emptySet()),
-                $(members().should().haveNameNotContaining("B"), ImmutableSet.of(FIELD_B, METHOD_B)),
-                $(fields().should().haveNameNotContaining("A"), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().haveNameNotContaining("dB"), ImmutableSet.of(METHOD_B)),
-                $(methods().should().haveNameNotContaining("D"), ImmutableSet.of(METHOD_D)),
-                $(constructors().should().haveNameNotContaining("ni"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(members().should().haveNameContaining("B"), allMembersExcept(FIELD_B, METHOD_B)),
+                        $(fields().should().haveNameContaining("A"), allFieldsExcept(FIELD_A)),
+                        $(codeUnits().should().haveNameContaining("dB"), allCodeUnitsExcept(METHOD_B)),
+                        $(methods().should().haveNameContaining("D"), allMethodsExcept(METHOD_D)),
+                        $(constructors().should().haveNameContaining("ni"), emptySet()),
+                        $(members().should().haveNameNotContaining("B"), ImmutableSet.of(FIELD_B, METHOD_B)),
+                        $(fields().should().haveNameNotContaining("A"), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().haveNameNotContaining("dB"), ImmutableSet.of(METHOD_B)),
+                        $(methods().should().haveNameNotContaining("D"), ImmutableSet.of(METHOD_D)),
+                        $(constructors().should().haveNameNotContaining("ni"), ALL_CONSTRUCTOR_DESCRIPTIONS),
 
-                $(members().should().haveNameEndingWith("C"), allMembersExcept(FIELD_C, METHOD_C)),
-                $(fields().should().haveNameEndingWith("dA"), allFieldsExcept(FIELD_A)),
-                $(codeUnits().should().haveNameEndingWith("it>"), ALL_METHOD_DESCRIPTIONS),
-                $(methods().should().haveNameEndingWith("dC"), allMethodsExcept(METHOD_C)),
-                $(constructors().should().haveNameEndingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(members().should().haveNameNotEndingWith("C"), ImmutableSet.of(FIELD_C, METHOD_C)),
-                $(fields().should().haveNameNotEndingWith("dA"), ImmutableSet.of(FIELD_A)),
-                $(codeUnits().should().haveNameNotEndingWith("it>"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(methods().should().haveNameNotEndingWith("dC"), ImmutableSet.of(METHOD_C)),
-                $(constructors().should().haveNameNotEndingWith("<in"), emptySet()),
+                        $(members().should().haveNameEndingWith("C"), allMembersExcept(FIELD_C, METHOD_C)),
+                        $(fields().should().haveNameEndingWith("dA"), allFieldsExcept(FIELD_A)),
+                        $(codeUnits().should().haveNameEndingWith("it>"), ALL_METHOD_DESCRIPTIONS),
+                        $(methods().should().haveNameEndingWith("dC"), allMethodsExcept(METHOD_C)),
+                        $(constructors().should().haveNameEndingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(members().should().haveNameNotEndingWith("C"), ImmutableSet.of(FIELD_C, METHOD_C)),
+                        $(fields().should().haveNameNotEndingWith("dA"), ImmutableSet.of(FIELD_A)),
+                        $(codeUnits().should().haveNameNotEndingWith("it>"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                        $(methods().should().haveNameNotEndingWith("dC"), ImmutableSet.of(METHOD_C)),
+                        $(constructors().should().haveNameNotEndingWith("<in"), emptySet()),
 
-                $(members().should().bePublic(), allMembersExcept(
-                        FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
-                $(fields().should().bePublic(), allFieldsExcept(FIELD_PUBLIC)),
-                $(codeUnits().should().bePublic(), allCodeUnitsExcept(METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
-                $(methods().should().bePublic(), allMethodsExcept(METHOD_PUBLIC)),
-                $(constructors().should().bePublic(), allConstructorsExcept(CONSTRUCTOR_PUBLIC)),
-                $(members().should().notBePublic(),
-                        ImmutableSet.of(FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
-                $(fields().should().notBePublic(), ImmutableSet.of(FIELD_C)),
-                $(codeUnits().should().notBePublic(),
-                        ImmutableSet.of(METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
-                $(methods().should().notBePublic(), ImmutableSet.of(METHOD_PUBLIC)),
-                $(constructors().should().notBePublic(), ImmutableSet.of(CONSTRUCTOR_PUBLIC)),
+                        $(members().should().bePublic(), allMembersExcept(
+                                FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
+                        $(fields().should().bePublic(), allFieldsExcept(FIELD_PUBLIC)),
+                        $(codeUnits().should().bePublic(), allCodeUnitsExcept(METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
+                        $(methods().should().bePublic(), allMethodsExcept(METHOD_PUBLIC)),
+                        $(constructors().should().bePublic(), allConstructorsExcept(CONSTRUCTOR_PUBLIC)),
+                        $(members().should().notBePublic(),
+                                ImmutableSet.of(FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
+                        $(fields().should().notBePublic(), ImmutableSet.of(FIELD_C)),
+                        $(codeUnits().should().notBePublic(),
+                                ImmutableSet.of(METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
+                        $(methods().should().notBePublic(), ImmutableSet.of(METHOD_PUBLIC)),
+                        $(constructors().should().notBePublic(), ImmutableSet.of(CONSTRUCTOR_PUBLIC)),
 
-                $(members().should().beProtected(), allMembersExcept(
-                        FIELD_PROTECTED, METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
-                $(fields().should().beProtected(), allFieldsExcept(FIELD_PROTECTED)),
-                $(codeUnits().should().beProtected(), allCodeUnitsExcept(
-                        METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
-                $(methods().should().beProtected(), allMethodsExcept(METHOD_PROTECTED)),
-                $(constructors().should().beProtected(), allConstructorsExcept(CONSTRUCTOR_PROTECTED)),
-                $(members().should().notBeProtected(),
-                        ImmutableSet.of(FIELD_PROTECTED, METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
-                $(fields().should().notBeProtected(), ImmutableSet.of(FIELD_PROTECTED)),
-                $(codeUnits().should().notBeProtected(),
-                        ImmutableSet.of(METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
-                $(methods().should().notBeProtected(), ImmutableSet.of(METHOD_PROTECTED)),
-                $(constructors().should().notBeProtected(), ImmutableSet.of(CONSTRUCTOR_PROTECTED)),
+                        $(members().should().beProtected(), allMembersExcept(
+                                FIELD_PROTECTED, METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
+                        $(fields().should().beProtected(), allFieldsExcept(FIELD_PROTECTED)),
+                        $(codeUnits().should().beProtected(), allCodeUnitsExcept(
+                                METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
+                        $(methods().should().beProtected(), allMethodsExcept(METHOD_PROTECTED)),
+                        $(constructors().should().beProtected(), allConstructorsExcept(CONSTRUCTOR_PROTECTED)),
+                        $(members().should().notBeProtected(),
+                                ImmutableSet.of(FIELD_PROTECTED, METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
+                        $(fields().should().notBeProtected(), ImmutableSet.of(FIELD_PROTECTED)),
+                        $(codeUnits().should().notBeProtected(),
+                                ImmutableSet.of(METHOD_PROTECTED, CONSTRUCTOR_PROTECTED)),
+                        $(methods().should().notBeProtected(), ImmutableSet.of(METHOD_PROTECTED)),
+                        $(constructors().should().notBeProtected(), ImmutableSet.of(CONSTRUCTOR_PROTECTED)),
 
-                $(members().should().bePackagePrivate(), allMembersExcept(
-                        FIELD_PACKAGE_PRIVATE, METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
-                $(fields().should().bePackagePrivate(), allFieldsExcept(FIELD_PACKAGE_PRIVATE)),
-                $(codeUnits().should().bePackagePrivate(), allCodeUnitsExcept(
-                        METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
-                $(methods().should().bePackagePrivate(), allMethodsExcept(METHOD_PACKAGE_PRIVATE)),
-                $(constructors().should().bePackagePrivate(), allConstructorsExcept(CONSTRUCTOR_PACKAGE_PRIVATE)),
-                $(members().should().notBePackagePrivate(),
-                        ImmutableSet.of(FIELD_PACKAGE_PRIVATE, METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
-                $(fields().should().notBePackagePrivate(), ImmutableSet.of(FIELD_PACKAGE_PRIVATE)),
-                $(codeUnits().should().notBePackagePrivate(),
-                        ImmutableSet.of(METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
-                $(methods().should().notBePackagePrivate(), ImmutableSet.of(METHOD_PACKAGE_PRIVATE)),
-                $(constructors().should().notBePackagePrivate(), ImmutableSet.of(CONSTRUCTOR_PACKAGE_PRIVATE)),
+                        $(members().should().bePackagePrivate(), allMembersExcept(
+                                FIELD_PACKAGE_PRIVATE, METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
+                        $(fields().should().bePackagePrivate(), allFieldsExcept(FIELD_PACKAGE_PRIVATE)),
+                        $(codeUnits().should().bePackagePrivate(), allCodeUnitsExcept(
+                                METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
+                        $(methods().should().bePackagePrivate(), allMethodsExcept(METHOD_PACKAGE_PRIVATE)),
+                        $(constructors().should().bePackagePrivate(), allConstructorsExcept(CONSTRUCTOR_PACKAGE_PRIVATE)),
+                        $(members().should().notBePackagePrivate(),
+                                ImmutableSet.of(FIELD_PACKAGE_PRIVATE, METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
+                        $(fields().should().notBePackagePrivate(), ImmutableSet.of(FIELD_PACKAGE_PRIVATE)),
+                        $(codeUnits().should().notBePackagePrivate(),
+                                ImmutableSet.of(METHOD_PACKAGE_PRIVATE, CONSTRUCTOR_PACKAGE_PRIVATE)),
+                        $(methods().should().notBePackagePrivate(), ImmutableSet.of(METHOD_PACKAGE_PRIVATE)),
+                        $(constructors().should().notBePackagePrivate(), ImmutableSet.of(CONSTRUCTOR_PACKAGE_PRIVATE)),
 
-                $(members().should().bePrivate(), allMembersExcept(
-                        FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(fields().should().bePrivate(), allFieldsExcept(FIELD_PRIVATE)),
-                $(codeUnits().should().bePrivate(), allCodeUnitsExcept(
-                        METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(methods().should().bePrivate(), allMethodsExcept(METHOD_PRIVATE)),
-                $(constructors().should().bePrivate(), allConstructorsExcept(CONSTRUCTOR_PRIVATE)),
-                $(members().should().notBePrivate(),
-                        ImmutableSet.of(FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(fields().should().notBePrivate(), ImmutableSet.of(FIELD_PRIVATE)),
-                $(codeUnits().should().notBePrivate(),
-                        ImmutableSet.of(METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(methods().should().notBePrivate(), ImmutableSet.of(METHOD_PRIVATE)),
-                $(constructors().should().notBePrivate(), ImmutableSet.of(CONSTRUCTOR_PRIVATE)),
+                        $(members().should().bePrivate(), allMembersExcept(
+                                FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(fields().should().bePrivate(), allFieldsExcept(FIELD_PRIVATE)),
+                        $(codeUnits().should().bePrivate(), allCodeUnitsExcept(
+                                METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(methods().should().bePrivate(), allMethodsExcept(METHOD_PRIVATE)),
+                        $(constructors().should().bePrivate(), allConstructorsExcept(CONSTRUCTOR_PRIVATE)),
+                        $(members().should().notBePrivate(),
+                                ImmutableSet.of(FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(fields().should().notBePrivate(), ImmutableSet.of(FIELD_PRIVATE)),
+                        $(codeUnits().should().notBePrivate(),
+                                ImmutableSet.of(METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(methods().should().notBePrivate(), ImmutableSet.of(METHOD_PRIVATE)),
+                        $(constructors().should().notBePrivate(), ImmutableSet.of(CONSTRUCTOR_PRIVATE)),
 
-                $(members().should().haveModifier(PRIVATE), allMembersExcept(
-                        FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(fields().should().haveModifier(PRIVATE), allFieldsExcept(FIELD_PRIVATE)),
-                $(codeUnits().should().haveModifier(PRIVATE), allCodeUnitsExcept(
-                        METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(methods().should().haveModifier(PRIVATE), allMethodsExcept(METHOD_PRIVATE)),
-                $(constructors().should().haveModifier(PRIVATE), allConstructorsExcept(CONSTRUCTOR_PRIVATE)),
-                $(members().should().notHaveModifier(PRIVATE),
-                        ImmutableSet.of(FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(fields().should().notHaveModifier(PRIVATE), ImmutableSet.of(FIELD_PRIVATE)),
-                $(codeUnits().should().notHaveModifier(PRIVATE),
-                        ImmutableSet.of(METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(methods().should().notHaveModifier(PRIVATE), ImmutableSet.of(METHOD_PRIVATE)),
-                $(constructors().should().notHaveModifier(PRIVATE), ImmutableSet.of(CONSTRUCTOR_PRIVATE)));
-
-        data.add(annotatedWithDataPoints(
-                membersShould -> membersShould.beAnnotatedWith(A.class),
-                membersShould -> membersShould.notBeAnnotatedWith(A.class)));
-        data.add(annotatedWithDataPoints(
-                membersShould -> membersShould.beAnnotatedWith(A.class.getName()),
-                membersShould -> membersShould.notBeAnnotatedWith(A.class.getName())));
-        data.add(annotatedWithDataPoints(
-                membersShould -> membersShould.beAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class))),
-                membersShould -> membersShould.notBeAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)))));
-
-        data.add(annotatedWithDataPoints(
-                membersShould -> membersShould.beMetaAnnotatedWith(MetaAnnotation.class),
-                membersShould -> membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class)));
-        data.add(annotatedWithDataPoints(
-                membersShould -> membersShould.beMetaAnnotatedWith(MetaAnnotation.class.getName()),
-                membersShould -> membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class.getName())));
-        data.add(annotatedWithDataPoints(
-                membersShould -> membersShould.beMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class))),
-                membersShould -> membersShould.notBeMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)))));
-        return data.build().toArray(new Object[0][]);
+                        $(members().should().haveModifier(PRIVATE), allMembersExcept(
+                                FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(fields().should().haveModifier(PRIVATE), allFieldsExcept(FIELD_PRIVATE)),
+                        $(codeUnits().should().haveModifier(PRIVATE), allCodeUnitsExcept(
+                                METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(methods().should().haveModifier(PRIVATE), allMethodsExcept(METHOD_PRIVATE)),
+                        $(constructors().should().haveModifier(PRIVATE), allConstructorsExcept(CONSTRUCTOR_PRIVATE)),
+                        $(members().should().notHaveModifier(PRIVATE),
+                                ImmutableSet.of(FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(fields().should().notHaveModifier(PRIVATE), ImmutableSet.of(FIELD_PRIVATE)),
+                        $(codeUnits().should().notHaveModifier(PRIVATE),
+                                ImmutableSet.of(METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
+                        $(methods().should().notHaveModifier(PRIVATE), ImmutableSet.of(METHOD_PRIVATE)),
+                        $(constructors().should().notHaveModifier(PRIVATE), ImmutableSet.of(CONSTRUCTOR_PRIVATE))
+                )
+                .addAll(annotatedWithDataPoints(
+                        membersShould -> membersShould.beAnnotatedWith(A.class),
+                        membersShould -> membersShould.notBeAnnotatedWith(A.class)))
+                .addAll(annotatedWithDataPoints(
+                        membersShould -> membersShould.beAnnotatedWith(A.class.getName()),
+                        membersShould -> membersShould.notBeAnnotatedWith(A.class.getName())))
+                .addAll(annotatedWithDataPoints(
+                        membersShould -> membersShould.beAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class))),
+                        membersShould -> membersShould.notBeAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)))))
+                .addAll(annotatedWithDataPoints(
+                        membersShould -> membersShould.beMetaAnnotatedWith(MetaAnnotation.class),
+                        membersShould -> membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class)))
+                .addAll(annotatedWithDataPoints(
+                        membersShould -> membersShould.beMetaAnnotatedWith(MetaAnnotation.class.getName()),
+                        membersShould -> membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class.getName())))
+                .addAll(annotatedWithDataPoints(
+                        membersShould -> membersShould.beMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class))),
+                        membersShould -> membersShould.notBeMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)))))
+                .build();
     }
 
-    private static Object[][] annotatedWithDataPoints(
+    private static List<Arguments> annotatedWithDataPoints(
             Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>> makeAnnotatedWithMatchingA,
             Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>> makeNotAnnotatedWithMatchingA) {
 
@@ -318,7 +314,7 @@ public class MembersShouldTest {
         Function<MembersShould<?>, MembersShouldConjunction<?>> areAnnotatedWithA = (Function) makeAnnotatedWithMatchingA;
         @SuppressWarnings({"unchecked", "rawtypes"})
         Function<MembersShould<?>, MembersShouldConjunction<?>> areNotAnnotatedWithA = (Function) makeNotAnnotatedWithMatchingA;
-        return $$(
+        return ImmutableList.of(
                 $(areAnnotatedWithA.apply(members().should()), allMembersExcept(
                         FIELD_ANNOTATED_WITH_A, METHOD_ANNOTATED_WITH_A, CONSTRUCTOR_ANNOTATED_WITH_A)),
                 $(areAnnotatedWithA.apply(fields().should()), allFieldsExcept(FIELD_ANNOTATED_WITH_A)),
@@ -335,9 +331,9 @@ public class MembersShouldTest {
                 $(areNotAnnotatedWithA.apply(constructors().should()), ImmutableSet.of(CONSTRUCTOR_ANNOTATED_WITH_A)));
     }
 
-    @Test
-    @UseDataProvider("restricted_property_rule_ends")
-    public void property_predicates(MembersShouldConjunction<?> conjunction, Set<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_property_rule_ends")
+    void property_predicates(MembersShouldConjunction<?> conjunction, Set<String> expectedMembers) {
         EvaluationResult result = conjunction
                 .evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
 
@@ -345,28 +341,24 @@ public class MembersShouldTest {
         assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
-    @DataProvider
-    public static Object[][] restricted_declaration_rule_ends() {
-        return ImmutableList.<Object[]>builder().add(
-                declaredInDataPoints(
+    static List<Arguments> restricted_declaration_rule_ends() {
+        return ImmutableList.<Arguments>builder()
+                .addAll(declaredInDataPoints(
                         membersShould -> membersShould.beDeclaredIn(ClassWithVariousMembers.class),
-                        membersShould -> membersShould.notBeDeclaredIn(ClassWithVariousMembers.class)
-                )).add(
-                declaredInDataPoints(
+                        membersShould -> membersShould.notBeDeclaredIn(ClassWithVariousMembers.class)))
+                .addAll(declaredInDataPoints(
                         membersShould -> membersShould.beDeclaredIn(ClassWithVariousMembers.class.getName()),
-                        membersShould -> membersShould.notBeDeclaredIn(ClassWithVariousMembers.class.getName())
-                )).add(
-                declaredInDataPoints(
+                        membersShould -> membersShould.notBeDeclaredIn(ClassWithVariousMembers.class.getName())))
+                .addAll(declaredInDataPoints(
                         membersShould -> membersShould.beDeclaredInClassesThat(equivalentTo(ClassWithVariousMembers.class)),
-                        membersShould -> membersShould.beDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)))
-                )).add(
-                declaredInDataPoints(
+                        membersShould -> membersShould.beDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)))))
+                .addAll(declaredInDataPoints(
                         membersShould -> membersShould.beDeclaredInClassesThat().areAssignableTo(ClassWithVariousMembers.class),
-                        membersShould -> membersShould.beDeclaredInClassesThat().areNotAssignableTo(ClassWithVariousMembers.class)
-                )).build().toArray(new Object[0][]);
+                        membersShould -> membersShould.beDeclaredInClassesThat().areNotAssignableTo(ClassWithVariousMembers.class)))
+                .build();
     }
 
-    private static Object[][] declaredInDataPoints(
+    private static List<Arguments> declaredInDataPoints(
             Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>> makeDeclaredInClassWithVariousMembers,
             Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>> makeNotDeclaredInClassWithVariousMembers) {
 
@@ -374,7 +366,7 @@ public class MembersShouldTest {
         Function<MembersShould<?>, MembersShouldConjunction<?>> areDeclaredInClass = (Function) makeDeclaredInClassWithVariousMembers;
         @SuppressWarnings({"unchecked", "rawtypes"})
         Function<MembersShould<?>, MembersShouldConjunction<?>> areNotDeclaredInClass = (Function) makeNotDeclaredInClassWithVariousMembers;
-        return $$(
+        return ImmutableList.of(
                 $(areDeclaredInClass.apply(members().should()), ALL_OTHER_MEMBER_DESCRIPTIONS),
                 $(areDeclaredInClass.apply(fields().should()), ALL_OTHER_FIELD_DESCRIPTIONS),
                 $(areDeclaredInClass.apply(codeUnits().should()), ALL_OTHER_CODE_UNIT_DESCRIPTIONS),
@@ -387,9 +379,9 @@ public class MembersShouldTest {
                 $(areNotDeclaredInClass.apply(constructors().should()), ALL_CONSTRUCTOR_DESCRIPTIONS));
     }
 
-    @Test
-    @UseDataProvider("restricted_declaration_rule_ends")
-    public void declaration_predicates(MembersShouldConjunction<?> conjunction, Set<String> expectedMessages) {
+    @ParameterizedTest
+    @MethodSource("restricted_declaration_rule_ends")
+    void declaration_predicates(MembersShouldConjunction<?> conjunction, Set<String> expectedMessages) {
         EvaluationResult result = conjunction
                 .evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
 
@@ -397,9 +389,8 @@ public class MembersShouldTest {
         assertThat(actualMembers).hasSameElementsAs(expectedMessages);
     }
 
-    @DataProvider
-    public static Object[][] haveNameStartingWith_rules() {
-        return $$(
+    static Stream<Arguments> haveNameStartingWith_rules() {
+        return Stream.of(
                 $(members().should().haveNameStartingWith("field"), "field", "violated"),
                 $(members().should(ArchConditions.haveNameStartingWith("field")), "field", "violated"),
                 $(fields().should().haveNameStartingWith("field"), "field", "violated"),
@@ -413,9 +404,9 @@ public class MembersShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameStartingWith_rules")
-    public void haveNameStartingWith(ArchRule rule, String prefix, String violatingMember) {
+    @ParameterizedTest
+    @MethodSource("haveNameStartingWith_rules")
+    void haveNameStartingWith(ArchRule rule, String prefix, String violatingMember) {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -425,9 +416,8 @@ public class MembersShouldTest {
                         locationPattern(SimpleFieldAndMethod.class)));
     }
 
-    @DataProvider
-    public static Object[][] haveNameNotStartingWith_rules() {
-        return $$(
+    static Stream<Arguments> haveNameNotStartingWith_rules() {
+        return Stream.of(
                 $(members().should().haveNameNotStartingWith("violated"), "violated"),
                 $(members().should(ArchConditions.haveNameNotStartingWith("violated")), "violated"),
                 $(fields().should().haveNameNotStartingWith("violated"), "violated"),
@@ -441,9 +431,9 @@ public class MembersShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameNotStartingWith_rules")
-    public void haveNameNotStartingWith(ArchRule rule, String prefix) {
+    @ParameterizedTest
+    @MethodSource("haveNameNotStartingWith_rules")
+    void haveNameNotStartingWith(ArchRule rule, String prefix) {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -453,9 +443,8 @@ public class MembersShouldTest {
                         locationPattern(SimpleFieldAndMethod.class)));
     }
 
-    @DataProvider
-    public static Object[][] haveNameContaining_rules() {
-        return $$(
+    static Stream<Arguments> haveNameContaining_rules() {
+        return Stream.of(
                 $(members().should().haveNameContaining("field"), "field", "violated"),
                 $(members().should(ArchConditions.haveNameContaining("field")), "field", "violated"),
                 $(fields().should().haveNameContaining("field"), "field", "violated"),
@@ -469,9 +458,9 @@ public class MembersShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameContaining_rules")
-    public void haveNameContaining(ArchRule rule, String infix, String violatingMember) {
+    @ParameterizedTest
+    @MethodSource("haveNameContaining_rules")
+    void haveNameContaining(ArchRule rule, String infix, String violatingMember) {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -481,9 +470,8 @@ public class MembersShouldTest {
                         locationPattern(SimpleFieldAndMethod.class)));
     }
 
-    @DataProvider
-    public static Object[][] haveNameNotContaining_rules() {
-        return $$(
+    static Stream<Arguments> haveNameNotContaining_rules() {
+        return Stream.of(
                 $(members().should().haveNameNotContaining("violated"), "violated"),
                 $(members().should(ArchConditions.haveNameNotContaining("violated")), "violated"),
                 $(fields().should().haveNameNotContaining("violated"), "violated"),
@@ -497,9 +485,9 @@ public class MembersShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameNotContaining_rules")
-    public void haveNameNotContaining(ArchRule rule, String infix) {
+    @ParameterizedTest
+    @MethodSource("haveNameNotContaining_rules")
+    void haveNameNotContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -509,9 +497,8 @@ public class MembersShouldTest {
                         locationPattern(SimpleFieldAndMethod.class)));
     }
 
-    @DataProvider
-    public static Object[][] haveNameEndingWith_rules() {
-        return $$(
+    static Stream<Arguments> haveNameEndingWith_rules() {
+        return Stream.of(
                 $(members().should().haveNameEndingWith("field"), "field", "violated"),
                 $(members().should(ArchConditions.haveNameEndingWith("field")), "field", "violated"),
                 $(fields().should().haveNameEndingWith("field"), "field", "violated"),
@@ -525,9 +512,9 @@ public class MembersShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameEndingWith_rules")
-    public void haveNameEndingWith(ArchRule rule, String suffix, String violatingMember) {
+    @ParameterizedTest
+    @MethodSource("haveNameEndingWith_rules")
+    void haveNameEndingWith(ArchRule rule, String suffix, String violatingMember) {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -537,9 +524,8 @@ public class MembersShouldTest {
                         locationPattern(SimpleFieldAndMethod.class)));
     }
 
-    @DataProvider
-    public static Object[][] haveNameNotEndingWith_rules() {
-        return $$(
+    static Stream<Arguments> haveNameNotEndingWith_rules() {
+        return Stream.of(
                 $(members().should().haveNameNotEndingWith("violated"), "violated"),
                 $(members().should(ArchConditions.haveNameNotEndingWith("violated")), "violated"),
                 $(fields().should().haveNameNotEndingWith("violated"), "violated"),
@@ -553,9 +539,9 @@ public class MembersShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameNotEndingWith_rules")
-    public void haveNameNotEndingWith(ArchRule rule, String suffix) {
+    @ParameterizedTest
+    @MethodSource("haveNameNotEndingWith_rules")
+    void haveNameNotEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -595,14 +581,14 @@ public class MembersShouldTest {
 
     @Test
     public void should_allow_empty_should_if_configured() {
-        configurationRule.setFailOnEmptyShould(false);
+        archConfiguration.setFailOnEmptyShould(false);
 
         ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
     }
 
     @Test
     public void should_allow_empty_should_if_overridden_by_rule() {
-        configurationRule.setFailOnEmptyShould(true);
+        archConfiguration.setFailOnEmptyShould(true);
 
         ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
     }

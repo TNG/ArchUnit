@@ -1,40 +1,37 @@
 package com.tngtech.archunit.lang;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class CompositeArchRuleTest {
     private static final boolean SATISFIED = true;
     private static final boolean UNSATISFIED = false;
 
-    @Rule
-    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
 
-    @DataProvider
-    public static Object[][] rules_to_AND() {
-        return $$(
+    static Stream<Arguments> rules_to_AND() {
+        return Stream.of(
                 $(archRuleThatSucceeds(), archRuleThatSucceeds(), SATISFIED),
                 $(archRuleThatSucceeds(), archRuleThatFails(), UNSATISFIED),
                 $(archRuleThatFails(), archRuleThatSucceeds(), UNSATISFIED),
@@ -42,18 +39,18 @@ public class CompositeArchRuleTest {
         );
     }
 
-    @Test
-    @UseDataProvider("rules_to_AND")
-    public void rules_are_ANDed(ArchRule first, ArchRule second, boolean expectedSatisfied) {
+    @ParameterizedTest
+    @MethodSource("rules_to_AND")
+    void rules_are_ANDed(ArchRule first, ArchRule second, boolean expectedSatisfied) {
         EvaluationResult result = CompositeArchRule.of(first).and(second).evaluate(importClasses(getClass()));
 
         assertThat(result.hasViolation()).as("result has violation").isEqualTo(!expectedSatisfied);
         assertPriority(result.getFailureReport().toString(), MEDIUM);
     }
 
-    @Test
-    @UseDataProvider("rules_to_AND")
-    public void archRuleCollection(ArchRule first, ArchRule second, boolean expectedSatisfied) {
+    @ParameterizedTest
+    @MethodSource("rules_to_AND")
+    void archRuleCollection(ArchRule first, ArchRule second, boolean expectedSatisfied) {
         List<ArchRule> ruleCollection = ImmutableList.of(first, second);
         EvaluationResult result = CompositeArchRule.of(ruleCollection).evaluate(importClasses(getClass()));
 
@@ -100,14 +97,14 @@ public class CompositeArchRuleTest {
 
     @Test
     public void should_allow_empty_should_if_configured() {
-        archConfigurationRule.setFailOnEmptyShould(false);
+        archConfiguration.setFailOnEmptyShould(false);
 
         compositeRuleWithPartialEmptyShould().check(new ClassFileImporter().importClasses(Object.class));
     }
 
     @Test
     public void allows_empty_should_if_overridden_by_rule() {
-        archConfigurationRule.setFailOnEmptyShould(true);
+        archConfiguration.setFailOnEmptyShould(true);
 
         compositeRuleWithPartialEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(Object.class));
     }

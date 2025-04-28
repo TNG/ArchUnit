@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -32,14 +33,13 @@ import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.WrongNamedClass;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
@@ -72,31 +72,27 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
     static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
 
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
 
-    @DataProvider
-    public static Object[][] haveFullyQualifiedName_rules() {
-        return $$(
+    static Stream<Arguments> haveFullyQualifiedName_rules() {
+        return Stream.of(
                 $(classes().should().haveFullyQualifiedName(SomeClass.class.getName())),
                 $(classes().should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())))
         );
     }
 
-    @Test
-    @UseDataProvider("haveFullyQualifiedName_rules")
-    public void haveFullyQualifiedName(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("haveFullyQualifiedName_rules")
+    void haveFullyQualifiedName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(SomeClass.class, WrongNamedClass.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -108,17 +104,16 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.*name.*", quote(SomeClass.class.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notHaveFullyQualifiedName_rules() {
-        return $$(
+    static Stream<Arguments> notHaveFullyQualifiedName_rules() {
+        return Stream.of(
                 $(classes().should().notHaveFullyQualifiedName(WrongNamedClass.class.getName())),
                 $(classes().should(ArchConditions.notHaveFullyQualifiedName(WrongNamedClass.class.getName())))
         );
     }
 
-    @Test
-    @UseDataProvider("notHaveFullyQualifiedName_rules")
-    public void notHaveFullyQualifiedName(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("notHaveFullyQualifiedName_rules")
+    void notHaveFullyQualifiedName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -128,17 +123,16 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("<%s>.*name", SomeClass.class.getName()));
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleName_rules() {
-        return $$(
+    static Stream<Arguments> haveSimpleName_rules() {
+        return Stream.of(
                 $(classes().should().haveSimpleName(SomeClass.class.getSimpleName())),
                 $(classes().should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())))
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleName_rules")
-    public void haveSimpleName(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleName_rules")
+    void haveSimpleName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -151,17 +145,16 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.*simple name.*", SomeClass.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] notHaveSimpleName_rules() {
-        return $$(
+    static Stream<Arguments> notHaveSimpleName_rules() {
+        return Stream.of(
                 $(classes().should().notHaveSimpleName(WrongNamedClass.class.getSimpleName())),
                 $(classes().should(ArchConditions.notHaveSimpleName(WrongNamedClass.class.getSimpleName())))
         );
     }
 
-    @Test
-    @UseDataProvider("notHaveSimpleName_rules")
-    public void notHaveSimpleName(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("notHaveSimpleName_rules")
+    void notHaveSimpleName(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -174,18 +167,17 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.*simple name.*", SomeClass.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] haveNameMatching_rules() {
+    static Stream<Arguments> haveNameMatching_rules() {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
-        return $$(
+        return Stream.of(
                 $(classes().should().haveNameMatching(regex), regex),
                 $(classes().should(ArchConditions.haveNameMatching(regex)), regex)
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameMatching_rules")
-    public void haveNameMatching(ArchRule rule, String regex) {
+    @ParameterizedTest
+    @MethodSource("haveNameMatching_rules")
+    void haveNameMatching(ArchRule rule, String regex) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -198,18 +190,17 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("%s", SomeClass.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] haveNameNotMatching_rules() {
+    static Stream<Arguments> haveNameNotMatching_rules() {
         String regex = containsPartOfRegex(WrongNamedClass.class.getSimpleName());
-        return $$(
+        return Stream.of(
                 $(classes().should().haveNameNotMatching(regex), regex),
                 $(classes().should(ArchConditions.haveNameNotMatching(regex)), regex)
         );
     }
 
-    @Test
-    @UseDataProvider("haveNameNotMatching_rules")
-    public void haveNameNotMatching(ArchRule rule, String regex) {
+    @ParameterizedTest
+    @MethodSource("haveNameNotMatching_rules")
+    void haveNameNotMatching(ArchRule rule, String regex) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -222,19 +213,18 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("%s", SomeClass.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleNameStartingWith_rules() {
+    static Stream<Arguments> haveSimpleNameStartingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(classes().should().haveSimpleNameStartingWith(prefix), prefix),
                 $(classes().should(ArchConditions.haveSimpleNameStartingWith(prefix)), prefix)
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleNameStartingWith_rules")
-    public void haveSimpleNameStartingWith(ArchRule rule, String prefix) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleNameStartingWith_rules")
+    void haveSimpleNameStartingWith(ArchRule rule, String prefix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -247,19 +237,18 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleNameNotStartingWith_rules() {
+    static Stream<Arguments> haveSimpleNameNotStartingWith_rules() {
         String simpleName = WrongNamedClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(classes().should().haveSimpleNameNotStartingWith(prefix), prefix),
                 $(classes().should(ArchConditions.haveSimpleNameNotStartingWith(prefix)), prefix)
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleNameNotStartingWith_rules")
-    public void haveSimpleNameNotStartingWith(ArchRule rule, String prefix) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleNameNotStartingWith_rules")
+    void haveSimpleNameNotStartingWith(ArchRule rule, String prefix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -272,19 +261,18 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleNameContaining_rules() {
+    static Stream<Arguments> haveSimpleNameContaining_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(classes().should().haveSimpleNameContaining(infix), infix),
                 $(classes().should(ArchConditions.haveSimpleNameContaining(infix)), infix)
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleNameContaining_rules")
-    public void haveSimpleNameContaining(ArchRule rule, String infix) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleNameContaining_rules")
+    void haveSimpleNameContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -297,19 +285,18 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleNameNotContaining_rules() {
+    static Stream<Arguments> haveSimpleNameNotContaining_rules() {
         String simpleName = WrongNamedClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
-        return $$(
+        return Stream.of(
                 $(classes().should().haveSimpleNameNotContaining(infix), infix),
                 $(classes().should(ArchConditions.haveSimpleNameNotContaining(infix)), infix)
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleNameNotContaining_rules")
-    public void haveSimpleNameNotContaining(ArchRule rule, String infix) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleNameNotContaining_rules")
+    void haveSimpleNameNotContaining(ArchRule rule, String infix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -322,19 +309,18 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleNameEndingWith_rules() {
+    static Stream<Arguments> haveSimpleNameEndingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
-        return $$(
+        return Stream.of(
                 $(classes().should().haveSimpleNameEndingWith(suffix), suffix),
                 $(classes().should(ArchConditions.haveSimpleNameEndingWith(suffix)), suffix)
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleNameEndingWith_rules")
-    public void haveSimpleNameEndingWith(ArchRule rule, String suffix) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleNameEndingWith_rules")
+    void haveSimpleNameEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -347,19 +333,18 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] haveSimpleNameNotEndingWith_rules() {
+    static Stream<Arguments> haveSimpleNameNotEndingWith_rules() {
         String simpleName = WrongNamedClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
-        return $$(
+        return Stream.of(
                 $(classes().should().haveSimpleNameNotEndingWith(suffix), suffix),
                 $(classes().should(ArchConditions.haveSimpleNameNotEndingWith(suffix)), suffix)
         );
     }
 
-    @Test
-    @UseDataProvider("haveSimpleNameNotEndingWith_rules")
-    public void haveSimpleNameNotEndingWith(ArchRule rule, String suffix) {
+    @ParameterizedTest
+    @MethodSource("haveSimpleNameNotEndingWith_rules")
+    void haveSimpleNameNotEndingWith(ArchRule rule, String suffix) {
         EvaluationResult result = rule.evaluate(importClasses(
                 SomeClass.class, WrongNamedClass.class));
 
@@ -372,18 +357,17 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
-    @DataProvider
-    public static Object[][] resideInAPackage_rules() {
+    static Stream<Arguments> resideInAPackage_rules() {
         String thePackage = ArchRule.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(classes().should().resideInAPackage(thePackage), thePackage),
                 $(classes().should(ArchConditions.resideInAPackage(thePackage)), thePackage)
         );
     }
 
-    @Test
-    @UseDataProvider("resideInAPackage_rules")
-    public void resideInAPackage(ArchRule rule, String packageIdentifier) {
+    @ParameterizedTest
+    @MethodSource("resideInAPackage_rules")
+    void resideInAPackage(ArchRule rule, String packageIdentifier) {
         checkTestStillValid(packageIdentifier,
                 ImmutableSet.of(ArchRule.class, ArchCondition.class),
                 ImmutableSet.of(ArchConfiguration.class),
@@ -400,11 +384,10 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("%s", ArchCondition.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] resideInAnyPackage_rules() {
+    static Stream<Arguments> resideInAnyPackage_rules() {
         String firstPackage = ArchRule.class.getPackage().getName();
         String secondPackage = ArchConfiguration.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(classes().should().resideInAnyPackage(firstPackage, secondPackage),
                         new String[]{firstPackage, secondPackage}),
                 $(classes().should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
@@ -412,9 +395,9 @@ public class ClassesShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("resideInAnyPackage_rules")
-    public void resideInAnyPackage(ArchRule rule, String... packageIdentifiers) {
+    @ParameterizedTest
+    @MethodSource("resideInAnyPackage_rules")
+    void resideInAnyPackage(ArchRule rule, String... packageIdentifiers) {
         checkTestStillValid(packageIdentifiers,
                 ImmutableSet.of(ArchRule.class, ArchConfiguration.class),
                 ImmutableSet.of(GivenObjects.class));
@@ -429,18 +412,17 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("%s", ArchConfiguration.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] resideOutsideOfPackage_rules() {
+    static Stream<Arguments> resideOutsideOfPackage_rules() {
         String thePackage = ArchRule.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(classes().should().resideOutsideOfPackage(thePackage), thePackage),
                 $(classes().should(ArchConditions.resideOutsideOfPackage(thePackage)), thePackage)
         );
     }
 
-    @Test
-    @UseDataProvider("resideOutsideOfPackage_rules")
-    public void resideOutsideOfPackage(ArchRule rule, String packageIdentifier) {
+    @ParameterizedTest
+    @MethodSource("resideOutsideOfPackage_rules")
+    void resideOutsideOfPackage(ArchRule rule, String packageIdentifier) {
         checkTestStillValid(packageIdentifier,
                 ImmutableSet.of(ArchRule.class, ArchCondition.class),
                 ImmutableSet.of(ArchConfiguration.class),
@@ -457,11 +439,10 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("%s", GivenObjects.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] resideOutsideOfPackages_rules() {
+    static Stream<Arguments> resideOutsideOfPackages_rules() {
         String firstPackage = ArchRule.class.getPackage().getName();
         String secondPackage = ArchConfiguration.class.getPackage().getName();
-        return $$(
+        return Stream.of(
                 $(classes().should().resideOutsideOfPackages(firstPackage, secondPackage),
                         new String[]{firstPackage, secondPackage}),
                 $(classes().should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
@@ -469,9 +450,9 @@ public class ClassesShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("resideOutsideOfPackages_rules")
-    public void resideOutsideOfPackages(ArchRule rule, String... packageIdentifiers) {
+    @ParameterizedTest
+    @MethodSource("resideOutsideOfPackages_rules")
+    void resideOutsideOfPackages(ArchRule rule, String... packageIdentifiers) {
         checkTestStillValid(packageIdentifiers,
                 ImmutableSet.of(ArchRule.class, ArchConfiguration.class),
                 ImmutableSet.of(GivenObjects.class));
@@ -486,9 +467,8 @@ public class ClassesShouldTest {
                 .doesNotContain(String.format("%s", GivenObjects.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] visibility_rules() {
-        return $$(
+    static Stream<Arguments> visibility_rules() {
+        return Stream.of(
                 $(classes().should().bePublic(), PUBLIC, PublicClass.class, PrivateClass.class),
                 $(classes().should(bePublic()), PUBLIC, PublicClass.class, PrivateClass.class),
                 $(classes().should().beProtected(), PROTECTED, ProtectedClass.class, PrivateClass.class),
@@ -497,10 +477,9 @@ public class ClassesShouldTest {
                 $(classes().should(bePrivate()), PRIVATE, PrivateClass.class, PublicClass.class));
     }
 
-    @Test
-    @UseDataProvider("visibility_rules")
-    public void visibility(ArchRule rule, JavaModifier modifier,
-            Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("visibility_rules")
+    void visibility(ArchRule rule, JavaModifier modifier, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -509,9 +488,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.* modifier %s.*", quote(satisfied.getName()), modifier));
     }
 
-    @DataProvider
-    public static Object[][] not_visibility_rules() {
-        return $$(
+    static Stream<Arguments> not_visibility_rules() {
+        return Stream.of(
                 $(classes().should().notBePublic(), PUBLIC, PrivateClass.class, PublicClass.class),
                 $(classes().should(notBePublic()), PUBLIC, PrivateClass.class, PublicClass.class),
                 $(classes().should().notBeProtected(), PROTECTED, PrivateClass.class, ProtectedClass.class),
@@ -520,10 +498,9 @@ public class ClassesShouldTest {
                 $(classes().should(notBePrivate()), PRIVATE, PublicClass.class, PrivateClass.class));
     }
 
-    @Test
-    @UseDataProvider("not_visibility_rules")
-    public void notVisibility(ArchRule rule, JavaModifier modifier,
-            Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("not_visibility_rules")
+    void notVisibility(ArchRule rule, JavaModifier modifier, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -532,16 +509,15 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.* modifier %s.*", quote(satisfied.getName()), modifier));
     }
 
-    @DataProvider
-    public static Object[][] package_private_visibility_rules() {
-        return $$(
+    static Stream<Arguments> package_private_visibility_rules() {
+        return Stream.of(
                 $(classes().should().bePackagePrivate(), "be package private"),
                 $(classes().should(bePackagePrivate()), "be package private"));
     }
 
-    @Test
-    @UseDataProvider("package_private_visibility_rules")
-    public void package_private_visibility(ArchRule rule, String description) {
+    @ParameterizedTest
+    @MethodSource("package_private_visibility_rules")
+    void package_private_visibility(ArchRule rule, String description) {
         EvaluationResult result = rule.evaluate(importClasses(PackagePrivateClass.class, PrivateClass.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -550,16 +526,15 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.* modifier.*", quote(PackagePrivateClass.class.getName())));
     }
 
-    @DataProvider
-    public static Object[][] non_package_private_visibility_rules() {
-        return $$(
+    static Stream<Arguments> non_package_private_visibility_rules() {
+        return Stream.of(
                 $(classes().should().notBePackagePrivate(), "not be package private"),
                 $(classes().should(notBePackagePrivate()), "not be package private"));
     }
 
-    @Test
-    @UseDataProvider("non_package_private_visibility_rules")
-    public void non_package_private_visibility(ArchRule rule, String description) {
+    @ParameterizedTest
+    @MethodSource("non_package_private_visibility_rules")
+    void non_package_private_visibility(ArchRule rule, String description) {
         EvaluationResult result = rule.evaluate(importClasses(PrivateClass.class, PackagePrivateClass.class));
 
         assertThat(singleLineFailureReportOf(result))
@@ -571,9 +546,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.* modifier.*", quote(PrivateClass.class.getName())));
     }
 
-    @DataProvider
-    public static Object[][] modifiers_rules() {
-        return $$(
+    static Stream<Arguments> modifiers_rules() {
+        return Stream.of(
                 $(classes().should().haveModifier(PUBLIC), "", PUBLIC,
                         PublicClass.class, PrivateClass.class),
                 $(classes().should(haveModifier(PUBLIC)), "", PUBLIC,
@@ -584,10 +558,10 @@ public class ClassesShouldTest {
                         PrivateClass.class, PublicClass.class));
     }
 
-    @Test
-    @UseDataProvider("modifiers_rules")
-    public void modifiers(ArchRule rule, String havePrefix, JavaModifier modifier,
-            Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("modifiers_rules")
+    void modifiers(ArchRule rule, String havePrefix, JavaModifier modifier,
+                Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -597,9 +571,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.* modifier %s.*", quote(satisfied.getName()), modifier));
     }
 
-    @DataProvider
-    public static Object[][] annotated_rules() {
-        return $$(
+    static Stream<Arguments> annotated_rules() {
+        return Stream.of(
                 $(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
                         SomeAnnotatedClass.class, String.class),
                 $(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
@@ -614,9 +587,9 @@ public class ClassesShouldTest {
                         SomeAnnotatedClass.class, String.class));
     }
 
-    @Test
-    @UseDataProvider("annotated_rules")
-    public void annotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
+    @ParameterizedTest
+    @MethodSource("annotated_rules")
+    void annotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
         EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
 
         assertThat(singleLineFailureReportOf(result))
@@ -640,9 +613,8 @@ public class ClassesShouldTest {
         expectInvalidSyntaxUsageForRetentionSource(() -> classes().should().beAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
-    @DataProvider
-    public static Object[][] notAnnotated_rules() {
-        return $$(
+    static Stream<Arguments> notAnnotated_rules() {
+        return Stream.of(
                 $(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
                         String.class, SomeAnnotatedClass.class),
                 $(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
@@ -657,9 +629,9 @@ public class ClassesShouldTest {
                         String.class, SomeAnnotatedClass.class));
     }
 
-    @Test
-    @UseDataProvider("notAnnotated_rules")
-    public void notAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
+    @ParameterizedTest
+    @MethodSource("notAnnotated_rules")
+    void notAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
         EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
 
         assertThat(singleLineFailureReportOf(result))
@@ -671,9 +643,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.*annotated.*", quote(correctClass.getName())));
     }
 
-    @DataProvider
-    public static Object[][] metaAnnotated_rules() {
-        return $$(
+    static Stream<Arguments> metaAnnotated_rules() {
+        return Stream.of(
                 $(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class),
                         SomeAnnotatedClass.class, String.class),
                 $(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class)),
@@ -688,9 +659,9 @@ public class ClassesShouldTest {
                         SomeAnnotatedClass.class, String.class));
     }
 
-    @Test
-    @UseDataProvider("metaAnnotated_rules")
-    public void metaAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
+    @ParameterizedTest
+    @MethodSource("metaAnnotated_rules")
+    void metaAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
         EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
 
         assertThat(singleLineFailureReportOf(result))
@@ -702,9 +673,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.*meta-annotated.*", quote(correctClass.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notMetaAnnotated_rules() {
-        return $$(
+    static Stream<Arguments> notMetaAnnotated_rules() {
+        return Stream.of(
                 $(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class),
                         String.class, SomeAnnotatedClass.class),
                 $(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class)),
@@ -719,9 +689,9 @@ public class ClassesShouldTest {
                         String.class, SomeAnnotatedClass.class));
     }
 
-    @Test
-    @UseDataProvider("notMetaAnnotated_rules")
-    public void notMetaAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
+    @ParameterizedTest
+    @MethodSource("notMetaAnnotated_rules")
+    void notMetaAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
         EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
 
         assertThat(singleLineFailureReportOf(result))
@@ -745,9 +715,8 @@ public class ClassesShouldTest {
         expectInvalidSyntaxUsageForRetentionSource(() -> classes().should().notBeAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
-    @DataProvider
-    public static Object[][] implement_satisfied_rules() {
-        return $$(
+    static Stream<Arguments> implement_satisfied_rules() {
+        return Stream.of(
                 $(classes().should().implement(Collection.class), ArrayList.class),
                 $(classes().should(ArchConditions.implement(Collection.class)), ArrayList.class),
                 $(classes().should().implement(Collection.class.getName()), ArrayList.class),
@@ -756,9 +725,9 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.implement(name(Collection.class.getName()).as(Collection.class.getName()))), ArrayList.class));
     }
 
-    @Test
-    @UseDataProvider("implement_satisfied_rules")
-    public void implement_satisfied(ArchRule rule, Class<?> satisfied) {
+    @ParameterizedTest
+    @MethodSource("implement_satisfied_rules")
+    void implement_satisfied(ArchRule rule, Class<?> satisfied) {
         EvaluationResult result = rule.evaluate(importHierarchies(satisfied));
 
         assertThat(singleLineFailureReportOf(result))
@@ -772,33 +741,32 @@ public class ClassesShouldTest {
         expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> classes().should().implement(AbstractList.class));
     }
 
-    @DataProvider
-    public static List<List<?>> implement_not_satisfied_rules() {
-        return ImmutableList.<List<?>>builder()
+    static List<Arguments> implement_not_satisfied_rules() {
+        return ImmutableList.<Arguments>builder()
                 .addAll(implementNotSatisfiedCases(Collection.class, List.class))
                 .addAll(implementNotSatisfiedCases(Set.class, ArrayList.class))
                 .build();
     }
 
-    private static List<List<?>> implementNotSatisfiedCases(Class<?> classToCheckAgainst, Class<?> violating) {
+    private static List<Arguments> implementNotSatisfiedCases(Class<?> classToCheckAgainst, Class<?> violating) {
         return ImmutableList.of(
-                ImmutableList.of(classes().should().implement(classToCheckAgainst),
+                $(classes().should().implement(classToCheckAgainst),
                         classToCheckAgainst, violating),
-                ImmutableList.of(classes().should(ArchConditions.implement(classToCheckAgainst)),
+                $(classes().should(ArchConditions.implement(classToCheckAgainst)),
                         classToCheckAgainst, violating),
-                ImmutableList.of(classes().should().implement(classToCheckAgainst.getName()),
+                $(classes().should().implement(classToCheckAgainst.getName()),
                         classToCheckAgainst, violating),
-                ImmutableList.of(classes().should(ArchConditions.implement(classToCheckAgainst.getName())),
+                $(classes().should(ArchConditions.implement(classToCheckAgainst.getName())),
                         classToCheckAgainst, violating),
-                ImmutableList.of(classes().should().implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName())),
+                $(classes().should().implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName())),
                         classToCheckAgainst, violating),
-                ImmutableList.of(classes().should(ArchConditions.implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName()))),
+                $(classes().should(ArchConditions.implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName()))),
                         classToCheckAgainst, violating));
     }
 
-    @Test
-    @UseDataProvider("implement_not_satisfied_rules")
-    public void implement_not_satisfied(ArchRule rule, Class<?> classToCheckAgainst, Class<?> violating) {
+    @ParameterizedTest
+    @MethodSource("implement_not_satisfied_rules")
+    void implement_not_satisfied(ArchRule rule, Class<?> classToCheckAgainst, Class<?> violating) {
         EvaluationResult result = rule.evaluate(importHierarchies(violating));
 
         assertThat(singleLineFailureReportOf(result))
@@ -809,9 +777,8 @@ public class ClassesShouldTest {
                         locationPattern(violating)));
     }
 
-    @DataProvider
-    public static Object[][] notImplement_rules() {
-        return $$(
+    static Stream<Arguments> notImplement_rules() {
+        return Stream.of(
                 $(classes().should().notImplement(Collection.class), List.class, ArrayList.class),
                 $(classes().should(ArchConditions.notImplement(Collection.class)), List.class, ArrayList.class),
                 $(classes().should().notImplement(Collection.class.getName()), List.class, ArrayList.class),
@@ -821,9 +788,9 @@ public class ClassesShouldTest {
                         List.class, ArrayList.class));
     }
 
-    @Test
-    @UseDataProvider("notImplement_rules")
-    public void notImplement(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notImplement_rules")
+    void notImplement(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -842,9 +809,8 @@ public class ClassesShouldTest {
         expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> classes().should().notImplement(AbstractList.class));
     }
 
-    @DataProvider
-    public static Object[][] assignableTo_rules() {
-        return $$(
+    static Stream<Arguments> assignableTo_rules() {
+        return Stream.of(
                 $(classes().should().beAssignableTo(Collection.class), List.class, String.class),
                 $(classes().should(ArchConditions.beAssignableTo(Collection.class)), List.class, String.class),
                 $(classes().should().beAssignableTo(Collection.class.getName()), List.class, String.class),
@@ -854,9 +820,9 @@ public class ClassesShouldTest {
                         List.class, String.class));
     }
 
-    @Test
-    @UseDataProvider("assignableTo_rules")
-    public void assignableTo(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("assignableTo_rules")
+    void assignableTo(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -868,9 +834,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* assignable.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notAssignableTo_rules() {
-        return $$(
+    static Stream<Arguments> notAssignableTo_rules() {
+        return Stream.of(
                 $(classes().should().notBeAssignableTo(Collection.class), String.class, List.class),
                 $(classes().should(ArchConditions.notBeAssignableTo(Collection.class)), String.class, List.class),
                 $(classes().should().notBeAssignableTo(Collection.class.getName()), String.class, List.class),
@@ -880,9 +845,9 @@ public class ClassesShouldTest {
                         String.class, List.class));
     }
 
-    @Test
-    @UseDataProvider("notAssignableTo_rules")
-    public void notAssignableTo(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notAssignableTo_rules")
+    void notAssignableTo(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -894,9 +859,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* assignable.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] assignableFrom_rules() {
-        return $$(
+    static Stream<Arguments> assignableFrom_rules() {
+        return Stream.of(
                 $(classes().should().beAssignableFrom(List.class), Collection.class, String.class),
                 $(classes().should(ArchConditions.beAssignableFrom(List.class)), Collection.class, String.class),
                 $(classes().should().beAssignableFrom(List.class.getName()), Collection.class, String.class),
@@ -906,9 +870,9 @@ public class ClassesShouldTest {
                         Collection.class, String.class));
     }
 
-    @Test
-    @UseDataProvider("assignableFrom_rules")
-    public void assignableFrom(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("assignableFrom_rules")
+    void assignableFrom(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -920,9 +884,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* assignable.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notAssignableFrom_rules() {
-        return $$(
+    static Stream<Arguments> notAssignableFrom_rules() {
+        return Stream.of(
                 $(classes().should().notBeAssignableFrom(List.class), String.class, Collection.class),
                 $(classes().should(ArchConditions.notBeAssignableFrom(List.class)), String.class, Collection.class),
                 $(classes().should().notBeAssignableFrom(List.class.getName()), String.class, Collection.class),
@@ -932,9 +895,9 @@ public class ClassesShouldTest {
                         String.class, Collection.class));
     }
 
-    @Test
-    @UseDataProvider("notAssignableFrom_rules")
-    public void notAssignableFrom(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notAssignableFrom_rules")
+    void notAssignableFrom(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -946,9 +909,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* assignable.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] accessField_rules() {
-        return $$(
+    static Stream<Arguments> accessField_rules() {
+        return Stream.of(
                 $(classes().should().getField(ClassWithField.class, "field"), "get", "gets"),
                 $(classes().should(ArchConditions.getField(ClassWithField.class, "field")), "get", "gets"),
                 $(classes().should().getField(ClassWithField.class.getName(), "field"), "get", "gets"),
@@ -964,9 +926,9 @@ public class ClassesShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("accessField_rules")
-    public void accessField(ArchRule rule, String accessTypePlural, String accessTypeSingularRegex) {
+    @ParameterizedTest
+    @MethodSource("accessField_rules")
+    void accessField(ArchRule rule, String accessTypePlural, String accessTypeSingularRegex) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
 
@@ -981,9 +943,8 @@ public class ClassesShouldTest {
                         ClassWithField.class, "field"));
     }
 
-    @DataProvider
-    public static Object[][] accessFieldWhere_rules() {
-        return $$(
+    static Stream<Arguments> accessFieldWhere_rules() {
+        return Stream.of(
                 $(classes().should().getFieldWhere(accessTargetIs(ClassWithField.class)), "get", "gets"),
                 $(classes().should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))), "get", "gets"),
                 $(classes().should().setFieldWhere(accessTargetIs(ClassWithField.class)), "set", "sets"),
@@ -993,9 +954,9 @@ public class ClassesShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("accessFieldWhere_rules")
-    public void accessFieldWhere(ArchRule rule, String accessTypePlural, String accessTypeSingularRegex) {
+    @ParameterizedTest
+    @MethodSource("accessFieldWhere_rules")
+    void accessFieldWhere(ArchRule rule, String accessTypePlural, String accessTypeSingularRegex) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
 
@@ -1010,17 +971,16 @@ public class ClassesShouldTest {
                         ClassWithField.class, "field"));
     }
 
-    @DataProvider
-    public static Object[][] onlyAccessFieldsThat_rules() {
-        return testForEach(
+    static Stream<ArchRule> onlyAccessFieldsThat_rules() {
+        return Stream.of(
                 classes().should().onlyAccessFieldsThat(are(declaredIn(ClassWithField.class))),
                 classes().should(ArchConditions.onlyAccessFieldsThat(are(declaredIn(ClassWithField.class))))
         );
     }
 
-    @Test
-    @UseDataProvider("onlyAccessFieldsThat_rules")
-    public void onlyAccessFieldsThat(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("onlyAccessFieldsThat_rules")
+    void onlyAccessFieldsThat(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithField.class, ClassAccessingField.class, ClassAccessingWrongField.class));
 
@@ -1040,9 +1000,8 @@ public class ClassesShouldTest {
                         ClassWithField.class, "field"));
     }
 
-    @DataProvider
-    public static Object[][] callMethod_rules() {
-        return testForEach(
+    static Stream<ArchRule> callMethod_rules() {
+        return Stream.of(
                 classes().should().callMethod(ClassWithMethod.class, "method", String.class),
                 classes().should(ArchConditions.callMethod(ClassWithMethod.class, "method", String.class)),
                 classes().should().callMethod(ClassWithMethod.class.getName(), "method", String.class.getName()),
@@ -1050,9 +1009,9 @@ public class ClassesShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("callMethod_rules")
-    public void callMethod(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("callMethod_rules")
+    void callMethod(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
 
@@ -1067,17 +1026,16 @@ public class ClassesShouldTest {
                         ClassWithMethod.class, "method", String.class));
     }
 
-    @DataProvider
-    public static Object[][] callMethodWhere_rules() {
-        return $$(
+    static Stream<Arguments> callMethodWhere_rules() {
+        return Stream.of(
                 $(classes().should().callMethodWhere(callTargetIs(ClassWithMethod.class))),
                 $(classes().should(ArchConditions.callMethodWhere(callTargetIs(ClassWithMethod.class))))
         );
     }
 
-    @Test
-    @UseDataProvider("callMethodWhere_rules")
-    public void callMethodWhere(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("callMethodWhere_rules")
+    void callMethodWhere(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class, ClassCallingSelf.class));
 
@@ -1095,17 +1053,16 @@ public class ClassesShouldTest {
                         ClassWithMethod.class, "method", String.class));
     }
 
-    @DataProvider
-    public static Object[][] onlyCallMethodsThat_rules() {
-        return $$(
+    static Stream<Arguments> onlyCallMethodsThat_rules() {
+        return Stream.of(
                 $(classes().should().onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))),
                 $(classes().should(ArchConditions.onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))))
         );
     }
 
-    @Test
-    @UseDataProvider("onlyCallMethodsThat_rules")
-    public void onlyCallMethodsThat(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("onlyCallMethodsThat_rules")
+    void onlyCallMethodsThat(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
 
@@ -1123,9 +1080,8 @@ public class ClassesShouldTest {
                         ClassWithMethod.class, "method", String.class));
     }
 
-    @DataProvider
-    public static Object[][] callConstructor_rules() {
-        return $$(
+    static Stream<Arguments> callConstructor_rules() {
+        return Stream.of(
                 $(classes().should().callConstructor(ClassWithConstructor.class, String.class)),
                 $(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class, String.class))),
                 $(classes().should().callConstructor(ClassWithConstructor.class.getName(), String.class.getName())),
@@ -1133,9 +1089,9 @@ public class ClassesShouldTest {
         );
     }
 
-    @Test
-    @UseDataProvider("callConstructor_rules")
-    public void callConstructor(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("callConstructor_rules")
+    void callConstructor(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
 
@@ -1150,17 +1106,16 @@ public class ClassesShouldTest {
                         ClassWithConstructor.class, String.class));
     }
 
-    @DataProvider
-    public static Object[][] callConstructorWhere_rules() {
-        return $$(
+    static Stream<Arguments> callConstructorWhere_rules() {
+        return Stream.of(
                 $(classes().should().callConstructorWhere(callTargetIs(ClassWithConstructor.class))),
                 $(classes().should(ArchConditions.callConstructorWhere(callTargetIs(ClassWithConstructor.class))))
         );
     }
 
-    @Test
-    @UseDataProvider("callConstructorWhere_rules")
-    public void callConstructorWhere(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("callConstructorWhere_rules")
+    void callConstructorWhere(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
 
@@ -1175,17 +1130,16 @@ public class ClassesShouldTest {
                         ClassWithConstructor.class, String.class));
     }
 
-    @DataProvider
-    public static Object[][] onlyCallConstructorsThat_rules() {
-        return $$(
+    static Stream<Arguments> onlyCallConstructorsThat_rules() {
+        return Stream.of(
                 $(classes().should().onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))),
                 $(classes().should(ArchConditions.onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))))
         );
     }
 
-    @Test
-    @UseDataProvider("onlyCallConstructorsThat_rules")
-    public void onlyCallConstructorsThat(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("onlyCallConstructorsThat_rules")
+    void onlyCallConstructorsThat(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithConstructor.class, ClassCallingConstructor.class, ClassCallingWrongConstructor.class));
 
@@ -1203,17 +1157,16 @@ public class ClassesShouldTest {
                         ClassWithConstructor.class, String.class));
     }
 
-    @DataProvider
-    public static Object[][] accessTargetWhere_rules() {
-        return $$(
+    static Stream<Arguments> accessTargetWhere_rules() {
+        return Stream.of(
                 $(classes().should().accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
                 $(classes().should(ArchConditions.accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
         );
     }
 
-    @Test
-    @UseDataProvider("accessTargetWhere_rules")
-    public void accessTargetWhere(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("accessTargetWhere_rules")
+    void accessTargetWhere(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
                 ClassAccessingWrongFieldMethodAndConstructor.class));
@@ -1235,17 +1188,16 @@ public class ClassesShouldTest {
                         ClassWithFieldMethodAndConstructor.class, ""));
     }
 
-    @DataProvider
-    public static Object[][] callCodeUnitWhere_rules() {
-        return $$(
+    static Stream<Arguments> callCodeUnitWhere_rules() {
+        return Stream.of(
                 $(classes().should().callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
                 $(classes().should(ArchConditions.callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
         );
     }
 
-    @Test
-    @UseDataProvider("callCodeUnitWhere_rules")
-    public void callCodeUnitWhere(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("callCodeUnitWhere_rules")
+    void callCodeUnitWhere(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
                 ClassAccessingWrongFieldMethodAndConstructor.class));
@@ -1267,17 +1219,16 @@ public class ClassesShouldTest {
                         ClassWithFieldMethodAndConstructor.class, ""));
     }
 
-    @DataProvider
-    public static Object[][] onlyCallCodeUnitsThat_rules() {
-        return $$(
+    static Stream<Arguments> onlyCallCodeUnitsThat_rules() {
+        return Stream.of(
                 $(classes().should().onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
                 $(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
         );
     }
 
-    @Test
-    @UseDataProvider("onlyCallCodeUnitsThat_rules")
-    public void onlyCallCodeUnitsThat(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("onlyCallCodeUnitsThat_rules")
+    void onlyCallCodeUnitsThat(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
                 ClassAccessingWrongFieldMethodAndConstructor.class));
@@ -1302,17 +1253,16 @@ public class ClassesShouldTest {
                         ClassWithFieldMethodAndConstructor.class, ""));
     }
 
-    @DataProvider
-    public static Object[][] onlyAccessMembersThat_rules() {
-        return $$(
+    static Stream<Arguments> onlyAccessMembersThat_rules() {
+        return Stream.of(
                 $(classes().should().onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
                 $(classes().should(ArchConditions.onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
         );
     }
 
-    @Test
-    @UseDataProvider("onlyAccessMembersThat_rules")
-    public void onlyAccessMembersThat(ArchRule rule) {
+    @ParameterizedTest
+    @MethodSource("onlyAccessMembersThat_rules")
+    void onlyAccessMembersThat(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
                 ClassWithFieldMethodAndConstructor.class, ClassAccessingFieldMethodAndConstructor.class,
                 ClassAccessingWrongFieldMethodAndConstructor.class));
@@ -1337,16 +1287,15 @@ public class ClassesShouldTest {
                         ClassWithFieldMethodAndConstructor.class, ""));
     }
 
-    @DataProvider
-    public static Object[][] beInterfaces_rules() {
-        return $$(
+    static Stream<Arguments> beInterfaces_rules() {
+        return Stream.of(
                 $(classes().should().beInterfaces(), Collection.class, String.class),
                 $(classes().should(ArchConditions.beInterfaces()), Collection.class, String.class));
     }
 
-    @Test
-    @UseDataProvider("beInterfaces_rules")
-    public void beInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beInterfaces_rules")
+    void beInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1357,16 +1306,15 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* interface.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeInterfaces_rules() {
-        return $$(
+    static Stream<Arguments> notBeInterfaces_rules() {
+        return Stream.of(
                 $(classes().should().notBeInterfaces(), String.class, Collection.class),
                 $(classes().should(ArchConditions.notBeInterfaces()), String.class, Collection.class));
     }
 
-    @Test
-    @UseDataProvider("notBeInterfaces_rules")
-    public void notBeInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeInterfaces_rules")
+    void notBeInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1377,16 +1325,15 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* interface.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beEnums_rules() {
-        return $$(
+    static Stream<Arguments> beEnums_rules() {
+        return Stream.of(
                 $(classes().should().beEnums(), StandardCopyOption.class, String.class),
                 $(classes().should(ArchConditions.beEnums()), StandardCopyOption.class, String.class));
     }
 
-    @Test
-    @UseDataProvider("beEnums_rules")
-    public void beEnums(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beEnums_rules")
+    void beEnums(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1397,16 +1344,15 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* enum.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeEnums_rules() {
-        return $$(
+    static Stream<Arguments> notBeEnums_rules() {
+        return Stream.of(
                 $(classes().should().notBeEnums(), String.class, StandardCopyOption.class),
                 $(classes().should(ArchConditions.notBeEnums()), String.class, StandardCopyOption.class));
     }
 
-    @Test
-    @UseDataProvider("notBeEnums_rules")
-    public void notBeEnums(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeEnums_rules")
+    void notBeEnums(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1417,20 +1363,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* enum.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beTopLevelClasses_rules() {
+    static Stream<Arguments> beTopLevelClasses_rules() {
         Class<?> topLevelClass = List.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().beTopLevelClasses(), topLevelClass, staticNestedClass),
                 $(classes().should(ArchConditions.beTopLevelClasses()), topLevelClass, staticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("beTopLevelClasses_rules")
-    public void beTopLevelClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beTopLevelClasses_rules")
+    void beTopLevelClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1439,20 +1384,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* top level class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeTopLevelClasses_rules() {
+    static Stream<Arguments> notBeTopLevelClasses_rules() {
         Class<?> topLevelClass = List.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().notBeTopLevelClasses(), staticNestedClass, topLevelClass),
                 $(classes().should(ArchConditions.notBeTopLevelClasses()), staticNestedClass, topLevelClass)
         );
     }
 
-    @Test
-    @UseDataProvider("notBeTopLevelClasses_rules")
-    public void notBeTopLevelClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeTopLevelClasses_rules")
+    void notBeTopLevelClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1461,20 +1405,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* top level class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beNestedClasses_rules() {
+    static Stream<Arguments> beNestedClasses_rules() {
         Class<?> topLevelClass = List.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().beNestedClasses(), staticNestedClass, topLevelClass),
                 $(classes().should(ArchConditions.beNestedClasses()), staticNestedClass, topLevelClass)
         );
     }
 
-    @Test
-    @UseDataProvider("beNestedClasses_rules")
-    public void beNestedClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beNestedClasses_rules")
+    void beNestedClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1483,20 +1426,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* nested class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeNestedClasses_rules() {
+    static Stream<Arguments> notBeNestedClasses_rules() {
         Class<?> topLevelClass = List.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().notBeNestedClasses(), topLevelClass, staticNestedClass),
                 $(classes().should(ArchConditions.notBeNestedClasses()), topLevelClass, staticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("notBeNestedClasses_rules")
-    public void notBeNestedClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeNestedClasses_rules")
+    void notBeNestedClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1505,20 +1447,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* nested class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beMemberClasses_rules() {
+    static Stream<Arguments> beMemberClasses_rules() {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
         Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
 
-        return $$(
+        return Stream.of(
                 $(classes().should().beMemberClasses(), staticNestedClass, anonymousClass),
                 $(classes().should(ArchConditions.beMemberClasses()), staticNestedClass, anonymousClass)
         );
     }
 
-    @Test
-    @UseDataProvider("beMemberClasses_rules")
-    public void beMemberClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beMemberClasses_rules")
+    void beMemberClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1527,20 +1468,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* member class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeMemberClasses_rules() {
+    static Stream<Arguments> notBeMemberClasses_rules() {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
         Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
 
-        return $$(
+        return Stream.of(
                 $(classes().should().notBeMemberClasses(), anonymousClass, staticNestedClass),
                 $(classes().should(ArchConditions.notBeMemberClasses()), anonymousClass, staticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("notBeMemberClasses_rules")
-    public void notBeMemberClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeMemberClasses_rules")
+    void notBeMemberClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1549,20 +1489,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* member class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beInnerClasses_rules() {
+    static Stream<Arguments> beInnerClasses_rules() {
         Class<?> innerMemberClass = NestedClassWithSomeMoreClasses.InnerMemberClass.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().beInnerClasses(), innerMemberClass, staticNestedClass),
                 $(classes().should(ArchConditions.beInnerClasses()), innerMemberClass, staticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("beInnerClasses_rules")
-    public void beInnerClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beInnerClasses_rules")
+    void beInnerClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1571,20 +1510,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* inner class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeInnerClasses_rules() {
+    static Stream<Arguments> notBeInnerClasses_rules() {
         Class<?> nonStaticNestedClass = NestedClassWithSomeMoreClasses.InnerMemberClass.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().notBeInnerClasses(), staticNestedClass, nonStaticNestedClass),
                 $(classes().should(ArchConditions.notBeInnerClasses()), staticNestedClass, nonStaticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("notBeInnerClasses_rules")
-    public void notBeInnerClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeInnerClasses_rules")
+    void notBeInnerClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1593,20 +1531,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* inner class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beAnonymousClasses_rules() {
+    static Stream<Arguments> beAnonymousClasses_rules() {
         Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().beAnonymousClasses(), anonymousClass, staticNestedClass),
                 $(classes().should(ArchConditions.beAnonymousClasses()), anonymousClass, staticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("beAnonymousClasses_rules")
-    public void beAnonymousClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beAnonymousClasses_rules")
+    void beAnonymousClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1615,20 +1552,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* anonymous class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeAnonymousClasses_rules() {
+    static Stream<Arguments> notBeAnonymousClasses_rules() {
         Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().notBeAnonymousClasses(), staticNestedClass, anonymousClass),
                 $(classes().should(ArchConditions.notBeAnonymousClasses()), staticNestedClass, anonymousClass)
         );
     }
 
-    @Test
-    @UseDataProvider("notBeAnonymousClasses_rules")
-    public void notBeAnonymousClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeAnonymousClasses_rules")
+    void notBeAnonymousClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1637,20 +1573,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* anonymous class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] beLocalClasses_rules() {
+    static Stream<Arguments> beLocalClasses_rules() {
         Class<?> localClass = NestedClassWithSomeMoreClasses.getLocalClass();
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().beLocalClasses(), localClass, staticNestedClass),
                 $(classes().should(ArchConditions.beLocalClasses()), localClass, staticNestedClass)
         );
     }
 
-    @Test
-    @UseDataProvider("beLocalClasses_rules")
-    public void beLocalClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beLocalClasses_rules")
+    void beLocalClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1659,20 +1594,19 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* local class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeLocalClasses_rules() {
+    static Stream<Arguments> notBeLocalClasses_rules() {
         Class<?> localClass = NestedClassWithSomeMoreClasses.getLocalClass();
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
-        return $$(
+        return Stream.of(
                 $(classes().should().notBeLocalClasses(), staticNestedClass, localClass),
                 $(classes().should(ArchConditions.notBeLocalClasses()), staticNestedClass, localClass)
         );
     }
 
-    @Test
-    @UseDataProvider("notBeLocalClasses_rules")
-    public void notBeLocalClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeLocalClasses_rules")
+    void notBeLocalClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1695,18 +1629,17 @@ public class ClassesShouldTest {
                 .hasOnlyViolations("there is/are 2 element(s) in [java.lang.Integer, java.lang.String]");
     }
 
-    @DataProvider
-    public static Object[][] beClass_rules() {
-        return $$(
+    static Stream<Arguments> beClass_rules() {
+        return Stream.of(
                 $(classes().should().be(String.class), String.class, Collection.class),
                 $(classes().should().be(String.class.getName()), String.class, Collection.class),
                 $(classes().should(ArchConditions.be(String.class)), String.class, Collection.class),
                 $(classes().should(ArchConditions.be(String.class.getName())), String.class, Collection.class));
     }
 
-    @Test
-    @UseDataProvider("beClass_rules")
-    public void beClass(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("beClass_rules")
+    void beClass(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1718,18 +1651,17 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.* is .*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] notBeClass_rules() {
-        return $$(
+    static Stream<Arguments> notBeClass_rules() {
+        return Stream.of(
                 $(classes().should().notBe(Collection.class), String.class, Collection.class),
                 $(classes().should().notBe(Collection.class.getName()), String.class, Collection.class),
                 $(classes().should(ArchConditions.notBe(Collection.class)), String.class, Collection.class),
                 $(classes().should(ArchConditions.notBe(Collection.class.getName())), String.class, Collection.class));
     }
 
-    @Test
-    @UseDataProvider("notBeClass_rules")
-    public void notBeClass(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+    @ParameterizedTest
+    @MethodSource("notBeClass_rules")
+    void notBeClass(ArchRule rule, Class<?> satisfied, Class<?> violated) {
         EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
 
         assertThat(singleLineFailureReportOf(result))
@@ -1741,9 +1673,8 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* is .*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] onlyAccessRules_rules() {
-        return $$(
+    static Stream<Arguments> onlyAccessRules_rules() {
+        return Stream.of(
                 $(classes().should().onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
                 $(classes().should(ArchConditions.onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
                 $(classes().should().onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class)))), ClassCallingConstructor.class),
@@ -1756,9 +1687,9 @@ public class ClassesShouldTest {
                 $(classes().should(ArchConditions.onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class));
     }
 
-    @Test
-    @UseDataProvider("onlyAccessRules_rules")
-    public void onlyCall_should_report_success_if_targets_are_non_resolvable(ArchRule rule, Class<?> classCallingUnresolvableTarget) {
+    @ParameterizedTest
+    @MethodSource("onlyAccessRules_rules")
+    void onlyCall_should_report_success_if_targets_are_non_resolvable(ArchRule rule, Class<?> classCallingUnresolvableTarget) {
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
 
         assertThatRule(rule).checking(importClasses(classCallingUnresolvableTarget)).hasNoViolation();
@@ -1777,14 +1708,14 @@ public class ClassesShouldTest {
 
     @Test
     public void should_allow_empty_should_if_configured() {
-        configurationRule.setFailOnEmptyShould(false);
+        archConfiguration.setFailOnEmptyShould(false);
 
         ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
     }
 
     @Test
     public void should_allow_empty_should_if_overridden_by_rule() {
-        configurationRule.setFailOnEmptyShould(true);
+        archConfiguration.setFailOnEmptyShould(true);
 
         ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
     }

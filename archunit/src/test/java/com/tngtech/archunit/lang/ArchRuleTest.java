@@ -25,7 +25,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.testutil.ArchConfigurationRule.FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME;
+import static com.tngtech.archunit.testutil.ArchConfigurationExtension.FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME;
 import static java.util.stream.Collectors.toCollection;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
