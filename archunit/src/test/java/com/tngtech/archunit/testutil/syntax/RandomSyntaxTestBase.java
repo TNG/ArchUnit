@@ -21,12 +21,11 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +34,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -43,23 +43,22 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public abstract class RandomSyntaxTestBase {
     private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTestBase.class);
     protected static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
 
-    @Rule
-    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule().setFailOnEmptyShould(false);
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension().setFailOnEmptyShould(false);
 
-    public static List<List<?>> createRandomRules(
+    protected static Stream<Arguments> createRandomRules(
             RandomSyntaxSeed<?> seed,
             DescriptionReplacement... replacements
     ) {
         return createRandomRules(seed, MethodChoiceStrategy.chooseAllArchUnitSyntaxMethods(), replacements);
     }
 
-    public static List<List<?>> createRandomRules(
+    protected static Stream<Arguments> createRandomRules(
             RandomSyntaxSeed<?> seed,
             MethodChoiceStrategy methodChoiceStrategy,
             DescriptionReplacement... replacements
@@ -67,7 +66,7 @@ public abstract class RandomSyntaxTestBase {
         return createRandomRules(RandomRulesBlueprint.seed(seed).methodChoiceStrategy(methodChoiceStrategy).descriptionReplacements(replacements));
     }
 
-    public static List<List<?>> createRandomRules(RandomRulesBlueprint blueprint) {
+    protected static Stream<Arguments> createRandomRules(RandomRulesBlueprint blueprint) {
         return IntStream.range(0, NUMBER_OF_RULES_TO_BUILD)
                 .mapToObj(i -> new SyntaxSpec<>(
                         blueprint.seed,
@@ -75,12 +74,11 @@ public abstract class RandomSyntaxTestBase {
                         blueprint.parameterProviders,
                         ExpectedDescription.from(blueprint.seed, blueprint.descriptionReplacements))
                 )
-                .map(spec -> ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()))
-                .collect(toList());
+                .map(spec -> $(spec.getActualArchRule(), spec.getExpectedDescription()));
     }
 
-    @Test
-    @UseDataProvider("random_rules")
+    @ParameterizedTest
+    @MethodSource("random_rules")
     public void rule_has_expected_description_and_can_be_evaluated_without_error(
             DescribedRule describedRule, String expectedDescription) {
         ArchRule archRule = describedRule.archRule;
