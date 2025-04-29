@@ -9,33 +9,29 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileSourceTest {
     static final String MODULE_INFO_FILE_NAME = "module-info.class";
 
-    @Rule
-    public final TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    File tempDir;
 
-    @DataProvider
-    public static Object[][] expected_classes() {
-        return $$(
+    static Stream<Arguments> expected_classes() {
+        return Stream.of(
                 $(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
                         new ImportOptions(),
                         ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class")),
@@ -57,9 +53,9 @@ public class ClassFileSourceTest {
                         ImmutableSet.of()));
     }
 
-    @Test
-    @UseDataProvider("expected_classes")
-    public void classes_in_JAR_are_filtered(Set<String> givenEntries, ImportOptions importOptions, Set<String> expectedIncluded) {
+    @ParameterizedTest
+    @MethodSource("expected_classes")
+    void classes_in_JAR_are_filtered(Set<String> givenEntries, ImportOptions importOptions, Set<String> expectedIncluded) {
         TestJarFile testJarFile = new TestJarFile();
         for (String entry : givenEntries) {
             testJarFile.withEntry(entry);
@@ -71,12 +67,12 @@ public class ClassFileSourceTest {
         assertSourceMatches(source, expectedIncluded);
     }
 
-    @Test
-    @UseDataProvider("expected_classes")
-    public void classes_from_file_path_are_filtered(
+    @ParameterizedTest
+    @MethodSource("expected_classes")
+    void classes_from_file_path_are_filtered(
             Set<String> givenFiles, ImportOptions importOptions, Set<String> expectedIncluded) throws IOException {
 
-        File dir = tempDir.newFolder();
+        File dir = tempDir;
         for (String file : givenFiles) {
             File newFile = new File(dir, file);
             File dirOfFile = newFile.getParentFile();
@@ -103,8 +99,8 @@ public class ClassFileSourceTest {
     }
 
     @Test
-    public void filters_out_module_infos_in_file_location() throws IOException {
-        File dir = tempDir.newFolder();
+    void filters_out_module_infos_in_file_location() throws IOException {
+        File dir = tempDir;
         createDummyModuleInfoIn(dir);
         File classFile = createDummyclassFileIn(dir);
 
@@ -114,8 +110,8 @@ public class ClassFileSourceTest {
     }
 
     @Test
-    public void resolves_class_files_with_whitespace() throws IOException {
-        File file = tempDir.newFile("path with spaces like kotlin does.class");
+    void resolves_class_files_with_whitespace() throws IOException {
+        File file = new File(tempDir, "path with spaces like kotlin does.class");
 
         ClassFileSource classFileSource = new ClassFileSource.FromFilePath(file.toPath(), new ImportOptions());
 
