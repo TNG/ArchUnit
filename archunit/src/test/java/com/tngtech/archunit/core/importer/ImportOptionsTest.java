@@ -1,29 +1,28 @@
 package com.tngtech.archunit.core.importer;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.util.ArrayList;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeGradleTestFixtures;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludePackageInfos;
-import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeGradleTestFixtures;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.core.importer.ImportOption.OnlyIncludeTests;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
@@ -31,26 +30,22 @@ import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TEST_FIXTURES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.ONLY_INCLUDE_TESTS;
+import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.crossProduct;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
-import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class ImportOptionsTest {
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    Path temporaryPath;
 
-    @DataProvider
-    public static Object[][] do_not_include_tests() {
-        return testForEach(new DoNotIncludeTests(), DO_NOT_INCLUDE_TESTS);
+    static Stream<ImportOption> do_not_include_tests() {
+        return Stream.of(new DoNotIncludeTests(), DO_NOT_INCLUDE_TESTS);
     }
 
-    @Test
-    @UseDataProvider("do_not_include_tests")
-    public void excludes_test_class(ImportOption doNotIncludeTests) {
+    @ParameterizedTest
+    @MethodSource("do_not_include_tests")
+    void excludes_test_class(ImportOption doNotIncludeTests) {
         assertThat(doNotIncludeTests.includes(locationOf(DoNotIncludeTests.class)))
                 .as("includes production location").isTrue();
 
@@ -58,14 +53,13 @@ public class ImportOptionsTest {
                 .as("includes test location").isFalse();
     }
 
-    @DataProvider
-    public static Object[][] only_include_tests() {
-        return testForEach(new OnlyIncludeTests(), ONLY_INCLUDE_TESTS);
+    static Stream<ImportOption> only_include_tests() {
+        return Stream.of(new OnlyIncludeTests(), ONLY_INCLUDE_TESTS);
     }
 
-    @Test
-    @UseDataProvider("only_include_tests")
-    public void excludes_main_class(ImportOption onlyIncludeTests) {
+    @ParameterizedTest
+    @MethodSource("only_include_tests")
+    void excludes_main_class(ImportOption onlyIncludeTests) {
         assertThat(onlyIncludeTests.includes(locationOf(OnlyIncludeTests.class)))
                 .as("includes production location").isFalse();
 
@@ -98,42 +92,44 @@ public class ImportOptionsTest {
         );
     }
 
-    @DataProvider
-    public static Object[][] test_location_predicates_and_expected_folder_patterns() {
-        List<Object[]> includeMainFolderInput = new ArrayList<>();
-        List<Object[]> includeTestFolderInput = new ArrayList<>();
+    static Stream<Arguments> test_location_predicates_and_expected_folder_patterns() {
+        Set<Arguments> includeMainFolderInput = new HashSet<>();
+        Set<Arguments> includeTestFolderInput = new HashSet<>();
         for (FolderPattern folderPattern : getFolderPatterns()) {
             includeMainFolderInput.add($(folderPattern.folders, folderPattern.isMainFolder));
             includeTestFolderInput.add($(folderPattern.folders, !folderPattern.isMainFolder));
         }
 
-        Object[][] doNotIncludeTestsDataPoints = crossProduct(do_not_include_tests(), includeMainFolderInput.toArray(new Object[0][]));
-        Object[][] onlyIncludeTestsDataPoints = crossProduct(only_include_tests(), includeTestFolderInput.toArray(new Object[0][]));
+        Stream<Arguments> doNotIncludeTestsDataPoints = crossProduct(do_not_include_tests(), includeMainFolderInput);
+        Stream<Arguments> onlyIncludeTestsDataPoints = crossProduct(only_include_tests(), includeTestFolderInput);
 
-        return copyOf(concat(asList(doNotIncludeTestsDataPoints), asList(onlyIncludeTestsDataPoints))).toArray(new Object[0][]);
+        return Stream.concat(doNotIncludeTestsDataPoints, onlyIncludeTestsDataPoints);
     }
 
-    @Test
-    @UseDataProvider("test_location_predicates_and_expected_folder_patterns")
-    public void correctly_detects_all_output_folder_structures(
+    private static Stream<Arguments> crossProduct(Stream<ImportOption> importOptionStream, Set<Arguments> includeMainFolderInput) {
+        Set<Arguments> importOptions = importOptionStream.map(Arguments::of).collect(Collectors.toSet());
+        return Sets.cartesianProduct(importOptions, includeMainFolderInput).stream()
+                .map(args -> Arguments.of(Stream.concat(stream(args.get(0).get()), stream(args.get(1).get())).toArray()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("test_location_predicates_and_expected_folder_patterns")
+    void correctly_detects_all_output_folder_structures(
             ImportOption doNotIncludeTests, String[] folderName, boolean expectedInclude) throws IOException {
 
-        File folder = temporaryFolder.newFolder(folderName);
-        File targetFile = new File(folder, getClass().getSimpleName() + ".class");
-        Files.copy(locationOf(getClass()).asURI().toURL().openStream(), targetFile.toPath());
+        Path path = temporaryPath.resolve(String.join("/", folderName)).resolve("c.class");
 
-        assertThat(doNotIncludeTests.includes(Location.of(targetFile.toPath())))
-                .as("includes location %s", targetFile.getAbsolutePath()).isEqualTo(expectedInclude);
+        assertThat(doNotIncludeTests.includes(Location.of(path)))
+                .as("includes location %s", path).isEqualTo(expectedInclude);
     }
 
-    @DataProvider
-    public static Object[][] data_excludes_test_fixtures() {
-        return testForEach(new DoNotIncludeGradleTestFixtures(), DO_NOT_INCLUDE_TEST_FIXTURES);
+    static Stream<ImportOption> excludes_test_fixtures() {
+        return Stream.of(new DoNotIncludeGradleTestFixtures(), DO_NOT_INCLUDE_TEST_FIXTURES);
     }
 
-    @Test
-    @UseDataProvider
-    public void test_excludes_test_fixtures(ImportOption doNotIncludeTestFixtures) {
+    @ParameterizedTest
+    @MethodSource
+    void excludes_test_fixtures(ImportOption doNotIncludeTestFixtures) {
         assertThat(doNotIncludeTestFixtures.includes(Location.of(URI.create("file:///any/build/classes/java/test/com/SomeTest.class"))))
                 .as("includes test class from file path").isTrue();
         assertThat(doNotIncludeTestFixtures.includes(Location.of(URI.create("jar:file:///any/build/libs/some-test.jar!/com/SomeTest"))))
@@ -145,14 +141,13 @@ public class ImportOptionsTest {
                 .as("excludes test fixture from JAR path").isFalse();
     }
 
-    @DataProvider
-    public static Object[][] do_not_include_jars() {
-        return testForEach(new DoNotIncludeJars(), DO_NOT_INCLUDE_JARS);
+    static Stream<ImportOption> do_not_include_jars() {
+        return Stream.of(new DoNotIncludeJars(), DO_NOT_INCLUDE_JARS);
     }
 
-    @Test
-    @UseDataProvider("do_not_include_jars")
-    public void detects_Jars_correctly(ImportOption doNotIncludeJars) {
+    @ParameterizedTest
+    @MethodSource("do_not_include_jars")
+    void detects_Jars_correctly(ImportOption doNotIncludeJars) {
         assertThat(doNotIncludeJars.includes(locationOf(getClass())))
                 .as("includes file location")
                 .isTrue();
@@ -164,14 +159,13 @@ public class ImportOptionsTest {
                 .isEqualTo(!comesFromJarArchive(Object.class));
     }
 
-    @DataProvider
-    public static Object[][] do_not_include_archives() {
-        return testForEach(new DoNotIncludeArchives(), DO_NOT_INCLUDE_ARCHIVES);
+    static Stream<ImportOption> do_not_include_archives() {
+        return Stream.of(new DoNotIncludeArchives(), DO_NOT_INCLUDE_ARCHIVES);
     }
 
-    @Test
-    @UseDataProvider("do_not_include_archives")
-    public void detects_archives_correctly(ImportOption doNotIncludeArchives) {
+    @ParameterizedTest
+    @MethodSource("do_not_include_archives")
+    void detects_archives_correctly(ImportOption doNotIncludeArchives) {
         assertThat(doNotIncludeArchives.includes(locationOf(getClass())))
                 .as("includes file location")
                 .isTrue();
@@ -183,14 +177,13 @@ public class ImportOptionsTest {
                 .isFalse();
     }
 
-    @DataProvider
-    public static Object[][] do_not_include_package_info_classes() {
-        return testForEach(new DoNotIncludePackageInfos(), DO_NOT_INCLUDE_PACKAGE_INFOS);
+    static Stream<ImportOption> do_not_include_package_info_classes() {
+        return Stream.of(new DoNotIncludePackageInfos(), DO_NOT_INCLUDE_PACKAGE_INFOS);
     }
 
-    @Test
-    @UseDataProvider("do_not_include_package_info_classes")
-    public void detect_package_info_class(ImportOption doNotIncludePackageInfoClasses) {
+    @ParameterizedTest
+    @MethodSource("do_not_include_package_info_classes")
+    void detect_package_info_class(ImportOption doNotIncludePackageInfoClasses) {
         Location packageInfoLocation = Location.of(relativeResourceUri(getClass(), "testexamples/package-info.class"));
         assertThat(doNotIncludePackageInfoClasses.includes(packageInfoLocation))
                 .as("doNotIncludePackageInfoClasses includes package-info.class")

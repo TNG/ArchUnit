@@ -7,6 +7,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -17,16 +18,12 @@ import com.tngtech.archunit.library.diagramtests.multipledependencies.target.Som
 import com.tngtech.archunit.library.diagramtests.simpledependency.origin.SomeOriginClass;
 import com.tngtech.archunit.library.diagramtests.simpledependency.target.SomeTargetClass;
 import com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.DataProviders;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Iterables.isEmpty;
@@ -43,14 +40,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class PlantUmlArchConditionTest {
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    File temporaryFolder;
 
-    @DataProvider
-    public static Object[] possibleInputTypes() {
-        return DataProviders.testForEach(
+    static Stream<PlantUmlCreationTestCase> possibleInputTypes() {
+        return Stream.of(
                 new PlantUmlCreationTestCase("file") {
                     @Override
                     PlantUmlArchCondition createConditionFrom(File file) {
@@ -75,9 +70,9 @@ public class PlantUmlArchConditionTest {
         );
     }
 
-    @Test
-    @UseDataProvider("possibleInputTypes")
-    public void can_handle_all_possible_user_inputs_without_violations(PlantUmlCreationTestCase testCase) {
+    @ParameterizedTest
+    @MethodSource("possibleInputTypes")
+    void can_handle_all_possible_user_inputs_without_violations(PlantUmlCreationTestCase testCase) {
         File file = TestDiagram.in(temporaryFolder)
                 .component("SomeOrigin").withStereoTypes("..origin")
                 .component("SomeTarget").withStereoTypes("..target")
@@ -89,9 +84,9 @@ public class PlantUmlArchConditionTest {
         assertNoViolation(result);
     }
 
-    @Test
-    @UseDataProvider("possibleInputTypes")
-    public void can_handle_all_possible_user_inputs_with_violations(PlantUmlCreationTestCase testCase) {
+    @ParameterizedTest
+    @MethodSource("possibleInputTypes")
+    void can_handle_all_possible_user_inputs_with_violations(PlantUmlCreationTestCase testCase) {
         File file = TestDiagram.in(temporaryFolder)
                 .component("SomeOrigin").withStereoTypes("..origin")
                 .component("SomeTarget").withStereoTypes("..target")
@@ -244,7 +239,7 @@ public class PlantUmlArchConditionTest {
 
     @Test
     public void diagram_with_unparseable_content() throws IOException {
-        File file = temporaryFolder.newFile("plantuml_diagram_" + UUID.randomUUID() + ".puml");
+        File file = new File(temporaryFolder, "plantuml_diagram_" + UUID.randomUUID() + ".puml");
         Files.write(file.toPath(), "XXX-someUnparseableContent-XXX".getBytes(UTF_8));
 
         assertThatThrownBy(() -> adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram()))
