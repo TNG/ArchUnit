@@ -73,6 +73,30 @@ public class ProxyRulesTest {
                         quoteMethod(SomeClass.class, "evil"), quoteMethod(SomeClass.class, "selfProxied")));
     }
 
+    @Test
+    @UseDataProvider("call_own_method_with_specific_annotation_rules")
+    public void ignores_synthetic_bridge_method_calling_other_method_declared_in_the_same_class(ArchRule rule, String expectedDescription) {
+        abstract class GenericBaseClass<T> {
+            @SuppressWarnings("unused")
+            abstract void selfProxied(T value);
+        }
+
+        class SpecificChild extends GenericBaseClass<String> {
+            @Override
+            @ProxyAnnotation
+            void selfProxied(String value) {
+            }
+
+            // The compiler generates a synthetic bridge method `void selfProxied(java.lang.Object)`
+            // that delegates to `void selfProxied(String value)`.
+        }
+
+        assertThatRule(rule)
+                .hasDescriptionContaining(expectedDescription)
+                .checking(new ClassFileImporter().importClasses(GenericBaseClass.class, SpecificChild.class))
+                .hasNoViolation();
+    }
+
     private String quoteMethod(Class<?> owner, String methodName) {
         return quote(owner.getSimpleName() + "." + methodName + "()");
     }
