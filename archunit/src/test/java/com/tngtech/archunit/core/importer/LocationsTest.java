@@ -16,8 +16,8 @@ import java.util.stream.StreamSupport;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import com.tngtech.java.junit.dataprovider.DataProvider;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.io.ByteStreams.toByteArray;
@@ -28,8 +28,8 @@ import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LocationsTest {
-    @Rule
-    public final IndependentClasspathRule independentClasspathRule = new IndependentClasspathRule();
+    @RegisterExtension
+    final IndependentClasspathExtension independentClasspathExtension = new IndependentClasspathExtension();
 
     @Test
     public void locations_of_URLs() throws Exception {
@@ -56,7 +56,7 @@ public class LocationsTest {
         Set<Location> locations = Locations.ofPackage("org.junit");
 
         assertThat(urisOf(locations)).contains(
-                uriOfFolderOf(Test.class)
+                uriOfFolderOf(org.junit.Test.class)
         );
     }
 
@@ -67,9 +67,9 @@ public class LocationsTest {
     @Test
     @SuppressWarnings("EmptyTryBlock")
     public void locations_of_packages_within_JAR_URIs_that_do_not_contain_package_folder() throws Exception {
-        independentClasspathRule.configureClasspath();
+        independentClasspathExtension.configureClasspath();
 
-        Set<Location> locations = Locations.ofPackage(independentClasspathRule.getIndependentTopLevelPackage());
+        Set<Location> locations = Locations.ofPackage(independentClasspathExtension.getIndependentTopLevelPackage());
         ClassFileSource source = getOnlyElement(locations).asClassFileSource(new ImportOptions());
 
         for (ClassFileLocation classFileLocation : source) {
@@ -79,8 +79,8 @@ public class LocationsTest {
         }
 
         assertThat(source)
-                .as("URIs in " + independentClasspathRule.getIndependentTopLevelPackage())
-                .hasSize(independentClasspathRule.getNamesOfClasses().size());
+                .as("URIs in " + independentClasspathExtension.getIndependentTopLevelPackage())
+                .hasSize(independentClasspathExtension.getNamesOfClasses().size());
     }
 
     @Test
@@ -151,8 +151,8 @@ public class LocationsTest {
 
     @Test
     public void locations_of_class_from_JAR_URI() throws Exception {
-        assertThat(urisOf(Locations.ofClass(Test.class))).containsExactly(
-                urlOfClass(Test.class).toURI()
+        assertThat(urisOf(Locations.ofClass(org.junit.Test.class))).containsExactly(
+                urlOfClass(org.junit.Test.class).toURI()
         );
     }
 
@@ -161,7 +161,7 @@ public class LocationsTest {
         assertThat(urisOf(Locations.inClassPath())).contains(
                 getClass().getResource("/").toURI(),
                 resolvedUri(DataProvider.class, "/"),
-                resolvedUri(Test.class, "/")
+                resolvedUri(org.junit.Test.class, "/")
         );
     }
 

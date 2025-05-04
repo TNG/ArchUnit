@@ -5,15 +5,15 @@ import java.util.Properties;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.lang.extension.examples.TestExtension;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.archunit.testutil.LogTestRule;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
+import com.tngtech.archunit.testutil.LogTestExtension;
 import org.apache.logging.log4j.Level;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.testutil.TestUtils.properties;
@@ -21,13 +21,12 @@ import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ArchUnitExtensionsTest {
-    @Rule
-    public final MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
-    @Rule
-    public final LogTestRule logTestRule = new LogTestRule();
+    @RegisterExtension
+    final ArchConfigurationExtension configuration = new ArchConfigurationExtension();
+    @RegisterExtension
+    final LogTestExtension logTest = new LogTestExtension();
 
     @Mock
     private EvaluatedRule evaluatedRule;
@@ -94,13 +93,13 @@ public class ArchUnitExtensionsTest {
 
         when(extensionLoader.getAll()).thenReturn(ImmutableSet.of(extensionOne, extensionTwo));
 
-        logTestRule.watch(ArchUnitExtensions.class, Level.DEBUG);
+        logTest.watch(ArchUnitExtensions.class, Level.DEBUG);
 
         extensions.dispatch(evaluatedRule);
 
         assertThat(extensionOne.wasNeverCalled()).as("Extension 'one' was never called").isTrue();
         assertThat(extensionTwo.wasNeverCalled()).as("Extension 'two' was never called").isFalse();
-        logTestRule.assertLogMessage(Level.DEBUG,
+        logTest.assertLogMessage(Level.DEBUG,
                 "Extension 'one' is disabled, skipping... (to enable this extension, configure extension.one.enabled=true)");
     }
 
@@ -142,12 +141,12 @@ public class ArchUnitExtensionsTest {
     private void evaluateExtensionAndVerifyLog(String expectedExceptionMessage, ArchUnitExtension evilExtension) {
         when(extensionLoader.getAll()).thenReturn(singleton(evilExtension));
 
-        logTestRule.watch(ArchUnitExtensions.class, Level.WARN);
+        logTest.watch(ArchUnitExtensions.class, Level.WARN);
 
         extensions.dispatch(evaluatedRule);
 
-        logTestRule.assertLogMessage(Level.WARN, evilExtension.getUniqueIdentifier());
-        logTestRule.assertException(Level.WARN, TestException.class, expectedExceptionMessage);
+        logTest.assertLogMessage(Level.WARN, evilExtension.getUniqueIdentifier());
+        logTest.assertException(Level.WARN, TestException.class, expectedExceptionMessage);
     }
 
     private static class TestException extends RuntimeException {

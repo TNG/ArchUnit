@@ -11,13 +11,14 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.WRITE;
 
-public class ReplaceFileRule extends ExternalResource {
+public class ReplaceFileExtension implements AfterEachCallback {
     private final File tempDir = TestUtils.newTemporaryFolder();
 
     private final List<FileAction> fileActions = new ArrayList<>();
@@ -69,7 +70,7 @@ public class ReplaceFileRule extends ExternalResource {
     }
 
     @Override
-    protected void after() {
+    public void afterEach(ExtensionContext context) {
         for (FileAction action : Lists.reverse(fileActions)) {
             action.revert();
         }

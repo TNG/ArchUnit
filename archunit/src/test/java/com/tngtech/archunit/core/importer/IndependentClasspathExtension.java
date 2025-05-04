@@ -8,34 +8,35 @@ import java.net.URLClassLoader;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.testutil.ContextClassLoaderRule;
-import com.tngtech.archunit.testutil.SystemPropertiesRule;
+import com.tngtech.archunit.testutil.ContextClassLoaderExtension;
+import com.tngtech.archunit.testutil.SystemPropertiesExtension;
 import org.junit.Assert;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
-public class IndependentClasspathRule implements TestRule {
+public class IndependentClasspathExtension implements BeforeEachCallback, AfterEachCallback {
     private Setup setup;
-    private final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
-    private final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
+    private final SystemPropertiesExtension systemPropertiesExtension = new SystemPropertiesExtension();
+    private final ContextClassLoaderExtension contextClassLoaderExtension = new ContextClassLoaderExtension();
 
     @Override
-    public Statement apply(Statement base, Description description) {
-        Statement statement = new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                base.evaluate();
-                setup = null;
-            }
-        };
-        return systemPropertiesRule.apply(
-                contextClassLoaderRule.apply(statement, description),
-                description
-        );
+    public void beforeEach(ExtensionContext context) {
+        systemPropertiesExtension.beforeEach(context);
+        contextClassLoaderExtension.beforeEach(context);
+    }
+
+    @Override
+    public void afterEach(ExtensionContext context) throws Exception {
+        try {
+            contextClassLoaderExtension.afterEach(context);
+        } finally {
+            systemPropertiesExtension.afterEach(context);
+            setup = null;
+        }
     }
 
     void configureClasspath() {
