@@ -22,9 +22,21 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public interface SlicesShould {
+    /**
+     * @return a {@link SliceRule} asserting that
+     * there are no cycles via dependencies between the evaluated slices
+     * (which is weaker than requiring
+     * that the slices do {@link #notDependOnEachOther()} at all)
+     */
     @PublicAPI(usage = ACCESS)
     SliceRule beFreeOfCycles();
 
+    /**
+     * @return a {@link SliceRule} asserting that
+     * there are no dependencies at all between the evaluated slices
+     * (which is stronger than requiring
+     * that {@link #beFreeOfCycles() there are no dependency cycles} between the slices)
+     */
     @PublicAPI(usage = ACCESS)
     SliceRule notDependOnEachOther();
 }
