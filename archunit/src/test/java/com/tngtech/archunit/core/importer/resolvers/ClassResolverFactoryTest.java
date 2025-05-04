@@ -12,23 +12,23 @@ import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.Factory.NoOpClassResolver;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.archunit.testutil.ContextClassLoaderRule;
-import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
+import com.tngtech.archunit.testutil.ContextClassLoaderExtension;
+import com.tngtech.archunit.testutil.OutsideOfClassPathExtension;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ClassResolverFactoryTest {
-    @Rule
-    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
-    @Rule
-    public final OutsideOfClassPathRule outsideOfClassPathRule = new OutsideOfClassPathRule();
-    @Rule
-    public final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
+    @RegisterExtension
+    final ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
+    @RegisterExtension
+    final OutsideOfClassPathExtension outsideOfClassPath = new OutsideOfClassPathExtension();
+    @RegisterExtension
+    final ContextClassLoaderExtension contextClassLoader = new ContextClassLoaderExtension();
 
     private final ClassResolver.Factory resolverFactory = new ClassResolver.Factory();
 
@@ -105,7 +105,7 @@ public class ClassResolverFactoryTest {
 
     @Test
     public void loads_resolver_from_context_ClassLoader() throws IOException {
-        Path targetDir = outsideOfClassPathRule
+        Path targetDir = outsideOfClassPath
                 .compileClassesFrom(getClass().getResource("testclasses/someresolver"))
                 .getPath();
 

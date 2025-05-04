@@ -1,6 +1,7 @@
 package com.tngtech.archunit.testutil;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -11,6 +12,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,24 +21,34 @@ import java.util.stream.Stream;
 import javax.tools.ToolProvider;
 
 import com.google.common.base.Splitter;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
 import static com.tngtech.archunit.testutil.TestUtils.unchecked;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class OutsideOfClassPathRule implements TestRule {
+public class OutsideOfClassPathExtension implements BeforeEachCallback, AfterEachCallback {
     private static final Pattern PACKAGE_DECLARATION_PATTERN = Pattern.compile("package (.*);");
 
-    private final TemporaryFolder temporaryFolder = new TemporaryFolder(newTemporaryFolder());
+    private final File temporaryFolder = newTemporaryFolder();
 
     @Override
-    public Statement apply(Statement base, Description description) {
-        return temporaryFolder.apply(base, description);
+    public void beforeEach(ExtensionContext context) throws Exception {
+        if (!temporaryFolder.exists() && !temporaryFolder.mkdirs()) {
+            throw new IOException("Couldn't create temporary folder " + temporaryFolder);
+        }
+    }
+
+    @Override
+    public void afterEach(ExtensionContext context) throws Exception {
+        temporaryFolder.delete();
+    }
+
+    public File getTemporaryFolder() {
+        return temporaryFolder;
     }
 
     /**
@@ -48,7 +60,7 @@ public class OutsideOfClassPathRule implements TestRule {
     public CompiledClasses compileClassesFrom(URL url) {
         return unchecked(() -> {
             Path sourceFileDir = Paths.get(toUri(url));
-            Path classFileDir = temporaryFolder.newFolder().toPath();
+            Path classFileDir = new File(temporaryFolder, UUID.randomUUID().toString()).toPath();
 
             try (Stream<Path> files = Files.list(sourceFileDir)) {
                 files.filter(it -> it.toString().endsWith(".java"))
@@ -63,7 +75,8 @@ public class OutsideOfClassPathRule implements TestRule {
         String packageName = readPackageNameOf(originalJavaSourceFile);
         Path packagePath = convertToRelativePath(packageName);
 
-        Path javaSourceDir = temporaryFolder.newFolder().toPath();
+        Path javaSourceDir = new File(temporaryFolder, UUID.randomUUID().toString()).toPath();
+        Files.createDirectories(javaSourceDir);
         Path javaSourceFile = Files.copy(originalJavaSourceFile, javaSourceDir.resolve(originalJavaSourceFile.getFileName())).toAbsolutePath();
         executeCompile(javaSourceFile);
 
@@ -73,7 +86,7 @@ public class OutsideOfClassPathRule implements TestRule {
 
     private static String readPackageNameOf(Path originalJavaSourceFile) throws IOException {
         return Files.readAllLines(originalJavaSourceFile, UTF_8).stream()
-                .flatMap(OutsideOfClassPathRule::tryMatchPackage)
+                .flatMap(OutsideOfClassPathExtension::tryMatchPackage)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Couldn't find package declaration in source file " + originalJavaSourceFile.toAbsolutePath()));
