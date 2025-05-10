@@ -17,7 +17,8 @@ task ensureReleaseCheckUpToDate {
                 }
 
         releaseCheckDependencies.each { releaseCheckDependency ->
-            def matchingProjectDependency = dependency.values().find {
+            def versionCatalog = versionCatalogs.named("libs")
+            def matchingProjectDependency = versionCatalog.libraryAliases.collect { versionCatalog.findLibrary(it).get().get() }.find {
                 it.group == releaseCheckDependency.groupId && it.name == releaseCheckDependency.artifactId
             }
             assert matchingProjectDependency != null:

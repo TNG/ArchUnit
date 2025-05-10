@@ -33,9 +33,9 @@ private void updateArchUnitExampleDependencies(File targetArchUnitExampleDir) {
     def buildFile = new File(targetArchUnitExampleDir, 'build.gradle')
 
     List<Map<String, String>> sortedDependencies = archUnitExamplesMainDependencies.collect()
-            .sort { first, second -> first.group <=> second.group ?: first.name <=> second.name }
+            .sort { first, second -> first.get().group <=> second.get().group ?: first.get().name <=> second.get().name }
     def dependencyIndent = ' ' * 8
-    List<String> dependencyLines = sortedDependencies
+    List<String> dependencyLines = sortedDependencies.collect { it.get() }
             .collect { "${dependencyIndent}implementation '${it.group}:${it.name}:${it.version}'".toString() }
 
     buildFile.text = archUnitExamplesRootBuildFileContent.replace('#{dependencies}', dependencyLines.join('\n')) // always Unix line separator
