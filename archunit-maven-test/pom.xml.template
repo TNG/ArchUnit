@@ -49,18 +49,18 @@
             <version>#{archunit.version}</version>
             <scope>test</scope>
         </dependency>
-        #{dependency.javaxAnnotationApi}
-        #{dependency.geronimoEjb}
-        #{dependency.geronimoJpa}
-        #{dependency.jodaTime}
-        #{dependency.springBeans}
-        #{dependency.jakartaInject}
-        #{dependency.jakartaAnnotations}
-        #{dependency.guice}
-        #{dependency.junit4:test}
-        #{dependency.junit_dataprovider:test}
-        #{dependency.assertj:test}
-        #{dependency.joox:test}
+        #{libs.javaxAnnotationApi}
+        #{libs.geronimoEjb}
+        #{libs.geronimoJpa}
+        #{libs.jodaTime}
+        #{libs.springBeans}
+        #{libs.jakartaInject}
+        #{libs.jakartaAnnotations}
+        #{libs.guice}
+        #{libs.junit4:test}
+        #{libs.junit_dataprovider:test}
+        #{libs.assertj:test}
+        #{libs.joox:test}
         #{additionalDependencies}
     </dependencies>
 
