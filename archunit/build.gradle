@@ -5,17 +5,17 @@ plugins {
 ext.moduleName = 'com.tngtech.archunit'
 
 dependencies {
-    api dependency.slf4j
-    implementation dependency.asm
+    api libs.slf4j
+    implementation libs.asm
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
 
-    testImplementation dependency.log4j_api
-    testImplementation dependency.log4j_core
-    testImplementation dependency.junit4
-    testImplementation dependency.junit_dataprovider
-    testImplementation dependency.mockito
-    testImplementation dependency.assertj
-    testImplementation(dependency.assertj_guava) {
+    testImplementation libs.log4j.api
+    testImplementation libs.log4j.core
+    testImplementation libs.junit4
+    testImplementation libs.junit.dataprovider
+    testImplementation libs.mockito
+    testImplementation libs.assertj
+    testImplementation(libs.assertj.guava) {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
@@ -25,7 +25,7 @@ shadowJar {
     exclude 'META-INF/**'
 
     dependencies {
-        exclude(dependency(dependency.slf4j))
+        exclude(dependency("${libs.slf4j.get()}"))
     }
 }
 
