@@ -11,10 +11,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Check for dependency updates
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: checkDependencyUpdates -DoutputFormatter=plain,json
+        run: ./gradlew checkDependencyUpdates -DoutputFormatter=plain,json
       - name: Create issue/comment if ASM is not up-to-date
         uses: actions/github-script@v7
         env:
