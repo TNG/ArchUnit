@@ -11,14 +11,14 @@ archUnitTest {
 }
 
 rootProject.ext.archUnitExamplesMainDependencies = [
-        dependency.jodaTime,
-        dependency.javaxAnnotationApi,
-        dependency.jakartaInject,
-        dependency.jakartaAnnotations,
-        dependency.springBeans,
-        dependency.guice,
-        dependency.geronimoEjb,
-        dependency.geronimoJpa
+        exampleLibs.jodaTime,
+        exampleLibs.javaxAnnotationApi,
+        exampleLibs.jakartaInject,
+        exampleLibs.jakartaAnnotations,
+        exampleLibs.springBeans,
+        exampleLibs.guice,
+        exampleLibs.geronimoEjb,
+        exampleLibs.geronimoJpa
 ]
 
 dependencies {

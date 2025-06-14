@@ -7,25 +7,18 @@ ext.moduleName = 'com.tngtech.archunit.junit4'
 dependencies {
     api project(path: ':archunit', configuration: 'shadow')
     api project(path: ':archunit-junit', configuration: 'archJunitApi')
-    api dependency.junit4
+    api libs.junit4
     implementation project(path: ':archunit-junit', configuration: 'shadow')
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
-    implementation dependency.slf4j
 
-    testImplementation dependency.junit4
-    testImplementation dependency.junit_dataprovider
-    testImplementation dependency.mockito
-    testImplementation dependency.assertj
-    testImplementation(dependency.assertj_guava) {
-        exclude module: 'assertj-core'
-        exclude module: 'guava'
-    }
+    testImplementation libs.junit4
+    testImplementation libs.mockito
+    testImplementation libs.assertj
     testImplementation project(path: ':archunit', configuration: 'tests')
-    testImplementation project(path: ':archunit-junit', configuration: 'tests')
 
     // This is a hack for running tests with IntelliJ instead of delegating to Gradle,
     // because for some reason this dependency cannot be resolved otherwise :-(
-    testRuntimeOnly dependency.asm
+    testRuntimeOnly libs.asm
 }
 
 javadoc {
@@ -42,9 +35,8 @@ shadowJar {
 
     dependencies {
         exclude(project(':archunit'))
-        exclude(dependency(dependency.junit4))
-        exclude(dependency(dependency.slf4j))
-        exclude(dependency(dependency.hamcrest)) // Shadow doesn't respect transitive excludes :-(
+        exclude(dependency("${libs.junit4.get()}"))
+        exclude(dependency("${libs.hamcrest.get()}")) // Shadow doesn't respect transitive excludes :-(
     }
 }
 
