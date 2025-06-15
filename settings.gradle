@@ -14,6 +14,14 @@ project(':archunit-junit5-engine-api').projectDir = file('archunit-junit/junit5/
 project(':archunit-junit5-engine').projectDir = file('archunit-junit/junit5/engine')
 project(':archunit-junit5').projectDir = file('archunit-junit/junit5/aggregator')
 
+dependencyResolutionManagement {
+    versionCatalogs {
+        exampleLibs {
+            from(files('gradle/example-libs.versions.toml'))
+        }
+    }
+}
+
 gradleEnterprise {
     buildScan {
         termsOfServiceUrl = "https://gradle.com/terms-of-service"

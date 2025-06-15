@@ -7,9 +7,9 @@ ext.moduleName = 'com.tngtech.archunit.thirdpartytest'
 dependencies {
     testImplementation project(path: ':archunit', configuration: 'shadow')
     testImplementation project(path: ':archunit', configuration: 'tests')
-    testImplementation dependency.springBootLoader
+    testImplementation exampleLibs.springBootLoader
     dependency.addGuava { dependencyNotation, config -> testImplementation(dependencyNotation, config) }
-    testImplementation dependency.junit4
-    testImplementation dependency.junit_dataprovider
-    testImplementation dependency.assertj
+    testImplementation libs.junit4
+    testImplementation libs.junitDataprovider
+    testImplementation libs.assertj
 }
