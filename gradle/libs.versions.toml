@@ -1,6 +1,6 @@
 [versions]
 log4j = "2.24.3"
-junit5 = "5.13.1"
+junit5 = "5.13.2"
 junitPlatform = "1.13.1"
 assertj = "3.27.3"
 
