@@ -52,6 +52,15 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     }
 
     /**
+     * @return A {@link DescribedPredicate} that will return {@code true} whenever this predicate would return {@code false}, and vice versa.
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public DescribedPredicate<T> negate() {
+        return new NotPredicate<>(this);
+    }
+
+    /**
      * Overwrites the description of this {@link DescribedPredicate}. E.g.
      *
      * <pre><code>
@@ -176,7 +185,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     /**
      * @param predicate Any {@link DescribedPredicate}
-     * @return A predicate that will return {@code true} whenever the original predicate would return {@code false} and vice versa.
+     * @return A predicate that will return {@code true} whenever the original predicate would return {@code false}, and vice versa.
      * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
      */
     @PublicAPI(usage = ACCESS)
