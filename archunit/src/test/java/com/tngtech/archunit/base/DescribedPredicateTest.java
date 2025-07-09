@@ -200,19 +200,25 @@ public class DescribedPredicateTest {
     @DataProvider
     public static Object[][] not_scenarios() {
         return $$(
-                $(new NotScenario("not") {
+                $(new NotScenario("not", ".negate") {
+                    @Override
+                    <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
+                        return input.negate();
+                    }
+                }),
+                $(new NotScenario("not", "not") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return not(input);
                     }
                 }),
-                $(new NotScenario("do not") {
+                $(new NotScenario("do not", "doNot") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return doNot(input);
                     }
                 }),
-                $(new NotScenario("does not") {
+                $(new NotScenario("does not", "doesNot") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
                         return doesNot(input);
@@ -279,16 +285,18 @@ public class DescribedPredicateTest {
 
     private abstract static class NotScenario {
         private final String expectedPrefix;
+        private final String methodName;
 
-        NotScenario(String expectedPrefix) {
+        NotScenario(String expectedPrefix, String methodName) {
             this.expectedPrefix = expectedPrefix;
+            this.methodName = methodName;
         }
 
         abstract <T> DescribedPredicate<T> apply(DescribedPredicate<T> input);
 
         @Override
         public String toString() {
-            return expectedPrefix;
+            return expectedPrefix + " (via " +  methodName + ")";
         }
     }
 
