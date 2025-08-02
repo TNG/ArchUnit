@@ -82,4 +82,16 @@ public final class MdMetadata implements Metadata {
         this.informed = informed;
         return this;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("---\n");
+        status().ifPresent(s -> sb.append("status: ").append(s).append("\n"));
+        date().ifPresent(d -> sb.append("date: ").append(d).append("\n"));
+        decisionMakers().ifPresent(d -> sb.append("decision-makers: ").append(String.join(", ", d)).append("\n"));
+        consulted().ifPresent(c -> sb.append("consulted: ").append(String.join(", ", c)).append("\n"));
+        informed().ifPresent(i -> sb.append("informed: ").append(String.join(", ", i)).append("\n"));
+        sb.append("---");
+        return sb.toString();
+    }
 }

@@ -27,6 +27,8 @@ public interface Adr {
 
     Adr withMetadata(final Metadata metadata);
 
+    String contextAndProblemStatement();
+
     String title();
 
     Optional<List<String>> decisionDrivers();

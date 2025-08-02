@@ -21,11 +21,13 @@ import com.tngtech.archunit.library.adr.OptionProsAndCons;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class MdAdr implements Adr {
 
     private Metadata metadata;
     private final String title;
+    private final String contextAndProblemStatement;
     private List<String> decisionDrivers;
     private final List<String> consideredOptions;
     private final String decisionOutcome;
@@ -34,8 +36,9 @@ public final class MdAdr implements Adr {
     private List<OptionProsAndCons> optionProsAndCons;
     private String moreInformation;
 
-    public MdAdr(final String title, final List<String> consideredOptions, final String decisionOutcome) {
+    public MdAdr(final String title, final String contextAndProblemStatement, final List<String> consideredOptions, final String decisionOutcome) {
         this.title = title;
+        this.contextAndProblemStatement = contextAndProblemStatement;
         this.consideredOptions = consideredOptions;
         this.decisionOutcome = decisionOutcome;
     }
@@ -54,6 +57,11 @@ public final class MdAdr implements Adr {
     @Override
     public String title() {
         return this.title;
+    }
+
+    @Override
+    public String contextAndProblemStatement() {
+        return this.contextAndProblemStatement;
     }
 
     @Override
@@ -119,5 +127,34 @@ public final class MdAdr implements Adr {
     public Adr withMoreInformation(final String moreInformation) {
         this.moreInformation = moreInformation;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        metadata().ifPresent(m -> sb.append(m).append("\n"));
+        sb.append("\n# ").append(title()).append("\n");
+        sb.append("\n## Context and Problem Statement\n");
+        sb.append("\n").append(contextAndProblemStatement()).append("\n");
+        decisionDrivers().ifPresent(d -> {
+            sb.append("\n## Decision Drivers");
+            sb.append("\n\n");
+            d.forEach(s -> sb.append("* ").append(s).append("\n"));
+        });
+        sb.append("\n## Considered Options\n\n");
+        consideredOptions().forEach(o -> sb.append("* ").append(o).append("\n"));
+        sb.append("\n## Decision Outcome\n\n");
+        sb.append(decisionOutcome()).append("\n");
+        consequences().ifPresent(c -> {
+            sb.append("\n### Consequences\n\n");
+            c.forEach(s -> sb.append("* ").append(s).append("\n"));
+        });
+        confirmation().ifPresent(c -> sb.append("\n### Confirmation\n\n").append(c).append("\n"));
+        optionProsAndCons().ifPresent(opc -> {
+            sb.append("\n## Pros and Cons of the Options\n\n");
+            opc.forEach(s -> sb.append(s.toString()).append("\n"));
+        });
+        moreInformation().ifPresent(mi -> sb.append("## More Information\n\n").append(mi));
+        return sb.toString();
     }
 }

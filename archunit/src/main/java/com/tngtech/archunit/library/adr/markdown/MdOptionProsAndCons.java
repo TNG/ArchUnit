@@ -19,11 +19,12 @@ import com.tngtech.archunit.library.adr.OptionProsAndCons;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class MdOptionProsAndCons implements OptionProsAndCons {
     private final String title;
-    private String example;
     private String description;
+    private String example;
     private final List<String> prosAndCons;
 
     public MdOptionProsAndCons(final String title, final List<String> prosAndCons) {
@@ -34,17 +35,6 @@ public final class MdOptionProsAndCons implements OptionProsAndCons {
     @Override
     public String title() {
         return this.title;
-    }
-
-    @Override
-    public Optional<String> example() {
-        return Optional.ofNullable(this.example);
-    }
-
-    @Override
-    public OptionProsAndCons withExample(final String example) {
-        this.example = example;
-        return this;
     }
 
     @Override
@@ -59,7 +49,29 @@ public final class MdOptionProsAndCons implements OptionProsAndCons {
     }
 
     @Override
+    public Optional<String> example() {
+        return Optional.ofNullable(this.example);
+    }
+
+    @Override
+    public OptionProsAndCons withExample(final String example) {
+        this.example = example;
+        return this;
+    }
+
+    @Override
     public List<String> prosAndCons() {
         return this.prosAndCons;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("### ").append(title()).append("\n\n");
+        description().ifPresent(d -> sb.append(d).append("\n\n"));
+        example().ifPresent(e -> sb.append(e).append("\n\n"));
+        prosAndCons().forEach(pc ->
+                sb.append("* ").append(pc).append("\n")
+        );
+        return sb.toString();
     }
 }

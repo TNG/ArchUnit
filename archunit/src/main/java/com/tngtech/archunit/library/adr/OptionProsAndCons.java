@@ -24,13 +24,13 @@ import java.util.Optional;
 public interface OptionProsAndCons {
     String title();
 
-    Optional<String> example();
-
-    OptionProsAndCons withExample(final String example);
-
     Optional<String> description();
 
     OptionProsAndCons withDescription(final String description);
+
+    Optional<String> example();
+
+    OptionProsAndCons withExample(final String example);
 
     List<String> prosAndCons();
 }
