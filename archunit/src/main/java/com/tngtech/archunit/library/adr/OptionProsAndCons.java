@@ -15,22 +15,33 @@
  */
 package com.tngtech.archunit.library.adr;
 
+import com.tngtech.archunit.PublicAPI;
+
 import java.util.List;
 import java.util.Optional;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Represents an option of an ADR with its pros and cons.
  */
+@PublicAPI(usage = ACCESS)
 public interface OptionProsAndCons {
+    @PublicAPI(usage = ACCESS)
     String title();
 
+    @PublicAPI(usage = ACCESS)
     Optional<String> description();
 
+    @PublicAPI(usage = ACCESS)
     OptionProsAndCons withDescription(final String description);
 
+    @PublicAPI(usage = ACCESS)
     Optional<String> example();
 
+    @PublicAPI(usage = ACCESS)
     OptionProsAndCons withExample(final String example);
 
+    @PublicAPI(usage = ACCESS)
     List<String> prosAndCons();
 }

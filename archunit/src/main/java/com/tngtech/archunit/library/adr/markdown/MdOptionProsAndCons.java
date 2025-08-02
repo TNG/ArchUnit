@@ -15,54 +15,66 @@
  */
 package com.tngtech.archunit.library.adr.markdown;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.library.adr.OptionProsAndCons;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
 public final class MdOptionProsAndCons implements OptionProsAndCons {
     private final String title;
     private String description;
     private String example;
     private final List<String> prosAndCons;
 
+    @PublicAPI(usage = ACCESS)
     public MdOptionProsAndCons(final String title, final List<String> prosAndCons) {
         this.title = title;
         this.prosAndCons = prosAndCons;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String title() {
         return this.title;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<String> description() {
         return Optional.ofNullable(this.description);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public OptionProsAndCons withDescription(final String description) {
         this.description = description;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<String> example() {
         return Optional.ofNullable(this.example);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public OptionProsAndCons withExample(final String example) {
         this.example = example;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public List<String> prosAndCons() {
         return this.prosAndCons;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("### ").append(title()).append("\n\n");

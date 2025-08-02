@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.library.adr.markdown;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.library.adr.Adr;
 import com.tngtech.archunit.library.adr.Metadata;
 import com.tngtech.archunit.library.adr.OptionProsAndCons;
@@ -22,6 +23,9 @@ import com.tngtech.archunit.library.adr.OptionProsAndCons;
 import java.util.List;
 import java.util.Optional;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
 public final class MdAdr implements Adr {
 
     private Metadata metadata;
@@ -35,6 +39,7 @@ public final class MdAdr implements Adr {
     private List<OptionProsAndCons> optionProsAndCons;
     private String moreInformation;
 
+    @PublicAPI(usage = ACCESS)
     public MdAdr(final String title, final String contextAndProblemStatement, final List<String> consideredOptions, final String decisionOutcome) {
         this.title = title;
         this.contextAndProblemStatement = contextAndProblemStatement;
@@ -42,92 +47,109 @@ public final class MdAdr implements Adr {
         this.decisionOutcome = decisionOutcome;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<Metadata> metadata() {
         return Optional.ofNullable(this.metadata);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Adr withMetadata(final Metadata metadata) {
         this.metadata = metadata;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String title() {
         return this.title;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String contextAndProblemStatement() {
         return this.contextAndProblemStatement;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<List<String>> decisionDrivers() {
         return Optional.ofNullable(this.decisionDrivers);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Adr withDecisionDrivers(final List<String> decisionDrivers) {
         this.decisionDrivers = decisionDrivers;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public List<String> consideredOptions() {
         return this.consideredOptions;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String decisionOutcome() {
         return this.decisionOutcome;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<List<String>> consequences() {
         return Optional.ofNullable(this.consequences);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Adr withConsequences(final List<String> consequences) {
         this.consequences = consequences;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<String> confirmation() {
         return Optional.ofNullable(this.confirmation);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Adr withConfirmation(final String confirmation) {
         this.confirmation = confirmation;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<List<OptionProsAndCons>> optionProsAndCons() {
         return Optional.ofNullable(this.optionProsAndCons);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Adr withOptionProsAndCons(final List<OptionProsAndCons> optionProsAndCons) {
         this.optionProsAndCons = optionProsAndCons;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<String> moreInformation() {
         return Optional.ofNullable(this.moreInformation);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Adr withMoreInformation(final String moreInformation) {
         this.moreInformation = moreInformation;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();

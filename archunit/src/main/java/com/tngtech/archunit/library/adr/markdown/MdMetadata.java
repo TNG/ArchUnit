@@ -15,11 +15,15 @@
  */
 package com.tngtech.archunit.library.adr.markdown;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.library.adr.Metadata;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
 public final class MdMetadata implements Metadata {
 
     private String status;
@@ -28,61 +32,75 @@ public final class MdMetadata implements Metadata {
     private List<String> consulted;
     private List<String> informed;
 
+    @PublicAPI(usage = ACCESS)
+    public MdMetadata() {}
+
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<String> status() {
         return Optional.ofNullable(this.status);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Metadata withStatus(final String status) {
         this.status = status;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<String> date() {
         return Optional.ofNullable(this.date);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Metadata withDate(final String date) {
         this.date = date;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<List<String>> decisionMakers() {
         return Optional.ofNullable(this.decisionMakers);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Metadata withDecisionMakers(final List<String> decisionMakers) {
         this.decisionMakers = decisionMakers;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<List<String>> consulted() {
         return Optional.ofNullable(this.consulted);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Metadata withConsulted(final List<String> consulted) {
         this.consulted = consulted;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Optional<List<String>> informed() {
         return Optional.ofNullable(this.informed);
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public Metadata withInformed(final List<String> informed) {
         this.informed = informed;
         return this;
     }
 
+    @PublicAPI(usage = ACCESS)
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("---\n");
