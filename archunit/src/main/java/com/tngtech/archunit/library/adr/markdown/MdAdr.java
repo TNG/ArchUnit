@@ -21,7 +21,6 @@ import com.tngtech.archunit.library.adr.OptionProsAndCons;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class MdAdr implements Adr {
 
