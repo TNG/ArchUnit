@@ -68,4 +68,10 @@ public abstract class OptionProsAndConsEnvelope implements OptionProsAndCons {
     public List<String> prosAndCons() {
         return this.delegate.prosAndCons();
     }
+
+    @PublicAPI(usage = ACCESS)
+    @Override
+    public String toString() {
+        return this.delegate.toString();
+    }
 }

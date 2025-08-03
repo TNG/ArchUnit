@@ -92,4 +92,10 @@ public abstract class MetadataEnvelope implements Metadata {
     public Metadata withInformed(final List<String> informed) {
         return this.delegate.withInformed(informed);
     }
+
+    @PublicAPI(usage = ACCESS)
+    @Override
+    public String toString() {
+        return this.delegate.toString();
+    }
 }

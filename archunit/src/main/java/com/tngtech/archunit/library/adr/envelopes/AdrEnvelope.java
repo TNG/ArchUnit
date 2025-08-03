@@ -130,4 +130,10 @@ public abstract class AdrEnvelope implements Adr {
     public Adr withMoreInformation(final String moreInformation) {
         return this.delegate.withMoreInformation(moreInformation);
     }
+
+    @PublicAPI(usage = ACCESS)
+    @Override
+    public String toString() {
+        return this.delegate.toString();
+    }
 }
