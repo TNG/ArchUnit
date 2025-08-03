@@ -10,7 +10,7 @@ class MdAdrTest {
         MatcherAssert.assertThat(
                 new ExampleAdr().toString(),
                 new IsEqual<>(
-                        new ExpectedExampleAdr().toString()
+                        new ExpectedExampleAdr("data/expected_example_adr.md").toString()
                 )
         );
     }
