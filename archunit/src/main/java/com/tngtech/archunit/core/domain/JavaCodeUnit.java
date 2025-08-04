@@ -131,7 +131,7 @@ public abstract class JavaCodeUnit
     }
 
     /**
-     * @return the {@link JavaParameter parameters} of this {@link JavaCodeUnit}. On the contrary to the Reflection API this will only contain
+     * @return the {@link JavaParameter parameters} of this {@link JavaCodeUnit}. In contrast to the Reflection API this will only contain
      *         the parameters from the signature and not synthetic parameters, if the signature is generic. In these cases
      *         {@link #getParameters()}{@code .size()} will always be equal to {@link #getParameterTypes()}{@code .size()},
      *         but not necessarily to {@link #getRawParameterTypes()}{@code .size()} in case the compiler adds synthetic parameters.<br>
@@ -410,6 +410,26 @@ public abstract class JavaCodeUnit
                     return input.isMethod();
                 }
             };
+        }
+
+        /**
+         * @param predicate A {@link DescribedPredicate} for the {@link JavaParameter}s of the {@link JavaCodeUnit}
+         * @return A {@link DescribedPredicate predicate} for a {@link JavaCodeUnit} that returns {@code true}
+         *         if and only if at least one {@link JavaParameter} of the {@link JavaCodeUnit} matches the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaCodeUnit> anyParameterThat(DescribedPredicate<? super JavaParameter> predicate) {
+            return DescribedPredicate.anyElementThat(predicate).onResultOf(JavaCodeUnit::getParameters).as("any parameter that %s", predicate.getDescription());
+        }
+
+        /**
+         * @param predicate A {@link DescribedPredicate} for the {@link JavaParameter}s of the {@link JavaCodeUnit}
+         * @return A {@link DescribedPredicate predicate} for a {@link JavaCodeUnit} that returns {@code true}
+         *         if and only if all {@link JavaParameter}s of the {@link JavaCodeUnit} match the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaCodeUnit> allParameters(DescribedPredicate<? super JavaParameter> predicate) {
+            return DescribedPredicate.<JavaParameter>allElements(predicate).onResultOf(JavaCodeUnit::getParameters).as("all parameters %s", predicate.getDescription());
         }
     }
 

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -18,9 +19,13 @@ import org.junit.runner.RunWith;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Predicates.allParameters;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Predicates.anyParameterThat;
 import static com.tngtech.archunit.core.domain.JavaParameter.startWithLowercase;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
@@ -326,6 +331,32 @@ public class JavaCodeUnitTest {
         assertThat(parameter.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
     }
 
+    @Test
+    public void predicate_on_any_parameter() {
+        JavaClass someClass = importClassWithContext(SomeClass.class);
+        DescribedPredicate<JavaParameter> stringTyped = equivalentTo(String.class).onResultOf(JavaParameter::getRawType);
+
+        DescribedPredicate<JavaCodeUnit> predicate = anyParameterThat(is(stringTyped));
+
+        assertThat(predicate).hasDescription("any parameter that is equivalent to java.lang.String")
+                .accepts(someClass.getMethod("method", String.class, String.class))
+                .accepts(someClass.getMethod("method", String.class, Integer.class))
+                .rejects(someClass.getMethod("method", Integer.class, Integer.class));
+    }
+
+    @Test
+    public void predicate_on_all_parameters() {
+        JavaClass someClass = importClassWithContext(SomeClass.class);
+        DescribedPredicate<JavaParameter> stringTyped = equivalentTo(String.class).onResultOf(JavaParameter::getRawType);
+
+        DescribedPredicate<JavaCodeUnit> predicate = allParameters(are(stringTyped));
+
+        assertThat(predicate).hasDescription("all parameters are equivalent to java.lang.String")
+                .accepts(someClass.getMethod("method", String.class, String.class))
+                .rejects(someClass.getMethod("method", String.class, Integer.class))
+                .rejects(someClass.getMethod("method", Integer.class, Integer.class));
+    }
+
     @SuppressWarnings("unused")
     private static class ClassWithVariousCodeUnitParameters {
         ClassWithVariousCodeUnitParameters(Object simple, String noParameterizedTypes) {
@@ -376,6 +407,18 @@ public class JavaCodeUnitTest {
         VALUE(new File("irrelevant"), 0);
 
         NonTrivialEnum(File file, double primitive) {
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class SomeClass {
+        void method(Integer a, Integer b) {
+        }
+
+        void method(String l, String r) {
+        }
+
+        void method(String s, Integer i) {
         }
     }
 
