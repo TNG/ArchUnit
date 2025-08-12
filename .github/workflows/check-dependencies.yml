@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Check for dependency updates
