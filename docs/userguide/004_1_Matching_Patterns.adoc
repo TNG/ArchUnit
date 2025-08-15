@@ -1,0 +1,89 @@
+== Understanding Dependency Matching Patterns
+
+When defining rules for your package and class dependencies, you can use wildcards to match patterns. The main wildcards are:
+
+* `..` → matches **any number of package levels**, including zero
+* `*`  → matches **a single package level** or part of a class name
+* `.`  → separates package levels
+
+This section explains each wildcard with examples and edge cases.
+
+=== 1. Double Dot `..`
+
+The `..` wildcard can match **any number of intermediate package levels**.
+
+[source,java]
+----
+Pattern: ..controller..
+Matches:
+com.myorg.myapp.controller.bar.BarController
+com.myorg.myapp.controller.bar.baz.Baz
+
+Pattern: ..baz
+Matches any class or package ending with "baz":
+com.myorg.myapp.foo.service.baz.BazService
+com.myorg.myapp.controller.bar.baz.Baz
+----
+
+*Edge Cases:*  
+- `..` at the beginning or end allows partial matches anywhere in the package path.  
+- `..` can match zero levels, so `..Foo` matches `com.myorg.Foo` as well.
+
+=== 2. Single Dot `.` and Asterisk `*`
+
+The `*` matches **exactly one package level** or part of a class name. It is usually combined with `.`.
+
+[source,java]
+----
+Pattern: ..foo.(*)
+Matches any class directly inside `foo`:
+com.myorg.myapp.foo.Foo
+Does NOT match:
+com.myorg.myapp.foo.service.baz.BazService
+
+Pattern: ..foo.* 
+Matches classes in any single sub-package under `foo`:
+com.myorg.myapp.foo.service.BazService
+Does NOT match deeper levels:
+com.myorg.myapp.foo.service.baz.BazService
+
+Pattern: ..*Controller
+Matches any class name ending with "Controller"
+----
+*Edge Cases:*  
+- `*` only matches **one level**; deeper nested packages require `**`.  
+- Using `*` for class names allows partial matches anywhere in the name.
+
+=== 3. Double Asterisk `**`
+
+The `**` wildcard matches **all sub-packages recursively**.  
+
+[source,java]
+----
+Pattern: ..foo.(**)
+Matches:
+com.myorg.myapp.foo.Foo
+com.myorg.myapp.foo.service.BazService
+com.myorg.myapp.foo.service.baz.BazService
+----
+
+*Edge Cases:*  
+- `**` can match zero or more levels.  
+- Useful when you want all classes in a package and its sub-packages.
+
+=== 4. Advanced Scenarios
+
+* **Acyclic Dependencies:** Ensure no cycles exist between packages.  
+  - Example rule: `allow no cycles`  
+* **Restricting Package Depth:** Limit nested packages.  
+  - Example pattern: `disallow ..myapp.*.*.*`  
+  - Allows: `com.myorg.myapp.controller.BarController` (2 levels after root)  
+  - Disallows: `com.myorg.myapp.controller.bar.baz.Baz` (3 levels after root)
+
+=== 5. Quick Tips
+
+* Test patterns on sample package lists to ensure correct matches.  
+* Combine patterns carefully:
+  - `..controller.*` → classes directly in `controller`  
+  - `..controller.**` → `controller` and all sub-packages recursively  
+* Always check edge cases, like zero-level matches or classes in unexpected sub-packages.
