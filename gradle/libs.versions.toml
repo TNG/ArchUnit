@@ -21,6 +21,6 @@ junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-l
 hamcrest = { group = "org.hamcrest", name = "hamcrest-core", version = "1.3" }
 junitDataprovider = { group = "com.tngtech.java", name = "junit-dataprovider", version = "1.11.0" }
 mockito = { group = "org.mockito", name = "mockito-core", version = "4.11.0" } # mockito 5 requires Java 11
-mockito_junit5 = { group = "org.mockito", name = "mockito-junit-jupiter", version = "4.6.1" }
+mockito_junit5 = { group = "org.mockito", name = "mockito-junit-jupiter", version = "4.11.0" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 assertj_guava = { group = "org.assertj", name = "assertj-guava", version.ref = "assertj" }
