@@ -16,7 +16,7 @@ jobs:
       - name: Check for dependency updates
         run: ./gradlew checkDependencyUpdates -DoutputFormatter=plain,json
       - name: Create issue/comment if ASM is not up-to-date
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           GITHUB_SERVER_URL: ${{github.server_url}}
           GITHUB_REPOSITORY: ${{github.repository}}
