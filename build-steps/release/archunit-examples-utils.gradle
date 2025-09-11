@@ -4,13 +4,15 @@ ext.archunitExamplesGitRepo = 'TNG/ArchUnit-Examples.git'
 ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
     fileTree(archUnitExampleDir) {
         include '**/build.gradle'
+        include '**/pom.xml'
     }.each { File buildFile ->
-        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\w.-]*/, "\$1${version}")
+        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit(:|<\/groupId>\n\s*<artifactId>)archunit([^:]*:|[^<]*<\/artifactId>\n\s*<version>))[\w.-]*/, "\$1${version}")
     }
 }
 ext.updateArchUnitExampleSources = { File targetArchUnitExampleDir ->
     updateArchUnitExampleDependencies(targetArchUnitExampleDir)
     updateArchUnitExampleJavaSources(targetArchUnitExampleDir)
+    updateArchUnitExampleGradleWrapper(targetArchUnitExampleDir)
 }
 
 @Field
@@ -53,5 +55,17 @@ private List updateArchUnitExampleJavaSources(File targetArchUnitExampleDir) {
             from new File(project(":archunit-example:${exampleFolder}").projectDir, 'src/test')
             into new File(targetSource, 'test')
         }
+    }
+}
+
+private void updateArchUnitExampleGradleWrapper(File targetArchUnitExampleDir) {
+    copy {
+        from(['gradlew', 'gradlew.bat'].collect { new File(rootProject.projectDir, it) })
+        into targetArchUnitExampleDir.toPath()
+    }
+    String wrapperDir = 'gradle/wrapper'
+    copy {
+        from(['gradle-wrapper.properties', 'gradle-wrapper.jar'].collect { new File(rootProject.projectDir, "${wrapperDir}/${it}") })
+        into new File(targetArchUnitExampleDir, wrapperDir)
     }
 }
