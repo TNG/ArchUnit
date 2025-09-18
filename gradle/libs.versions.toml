@@ -6,7 +6,7 @@ assertj = "3.27.4"
 
 [libraries]
 asm = { group = "org.ow2.asm", name = "asm", version = "9.8" }
-guava = { group = "com.google.guava", name = "guava", version = "33.4.8-jre" }
+guava = { group = "com.google.guava", name = "guava", version = "33.5.0-jre" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version = "2.0.17" }
 log4j_api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j_core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
