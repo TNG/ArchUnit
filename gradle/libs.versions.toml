@@ -2,7 +2,7 @@
 log4j = "2.25.1"
 junit5 = "5.13.4"
 junitPlatform = "1.13.4" # in sync with buildSrc/src/main/resources/release_check/archunit-junit5-engine-api.pom
-assertj = "3.27.4"
+assertj = "3.27.5"
 
 [libraries]
 asm = { group = "org.ow2.asm", name = "asm", version = "9.8" }
