@@ -1,7 +1,7 @@
 [versions]
 log4j = "2.25.2"
 junit5 = "5.13.4"
-junitPlatform = "1.13.4" # in sync with buildSrc/src/main/resources/release_check/archunit-junit5-engine-api.pom
+junitPlatform = "1.14.0" # in sync with buildSrc/src/main/resources/release_check/archunit-junit5-engine-api.pom
 assertj = "3.27.6"
 
 [libraries]
