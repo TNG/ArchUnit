@@ -213,7 +213,7 @@ List<IntegrationTestConfig> integrationTestConfigs = [
         )
 ]
 
-def vintageEngine = libs.junit5VintageEngine.get()
+def vintageEngine = libs.junitVintageEngine.get()
 integrationTestConfigs << new IntegrationTestConfig(
         javaVersion: integrationTestJavaVersion,
         testType: TestType.JUNIT5,

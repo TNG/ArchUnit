@@ -7,7 +7,7 @@ ext.moduleName = 'com.tngtech.archunit.integrationtest'
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
-    testImplementation libs.junitPlatform
+    testImplementation libs.junitPlatformRunner
     testImplementation libs.assertj
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation project(path: ':archunit-junit4')
