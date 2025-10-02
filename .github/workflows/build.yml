@@ -22,7 +22,7 @@ jobs:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Build
         run: ./gradlew build
       - name: Check project files unmodified
@@ -78,7 +78,7 @@ jobs:
               }
             }
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Test
         run: ./gradlew test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} "-Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}"
         env:
@@ -127,7 +127,7 @@ jobs:
               }
             }
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Publish to Maven Local
         run: ./gradlew build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
         env:
