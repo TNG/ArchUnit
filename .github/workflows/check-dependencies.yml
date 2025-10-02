@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Check for dependency updates
         run: ./gradlew checkDependencyUpdates -DoutputFormatter=plain,json
       - name: Create issue/comment if ASM is not up-to-date
