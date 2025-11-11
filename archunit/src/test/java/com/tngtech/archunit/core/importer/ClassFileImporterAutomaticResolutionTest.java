@@ -71,6 +71,7 @@ import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.an
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.stream.Collectors.toSet;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterAutomaticResolutionTest {
@@ -349,9 +350,13 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
-                .importClass(Origin.class);
-        JavaMethodCall call = getOnlyElement(javaClass.getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(
+                ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                        .importClass(Origin.class)
+                        .getMethodCallsFromSelf()
+                        .stream()
+                        .filter(c -> c.getOrigin().isMethod())
+                        .collect(toSet()));
 
         assertThat(call.getTargetOwner()).isFullyImported(true);
     }

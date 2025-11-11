@@ -459,7 +459,10 @@ public class ClassFileImporterAccessesTest {
         JavaMethodCall callFromBridgeMethodToOverriddenOne = getOnlyElement(
                 new ClassFileImporter().importClasses(Parent.class, Child.class)
                         .get(Child.class)
-                        .getMethodCallsFromSelf());
+                        .getMethodCallsFromSelf()
+                        .stream()
+                        .filter(call -> call.getOrigin().isMethod())
+                        .collect(toSet()));
         JavaCodeUnit bridgeMethod = callFromBridgeMethodToOverriddenOne.getOrigin();
 
         assertThat(bridgeMethod.getName()).isEqualTo("covariantlyOverriddenCausingBridgeMethod");
@@ -1146,10 +1149,11 @@ public class ClassFileImporterAccessesTest {
             }
         }
 
-        JavaMethodCall call = getOnlyElement(new ClassFileImporter()
-                .importClasses(Origin.class, Target.class)
-                .get(Origin.class)
-                .getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(
+                new ClassFileImporter().importClasses(Origin.class, Target.class)
+                        .get(Origin.class)
+                        .getMethod("call", Target.class)
+                        .getMethodCallsFromSelf());
 
         assertThat(call.getTarget().getParameterTypes())
                 .isEqualTo(call.getTarget().getRawParameterTypes());
@@ -1193,10 +1197,13 @@ public class ClassFileImporterAccessesTest {
             }
         }
 
-        JavaClass origin = new ClassFileImporter().importClasses(Origin.class, Target.class).get(Origin.class);
-
-        assertThat(origin.getMethodCallsFromSelf()).hasSize(2);
-        for (JavaMethodCall call : origin.getMethodCallsFromSelf()) {
+        Set<JavaMethodCall> methodCallsFromSelf =
+                new ClassFileImporter().importClasses(Origin.class, Target.class)
+                        .get(Origin.class)
+                        .getMethod("call", Target.class)
+                        .getMethodCallsFromSelf();
+        assertThat(methodCallsFromSelf).hasSize(2);
+        for (JavaMethodCall call : methodCallsFromSelf) {
             assertThatCall(call).isTo("callMe");
         }
     }
