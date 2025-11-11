@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  build_java_version: 21
+  build_java_version: 25
 
 jobs:
   build:
