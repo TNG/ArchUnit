@@ -48,6 +48,7 @@ jobs:
           - 11
           - 17
           - 21
+          - 25
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -97,6 +98,7 @@ jobs:
           - 11
           - 17
           - 21
+          - 25
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
