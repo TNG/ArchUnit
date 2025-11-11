@@ -46,7 +46,7 @@ ext {
     ]
 
     minSupportedJavaVersion = JavaVersion.VERSION_1_8
-    maxSupportedJavaVersion = JavaVersion.VERSION_21
+    maxSupportedJavaVersion = JavaVersion.VERSION_25
     isTestBuild = project.hasProperty('testJavaVersion')
     configuredTestJavaVersion = project.findProperty('testJavaVersion')?.toString()?.with { JavaVersion.toVersion(it) }
     assert configuredTestJavaVersion <= maxSupportedJavaVersion:

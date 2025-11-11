@@ -34,6 +34,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getMethodCallsFromClassWithoutAutomaticNullCheck;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporterTestUtils.isLambdaMethodName;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
@@ -68,7 +69,7 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
 
         JavaClasses classes = new ClassFileImporter().importClasses(Target.class, Caller.class);
-        JavaMethodCall call = getOnlyElement(classes.get(Caller.class).getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller.class)));
 
         assertThatCall(call).isFrom("call").isTo(Target.class, "target");
     }
@@ -172,7 +173,7 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
 
         JavaClasses classes = new ClassFileImporter().importClasses(Target.class, Caller.class);
-        JavaMethodCall call = getOnlyElement(classes.get(Caller.class).getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller.class)));
 
         assertThatCall(call).isFrom("call").isTo(Target.class, "target", String.class);
     }
@@ -196,7 +197,7 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
 
         JavaClasses classes = new ClassFileImporter().importClasses(Target.class, Caller.class);
-        JavaMethodCall call = getOnlyElement(classes.get(Caller.class).getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller.class)));
 
         assertThatCall(call).isFrom("call").isTo(Target.class, "target");
     }
@@ -252,7 +253,7 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
 
         JavaClasses classes = new ClassFileImporter().importClasses(Target.class, Caller.class);
-        Set<JavaMethodCall> calls = classes.get(Caller.class).getMethodCallsFromSelf();
+        Set<JavaMethodCall> calls = getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller.class));
 
         assertThat(calls).hasSize(2);
         calls.forEach(call -> assertThatCall(call).isFrom("call").isTo(Target.class, "target"));
@@ -285,7 +286,7 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
 
         JavaClasses classes = new ClassFileImporter().importClasses(Target.class, Caller.class);
-        Set<JavaMethodCall> calls = classes.get(Caller.class).getMethodCallsFromSelf();
+        Set<JavaMethodCall> calls = getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller.class));
         assertThat(calls).hasSize(5);
 
         assertThat(filterOriginByName(calls, "call1"))
@@ -361,10 +362,10 @@ public class ClassFileImporterLambdaDependenciesTest {
 
         JavaClasses classes = new ClassFileImporter().importClasses(Target.class, Caller1.class, Caller2.class);
 
-        JavaMethodCall call1 = getOnlyElement(classes.get(Caller1.class).getMethodCallsFromSelf());
+        JavaMethodCall call1 = getOnlyElement(getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller1.class)));
         assertThatCall(call1).isFrom("call").isTo(Target.class, "target");
 
-        JavaMethodCall call2 = getOnlyElement(classes.get(Caller2.class).getMethodCallsFromSelf());
+        JavaMethodCall call2 = getOnlyElement(getMethodCallsFromClassWithoutAutomaticNullCheck(classes.get(Caller2.class)));
         assertThatCall(call2).isFrom("call").isTo(Target.class, "target");
     }
 
