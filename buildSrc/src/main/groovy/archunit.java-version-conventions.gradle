@@ -3,7 +3,8 @@ class VersionSpec {
             JavaVersion.VERSION_1_8,
             JavaVersion.VERSION_11,
             JavaVersion.VERSION_17,
-            JavaVersion.VERSION_21
+            JavaVersion.VERSION_21,
+            JavaVersion.VERSION_25,
     ] as SortedSet
 
     JavaVersion desiredJdkVersion
@@ -43,10 +44,9 @@ afterEvaluate {
         toolchain {
             languageVersion = versionSpec.desiredJavaLanguageVersion
         }
+        sourceCompatibility = versionSpec.desiredSourceCompatibility
+        targetCompatibility = versionSpec.desiredSourceCompatibility
     }
-
-    sourceCompatibility = versionSpec.desiredSourceCompatibility
-    targetCompatibility = versionSpec.desiredSourceCompatibility
 
     tasks.withType(JavaCompile) { Task task ->
         VersionSpec taskVersionSpec = versionSpec.withLowerLtsVersionBoundCompatibleWith(getMinTaskJavaVersion(task))
