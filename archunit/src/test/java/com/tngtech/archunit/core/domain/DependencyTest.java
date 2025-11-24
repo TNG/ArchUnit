@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithArrayDependencies;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnCaughtException;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget;
 import com.tngtech.archunit.core.domain.testobjects.DependenciesOnClassObjects;
@@ -192,6 +193,66 @@ public class DependencyTest {
         assertThatType(dependency.getTargetClass()).matches(IOException.class);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
+    }
+
+    static Stream<Arguments> with_try_catch_block_members() {
+        JavaClass javaClass = importClassesWithContext(ClassWithDependencyOnCaughtException.class, IOException.class)
+                .get(ClassWithDependencyOnCaughtException.class);
+
+        return Stream.of(
+                arguments(javaClass.getStaticInitializer().get(), 9),
+                arguments(javaClass.getConstructor(), 16),
+                arguments(javaClass.getMethod("simpleCatchClauseMethod"), 23)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("with_try_catch_block_members")
+    void Dependency_from_simple_catch_clause(JavaCodeUnit memberWithTryCatchBlock, int expectedLineNumber) {
+        TryCatchBlock tryCatchBlock = getOnlyElement(memberWithTryCatchBlock.getTryCatchBlocks());
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromTryCatchBlock(tryCatchBlock));
+
+        Assertions.assertThatDependency(dependency)
+                .satisfies(catchesType(IOException.class, memberWithTryCatchBlock, expectedLineNumber, ClassWithDependencyOnCaughtException.class));
+    }
+
+    private static Consumer<Dependency> catchesType(Class<? extends Throwable> targetClass, JavaCodeUnit javaCodeUnit, int expectedLineNumber, Class<?> originClass) {
+        return dependency -> Assertions.assertThatDependency(dependency)
+                .matches(originClass, targetClass)
+                .hasDescription(javaCodeUnit.getFullName(), "catches type", targetClass.getName())
+                .inLocation(originClass, expectedLineNumber);
+    }
+
+    @Test
+    void Dependency_from_union_catch_clause() {
+        JavaMethod method = importClassesWithContext(ClassWithDependencyOnCaughtException.class, IllegalStateException.class, IOException.class)
+                .get(ClassWithDependencyOnCaughtException.class)
+                .getMethod("unionCatchClauseMethod");
+        TryCatchBlock tryCatchBlock = getOnlyElement(method.getTryCatchBlocks());
+
+        Set<Dependency> dependencies = Dependency.tryCreateFromTryCatchBlock(tryCatchBlock);
+
+        Assertions.assertThatDependencies(dependencies).satisfiesExactlyInAnyOrder(
+                catchesType(IllegalStateException.class, method, 30, ClassWithDependencyOnCaughtException.class),
+                catchesType(IOException.class, method, 30, ClassWithDependencyOnCaughtException.class)
+        );
+    }
+
+    @Test
+    void Dependency_from_multiple_catch_clauses() {
+        JavaMethod method = importClassesWithContext(ClassWithDependencyOnCaughtException.class, IllegalStateException.class, IOException.class)
+                .get(ClassWithDependencyOnCaughtException.class)
+                .getMethod("multipleCatchClausesMethod");
+        TryCatchBlock tryCatchBlock = getOnlyElement(method.getTryCatchBlocks());
+
+        Set<Dependency> dependencies = Dependency.tryCreateFromTryCatchBlock(tryCatchBlock);
+
+        Assertions.assertThatDependencies(dependencies).satisfiesExactlyInAnyOrder(
+                catchesType(IllegalStateException.class, method, 37, ClassWithDependencyOnCaughtException.class),
+                catchesType(RuntimeException.class, method, 37, ClassWithDependencyOnCaughtException.class),
+                catchesType(IOException.class, method, 37, ClassWithDependencyOnCaughtException.class)
+        );
     }
 
     static Stream<Arguments> with_instanceof_check_members() {
