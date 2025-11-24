@@ -22,12 +22,14 @@ import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_bac
 import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_forwards.DependencySettingsForbiddenByMayOnlyAccess;
 import com.tngtech.archunit.library.testclasses.dependencysettings.origin.DependencySettingsOriginClass;
 import com.tngtech.archunit.library.testclasses.dependencysettings_outside.DependencySettingsOutsideOfLayersBeingAccessedByLayers;
+import com.tngtech.archunit.library.testclasses.first.any.pkg.ClassWithCatch;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.forbidden.MayOnlyAccessLayersForbiddenClass;
 import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.origin.MayOnlyAccessLayersOriginClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgException;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -213,7 +215,8 @@ public class LayeredArchitectureTest {
                         expectedAccessViolationPattern(FirstThreeAnyClass.class, "call", FirstAnyPkgClass.class, "callMe"),
                         expectedFieldTypePattern(FirstAnyPkgClass.class, "illegalTarget", SomePkgSubclass.class),
                         expectedFieldTypePattern(FirstThreeAnyClass.class, "illegalTarget", FirstAnyPkgClass.class),
-                        expectedFieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class)));
+                        expectedFieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class),
+                        expectedCatchPattern(ClassWithCatch.class, "method", SomePkgException.class)));
     }
 
     @DataProvider
@@ -488,6 +491,10 @@ public class LayeredArchitectureTest {
     @SuppressWarnings("SameParameterValue")
     private static String expectedInheritancePattern(Class<?> child, Class<?> parent) {
         return String.format("Class .*%s.* extends class .*.%s.*", child.getSimpleName(), parent.getSimpleName());
+    }
+
+    static String expectedCatchPattern(Class<?> from, String fromMethod, Class<? extends Throwable> to) {
+        return String.format(".*%s.%s().*catches type.*%s.*", quote(from.getName()), fromMethod, quote(to.getName()));
     }
 
     static String expectedEmptyLayerPattern(String layerName) {
