@@ -207,7 +207,7 @@ public class ImportOptionsTest {
     }
 
     private static boolean comesFromJarArchive(Class<?> clazz) {
-        return LocationTest.urlOfClass(clazz).getProtocol().equals("jar");
+        return "jar".equals(LocationTest.urlOfClass(clazz).getProtocol());
     }
 
     private static class FolderPattern {

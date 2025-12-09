@@ -15,44 +15,46 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.io.File;
+import com.google.common.base.Splitter;
+
 import java.lang.module.ModuleFinder;
-import java.lang.module.ModuleReference;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
-
-import com.google.common.base.Splitter;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Iterables.concat;
+import static com.tngtech.archunit.core.importer.UrlSource.From.iterable;
+import static java.io.File.pathSeparatorChar;
+import static java.lang.System.getProperty;
 import static java.util.stream.Collectors.toList;
 
 class ModuleLocationResolver implements LocationResolver {
+    private static final String JDK_MODULE_PATH = "jdk.module.path";
     private final FromClasspathAndUrlClassLoaders standardResolver = new FromClasspathAndUrlClassLoaders();
 
     @Override
     public UrlSource resolveClassPath() {
-        Iterable<URL> classpath = standardResolver.resolveClassPath();
-        Set<ModuleReference> systemModuleReferences = ModuleFinder.ofSystem().findAll();
-        Set<ModuleReference> configuredModuleReferences = ModuleFinder.of(modulepath()).findAll();
-        Iterable<URL> modulepath = Stream.concat(systemModuleReferences.stream(), configuredModuleReferences.stream())
-                .flatMap(moduleReference -> moduleReference.location().stream())
-                .map(this::toUrl)
-                .collect(toList());
-
-        return UrlSource.From.iterable(concat(classpath, modulepath));
+        return iterable(concat(
+                standardResolver.resolveClassPath(),
+                Stream.concat(ModuleFinder.ofSystem().findAll().stream(),
+                              ModuleFinder.of(modulepath()).findAll().stream())
+                        .flatMap(moduleReference -> moduleReference.location().stream())
+                        .map(this::toUrl)
+                        .collect(toList())));
     }
 
     private Path[] modulepath() {
-        String modulepathProperty = nullToEmpty(System.getProperty("jdk.module.path"));
-        List<String> modulepath = Splitter.on(File.pathSeparatorChar).omitEmptyStrings().splitToList(modulepathProperty);
-        return modulepath.stream().map(Paths::get).toArray(Path[]::new);
+        return Splitter
+                .on(pathSeparatorChar)
+                .omitEmptyStrings()
+                .splitToList(nullToEmpty(getProperty(JDK_MODULE_PATH)))
+                .stream()
+                .map(Paths::get)
+                .toArray(Path[]::new);
     }
 
     private URL toUrl(URI uri) {

@@ -1,10 +1,11 @@
 plugins {
     id 'archunit.base-conventions'
-    id 'com.gradleup.shadow' version '8.3.9' apply false
-    id 'com.github.spotbugs' version '6.4.7' apply false
-    id "io.github.gradle-nexus.publish-plugin" version "2.0.0" apply false
-    id "com.diffplug.spotless" version "8.1.0" apply false
+    id 'com.diffplug.spotless' version '8.1.0' apply false
     id 'com.github.ben-manes.versions' version '0.53.0' apply false
+    id 'com.github.spotbugs' version '6.4.7' apply false
+    id 'com.gradleup.shadow' version '8.3.9' apply false
+    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0' apply false
+    id 'org.openrewrite.rewrite' version '7.21.0' apply false
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'

@@ -60,7 +60,7 @@ class JavaClassDescriptorImporter {
     }
 
     static boolean isLambdaMetafactory(String asmObjectTypeName) {
-        return asmObjectTypeName.equals(LAMBDA_METAFACTORY_ASM_OBJECT_TYPE_NAME);
+        return LAMBDA_METAFACTORY_ASM_OBJECT_TYPE_NAME.equals(asmObjectTypeName);
     }
 
     static boolean isLambdaMethod(Handle methodHandle) {

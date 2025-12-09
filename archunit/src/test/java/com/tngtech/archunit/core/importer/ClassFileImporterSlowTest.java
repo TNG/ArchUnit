@@ -183,7 +183,7 @@ public class ClassFileImporterSlowTest {
                 // before Java 9 packages like java.lang were in rt.jar;
                 location.contains("rt.jar") ||
                         // from Java 9 on those packages were in a JRT with name 'java.base'
-                        (location.asURI().getScheme().equals("jrt") && location.contains("java.base"))
+                        ("jrt".equals(location.asURI().getScheme()) && location.contains("java.base"))
         )).importClasspath();
     }
 
@@ -198,7 +198,7 @@ public class ClassFileImporterSlowTest {
             if (location.isJar() && (location.contains("junit") || location.contains("/rt.jar"))) {
                 return true;
             }
-            return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
+            return "jrt".equals(location.asURI().getScheme()) && location.contains("java.base");
         };
     }
 

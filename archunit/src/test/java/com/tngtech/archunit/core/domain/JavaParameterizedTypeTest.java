@@ -48,11 +48,11 @@ public class JavaParameterizedTypeTest {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static Object[] createTestInput(Class<?> testClass) {
         Type reflectionType = Arrays.stream(testClass.getTypeParameters())
-                .filter(v -> v.getName().equals("TEST"))
+                .filter(v -> "TEST".equals(v.getName()))
                 .map(v -> v.getBounds()[0])
                 .findFirst().get();
         JavaType javaType = new ClassFileImporter().importClass(testClass).getTypeParameters().stream()
-                .filter(v -> v.getName().equals("TEST"))
+                .filter(v -> "TEST".equals(v.getName()))
                 .map(v -> v.getBounds().get(0))
                 .findFirst().get();
 

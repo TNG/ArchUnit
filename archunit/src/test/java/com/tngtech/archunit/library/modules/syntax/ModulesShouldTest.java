@@ -79,9 +79,9 @@ public class ModulesShouldTest {
     @Test
     public void respectTheirAllowedDependenciesDeclaredIn_works_together_with_filtering_by_predicate() {
         assertThatRule(modules().definedByAnnotation(TestModule.class)
-                .that(DescribedPredicate.describe("are not Module 1", it -> !it.getName().equals("Module 1")))
-                .and(DescribedPredicate.describe("are not Module 2", it -> !it.getName().equals("Module 2")))
-                .or(DescribedPredicate.describe("are Module 3", it -> it.getName().equals("Module 3")))
+                .that(DescribedPredicate.describe("are not Module 1", it -> !"Module 1".equals(it.getName())))
+                .and(DescribedPredicate.describe("are not Module 2", it -> !"Module 2".equals(it.getName())))
+                .or(DescribedPredicate.describe("are Module 3", it -> "Module 3".equals(it.getName())))
                 .should().respectTheirAllowedDependenciesDeclaredIn("allowedDependencies", consideringOnlyDependenciesBetweenModules()))
                 .checking(new ClassFileImporter().importPackagesOf(ClassInModule1.class, InternalClassInModule2.class, ClassInModule3.class))
                 .hasNoViolation();
