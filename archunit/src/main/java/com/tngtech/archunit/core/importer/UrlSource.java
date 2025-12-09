@@ -98,7 +98,7 @@ interface UrlSource extends Iterable<URL> {
 
         // Use URI because of better equals / hashcode
         private static void readClasspathUriEntriesFromManifests(Set<URI> result, Set<URI> uris) {
-            uris.stream().filter(url -> url.getScheme().equals("jar"))
+            uris.stream().filter(url -> "jar".equals(url.getScheme()))
                     .map(From::readClasspathEntriesFromManifest)
                     .map(manifestUris -> ImmutableSet.copyOf(difference(manifestUris, result))) // difference returns a dynamic SetView -> safe-copy
                     .forEach(unknownSoFar -> {

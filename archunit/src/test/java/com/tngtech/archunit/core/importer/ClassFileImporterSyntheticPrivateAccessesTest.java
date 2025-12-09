@@ -461,7 +461,7 @@ public class ClassFileImporterSyntheticPrivateAccessesTest {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private Set<JavaAccess<?>> importRelevantAccesses(Class<?> origin, Class<?> target) {
         return new ClassFileImporter().importClasses(origin, target).get(origin).getMethods().stream()
-                .filter(m -> m.getName().equals("access"))
+                .filter(m -> "access".equals(m.getName()))
                 .findFirst()
                 .get()
                 .getAccessesFromSelf()

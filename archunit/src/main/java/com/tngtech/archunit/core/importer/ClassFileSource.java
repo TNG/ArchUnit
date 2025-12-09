@@ -207,7 +207,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
     @Internal
     class FileToImport {
         static boolean isRelevant(String simpleFileName) {
-            return simpleFileName.endsWith(".class") && !simpleFileName.equals("module-info.class");
+            return simpleFileName.endsWith(".class") && !"module-info.class".equals(simpleFileName);
         }
     }
 }

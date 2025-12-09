@@ -1,138 +1,126 @@
-name: CI
-
+name: CI 🚦
 on:
   push:
     branches:
       - main
       - release-*
   pull_request:
-
 env:
   build_java_version: 21
-
 jobs:
   build:
+    name: Build 📦
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout 📥
         uses: actions/checkout@v6
-      - name: Set up Java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5.1.0
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: ${{ env.build_java_version }}
-      - name: Set Up Gradle
+      - name: Setup Gradle 🐘
         uses: gradle/actions/setup-gradle@v5
-      - name: Build
+      - name: Spotless ✨
+        run: ./gradlew spotlessCheck
+      - name: Sanity Check 🕊
+        run: ./gradlew rewriteDryRun
+      - name: Build 🏗️ 
         run: ./gradlew build
-      - name: Check project files unmodified
+      - name: Verify No Modified Files 📋
         run: |
-          directoryState="$(git status --porcelain)"
+          directoryState="$(git.status --porcelain)"
           if [ -n "$directoryState" ]; then
-            echo "Some files were modified during build. Please run the build locally before checking in, as it ensures some source file conventions (like copyright header)."
-            echo "The following files were modified:"
+            echo "Some files were modified during build. Please run the build locally before checking in."
+            echo "Modified files:"
             echo "$directoryState"
             exit 1
           fi
-
   test:
+    name: Unit Tests 🧪 (${{ matrix.os }} - JDK ${{ matrix.test_java_version }})
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        test_java_version:
-          - 8
-          - 11
-          - 17
-          - 21
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        test_java_version: [8, 11, 17, 21]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
+      - name: Checkout 📥
         uses: actions/checkout@v6
-      - name: Set up Build JDK
+      - name: Setup Build JDK ☕
         uses: actions/setup-java@v5.1.0
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: ${{ env.build_java_version }}
-      - name: Set up Test JDK
+      - name: Setup Test JDK ☕
         uses: actions/setup-java@v5.1.0
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: ${{ matrix.test_java_version }}
-      - name: Provide installed JDKs
-        uses: actions/github-script@v8
+      - name: Resolve Installed JDK Paths 🔍
         id: provideJdkPaths
+        uses: actions/github-script@v8
         with:
           script: |
-            for ( let envVarName in process.env ) {
+            for (let envVarName in process.env) {
               if (/JAVA_HOME_\d.*64/.test(envVarName)) {
                 const version = envVarName.match(/JAVA_HOME_(\d+).*64/)[1];
                 if (version === "${{ matrix.test_java_version }}") {
-                  core.exportVariable('test_jdk_path', process.env[envVarName]);
+                  core.exportVariable("test_jdk_path", process.env[envVarName]);
                 } else if (version === "${{ env.build_java_version }}") {
-                  core.exportVariable('build_jdk_path', process.env[envVarName]);
+                  core.exportVariable("build_jdk_path", process.env[envVarName]);
                 }
               }
             }
-      - name: Set Up Gradle
+      - name: Setup Gradle 🐘
         uses: gradle/actions/setup-gradle@v5
-      - name: Test
+      - name: Run Tests 🧪
         run: ./gradlew test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} "-Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}"
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
-
   integration-test:
+    name: Integration Tests 🧩 (${{ matrix.os }} - JDK ${{ matrix.test_java_version }})
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        test_java_version:
-          - 8
-          - 11
-          - 17
-          - 21
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        test_java_version: [8, 11, 17, 21]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
+      - name: Checkout 📥
         uses: actions/checkout@v6
-      - name: Set up Build JDK
+      - name: Setup Build JDK ☕
         uses: actions/setup-java@v5.1.0
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: ${{ env.build_java_version }}
-      - name: Set up Test JDK
+      - name: Setup Test JDK ☕
         uses: actions/setup-java@v5.1.0
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: ${{ matrix.test_java_version }}
-      - name: Provide installed JDKs
-        uses: actions/github-script@v8
+      - name: Resolve Installed JDK Paths 🔍
         id: provideJdkPaths
+        uses: actions/github-script@v8
         with:
           script: |
-            for ( let envVarName in process.env ) {
+            for (let envVarName in process.env) {
               if (/JAVA_HOME_\d.*64/.test(envVarName)) {
                 const version = envVarName.match(/JAVA_HOME_(\d+).*64/)[1];
                 if (version === "${{ matrix.test_java_version }}") {
-                  core.exportVariable('test_jdk_path', process.env[envVarName]);
+                  core.exportVariable("test_jdk_path", process.env[envVarName]);
                 } else if (version === "${{ env.build_java_version }}") {
-                  core.exportVariable('build_jdk_path', process.env[envVarName]);
+                  core.exportVariable("build_jdk_path", process.env[envVarName]);
                 }
               }
             }
-      - name: Set Up Gradle
+      - name: Setup Gradle 🐘
         uses: gradle/actions/setup-gradle@v5
-      - name: Publish to Maven Local
+      - name: Publish to Maven Local 📦
         run: ./gradlew build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
-      - name: Integration test
+      - name: Run Integration Tests 🧩
         run: ./gradlew runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} "-Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}"
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}

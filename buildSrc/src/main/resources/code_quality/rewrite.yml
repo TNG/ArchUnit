@@ -1,0 +1,14 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.tngtech.archunit.openrewrite.SanityCheck
+displayName: Apply all common best practices
+description: Comprehensive code quality recipe combining modernization, security, and best practices.
+recipeList:
+  - org.openrewrite.staticanalysis.EqualsAvoidsNull
+  - tech.picnic.errorprone.refasterrules.TimeRulesRecipes
+#  - org.openrewrite.java.testing.assertj.Assertj
+#  - org.openrewrite.java.testing.junit.JupiterBestPractices
+#  - tech.picnic.errorprone.refasterrules.JUnitRulesRecipes
+#  - tech.picnic.errorprone.refasterrules.JUnitToAssertJRulesRecipes
+#  - tech.picnic.errorprone.refasterrules.StreamRulesRecipes
+---

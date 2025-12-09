@@ -350,7 +350,7 @@ public abstract class RandomSyntaxTestBase {
                                 || methodName.toLowerCase().contains("declared")
                                 || methodName.toLowerCase().contains("type")) {
                             return new Parameter("some.Type", "some.Type");
-                        } else if (methodName.equals("be") || methodName.equals("notBe")) {
+                        } else if ("be".equals(methodName) || "notBe".equals(methodName)) {
                             return new Parameter("some.Type", "some.Type");
                         } else {
                             return new Parameter("string", "'string'");

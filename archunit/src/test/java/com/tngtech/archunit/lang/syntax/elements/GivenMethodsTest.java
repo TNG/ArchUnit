@@ -12,7 +12,9 @@ import java.util.Collection;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.*;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;

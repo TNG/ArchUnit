@@ -76,7 +76,7 @@ abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor imp
     static String formatWithPath(UniqueId uniqueId, String name) {
         return Stream.concat(
                 uniqueId.getSegments().stream()
-                        .filter(it -> it.getType().equals(ArchUnitTestDescriptor.CLASS_SEGMENT_TYPE))
+                        .filter(it -> ArchUnitTestDescriptor.CLASS_SEGMENT_TYPE.equals(it.getType()))
                         .skip(1)
                         .map(UniqueId.Segment::getValue)
                         .map(Formatters::ensureSimpleName),

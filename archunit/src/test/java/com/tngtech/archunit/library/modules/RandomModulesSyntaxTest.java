@@ -92,7 +92,7 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
                                         new SingleParameterProvider(String.class) {
                                             @Override
                                             protected boolean canHandle(String methodName, Class<?> type) {
-                                                return methodName.equals("respectTheirAllowedDependenciesDeclaredIn") && super.canHandle(methodName, type);
+                                                return "respectTheirAllowedDependenciesDeclaredIn".equals(methodName) && super.canHandle(methodName, type);
                                             }
 
                                             @Override
@@ -104,7 +104,7 @@ public class RandomModulesSyntaxTest extends RandomSyntaxTestBase {
 
                                             @Override
                                             protected boolean canHandle(String methodName, Class<?> type) {
-                                                return methodName.equals("onlyDependOnEachOtherThroughPackagesDeclaredIn") && super.canHandle(methodName, type);
+                                                return "onlyDependOnEachOtherThroughPackagesDeclaredIn".equals(methodName) && super.canHandle(methodName, type);
                                             }
 
                                             @Override
