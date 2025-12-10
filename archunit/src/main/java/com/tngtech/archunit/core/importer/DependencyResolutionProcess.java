@@ -64,6 +64,11 @@ class DependencyResolutionProcess {
     private final int maxRunsForGenericSignatureTypes = getConfiguredIterations(
             MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE);
 
+    static final String MAX_ITERATIONS_FOR_PACKAGE_INFO_PROPERTY_NAME = "maxIterationsForPackageInfo";
+    static final int MAX_ITERATIONS_FOR_PACKAGE_INFO_DEFAULT_VALUE = -1;
+    private final int maxRunsForPackageInfo = getConfiguredIterations(
+            MAX_ITERATIONS_FOR_PACKAGE_INFO_PROPERTY_NAME, MAX_ITERATIONS_FOR_PACKAGE_INFO_DEFAULT_VALUE);
+
     private Set<String> currentTypeNames = new HashSet<>();
     private int runNumber = 1;
     private boolean shouldContinue;
@@ -112,6 +117,12 @@ class DependencyResolutionProcess {
 
     void registerGenericSignatureType(String typeName) {
         if (runNumberHasNotExceeded(maxRunsForGenericSignatureTypes)) {
+            currentTypeNames.add(typeName);
+        }
+    }
+
+    void registerPackageInfo(String typeName) {
+        if (runNumberHasNotExceeded(maxRunsForPackageInfo)) {
             currentTypeNames.add(typeName);
         }
     }
