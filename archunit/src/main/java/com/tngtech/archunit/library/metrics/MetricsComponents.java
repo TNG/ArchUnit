@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -121,7 +122,12 @@ public final class MetricsComponents<T> extends ForwardingCollection<MetricsComp
     public static MetricsComponents<JavaClass> fromPackages(Collection<JavaPackage> packages) {
         ImmutableSet.Builder<MetricsComponent<JavaClass>> components = ImmutableSet.builder();
         for (JavaPackage javaPackage : packages) {
-            components.add(MetricsComponent.of(javaPackage.getName(), javaPackage.getClassesInPackageTree()));
+            components.add(MetricsComponent.of(
+                    javaPackage.getName(),
+                    javaPackage.getClassesInPackageTree().stream()
+                            .filter(jc -> !jc.getSimpleName().equals("package-info"))
+                            .collect(Collectors.toList())
+            ));
         }
         return MetricsComponents.of(components.build());
     }
