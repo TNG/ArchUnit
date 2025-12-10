@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.packageexamples.annotated.PackageLevelAnnotation;
@@ -423,6 +424,15 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.getPackageInfo()).isNotNull();
+        assertThat(annotatedPackage.getClasses())
+                .hasSize(3);
+        assertThat(annotatedPackage.getClasses().stream().map(JavaClass::getFullName).collect(Collectors.toList()))
+                .as("all classes and package-info are loaded as JavaClass")
+                .containsExactlyInAnyOrder(
+                        "com.tngtech.archunit.core.domain.packageexamples.annotated.package-info",
+                        "com.tngtech.archunit.core.domain.packageexamples.annotated.PackageLevelAnnotation",
+                        "com.tngtech.archunit.core.domain.packageexamples.annotated.WithinAnnotatedPackage"
+                );
 
         assertThatThrownBy(nonAnnotatedPackage::getPackageInfo)
                 .isInstanceOf(IllegalArgumentException.class)
