@@ -109,6 +109,15 @@ public class ClassCacheTest {
     }
 
     @Test
+    public void gets_all_classes_specified() {
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
+                .withClassesToAnalyze(getClass()));
+
+        assertThat(classes).hasSize(1);
+        assertThat(classes.contain(getClass())).as("root class is contained itself").isTrue();
+    }
+
+    @Test
     public void get_all_classes_by_LocationProvider() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
                 .withPackagesRoots(ClassCacheTest.class)
