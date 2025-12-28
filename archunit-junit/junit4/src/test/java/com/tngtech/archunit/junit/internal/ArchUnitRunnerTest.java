@@ -54,6 +54,8 @@ public class ArchUnitRunnerTest {
     private ArchUnitRunnerInternal runnerOfMaxAnnotatedTest = newRunner(MaxAnnotatedTest.class);
     @InjectMocks
     private ArchUnitRunnerInternal runnerOfMetaAnnotatedTest = newRunner(MetaAnnotatedTest.class);
+    @InjectMocks
+    private ArchUnitRunnerInternal runnerOfAnalyzeClassesWithClassesPropertyTest = newRunner(AnalyzeClassesWithClassesPropertyTest.class);
 
     @Before
     public void setUp() {
@@ -73,6 +75,7 @@ public class ArchUnitRunnerTest {
         assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
         assertThat(analysisRequest.scanWholeClasspath()).as("scan whole classpath").isTrue();
         assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());
+        assertThat(analysisRequest.getClassesToAnalyze()).isEmpty();
     }
 
     @Test
@@ -114,6 +117,23 @@ public class ArchUnitRunnerTest {
         assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
         assertThat(analysisRequest.scanWholeClasspath()).as("scan whole classpath").isTrue();
         assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());
+        assertThat(analysisRequest.getClassesToAnalyze()).isEmpty();
+    }
+
+    @Test
+    public void passes_AnalyzeClasses_with_classes_property_to_cache() {
+        runnerOfAnalyzeClassesWithClassesPropertyTest.run(new RunNotifier());
+
+        verify(cache).getClassesToAnalyzeFor(eq(AnalyzeClassesWithClassesPropertyTest.class), analysisRequestCaptor.capture());
+
+        AnalyzeClasses analyzeClasses = AnalyzeClassesWithClassesPropertyTest.class.getAnnotation(AnalyzeClasses.class);
+        ClassAnalysisRequest analysisRequest = analysisRequestCaptor.getValue();
+        assertThat(analysisRequest.getClassesToAnalyze()).isEqualTo(analyzeClasses.classes());
+        assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());
+        assertThat(analysisRequest.getPackageNames()).isEqualTo(analyzeClasses.packages());
+        assertThat(analysisRequest.getPackageRoots()).isEqualTo(analyzeClasses.packagesOf());
+        assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
+        assertThat(analysisRequest.scanWholeClasspath()).as("scan whole classpath").isFalse();
     }
 
     private ArchUnitRunnerInternal newRunner(Class<?> testClass) {
@@ -193,6 +213,16 @@ public class ArchUnitRunnerTest {
                 wholeClasspath = true
         )
         public @interface MetaAnalyzeClasses {
+        }
+    }
+
+    @AnalyzeClasses(
+            classes = {String.class, Rule.class},
+            importOptions = {DummyImportOption.class}
+    )
+    public static class AnalyzeClassesWithClassesPropertyTest {
+        @ArchTest
+        public static void someTest(JavaClasses classes) {
         }
     }
 }
