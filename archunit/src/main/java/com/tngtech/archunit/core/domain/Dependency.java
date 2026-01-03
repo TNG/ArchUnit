@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
@@ -51,6 +52,7 @@ import static java.util.Collections.singleton;
  * <li>a class (or method/constructor of this class) declares a type parameter referencing another class</li>
  * <li>a class (or method/constructor of this class) is annotated with an annotation of a certain type or referencing another class as annotation parameter</li>
  * <li>a method/constructor of a class references another class in a throws declaration</li>
+ * <li>a class references another class in a {@code catch} clause</li>
  * <li>a class references another class object (e.g. {@code Example.class})</li>
  * <li>a class references another class in an {@code instanceof} check</li>
  * </ul>
@@ -123,6 +125,12 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     static Set<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
         return tryCreateDependency(declaration.getLocation(), "throws type", declaration.getRawType());
+    }
+
+    static Set<Dependency> tryCreateFromTryCatchBlock(TryCatchBlock tryCatchBlock) {
+        return tryCatchBlock.getCaughtThrowables().stream()
+                .flatMap(caughtThrowable -> tryCreateDependency(tryCatchBlock.getOwner(), "catches type", caughtThrowable, tryCatchBlock.getSourceCodeLocation()).stream())
+                .collect(Collectors.toSet());
     }
 
     static Set<Dependency> tryCreateFromInstanceofCheck(InstanceofCheck instanceofCheck) {
@@ -269,6 +277,10 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return description;
     }
 
+    /**
+     * @implNote For dependencies created by {@code catch} clauses, the line number reported <i>currently</i> refers to
+     * the first access in the {@code try} block, not to the {@code catch} clause.
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public SourceCodeLocation getSourceCodeLocation() {
