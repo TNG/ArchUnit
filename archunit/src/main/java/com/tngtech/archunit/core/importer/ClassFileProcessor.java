@@ -99,7 +99,11 @@ class ClassFileProcessor {
             }
             importRecord.addInterfaces(ownerName, interfaceNames);
             dependencyResolutionProcess.registerSupertypes(interfaceNames);
-        }
+            if(!className.endsWith(".package-info")) {
+                String packageName = className.substring(0, className.lastIndexOf("."));
+                dependencyResolutionProcess.registerPackageInfo(packageName + ".package-info");
+            }
+    }
 
         @Override
         public void onDeclaredTypeParameters(JavaClassTypeParametersBuilder typeParametersBuilder) {
