@@ -15,9 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Collections;
-import java.util.Set;
-
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -28,6 +25,9 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
+
+import java.util.Collections;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -112,7 +112,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @Override
     public String toString() {
         return getClass().getSimpleName() +
-                "{origin=" + origin + ", target=" + target + ", lineNumber=" + getLineNumber() + additionalToStringFields() + '}';
+               "{origin=" + origin + ", target=" + target + ", lineNumber=" + getLineNumber() + additionalToStringFields() + '}';
     }
 
     String additionalToStringFields() {
@@ -168,12 +168,16 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> targetOwner(DescribedPredicate<? super JavaClass> predicate) {
-            return target(Get.<JavaClass>owner().is(predicate));
+            DescribedPredicate<JavaAccess<?>> targetPredicate =
+                    predicate.onResultOf(JavaAccess.Functions.Get.target()
+                            .then(HasOwner.Functions.Get.owner()));
+            return targetPredicate.as("owner %s", predicate.getDescription());
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> target(DescribedPredicate<? super AccessTarget> predicate) {
-            return new TargetPredicate<>(predicate);
+            DescribedPredicate<JavaAccess<?>> targetPredicate = predicate.onResultOf(JavaAccess.Functions.Get.target());
+            return targetPredicate.as("target %s", predicate.getDescription());
         }
 
         private static class OriginOwnerEqualsTargetOwnerPredicate extends DescribedPredicate<JavaAccess<?>> {
