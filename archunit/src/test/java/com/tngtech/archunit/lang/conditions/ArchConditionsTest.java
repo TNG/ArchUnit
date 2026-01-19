@@ -36,7 +36,9 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWher
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.declareThrowableOfType;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.haveAnyDependenciesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
@@ -161,6 +163,38 @@ public class ArchConditionsTest {
         assertThat(onlyHaveDependentsWhere(DescribedPredicate.<Dependency>alwaysTrue().as("custom")))
                 .hasDescription("only have dependents where custom")
                 .checking(accessedClass)
+                .containNoViolation();
+    }
+
+    @Test
+    public void depend_on_classes_that() {
+        JavaClasses classes = importClasses(CallingClass.class, SomeClass.class);
+        JavaClass callingClass = classes.get(CallingClass.class);
+
+        assertThat(dependOnClassesThat(alwaysFalse()))
+                .checking(callingClass)
+                .haveAtLeastOneViolationMessageMatching(String.format(".*%s.*%s.*",
+                        quote(CallingClass.class.getName()), quote(SomeClass.class.getName())));
+
+        assertThat(dependOnClassesThat(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")))
+                .hasDescription("depend on classes that custom")
+                .checking(callingClass)
+                .containNoViolation();
+    }
+
+    @Test
+    public void have_any_dependencies_that() {
+        JavaClasses classes = importClasses(CallingClass.class, SomeClass.class);
+        JavaClass callingClass = classes.get(CallingClass.class);
+
+        assertThat(haveAnyDependenciesThat(alwaysFalse()))
+                .checking(callingClass)
+                .haveAtLeastOneViolationMessageMatching(String.format(".*%s.*%s.*",
+                        quote(CallingClass.class.getName()), quote(SomeClass.class.getName())));
+
+        assertThat(haveAnyDependenciesThat(DescribedPredicate.<Dependency>alwaysTrue().as("custom")))
+                .hasDescription("have dependencies that custom")
+                .checking(callingClass)
                 .containNoViolation();
     }
 
