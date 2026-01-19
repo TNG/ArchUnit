@@ -21,18 +21,29 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.base.Suppliers;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.domain.properties.HasModifiers;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
+import com.tngtech.archunit.core.domain.properties.HasReturnType;
+import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static java.util.stream.Collectors.toList;
 
 @PublicAPI(usage = ACCESS)
 public final class JavaMethod extends JavaCodeUnit {
@@ -126,6 +137,30 @@ public final class JavaMethod extends JavaCodeUnit {
         return "Method <" + getFullName() + ">";
     }
 
+    /**
+     * Returns true, if this method overrides or implements a method from a supertype.
+     * The annotation {@link Override} may or may not be present on this method.
+     *
+     * @see Override
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isOverriding() {
+        List<JavaClass> supertypes = Stream.concat(
+                getOwner().getAllRawSuperclasses().stream(),
+                getOwner().getAllRawInterfaces().stream()
+        ).collect(toList());
+
+        String name = getName();
+        String[] parameterTypes = getRawParameterTypes().stream().map(JavaClass::getFullName).toArray(String[]::new);
+        for (JavaClass supertype : supertypes) {
+            if (supertype.tryGetMethod(name, parameterTypes).isPresent()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     private class ReflectMethodSupplier implements Supplier<Method> {
@@ -141,4 +176,33 @@ public final class JavaMethod extends JavaCodeUnit {
         }
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaMethod}.
+     * Note that due to inheritance further predicates for {@link JavaMethod} can be found in the following locations:
+     * <ul>
+     *     <li>{@link JavaCodeUnit.Predicates}</li>
+     *     <li>{@link JavaMember.Predicates}</li>
+     *     <li>{@link HasName.Predicates}</li>
+     *     <li>{@link HasName.AndFullName.Predicates}</li>
+     *     <li>{@link HasModifiers.Predicates}</li>
+     *     <li>{@link CanBeAnnotated.Predicates}</li>
+     *     <li>{@link HasOwner.Predicates}</li>
+     *     <li>{@link HasParameterTypes.Predicates}</li>
+     *     <li>{@link HasReturnType.Predicates}</li>
+     *     <li>{@link HasThrowsClause.Predicates}</li>
+     * </ul>
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final class Predicates {
+        private Predicates() {
+        }
+
+        /**
+         * @see JavaMethod#isOverriding()
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaMethod> overriding() {
+            return describe("overriding", JavaMethod::isOverriding);
+        }
+    }
 }
