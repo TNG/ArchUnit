@@ -43,10 +43,14 @@ class ViolationLineMatcherFactory {
     }
 
     /**
-     * ignores numbers that are potentially line numbers (digits following a ':' and preceding a ')')
+     * Ignores numbers that are potentially line numbers (digits following a ':' and preceding a ')')
      * or compiler-generated numbers of anonymous classes or lambda expressions (digits following a '$').
+     * Also ignores hint suffixes (text following line separator + line separator + "Hint:") that provide
+     * additional guidance but are not part of the core violation message.
      */
     private static class FuzzyViolationLineMatcher implements ViolationLineMatcher {
+        private static final String HINT_MARKER = System.lineSeparator() + System.lineSeparator() + "Hint:";
+
         @Override
         public boolean matches(String str1, String str2) {
             // Compare relevant substrings, in a more performant way than a regex solution like this:
@@ -54,14 +58,19 @@ class ViolationLineMatcherFactory {
             // normalize = str -> str.replaceAll(":\\d+\\)", ":0)").replaceAll("\\$\\d+", "\\$0");
             // return normalize.apply(str1).equals(normalize.apply(str2));
 
-            RelevantPartIterator relevantPart1 = new RelevantPartIterator(str1);
-            RelevantPartIterator relevantPart2 = new RelevantPartIterator(str2);
+            RelevantPartIterator relevantPart1 = new RelevantPartIterator(removeHintSuffix(str1));
+            RelevantPartIterator relevantPart2 = new RelevantPartIterator(removeHintSuffix(str2));
             while (relevantPart1.hasNext() && relevantPart2.hasNext()) {
                 if (!relevantPart1.next().equals(relevantPart2.next())) {
                     return false;
                 }
             }
             return !relevantPart1.hasNext() && !relevantPart2.hasNext();
+        }
+
+        private static String removeHintSuffix(String str) {
+            int hintIndex = str.indexOf(HINT_MARKER);
+            return hintIndex >= 0 ? str.substring(0, hintIndex) : str;
         }
 
         static class RelevantPartIterator {
