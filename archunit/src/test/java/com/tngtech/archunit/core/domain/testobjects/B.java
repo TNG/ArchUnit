@@ -6,8 +6,4 @@ public class B {
 
     void call() {
     }
-
-    public static class BException extends Exception {
-
-    }
 }
