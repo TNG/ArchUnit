@@ -19,9 +19,20 @@ task ensureReleaseCheckUpToDate {
         releaseCheckDependencies.each { releaseCheckDependency ->
             VersionCatalog versionCatalog = versionCatalogs.named("libs")
             def dependencies = versionCatalog.libraryAliases.collect { versionCatalog.findLibrary(it).get().get() }
-            def matchingProjectDependency = dependencies.find {
+            def matchingProjectDependencies = dependencies.findAll {
                 it.group == releaseCheckDependency.groupId && it.name == releaseCheckDependency.artifactId
             }
+
+            assert matchingProjectDependencies.size() == 1 || releaseCheckDependency.groupId.contains("org.junit"):
+                    "Multiple dependency ${matchingProjectDependencies.size()}: ${matchingProjectDependencies}"
+
+            // Filter out duplicate versions of JUnit5 or JUnit6.
+            def matchingProjectDependency = releaseCheckDependency.groupId.contains("org.junit")
+                    ? releaseCheckDependency.version.contains("6.")
+                    ? matchingProjectDependencies.find { ju -> ju.version.contains("6.") }
+                    : matchingProjectDependencies.find { ju -> !ju.version.contains("6.") }
+                    : matchingProjectDependencies.first()
+
             assert matchingProjectDependency != null:
                     "No project dependency was found for expected release dependency ${releaseCheckDependency}"
             assert matchingProjectDependency.version == releaseCheckDependency.version:

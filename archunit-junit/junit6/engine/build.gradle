@@ -1,0 +1,63 @@
+plugins {
+    id 'archunit.java-release-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.junit6.engine'
+
+ext.minimumJavaVersion = JavaVersion.VERSION_17
+
+dependencies {
+    api project(path: ':archunit')
+    api project(path: ':archunit-junit6-api')
+    api project(path: ':archunit-junit6-engine-api')
+    implementation project(path: ':archunit-junit')
+    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
+    implementation libs.slf4j
+
+    testImplementation project(path: ':archunit', configuration: 'tests')
+    testImplementation libs.assertj
+    testImplementation libs.mockito
+    testImplementation libs.mockito.junit5
+    testImplementation libs.log4j.core
+}
+
+gradle.projectsEvaluated {
+    compileJava.dependsOn project(':archunit-junit6-api').finishArchive
+    compileJava.dependsOn project(':archunit-junit6-engine-api').finishArchive
+}
+
+javadoc {
+    source(project(':archunit-junit').sourceSets.main.allJava)
+}
+sourcesJar {
+    from project(':archunit-junit').sourceSets.main.allSource
+}
+
+test {
+    useJUnitPlatform {
+        excludeEngines 'archunit'
+    }
+}
+
+shadowJar {
+    exclude 'META-INF/maven/**'
+
+    dependencies {
+        exclude(dependency {
+            def isApi = it.configuration == 'archJunitApi'
+            def isUnwantedDependency = it.moduleName != 'archunit-junit'
+            isUnwantedDependency || isApi
+        })
+    }
+}
+
+def configureDependencies = { deps ->
+    deps.children().removeIf { dep ->
+        dep.scope.text() != 'compile' || !(dep.artifactId.text() in ['archunit', 'archunit-junit6-api', 'archunit-junit6-engine-api'])
+    }
+}
+this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
+
+singlePackageExport {
+    exportedPackage = 'com.tngtech.archunit.junit.internal'
+}

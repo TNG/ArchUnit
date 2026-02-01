@@ -1,0 +1,43 @@
+plugins {
+    id 'archunit.java-release-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.junit6.engineapi'
+
+ext.minimumJavaVersion = JavaVersion.VERSION_17
+
+dependencies {
+    api libs.junit6PlatformEngine
+    implementation project(path: ':archunit')
+
+    testImplementation project(path: ':archunit-junit6-api')
+    testImplementation libs.assertj
+}
+
+compileJava.dependsOn project(':archunit-junit6-api').finishArchive
+
+test {
+    useJUnitPlatform() {
+        excludeEngines 'archunit'
+    }
+}
+
+shadowJar {
+    exclude 'META-INF/maven/**'
+
+    dependencies {
+        exclude(dependency { true })
+    }
+}
+
+// dependencies to archunit only cover annotations; we can skip those without breaking consumers to keep the dependency slim
+def configureDependencies = { deps ->
+    deps.children().removeIf{ dep ->
+        dep.artifactId.text() != 'junit-platform-engine'
+    }
+}
+this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
+
+singlePackageExport {
+    exportedPackage = 'com.tngtech.archunit.junit.engine_api'
+}
