@@ -8,6 +8,7 @@ include 'archunit',
         'archunit-integration-test:shared', 'archunit-integration-test:junit4', 'archunit-integration-test:junit5',
         'archunit-java-modules-test', 'archunit-3rd-party-test',
         'archunit-junit', 'archunit-junit4', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'archunit-junit5-engine', 'archunit-junit5',
+        'archunit-junit6-api', 'archunit-junit6-engine-api', 'archunit-junit6-engine', 'archunit-junit6',
         'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5',
         'archunit-maven-test',
         'archunit-self-test',
@@ -18,6 +19,10 @@ project(':archunit-junit5-api').projectDir = file('archunit-junit/junit5/api')
 project(':archunit-junit5-engine-api').projectDir = file('archunit-junit/junit5/engine-api')
 project(':archunit-junit5-engine').projectDir = file('archunit-junit/junit5/engine')
 project(':archunit-junit5').projectDir = file('archunit-junit/junit5/aggregator')
+project(':archunit-junit6-api').projectDir = file('archunit-junit/junit6/api')
+project(':archunit-junit6-engine-api').projectDir = file('archunit-junit/junit6/engine-api')
+project(':archunit-junit6-engine').projectDir = file('archunit-junit/junit6/engine')
+project(':archunit-junit6').projectDir = file('archunit-junit/junit6/aggregator')
 
 dependencyResolutionManagement {
     versionCatalogs {

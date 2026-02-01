@@ -2,6 +2,7 @@
 log4j = "2.26.1"
 junit5 = "5.14.4"
 junit5Platform = "1.14.4" # in sync with buildSrc/src/main/resources/release_check/archunit-junit5-engine-api.pom
+junit6 = "6.1.0" # in sync with buildSrc/src/main/resources/release_check/archunit-junit6-engine-api.pom
 assertj = "3.27.7"
 
 [libraries]
@@ -18,6 +19,11 @@ junit5Platform = { group = "org.junit.platform", name = "junit-platform-runner",
 junit5PlatformCommons = { group = "org.junit.platform", name = "junit-platform-commons", version.ref = "junit5Platform" }
 junit5PlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junit5Platform" }
 junit5PlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit5Platform" }
+junit6Jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit6" }
+junit6VintageEngine = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit6" }
+junit6PlatformCommons = { group = "org.junit.platform", name = "junit-platform-commons", version.ref = "junit6" }
+junit6PlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junit6" }
+junit6PlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit6" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest-core", version = "1.3" }
 junitDataprovider = { group = "com.tngtech.java", name = "junit-dataprovider", version = "1.11.0" }
 mockito = { group = "org.mockito", name = "mockito-core", version = "4.11.0" } # mockito 5 requires Java 11

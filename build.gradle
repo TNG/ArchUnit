@@ -65,7 +65,11 @@ ext {
             project(':archunit-junit5-api'),
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
-            project(':archunit-junit5')]
+            project(':archunit-junit5'),
+            project(':archunit-junit6-api'),
+            project(':archunit-junit6-engine-api'),
+            project(':archunit-junit6-engine'),
+            project(':archunit-junit6')]
 
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
     scriptRelativePath = { context, fileName -> new File(currentScriptRootOf(context), fileName) }
