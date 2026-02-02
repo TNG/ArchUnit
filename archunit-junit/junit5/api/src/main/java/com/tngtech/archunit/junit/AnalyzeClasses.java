@@ -41,6 +41,16 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * a rule checking for no accesses to classes assignable to C will not fail, since ArchUnit does not know about the details
  * of class B, but only simple information like the fully qualified name. For information how to configure the import and
  * resolution behavior of missing classes, compare {@link ClassFileImporter}.
+ * <br><br>
+ * Classes to be analyzed can be specified in different ways:
+ * <ul>
+ *     <li>{@link #packages()} - specify package names as strings</li>
+ *     <li>{@link #packagesOf()} - specify packages relative to classes</li>
+ *     <li>{@link #classes()} - specify individual classes to analyze</li>
+ *     <li>{@link #locations()} - specify custom locations via {@link LocationProvider}</li>
+ *     <li>{@link #wholeClasspath()} - import all classes on the classpath</li>
+ * </ul>
+ * These options can be combined. If no option is specified, the package of the annotated test class will be imported.
  *
  * @see ClassFileImporter
  */
@@ -87,4 +97,9 @@ public @interface AnalyzeClasses {
      * @return The {@link CacheMode} to use for this test class.
      */
     CacheMode cacheMode() default CacheMode.FOREVER;
+
+    /**
+     * @return Classes to be used for testing instead of packages
+     */
+    Class<?>[] classes() default {};
 }
