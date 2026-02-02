@@ -91,7 +91,7 @@ class PlantUmlComponent {
                 "componentName=" + componentName +
                 ", stereotypes=" + stereotypes +
                 ", alias=" + alias +
-                ", dependencies=" + dependencies +
+                ", dependencies=" + dependencies.size() +
                 '}';
     }
 
