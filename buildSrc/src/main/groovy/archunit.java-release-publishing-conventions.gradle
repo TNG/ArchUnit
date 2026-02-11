@@ -28,7 +28,7 @@ tasks.withType(AbstractPublishToMaven) {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = project.archivesBaseName
+            artifactId = project.name
             from components.java
             pom {
                 name = app.name

@@ -44,10 +44,9 @@ afterEvaluate {
         toolchain {
             languageVersion = versionSpec.desiredJavaLanguageVersion
         }
+        sourceCompatibility = versionSpec.desiredSourceCompatibility
+        targetCompatibility = versionSpec.desiredSourceCompatibility
     }
-
-    sourceCompatibility = versionSpec.desiredSourceCompatibility
-    targetCompatibility = versionSpec.desiredSourceCompatibility
 
     tasks.withType(JavaCompile) { Task task ->
         VersionSpec taskVersionSpec = versionSpec.withLowerLtsVersionBoundCompatibleWith(getMinTaskJavaVersion(task))
