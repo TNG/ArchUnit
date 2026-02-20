@@ -1,0 +1,1510 @@
+package com.tngtech.archunit.junit.internal;
+
+import java.net.URI;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.engine_api.FieldSelector;
+import com.tngtech.archunit.junit.engine_api.FieldSource;
+import com.tngtech.archunit.junit.internal.ArchUnitTestEngine.SharedCache;
+import com.tngtech.archunit.junit.internal.testexamples.ClassWithPrivateTests;
+import com.tngtech.archunit.junit.internal.testexamples.ComplexMetaTags;
+import com.tngtech.archunit.junit.internal.testexamples.ComplexRuleLibrary;
+import com.tngtech.archunit.junit.internal.testexamples.ComplexTags;
+import com.tngtech.archunit.junit.internal.testexamples.FullAnalyzeClassesSpec;
+import com.tngtech.archunit.junit.internal.testexamples.LibraryWithPrivateTests;
+import com.tngtech.archunit.junit.internal.testexamples.SimpleRuleLibrary;
+import com.tngtech.archunit.junit.internal.testexamples.TestClassWithMetaAnnotationForAnalyzeClasses;
+import com.tngtech.archunit.junit.internal.testexamples.TestClassWithMetaTag;
+import com.tngtech.archunit.junit.internal.testexamples.TestClassWithMetaTags;
+import com.tngtech.archunit.junit.internal.testexamples.TestClassWithTags;
+import com.tngtech.archunit.junit.internal.testexamples.TestFieldWithMetaTag;
+import com.tngtech.archunit.junit.internal.testexamples.TestFieldWithMetaTags;
+import com.tngtech.archunit.junit.internal.testexamples.TestFieldWithTags;
+import com.tngtech.archunit.junit.internal.testexamples.TestMethodWithMetaTag;
+import com.tngtech.archunit.junit.internal.testexamples.TestMethodWithMetaTags;
+import com.tngtech.archunit.junit.internal.testexamples.TestMethodWithTags;
+import com.tngtech.archunit.junit.internal.testexamples.UnwantedClass;
+import com.tngtech.archunit.junit.internal.testexamples.abstractbase.ArchTestWithAbstractBaseClassWithFieldRule;
+import com.tngtech.archunit.junit.internal.testexamples.abstractbase.ArchTestWithAbstractBaseClassWithMethodRule;
+import com.tngtech.archunit.junit.internal.testexamples.abstractbase.ArchTestWithLibraryWithAbstractBaseClass;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.IgnoredClass;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.IgnoredField;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.IgnoredLibrary;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.IgnoredMethod;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.MetaIgnoredClass;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.MetaIgnoredField;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.MetaIgnoredLibrary;
+import com.tngtech.archunit.junit.internal.testexamples.ignores.MetaIgnoredMethod;
+import com.tngtech.archunit.junit.internal.testexamples.subone.SimpleRuleField;
+import com.tngtech.archunit.junit.internal.testexamples.subone.SimpleRuleMethod;
+import com.tngtech.archunit.junit.internal.testexamples.subtwo.SimpleRules;
+import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodNotStatic;
+import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodWrongParameters;
+import com.tngtech.archunit.junit.internal.testutil.LogCaptor;
+import com.tngtech.archunit.junit.internal.testutil.SystemPropertiesExtension;
+import com.tngtech.archunit.junit.internal.testutil.TestLogExtension;
+import com.tngtech.archunit.testutil.TestLogRecorder.RecordedLogEvent;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.engine.ExecutionRequest;
+import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestTag;
+import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.discovery.ClasspathRootSelector;
+import org.junit.platform.engine.discovery.MethodSelector;
+import org.junit.platform.engine.discovery.PackageSelector;
+import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor.CLASS_SEGMENT_TYPE;
+import static com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor.FIELD_SEGMENT_TYPE;
+import static com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor.METHOD_SEGMENT_TYPE;
+import static com.tngtech.archunit.junit.internal.EngineExecutionTestListener.onlyElement;
+import static com.tngtech.archunit.junit.internal.testexamples.TestFieldWithMetaTag.FIELD_WITH_META_TAG_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.TestFieldWithMetaTags.FIELD_WITH_META_TAGS_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.TestFieldWithTags.FIELD_WITH_TAG_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.TestMethodWithMetaTag.METHOD_WITH_META_TAG_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.TestMethodWithMetaTags.METHOD_WITH_META_TAGS_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.TestMethodWithTags.METHOD_WITH_TAG_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.subone.SimpleRuleField.SIMPLE_RULE_FIELD_NAME;
+import static com.tngtech.archunit.junit.internal.testexamples.subone.SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
+import static java.util.Collections.singleton;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.logging.log4j.Level.DEBUG;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.platform.engine.TestDescriptor.Type.CONTAINER;
+import static org.junit.platform.engine.TestDescriptor.Type.TEST;
+import static org.junit.platform.engine.discovery.ClassNameFilter.excludeClassNamePatterns;
+import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
+import static org.junit.platform.engine.discovery.PackageNameFilter.excludePackageNames;
+import static org.junit.platform.engine.discovery.PackageNameFilter.includePackageNames;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith({MockitoExtension.class, SystemPropertiesExtension.class})
+@MockitoSettings(strictness = Strictness.WARN)
+class ArchUnitTestEngineTest {
+    @Mock
+    private ClassCache classCache;
+    @Mock
+    private SharedCache sharedCache;
+    @Captor
+    private ArgumentCaptor<ClassAnalysisRequest> classAnalysisRequestCaptor;
+
+    @InjectMocks
+    private ArchUnitTestEngine testEngine;
+
+    private final UniqueId engineId = createEngineId();
+
+    @BeforeEach
+    void setUp() {
+        when(sharedCache.get()).thenReturn(classCache);
+    }
+
+    @Nested
+    class Discovers {
+        @Test
+        void a_root_that_is_a_test_container() {
+            TestDescriptor descriptor = testEngine.discover(new EngineDiscoveryTestRequest(), createEngineId());
+
+            assertThat(descriptor.getType().isContainer()).as("Root descriptor is container").isTrue();
+        }
+
+        @Test
+        void a_root_with_the_correct_unique_id() {
+
+            TestDescriptor descriptor = testEngine.discover(new EngineDiscoveryTestRequest(), engineId);
+
+            assertThat(descriptor.getUniqueId()).isEqualTo(engineId);
+        }
+
+        @Test
+        void a_single_test_class() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor child = getOnlyElement(descriptor.getChildren());
+            assertThat(child).isInstanceOf(ArchUnitTestDescriptor.class);
+            assertThat(child.getUniqueId()).isEqualTo(engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()));
+            assertThat(child.getDisplayName()).isEqualTo(SimpleRuleField.class.getSimpleName());
+            assertThat(child.getType()).isEqualTo(CONTAINER);
+            assertThat(child.getParent().get()).isEqualTo(descriptor);
+        }
+
+        @Test
+        void a_test_class_with_meta_annotated_analyze_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithMetaAnnotationForAnalyzeClasses.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor child = getOnlyElement(descriptor.getChildren());
+            assertThat(child).isInstanceOf(ArchUnitTestDescriptor.class);
+            assertThat(child.getUniqueId()).isEqualTo(engineId.append(CLASS_SEGMENT_TYPE, TestClassWithMetaAnnotationForAnalyzeClasses.class.getName()));
+            assertThat(child.getDisplayName()).isEqualTo(TestClassWithMetaAnnotationForAnalyzeClasses.class.getSimpleName());
+            assertThat(child.getType()).isEqualTo(CONTAINER);
+            assertThat(child.getParent()).get().isEqualTo(descriptor);
+        }
+
+        @Test
+        void source_of_a_single_test_class() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, createEngineId());
+
+            TestDescriptor child = getOnlyElement(descriptor.getChildren());
+
+            assertClassSource(child, SimpleRuleField.class);
+        }
+
+        @Test
+        void multiple_test_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleField.class)
+                    .withClass(SimpleRuleMethod.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, createEngineId());
+
+            Set<String> displayNames = descriptor.getChildren().stream().map(TestDescriptor::getDisplayName).collect(toSet());
+            assertThat(displayNames).containsOnly(SimpleRuleField.class.getSimpleName(), SimpleRuleMethod.class.getSimpleName());
+        }
+
+        @Test
+        void a_class_with_simple_rule_field() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getUniqueId()).isEqualTo(simpleRuleFieldTestId(engineId));
+            FieldSource testSource = ((FieldSource) ruleDescriptor.getSource().get());
+            assertThat(testSource.getJavaClass()).isEqualTo(SimpleRuleField.class);
+            assertThat(testSource.getClassName()).isEqualTo(SimpleRuleField.class.getName());
+            assertThat(testSource.getFieldName()).isEqualTo(SIMPLE_RULE_FIELD_NAME);
+        }
+
+        @Test
+        void a_class_with_simple_rule_method() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleMethod.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getUniqueId()).isEqualTo(simpleRuleMethodTestId(engineId));
+            MethodSource testSource = (MethodSource) ruleDescriptor.getSource().get();
+            assertThat(testSource.getClassName()).isEqualTo(SimpleRuleMethod.class.getName());
+            assertThat(testSource.getMethodName()).isEqualTo(SIMPLE_RULE_METHOD_NAME);
+            assertThat(testSource.getMethodParameterTypes()).isEqualTo(JavaClasses.class.getName());
+        }
+
+        @Test
+        void a_class_with_simple_hierarchy__descriptor_types() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Stream<TestDescriptor> archRulesDescriptors = getArchRulesDescriptorsOfOnlyChild(descriptor);
+            boolean allAreContainer = archRulesDescriptors.allMatch(d -> d.getType().equals(CONTAINER));
+            assertThat(allAreContainer).as("all rules descriptor have type " + CONTAINER).isTrue();
+        }
+
+        @Test
+        void a_class_with_simple_hierarchy__uniqueIds() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Stream<TestDescriptor> archRulesDescriptors = getArchRulesDescriptorsOfOnlyChild(descriptor);
+
+            Set<UniqueId> expectedIds = getExpectedIdsForSimpleRuleLibrary(engineId);
+            Set<UniqueId> actualIds = archRulesDescriptors.flatMap(d -> d.getChildren().stream())
+                    .map(TestDescriptor::getUniqueId).collect(toSet());
+            assertThat(actualIds).isEqualTo(expectedIds);
+        }
+
+        @Test
+        void a_class_with_simple_hierarchy__class_source() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertClassSource(getOnlyElement(descriptor.getChildren()), SimpleRuleLibrary.class);
+
+            List<TestDescriptor> archRulesDescriptors = getArchRulesDescriptorsOfOnlyChild(descriptor).collect(toList());
+
+            TestDescriptor testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRules.class);
+            assertNoIntermediaryTestSource(testDescriptor);
+            testDescriptor.getChildren().forEach(d ->
+                    assertThat(d.getSource().isPresent()).as("source is present").isTrue());
+
+            testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRuleField.class);
+            assertNoIntermediaryTestSource(testDescriptor);
+            testDescriptor.getChildren().forEach(d ->
+                    assertThat(d.getSource().isPresent()).as("source is present").isTrue());
+        }
+
+        @Test
+        void a_class_with_simple_hierarchy__display_name() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            List<TestDescriptor> archRulesDescriptors = getArchRulesDescriptorsOfOnlyChild(descriptor).collect(toList());
+
+            TestDescriptor testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRules.class);
+            assertThat(testDescriptor.getChildren().stream().map(TestDescriptor::getDisplayName)).contains(
+                    SimpleRules.class.getSimpleName() + " > " + SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME
+            );
+
+            testDescriptor = findRulesDescriptor(archRulesDescriptors, SimpleRuleField.class);
+            assertThat(testDescriptor.getChildren().stream().map(TestDescriptor::getDisplayName)).contains(
+                    SimpleRuleField.class.getSimpleName() + " > " + SIMPLE_RULE_FIELD_NAME
+            );
+        }
+
+        @Test
+        void a_class_with_complex_hierarchy() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexRuleLibrary.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("all leaf unique ids of complex hierarchy")
+                    .containsOnlyElementsOf(getExpectedIdsForComplexRuleLibrary(engineId));
+        }
+
+        @Test
+        void a_class_with_complex_hierarchy__display_names() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexRuleLibrary.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor complexRuleLibraryDescriptor = findRulesDescriptor(rootDescriptor.getChildren(), ComplexRuleLibrary.class);
+            TestDescriptor simpleRuleLibraryDescriptor = findRulesDescriptor(complexRuleLibraryDescriptor.getChildren(), SimpleRuleLibrary.class);
+            TestDescriptor simpleRulesDescriptor = findRulesDescriptor(simpleRuleLibraryDescriptor.getChildren(), SimpleRules.class);
+            assertThat(simpleRulesDescriptor.getChildren().stream().map(TestDescriptor::getDisplayName)).contains(
+                    SimpleRuleLibrary.class.getSimpleName() +
+                            " > " + SimpleRules.class.getSimpleName() +
+                            " > " + SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME
+            );
+        }
+
+        @Test
+        void private_instance_members() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ClassWithPrivateTests.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("all leaf unique ids of private members")
+                    .containsOnly(privateRuleFieldId(engineId), privateRuleMethodId(engineId));
+        }
+
+        @Test
+        void private_instance_libraries() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(LibraryWithPrivateTests.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("all leaf unique ids of private members")
+                    .containsOnlyElementsOf(privateRuleLibraryIds(engineId));
+        }
+
+        @Test
+        void an_unique_id() {
+            UniqueId ruleIdToDiscover = simpleRulesId(engineId)
+                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withUniqueId(ruleIdToDiscover);
+
+            TestDescriptor descriptor = getOnlyTest(testEngine.discover(discoveryRequest, engineId));
+
+            assertThat(descriptor.getUniqueId()).isEqualTo(ruleIdToDiscover);
+            assertThat(descriptor.getDisplayName()).isEqualTo(SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            assertThat(descriptor.getChildren()).isEmpty();
+            assertThat(descriptor.getDescendants()).isEmpty();
+            assertThat(descriptor.getType()).isEqualTo(TEST);
+            assertThat(descriptor.getSource().get()).isEqualTo(FieldSource.from(field(SimpleRules.class, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME)));
+            assertThat(descriptor.getParent().get().getSource().get()).isEqualTo(ClassSource.from(SimpleRules.class));
+        }
+
+        @Test
+        void multiple_unique_ids() {
+            UniqueId testId = simpleRulesId(engineId);
+            UniqueId firstRuleIdToDiscover = testId.append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            UniqueId secondRuleIdToDiscover = testId.append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME);
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withUniqueId(firstRuleIdToDiscover)
+                    .withUniqueId(secondRuleIdToDiscover);
+
+            TestDescriptor test = getOnlyElement(testEngine.discover(discoveryRequest, engineId).getChildren());
+
+            Set<UniqueId> discoveredRuleIds = toUniqueIds(test);
+            assertThat(discoveredRuleIds).containsOnly(firstRuleIdToDiscover, secondRuleIdToDiscover);
+        }
+
+        @Test
+        void no_redundant_descriptors() {
+            UniqueId redundantId = simpleRulesId(engineId)
+                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRules.class)
+                    .withUniqueId(redundantId);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor test = getOnlyElement(rootDescriptor.getChildren());
+            assertThat(test.getChildren()).as("all children of test").hasSize(4);
+            List<TestDescriptor> descriptorsWithSpecifiedId = test.getChildren().stream()
+                    .filter(descriptor -> descriptor.getUniqueId().equals(redundantId))
+                    .collect(toList());
+            assertThat(descriptorsWithSpecifiedId)
+                    .as("descriptors with id " + redundantId)
+                    .hasSize(1);
+        }
+
+        @Test
+        void no_redundant_library_descriptors() {
+            UniqueId simpleRulesId = simpleRulesInLibraryId(engineId);
+            UniqueId ruleIdOne = simpleRulesId.append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            UniqueId ruleIdTwo = simpleRulesId.append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_TWO_NAME);
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withUniqueId(ruleIdOne)
+                    .withUniqueId(ruleIdTwo);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor simpleRules = getArchRulesDescriptorsOfOnlyChild(rootDescriptor).collect(onlyElement());
+
+            assertThat(toUniqueIds(simpleRules))
+                    .as("ids of requested children of " + SimpleRules.class.getSimpleName())
+                    .containsOnly(ruleIdOne, ruleIdTwo);
+        }
+
+        @Test
+        void classpath_roots() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClasspathRoot(rootOfClass(Test.class))
+                    .withClasspathRoot(rootOfClass(SimpleRules.class))
+                    .withClassNameFilter(excludeClassNamePatterns(".*(W|w)rong.*"));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + ClasspathRootSelector.class.getSimpleName())
+                    .contains(simpleRulesInLibraryId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME))
+                    .contains(simpleRuleFieldTestId(engineId))
+                    .contains(simpleRuleMethodTestId(engineId));
+        }
+
+        @Test
+        void packages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleField.class.getPackage().getName())
+                    .withPackage(SimpleRules.class.getPackage().getName());
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor))
+                    .as("tests discovered by " + PackageSelector.class.getSimpleName())
+                    .containsOnly(
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
+                            simpleRulesId(engineId));
+        }
+
+        @Test
+        void subpackages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withClassNameFilter(excludeClassNamePatterns(".*(W|w)rong.*"));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor))
+                    .as("tests discovered by " + PackageSelector.class.getSimpleName())
+                    .contains(
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName()),
+                            simpleRulesId(engineId));
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + PackageSelector.class.getSimpleName())
+                    .contains(
+                            simpleRulesInLibraryId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME),
+                            simpleRuleFieldTestId(engineId),
+                            simpleRuleMethodTestId(engineId));
+        }
+
+        @Test
+        void methods() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withMethod(SimpleRules.class, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + MethodSelector.class.getSimpleName())
+                    .containsOnly(
+                            simpleRuleMethodTestId(engineId),
+                            simpleRulesId(engineId)
+                                    .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME));
+        }
+
+        @Test
+        void fields() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withField(SimpleRules.class, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by " + FieldSelector.class.getSimpleName())
+                    .containsOnly(
+                            simpleRuleFieldTestId(engineId),
+                            simpleRulesId(engineId)
+                                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
+        }
+
+        @Test
+        void mixed_class_methods_and_fields() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withClass(SimpleRules.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Set<UniqueId> expectedLeafIds = new HashSet<>();
+            expectedLeafIds.add(simpleRuleFieldTestId(engineId));
+            expectedLeafIds.add(simpleRuleMethodTestId(engineId));
+            Stream.concat(
+                            SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName ->
+                                    simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, fieldName)),
+                            SimpleRules.RULE_METHOD_NAMES.stream().map(methodName ->
+                                    simpleRulesId(engineId).append(METHOD_SEGMENT_TYPE, methodName)))
+                    .forEach(expectedLeafIds::add);
+
+            assertThat(getAllLeafUniqueIds(rootDescriptor))
+                    .as("children discovered by mixed selectors")
+                    .containsOnlyElementsOf(expectedLeafIds);
+        }
+
+        @Test
+        void tags_of_test_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            assertThat(testClass.getTags()).containsOnly(TestTag.create("tag-one"), TestTag.create("tag-two"));
+
+            Set<? extends TestDescriptor> concreteRules = getAllLeafs(testClass);
+            assertThat(concreteRules).as("concrete rules").hasSize(3);
+            concreteRules.forEach(concreteRule ->
+                    assertThat(concreteRule.getTags()).containsOnly(TestTag.create("tag-one"), TestTag.create("tag-two"))
+            );
+        }
+
+        @Test
+        void meta_tag_of_test_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithMetaTag.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            assertThat(testClass.getTags()).containsOnly(TestTag.create("meta-tag-one"), TestTag.create("meta-tag-two"));
+
+            Set<? extends TestDescriptor> concreteRules = getAllLeafs(testClass);
+            assertThat(concreteRules).as("concrete rules").hasSize(3);
+            concreteRules.forEach(concreteRule ->
+                    assertThat(concreteRule.getTags()).containsOnly(TestTag.create("meta-tag-one"), TestTag.create("meta-tag-two"))
+            );
+        }
+
+        @Test
+        void meta_tags_of_test_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithMetaTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            assertThat(testClass.getTags()).containsOnly(TestTag.create("meta-tags-one"), TestTag.create("meta-tags-two"));
+
+            Set<? extends TestDescriptor> concreteRules = getAllLeafs(testClass);
+            assertThat(concreteRules).as("concrete rules").hasSize(3);
+            concreteRules.forEach(concreteRule ->
+                    assertThat(concreteRule.getTags()).containsOnly(TestTag.create("meta-tags-one"), TestTag.create("meta-tags-two"))
+            );
+        }
+
+        @Test
+        void tags_of_rule_fields() {
+            TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_TAG_NAME, TestFieldWithTags.class);
+
+            assertThat(testField.getTags()).containsOnly(TestTag.create("field-tag-one"), TestTag.create("field-tag-two"));
+        }
+
+        @Test
+        void meta_tag_of_rule_fields() {
+            TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_META_TAG_NAME, TestFieldWithMetaTag.class);
+
+            assertThat(testField.getTags()).containsOnly(TestTag.create("field-meta-tag-one"), TestTag.create("field-meta-tag-two"));
+        }
+
+        @Test
+        void meta_tags_of_rule_fields() {
+            TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_META_TAGS_NAME, TestFieldWithMetaTags.class);
+
+            assertThat(testField.getTags()).containsOnly(TestTag.create("field-meta-tags-one"), TestTag.create("field-meta-tags-two"));
+        }
+
+        @Test
+        void tags_of_rule_methods() {
+            TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_TAG_NAME, TestMethodWithTags.class);
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-tag-one"), TestTag.create("method-tag-two"));
+        }
+
+        @Test
+        void meta_tag_of_rule_methods() {
+            TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_META_TAG_NAME, TestMethodWithMetaTag.class);
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-meta-tag-one"), TestTag.create("method-meta-tag-two"));
+        }
+
+        @Test
+        void meta_tags_of_rule_methods() {
+            TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_META_TAGS_NAME, TestMethodWithMetaTags.class);
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-meta-tags-one"), TestTag.create("method-meta-tags-two"));
+        }
+
+        @Test
+        void complex_tags() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Map<UniqueId, Set<TestTag>> tagsById = new HashMap<>();
+            descriptor.accept(d -> tagsById.put(d.getUniqueId(), d.getTags()));
+
+            assertThat(getTagsForIdEndingIn(ComplexTags.class.getSimpleName(), tagsById))
+                    .containsOnly(TestTag.create("library-tag"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithTags.class.getSimpleName(), tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("rules-tag"),
+                            TestTag.create("tag-one"),
+                            TestTag.create("tag-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("rules-tag"),
+                            TestTag.create("tag-one"),
+                            TestTag.create("tag-two"));
+
+            assertThat(getTagsForIdEndingIn(ComplexTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("field-tag"));
+
+            assertThat(getTagsForIdEndingIn(ComplexTags.METHOD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-tag"),
+                            TestTag.create("method-tag"));
+        }
+
+        @Test
+        void complex_meta_tags() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexMetaTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Map<UniqueId, Set<TestTag>> tagsById = new HashMap<>();
+            descriptor.accept(d -> tagsById.put(d.getUniqueId(), d.getTags()));
+
+            assertThat(getTagsForIdEndingIn(ComplexMetaTags.class.getSimpleName(), tagsById))
+                    .containsOnly(TestTag.create("library-meta-tag"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTag.class.getSimpleName(), tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tag-one"),
+                            TestTag.create("meta-tag-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTags.class.getSimpleName(), tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tags-one"),
+                            TestTag.create("meta-tags-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTag.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tag-one"),
+                            TestTag.create("meta-tag-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tags-one"),
+                            TestTag.create("meta-tags-two"));
+
+            assertThat(getTagsForIdEndingIn(ComplexMetaTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("field-meta-tag"));
+
+            assertThat(getTagsForIdEndingIn(ComplexMetaTags.METHOD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("method-meta-tag"));
+        }
+
+        @Test
+        void filtering_excluded_class_names() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
+                    .withClasspathRoot(uriOfClass(SimpleRuleMethod.class))
+                    .withClasspathRoot(uriOfClass(SimpleRules.class))
+                    .withClasspathRoot(uriOfClass(SimpleRuleLibrary.class))
+                    .withClassNameFilter(excludeClassNamePatterns(".*(Field|Rules).*"));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor)).containsOnly(
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName()));
+        }
+
+        @Test
+        void filtering_included_class_names() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
+                    .withClasspathRoot(uriOfClass(SimpleRuleMethod.class))
+                    .withClasspathRoot(uriOfClass(SimpleRules.class))
+                    .withClasspathRoot(uriOfClass(SimpleRuleLibrary.class))
+                    .withClassNameFilter(includeClassNamePatterns(".*(Field|Rules).*"));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor)).containsOnly(
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                    simpleRulesId(engineId));
+        }
+
+        @Test
+        void filtering_excluded_packages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withPackageNameFilter(excludePackageNames(
+                            SimpleRuleField.class.getPackage().getName(),
+                            SimpleRules.class.getPackage().getName(),
+                            WrongRuleMethodNotStatic.class.getPackage().getName()));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor))
+                    .contains(engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName()))
+                    .doesNotContain(
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                            engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
+                            simpleRulesId(engineId));
+        }
+
+        @Test
+        void filtering_included_packages() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withPackageNameFilter(includePackageNames(
+                            SimpleRuleField.class.getPackage().getName(),
+                            SimpleRules.class.getPackage().getName()));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor)).containsOnly(
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
+                    simpleRulesId(engineId));
+        }
+
+        @Test
+        void filtering_specific_rule_by_system_property() {
+            System.setProperty("archunit.junit.testFilter", SimpleRules.SIMPLE_RULE_FIELD_TWO_NAME);
+
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withPackage(SimpleRuleLibrary.class.getPackage().getName())
+                    .withPackageNameFilter(excludePackageNames(WrongRuleMethodNotStatic.class.getPackage().getName()));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Set<UniqueId> leafIds = getAllLeafUniqueIds(rootDescriptor);
+            assertThat(leafIds).isNotEmpty();
+            leafIds.forEach(leafId -> {
+                assertThat(leafId.getLastSegment().getType()).isEqualTo(FIELD_SEGMENT_TYPE);
+                assertThat(leafId.getLastSegment().getValue()).isEqualTo(SimpleRules.SIMPLE_RULE_FIELD_TWO_NAME);
+            });
+        }
+
+        @Test
+        void filtering_specific_rules_by_system_property() {
+            System.setProperty("archunit.junit.testFilter", "simple_rule_method_two,simple_rule,some_non_existing_rule");
+
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleLibrary.class);
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Set<UniqueId> leafIds = getAllLeafUniqueIds(rootDescriptor);
+            assertThat(leafIds).containsOnly(
+                    simpleRulesInLibraryId(engineId)
+                            .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_TWO_NAME),
+                    simpleRuleFieldTestId(engineId
+                            .append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName())
+                            .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_TWO_FIELD)));
+        }
+
+        @Test
+        void all_without_filters() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
+                    .withClasspathRoot(uriOfClass(SimpleRules.class));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor)).containsOnly(
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
+                    simpleRulesId(engineId));
+        }
+
+        @Test
+        void without_importing_classes_already() {
+            EngineDiscoveryTestRequest discoveryRequest = discoveryRequestUsingAllMethodsOfDiscovery();
+
+            doThrow(new AssertionError("The cache should not be queried during discovery, "
+                    + "otherwise classes will be imported when tests are possibly skipped afterwards"))
+                    .when(classCache).getClassesToAnalyzeFor(any(), any());
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(rootDescriptor).isNotNull();
+        }
+
+        @Test
+        @ExtendWith(TestLogExtension.class)
+        void without_scanning_unnecessary_classes_for_tests(LogCaptor logCaptor) {
+            EngineDiscoveryTestRequest discoveryRequest = discoveryRequestUsingAllMethodsOfDiscovery();
+
+            logCaptor.watch(ClassFileImporter.class, DEBUG);
+            testEngine.discover(discoveryRequest, engineId);
+
+            // since we discover the classes from the classpath with ArchUnit we expect DEBUG log entries for the test classes
+            assertThat(logCaptor.getEvents(DEBUG).stream())
+                    .extracting(RecordedLogEvent::getMessage)
+                    .as("messages of log events with level " + DEBUG)
+                    .anySatisfy(message -> assertThat(message)
+                            .matches(".*Processing class '.*" + SimpleRuleField.class.getSimpleName() + "'"));
+
+            // but we do not want to transitively resolve dependencies of those classes like java.lang.Object
+            assertThat(logCaptor.getEvents(DEBUG).stream())
+                    .extracting(RecordedLogEvent::getMessage)
+                    .as("messages of log events with level " + DEBUG)
+                    .noneSatisfy(message -> assertThat(message)
+                            .matches(".*Processing class '.*" + Object.class.getSimpleName() + "'"));
+        }
+
+        private EngineDiscoveryTestRequest discoveryRequestUsingAllMethodsOfDiscovery() {
+            return new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleField.class)
+                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withPackage(SimpleRuleField.class.getPackage().getName())
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withUniqueId(simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
+        }
+
+        private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {
+            UniqueId matchingId = tagsById.keySet().stream()
+                    .filter(id -> getLast(id.getSegments()).getValue().endsWith(suffix))
+                    .collect(onlyElement());
+            return tagsById.get(matchingId);
+        }
+
+        private TestDescriptor getOnlyChildWithDescriptorContaining(String idPart, Class<?> testClass) {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(testClass);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            return getArchRulesDescriptorsOfOnlyChild(descriptor)
+                    .filter(d -> d.getUniqueId().toString().contains(idPart))
+                    .collect(onlyElement());
+        }
+
+        private Stream<TestDescriptor> getArchRulesDescriptorsOfOnlyChild(TestDescriptor descriptor) {
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            Set<? extends TestDescriptor> archRulesDescriptors = testClass.getChildren();
+            return archRulesDescriptors.stream().map(identity());
+        }
+
+        private void assertClassSource(TestDescriptor child, Class<?> aClass) {
+            ClassSource classSource = (ClassSource) child.getSource().get();
+            assertThat(classSource.getClassName()).isEqualTo(aClass.getName());
+            assertThat(classSource.getJavaClass()).isEqualTo(aClass);
+            assertThat(classSource.getPosition().isPresent()).as("position is present").isFalse();
+        }
+
+        private void assertNoIntermediaryTestSource(TestDescriptor testDescriptor) {
+            // Test executors like Gradle test support traverse up the descriptor hierarchy until they find
+            // a test descriptor with a class source that they then pick for the test report.
+            // We want to show the original class used to trigger the tests for this to avoid confusion.
+            assertThat(testDescriptor.getSource()).as("source of intermediary test descriptor").isEmpty();
+        }
+
+        private TestDescriptor findRulesDescriptor(Collection<? extends TestDescriptor> archRulesDescriptors, Class<?> clazz) {
+            return archRulesDescriptors.stream().filter(d -> d.getUniqueId().toString().contains(clazz.getSimpleName())).findFirst().get();
+        }
+    }
+
+    @Nested
+    class Executes {
+        @Test
+        void a_simple_rule_field_without_violation() {
+            simulateCachedClassesForTest(SimpleRuleField.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, SimpleRuleField.class);
+
+            testListener.verifySuccessful(simpleRuleFieldTestId(engineId));
+        }
+
+        @Test
+        void a_simple_rule_field_with_violation() {
+            simulateCachedClassesForTest(SimpleRuleField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, SimpleRuleField.class);
+
+            testListener.verifyViolation(simpleRuleFieldTestId(engineId), UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName());
+        }
+
+        @Test
+        void instance_field_rule_in_abstract_base_class() {
+            simulateCachedClassesForTest(ArchTestWithAbstractBaseClassWithFieldRule.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, ArchTestWithAbstractBaseClassWithFieldRule.class);
+
+            testListener.verifySuccessful(engineId
+                    .append(CLASS_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithFieldRule.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithFieldRule.INSTANCE_FIELD_NAME));
+        }
+
+        @Test
+        void a_simple_rule_method_without_violation() {
+            simulateCachedClassesForTest(SimpleRuleMethod.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, SimpleRuleMethod.class);
+
+            testListener.verifySuccessful(simpleRuleMethodTestId(engineId));
+        }
+
+        @Test
+        void a_simple_rule_method_with_violation() {
+            simulateCachedClassesForTest(SimpleRuleMethod.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, SimpleRuleMethod.class);
+
+            testListener.verifyViolation(simpleRuleMethodTestId(engineId), UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName());
+        }
+
+        @Test
+        void instance_method_rule_in_abstract_base_class() {
+            simulateCachedClassesForTest(ArchTestWithAbstractBaseClassWithMethodRule.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, ArchTestWithAbstractBaseClassWithMethodRule.class);
+
+            testListener.verifySuccessful(engineId
+                    .append(CLASS_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithMethodRule.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithMethodRule.INSTANCE_METHOD_NAME));
+        }
+
+        @Test
+        void rule_library_without_violation() {
+            simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, SimpleRuleLibrary.class);
+
+            getExpectedIdsForSimpleRuleLibrary(engineId).forEach(testListener::verifySuccessful);
+        }
+
+        @Test
+        void rule_library_with_violation() {
+            simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, SimpleRuleLibrary.class);
+
+            getExpectedIdsForSimpleRuleLibrary(engineId).forEach(testId ->
+                    testListener.verifyViolation(testId, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName()));
+        }
+
+        @Test
+        void private_instance_libraries() {
+            simulateCachedClassesForTest(LibraryWithPrivateTests.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, LibraryWithPrivateTests.class);
+
+            privateRuleLibraryIds(engineId).forEach(testId ->
+                    testListener.verifyViolation(testId, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName()));
+        }
+
+        @Test
+        public void library_with_rules_in_abstract_base_class() {
+            simulateCachedClassesForTest(ArchTestWithLibraryWithAbstractBaseClass.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, ArchTestWithLibraryWithAbstractBaseClass.class);
+
+            testListener.verifySuccessful(engineId
+                    .append(CLASS_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.FIELD_RULE_LIBRARY_NAME)
+                    .append(CLASS_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithFieldRule.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithFieldRule.INSTANCE_FIELD_NAME)
+            );
+            testListener.verifySuccessful(engineId
+                    .append(CLASS_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, ArchTestWithLibraryWithAbstractBaseClass.METHOD_RULE_LIBRARY_NAME)
+                    .append(CLASS_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithMethodRule.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, ArchTestWithAbstractBaseClassWithMethodRule.INSTANCE_METHOD_NAME)
+            );
+        }
+
+        @Test
+        void rule_by_unique_id_without_violation() {
+            UniqueId fieldRuleInLibrary = simpleRulesInLibraryId(engineId)
+                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_SATISFYING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, new EngineDiscoveryTestRequest()
+                    .withUniqueId(fieldRuleInLibrary));
+
+            testListener.verifySuccessful(fieldRuleInLibrary);
+            testListener.verifyNoOtherStartExceptHierarchyOf(fieldRuleInLibrary);
+        }
+
+        @Test
+        void rule_by_unique_id_with_violation() {
+            UniqueId fieldRuleInLibrary = simpleRulesInLibraryId(engineId)
+                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, new EngineDiscoveryTestRequest()
+                    .withUniqueId(fieldRuleInLibrary));
+
+            testListener.verifyViolation(fieldRuleInLibrary, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName());
+            testListener.verifyNoOtherStartExceptHierarchyOf(fieldRuleInLibrary);
+        }
+
+        @Test
+        void mixed_rules_by_unique_id_and_class_with_violation() {
+            UniqueId fieldRuleInLibrary = simpleRulesInLibraryId(engineId)
+                    .append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME);
+            UniqueId methodRuleInLibrary = simpleRulesInLibraryId(engineId)
+                    .append(METHOD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_METHOD_ONE_NAME);
+            simulateCachedClassesForTest(SimpleRuleLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+            simulateCachedClassesForTest(SimpleRuleField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleField.class)
+                    .withUniqueId(fieldRuleInLibrary)
+                    .withUniqueId(methodRuleInLibrary));
+
+            testListener.verifyViolation(simpleRuleFieldTestId(engineId), UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName());
+            testListener.verifyViolation(fieldRuleInLibrary, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName());
+            testListener.verifyViolation(methodRuleInLibrary, UnwantedClass.CLASS_VIOLATING_RULES.getSimpleName());
+        }
+
+        @Test
+        void passes_AnalyzeClasses_to_cache() {
+            execute(createEngineId(), FullAnalyzeClassesSpec.class);
+
+            verify(classCache).getClassesToAnalyzeFor(eq(FullAnalyzeClassesSpec.class), classAnalysisRequestCaptor.capture());
+            ClassAnalysisRequest request = classAnalysisRequestCaptor.getValue();
+            AnalyzeClasses expected = FullAnalyzeClassesSpec.class.getAnnotation(AnalyzeClasses.class);
+            assertThat(request.getPackageNames()).isEqualTo(expected.packages());
+            assertThat(request.getPackageRoots()).isEqualTo(expected.packagesOf());
+            assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
+            assertThat(request.scanWholeClasspath()).as("scan whole classpath").isTrue();
+            assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
+        }
+
+        @Test
+        void cache_is_cleared_afterwards() {
+            execute(createEngineId(), SimpleRuleLibrary.class);
+
+            verify(classCache, times(1)).clear(SimpleRuleLibrary.class);
+            verify(classCache, atLeastOnce()).getClassesToAnalyzeFor(any(Class.class), any(ClassAnalysisRequest.class));
+            verifyNoMoreInteractions(classCache);
+        }
+
+        @Test
+        void a_class_with_analyze_classes_as_meta_annotation() {
+            execute(createEngineId(), TestClassWithMetaAnnotationForAnalyzeClasses.class);
+
+            verify(classCache).getClassesToAnalyzeFor(eq(TestClassWithMetaAnnotationForAnalyzeClasses.class), classAnalysisRequestCaptor.capture());
+            ClassAnalysisRequest request = classAnalysisRequestCaptor.getValue();
+            AnalyzeClasses expected = TestClassWithMetaAnnotationForAnalyzeClasses.class.getAnnotation(TestClassWithMetaAnnotationForAnalyzeClasses.MetaAnalyzeClasses.class)
+                    .annotationType().getAnnotation(AnalyzeClasses.class);
+            assertThat(request.getPackageNames()).isEqualTo(expected.packages());
+            assertThat(request.getPackageRoots()).isEqualTo(expected.packagesOf());
+            assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
+            assertThat(request.scanWholeClasspath()).as("scan whole classpath").isTrue();
+            assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
+        }
+    }
+
+    @Nested
+    class Rejects {
+        @Test
+        void rule_method_with_wrong_parameters() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(WrongRuleMethodWrongParameters.class);
+
+            assertThatThrownBy(() -> testEngine.discover(discoveryRequest, engineId))
+                    .isInstanceOf(ArchTestInitializationException.class)
+                    .hasMessageContaining(ArchTest.class.getSimpleName())
+                    .hasMessageContaining(WrongRuleMethodWrongParameters.class.getSimpleName())
+                    .hasMessageContaining(WrongRuleMethodWrongParameters.WRONG_PARAMETERS_METHOD_NAME)
+                    .hasMessageContaining("must have exactly one parameter of type " + JavaClasses.class.getName());
+        }
+    }
+
+    @Nested
+    class Ignores {
+        @Test
+        void fields() {
+            simulateCachedClassesForTest(IgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredField.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredField.IGNORED_RULE_FIELD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredField.UNIGNORED_RULE_FIELD));
+        }
+
+        @Test
+        void methods() {
+            simulateCachedClassesForTest(IgnoredMethod.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredMethod.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void classes() {
+            simulateCachedClassesForTest(IgnoredClass.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredClass.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredClass.class.getName()));
+
+            testListener.verifyNoOtherStartExceptHierarchyOf(engineId);
+        }
+
+        @Test
+        void libraries() {
+            simulateCachedClassesForTest(IgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredLibrary.IGNORED_LIB_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void library_referenced_classes() {
+            simulateCachedClassesForTest(IgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredLibrary.UNIGNORED_LIB_ONE_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, IgnoredClass.class.getName()));
+        }
+
+        @Test
+        void library_sub_rules() {
+            simulateCachedClassesForTest(IgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredLibrary.class);
+
+            UniqueId classWithIgnoredMethod = engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredLibrary.UNIGNORED_LIB_TWO_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, IgnoredMethod.class.getName());
+
+            testListener.verifySkipped(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, IgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void with_reason() {
+            simulateCachedClassesForTest(IgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, IgnoredField.class);
+
+            UniqueId ignoredId = engineId
+                    .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, IgnoredField.IGNORED_RULE_FIELD);
+            testListener.verifySkipped(ignoredId, "some example description");
+        }
+    }
+
+    @Nested
+    class MetaIgnores {
+        @Test
+        void fields() {
+            simulateCachedClassesForTest(MetaIgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredField.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredField.IGNORED_RULE_FIELD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredField.UNIGNORED_RULE_FIELD));
+        }
+
+        @Test
+        void methods() {
+            simulateCachedClassesForTest(MetaIgnoredMethod.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredMethod.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void classes() {
+            simulateCachedClassesForTest(MetaIgnoredClass.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredClass.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredClass.class.getName()));
+
+            testListener.verifyNoOtherStartExceptHierarchyOf(engineId);
+        }
+
+        @Test
+        void libraries() {
+            simulateCachedClassesForTest(MetaIgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredLibrary.IGNORED_LIB_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void library_referenced_classes() {
+            simulateCachedClassesForTest(MetaIgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredLibrary.UNIGNORED_LIB_ONE_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredClass.class.getName()));
+        }
+
+        @Test
+        void library_sub_rules() {
+            simulateCachedClassesForTest(MetaIgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredLibrary.class);
+
+            UniqueId classWithIgnoredMethod = engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredLibrary.UNIGNORED_LIB_TWO_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredMethod.class.getName());
+
+            testListener.verifySkipped(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void with_reason() {
+            simulateCachedClassesForTest(MetaIgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredField.class);
+
+            UniqueId ignoredId = engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredField.IGNORED_RULE_FIELD);
+            testListener.verifySkipped(ignoredId, "some example description");
+        }
+    }
+
+    @Nested
+    class GeneratesDisplayName {
+        @Test
+        void for_field_by_replacing_underscores_with_blanks_if_property_is_set_to_true() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "true");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple rule");
+        }
+
+        @Test
+        void for_method_by_replacing_underscores_with_blanks_if_property_is_set_to_true() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleMethod.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "true");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple rule");
+        }
+
+        @Test
+        void by_returning_original_name_if_property_is_set_to_false() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "false");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple_rule");
+        }
+
+        @AfterEach
+        void resetConfiguration() {
+            ArchConfiguration.get().reset();
+        }
+    }
+
+    private UniqueId createEngineId() {
+        return UniqueId.forEngine(ArchUnitTestEngine.UNIQUE_ID);
+    }
+
+    private UniqueId simpleRuleFieldTestId(UniqueId uniqueId) {
+        return uniqueId
+                .append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName())
+                .append(FIELD_SEGMENT_TYPE, SIMPLE_RULE_FIELD_NAME);
+    }
+
+    private UniqueId simpleRuleMethodTestId(UniqueId uniqueId) {
+        return uniqueId
+                .append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName())
+                .append(METHOD_SEGMENT_TYPE, SIMPLE_RULE_METHOD_NAME);
+    }
+
+    private UniqueId simpleRulesId(UniqueId rootId) {
+        return rootId.append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName());
+    }
+
+    private UniqueId simpleRulesInLibraryId(UniqueId uniqueId) {
+        return simpleRulesId(uniqueId
+                .append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName())
+                .append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD));
+    }
+
+    private Set<UniqueId> getExpectedIdsForSimpleRuleLibrary(UniqueId uniqueId) {
+        UniqueId simpleRuleLibrary = uniqueId.append(CLASS_SEGMENT_TYPE, SimpleRuleLibrary.class.getName());
+        Set<UniqueId> simpleRulesIds = getExpectedIdsForSimpleRules(
+                simpleRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_ONE_FIELD));
+        Set<UniqueId> simpleRuleFieldIds = singleton(simpleRuleFieldTestId(
+                simpleRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleRuleLibrary.RULES_TWO_FIELD)));
+
+        return Stream.of(simpleRulesIds, simpleRuleFieldIds)
+                .flatMap(Set::stream).collect(toSet());
+    }
+
+    private Set<UniqueId> getExpectedIdsForSimpleRules(UniqueId append) {
+        UniqueId simpleRules = simpleRulesId(append);
+        Set<UniqueId> simpleRulesFields = SimpleRules.RULE_FIELD_NAMES.stream().map(fieldName -> simpleRules
+                .append(FIELD_SEGMENT_TYPE, fieldName)).collect(toSet());
+        Set<UniqueId> simpleRulesMethods = SimpleRules.RULE_METHOD_NAMES.stream().map(methodName -> simpleRules
+                .append(METHOD_SEGMENT_TYPE, methodName)).collect(toSet());
+        return Stream.of(simpleRulesFields, simpleRulesMethods).flatMap(Set::stream).collect(toSet());
+    }
+
+    private Set<UniqueId> getExpectedIdsForComplexRuleLibrary(UniqueId uniqueId) {
+        UniqueId complexRuleLibrary = uniqueId.append(CLASS_SEGMENT_TYPE, ComplexRuleLibrary.class.getName());
+        Set<UniqueId> simpleRuleLibraryIds = getExpectedIdsForSimpleRuleLibrary(complexRuleLibrary
+                .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_ONE_FIELD));
+        Set<UniqueId> simpleRulesIds = getExpectedIdsForSimpleRules(complexRuleLibrary
+                .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_TWO_FIELD));
+
+        return Stream.of(simpleRuleLibraryIds, simpleRulesIds).flatMap(Set::stream).collect(toSet());
+    }
+
+    private Set<UniqueId> privateRuleLibraryIds(UniqueId uniqueId) {
+        UniqueId libraryId = uniqueId
+                .append(CLASS_SEGMENT_TYPE, LibraryWithPrivateTests.class.getName())
+                .append(FIELD_SEGMENT_TYPE, LibraryWithPrivateTests.PRIVATE_RULES_FIELD_NAME)
+                .append(CLASS_SEGMENT_TYPE, LibraryWithPrivateTests.SubRules.class.getName())
+                .append(FIELD_SEGMENT_TYPE, LibraryWithPrivateTests.SubRules.PRIVATE_RULES_FIELD_NAME);
+        return ImmutableSet.of(privateRuleFieldId(libraryId), privateRuleMethodId(libraryId));
+    }
+
+    private UniqueId privateRuleFieldId(UniqueId uniqueId) {
+        return uniqueId
+                .append(CLASS_SEGMENT_TYPE, ClassWithPrivateTests.class.getName())
+                .append(FIELD_SEGMENT_TYPE, ClassWithPrivateTests.PRIVATE_RULE_FIELD_NAME);
+    }
+
+    private UniqueId privateRuleMethodId(UniqueId uniqueId) {
+        return uniqueId
+                .append(CLASS_SEGMENT_TYPE, ClassWithPrivateTests.class.getName())
+                .append(METHOD_SEGMENT_TYPE, ClassWithPrivateTests.PRIVATE_RULE_METHOD_NAME);
+    }
+
+    private Set<UniqueId> getAllLeafUniqueIds(TestDescriptor rootDescriptor) {
+        return getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet());
+    }
+
+    private TestDescriptor getOnlyTest(TestDescriptor descriptor) {
+        TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+        TestDescriptor ruleDescriptor = getOnlyElement(testClass.getChildren());
+        assertThat(ruleDescriptor.getType()).isEqualTo(TEST);
+        return ruleDescriptor;
+    }
+
+    private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {
+        Set<TestDescriptor> result = new HashSet<>();
+        descriptor.accept(possibleLeaf -> {
+            if (possibleLeaf.getChildren().isEmpty()) {
+                result.add(possibleLeaf);
+            }
+        });
+        return result;
+    }
+
+    private Set<UniqueId> toUniqueIds(TestDescriptor rootDescriptor) {
+        return rootDescriptor.getChildren().stream().map(TestDescriptor::getUniqueId).collect(toSet());
+    }
+
+    private void simulateCachedClassesForTest(Class<?> testClass, Class<?> classToReturn) {
+        when(classCache.getClassesToAnalyzeFor(eq(testClass), classAnalysisRequestOf(testClass)))
+                .thenReturn(importClasses(classToReturn));
+    }
+
+    private ClassAnalysisRequest classAnalysisRequestOf(Class<?> testClass) {
+        return argThat(r -> Arrays.equals(r.getPackageNames(), testClass.getAnnotation(AnalyzeClasses.class).packages()));
+    }
+
+    private EngineExecutionTestListener execute(UniqueId uniqueId, Class<?> testClass) {
+        return execute(uniqueId, new EngineDiscoveryTestRequest().withClass(testClass));
+    }
+
+    private EngineExecutionTestListener execute(UniqueId uniqueId, EngineDiscoveryTestRequest discoveryRequest) {
+        TestDescriptor descriptor = testEngine.discover(discoveryRequest, uniqueId);
+
+        EngineExecutionTestListener listener = new EngineExecutionTestListener();
+        testEngine.execute(new ExecutionRequest(descriptor, listener, discoveryRequest.getConfigurationParameters()));
+        return listener;
+    }
+
+    private static URI rootOfClass(Class<?> clazz) {
+        String resourceName = classFileResource(clazz);
+        URL classResource = clazz.getResource(resourceName);
+        String rootPath = classResource.toExternalForm()
+                .replace(resourceName, "")
+                .replaceAll("^jar:", "")
+                .replaceAll("!$", "");
+        return URI.create(rootPath);
+    }
+
+    private static URI uriOfClass(Class<?> clazz) {
+        String resourceName = classFileResource(clazz);
+        return URI.create(clazz.getResource(resourceName).toExternalForm());
+    }
+
+    private static String classFileResource(Class<?> clazz) {
+        return String.format("/%s.class", clazz.getName().replace('.', '/'));
+    }
+}
