@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -22,10 +23,12 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaConstructorReference;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
+import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
@@ -33,6 +36,7 @@ import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.ImporterWithAdjustedResolutionRuns;
+import com.tngtech.archunit.core.importer.testexamples.OtherClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithUnimportedAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
@@ -44,9 +48,11 @@ import com.tngtech.archunit.core.importer.testexamples.annotationresolution.Anot
 import com.tngtech.archunit.core.importer.testexamples.annotationresolution.SomeAnnotationWithAnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.annotationresolution.SomeAnnotationWithClassParameter;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyresolution.Child;
+import com.tngtech.archunit.core.importer.testexamples.packageinforesolution.ClassThatReferencesOtherClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -59,6 +65,7 @@ import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_PACKAGE_INFO_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithTwoAnnotations;
@@ -618,6 +625,33 @@ public class ClassFileImporterAutomaticResolutionTest {
         JavaClass outermost = lessOuter.getEnclosingClass().get();
         assertThat(outermost).isFullyImported(true);
         assertThatType(outermost).matches(Outermost.class);
+    }
+
+    @Test
+    public void automatically_resolves_packages() {
+        JavaClass otherClass = new ClassFileImporter()
+                .importClass(OtherClass.class);
+
+        JavaPackage checkedClassPackageInfo = otherClass.getPackage();
+        assertThat(checkedClassPackageInfo.getAnnotations()).hasSize(1);
+        assertThat(checkedClassPackageInfo.isAnnotatedWith(SomeAnnotation.class)).isTrue();
+    }
+
+    @Test
+    public void automatically_resolves_dependency_packages() {
+        JavaClass checkedClass = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_PACKAGE_INFO_PROPERTY_NAME, MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME)
+                .importClass(ClassThatReferencesOtherClass.class);
+
+        Optional<JavaField> firstField = checkedClass.getAllFields().stream().findFirst();
+        assertThat(firstField).isPresent();
+        JavaClass otherClass = firstField.get().getRawType();
+        assertThat(otherClass).isFullyImported(true);
+
+        JavaPackage otherClassPackageInfo = otherClass.getPackage();
+
+        Assertions.assertThat(otherClassPackageInfo.getAnnotations()).hasSize(1);
+        Assertions.assertThat(otherClassPackageInfo.isAnnotatedWith(SomeAnnotation.class)).isTrue();
     }
 
     @DataProvider

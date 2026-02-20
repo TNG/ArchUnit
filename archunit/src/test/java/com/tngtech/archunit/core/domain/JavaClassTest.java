@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.domain.packageexamples.annotated.PackageLevelAnnotation;
+import com.tngtech.archunit.core.domain.packageexamples.annotated.WithinAnnotatedPackage;
 import com.tngtech.archunit.core.domain.testobjects.AAccessingB;
 import com.tngtech.archunit.core.domain.testobjects.AExtendingSuperAImplementingInterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.AReferencingB;
@@ -1593,6 +1595,15 @@ public class JavaClassTest {
         assertThat(JavaClass.Functions.GET_PACKAGE_NAME.apply(javaClass))
                 .as("result of GET_PACKAGE_NAME(clazz)")
                 .isEqualTo(javaClass.getPackageName());
+    }
+
+    @Test
+    public void function_getPackageInfo() {
+        JavaClass javaClass = importClassWithContext(WithinAnnotatedPackage.class);
+
+        assertThat(javaClass.getPackage().isAnnotatedWith(PackageLevelAnnotation.class))
+                .as("package info is available")
+                .isTrue();
     }
 
     @Test
