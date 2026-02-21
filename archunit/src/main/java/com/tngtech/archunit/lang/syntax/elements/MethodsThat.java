@@ -16,6 +16,7 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaMethod;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -53,4 +54,22 @@ public interface MethodsThat<CONJUNCTION> extends CodeUnitsThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotFinal();
+
+    /**
+     * Matches methods that override other methods.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     * @see JavaMethod#isOverriding()
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areOverriding();
+
+    /**
+     * Matches methods that do not override other methods.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     * @see JavaMethod#isOverriding()
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotOverriding();
 }

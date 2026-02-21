@@ -24,6 +24,10 @@ import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.MethodsShould;
 import com.tngtech.archunit.lang.syntax.elements.MethodsShouldConjunction;
 
+import static com.tngtech.archunit.core.domain.JavaMethod.Predicates.overriding;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
+
 class MethodsShouldInternal
         extends AbstractCodeUnitsShouldInternal<JavaMethod, MethodsShouldInternal>
         implements MethodsShould<MethodsShouldInternal>, MethodsShouldConjunction {
@@ -57,5 +61,15 @@ class MethodsShouldInternal
     @Override
     MethodsShouldInternal copyWithNewCondition(ConditionAggregator<JavaMethod> newCondition) {
         return new MethodsShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
+    }
+
+    @Override
+    public MethodsShouldInternal beOverriding() {
+        return addCondition(be(overriding()));
+    }
+
+    @Override
+    public MethodsShouldInternal notBeOverriding() {
+        return addCondition(not(be(overriding())));
     }
 }

@@ -27,6 +27,8 @@ public class GivenMethodsTest {
                 $(described(methods().that().areNotFinal()), ImmutableSet.of(METHOD_C, METHOD_D)),
                 $(described(methods().that().areStatic()), ImmutableSet.of(METHOD_B, METHOD_D)),
                 $(described(methods().that().areNotStatic()), ImmutableSet.of(METHOD_A, METHOD_C)),
+                $(described(methods().that().areOverriding()), ImmutableSet.of(METHOD_A)),
+                $(described(methods().that().areNotOverriding()), ImmutableSet.of(METHOD_B, METHOD_C, METHOD_D)),
                 $(described(methods().that().areFinal().and().areStatic()), ImmutableSet.of(METHOD_B)),
                 $(described(methods().that().areFinal().or().areStatic()), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D))
         );
@@ -47,7 +49,7 @@ public class GivenMethodsTest {
     private static final String METHOD_D = "methodD()";
 
     @SuppressWarnings({"unused"})
-    private static class ClassWithVariousMembers {
+    private static class ClassWithVariousMembers extends SuperclassWithVariousMembers {
         public final void methodA(int[] array) {
         }
         protected static final void methodB(boolean flag) {
@@ -56,6 +58,12 @@ public class GivenMethodsTest {
         }
         static int methodD() {
             return 0;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class SuperclassWithVariousMembers {
+        public void methodA(int[] array) {
         }
     }
 }
