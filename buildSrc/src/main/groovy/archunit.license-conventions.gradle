@@ -29,7 +29,7 @@ dependencies {
 def parseLicenseInfoFrom = { config ->
     def pom = config.resolve().find { it.name.endsWith('.pom') }
 
-    def projectNode = new XmlParser().parse(pom)
+    def projectNode = new groovy.xml.XmlParser().parse(pom)
     def licenses = projectNode.licenses.license
     assert licenses.size() == 1: 'Can only handle one declared license at the moment'
 
