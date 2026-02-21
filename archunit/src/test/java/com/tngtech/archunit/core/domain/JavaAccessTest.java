@@ -61,6 +61,32 @@ public class JavaAccessTest {
     }
 
     @Test
+    public void target_predicate() {
+        DescribedPredicate<JavaAccess<?>> predicate =
+                JavaAccess.Predicates.target(DescribedPredicate.<AccessTarget>alwaysTrue().as("some text"));
+
+        assertThat(predicate)
+                .hasDescription("target some text")
+                .accepts(anyAccess());
+
+        predicate = JavaAccess.Predicates.target(alwaysFalse());
+        assertThat(predicate).rejects(anyAccess());
+    }
+
+    @Test
+    public void targetOwner_predicate() {
+        DescribedPredicate<JavaAccess<?>> predicate =
+                JavaAccess.Predicates.targetOwner(DescribedPredicate.<JavaClass>alwaysTrue().as("some text"));
+
+        assertThat(predicate)
+                .hasDescription("owner some text")
+                .accepts(anyAccess());
+
+        predicate = JavaAccess.Predicates.targetOwner(alwaysFalse());
+        assertThat(predicate).rejects(anyAccess());
+    }
+
+    @Test
     public void convertTo() {
         TestJavaAccess access = javaAccessFrom(importClassWithContext(String.class), "toString")
                 .to(Object.class, "toString")
