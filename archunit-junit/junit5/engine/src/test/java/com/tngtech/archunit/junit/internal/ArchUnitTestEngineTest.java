@@ -20,6 +20,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.engine_api.FieldSelector;
 import com.tngtech.archunit.junit.engine_api.FieldSource;
 import com.tngtech.archunit.junit.internal.ArchUnitTestEngine.SharedCache;
+import com.tngtech.archunit.junit.internal.testexamples.AnalyzeClassesWithClassesProperty;
 import com.tngtech.archunit.junit.internal.testexamples.ClassWithPrivateTests;
 import com.tngtech.archunit.junit.internal.testexamples.ComplexMetaTags;
 import com.tngtech.archunit.junit.internal.testexamples.ComplexRuleLibrary;
@@ -1079,6 +1080,7 @@ class ArchUnitTestEngineTest {
             assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
             assertThat(request.scanWholeClasspath()).as("scan whole classpath").isTrue();
             assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
+            assertThat(request.getClassesToAnalyze()).isEmpty();
         }
 
         @Test
@@ -1103,6 +1105,21 @@ class ArchUnitTestEngineTest {
             assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
             assertThat(request.scanWholeClasspath()).as("scan whole classpath").isTrue();
             assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
+        }
+
+        @Test
+        void passes_AnalyzeClasses_with_new_classes_property_to_cache() {
+            execute(createEngineId(), AnalyzeClassesWithClassesProperty.class);
+
+            verify(classCache).getClassesToAnalyzeFor(eq(AnalyzeClassesWithClassesProperty.class), classAnalysisRequestCaptor.capture());
+            ClassAnalysisRequest request = classAnalysisRequestCaptor.getValue();
+            AnalyzeClasses expected = AnalyzeClassesWithClassesProperty.class.getAnnotation(AnalyzeClasses.class);
+            assertThat(request.getClassesToAnalyze()).isEqualTo(expected.classes());
+            assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
+            assertThat(request.getPackageNames()).isEmpty();
+            assertThat(request.getPackageRoots()).isEmpty();
+            assertThat(request.getLocationProviders()).isEmpty();
+            assertThat(request.scanWholeClasspath()).as("scan whole classpath").isFalse();
         }
     }
 
