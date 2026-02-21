@@ -53,6 +53,8 @@ public final class ArchConfiguration {
     static final String CLASS_RESOLVER_ARGS = "classResolver.args";
     @Internal
     public static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
+    @Internal
+    public static final String ANALYZE_LOCAL_VARIABLE_INSTANTIATIONS = "analyzeLocalVariableInstantiations";
     private static final String EXTENSION_PREFIX = "extension";
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
@@ -122,6 +124,16 @@ public final class ArchConfiguration {
     @PublicAPI(usage = ACCESS)
     public void setMd5InClassSourcesEnabled(boolean enabled) {
         properties.setProperty(ENABLE_MD5_IN_CLASS_SOURCES, String.valueOf(enabled));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean analyzeLocalVariableInstantiations() {
+        return Boolean.parseBoolean(properties.getProperty(ANALYZE_LOCAL_VARIABLE_INSTANTIATIONS));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public void setAnalyzeLocalVariableInstantiations(boolean enabled) {
+        properties.setProperty(ANALYZE_LOCAL_VARIABLE_INSTANTIATIONS, String.valueOf(enabled));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -328,7 +340,8 @@ public final class ArchConfiguration {
     private static class PropertiesOverwritableBySystemProperties {
         private static final Properties PROPERTY_DEFAULTS = createProperties(ImmutableMap.of(
                 RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
-                ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString()
+                ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString(),
+                ANALYZE_LOCAL_VARIABLE_INSTANTIATIONS, Boolean.FALSE.toString()
         ));
 
         private final Properties baseProperties;
