@@ -73,6 +73,16 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
     }
 
     @Override
+    public CONJUNCTION haveFullyQualifiedNameAnyOf(String... classNames) {
+        return givenWith(SyntaxPredicates.haveFullyQualifiedNameAnyOf(classNames));
+    }
+
+    @Override
+    public CONJUNCTION doNotHaveFullyQualifiedNameAnyOf(String... classNames) {
+        return givenWith(SyntaxPredicates.doNotHaveFullyQualifiedNameAnyOf(classNames));
+    }
+
+    @Override
     public CONJUNCTION haveSimpleName(String name) {
         return givenWith(SyntaxPredicates.haveSimpleName(name));
     }

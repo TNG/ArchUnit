@@ -56,6 +56,24 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION doNotHaveFullyQualifiedName(String name);
 
     /**
+     * Matches classes by their fully qualified class name.
+     *
+     * @param classNames One or more fully qualified class names
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullyQualifiedNameAnyOf(String... classNames);
+
+        /**
+     * Matches classes that do not have a certain fully qualified class name.
+     *
+     * @param classNames One or more fully qualified class names
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveFullyQualifiedNameAnyOf(String... classNames);
+
+    /**
      * Matches classes by their simple class name.
      *
      * @param name The simple class name

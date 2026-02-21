@@ -69,6 +69,22 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void haveFullyQualifiedNameAnyOf() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().haveFullyQualifiedNameAnyOf(List.class.getName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(List.class);
+    }
+
+    @Test
+    public void doNotHaveFullyQualifiedNameAnyOf() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotHaveFullyQualifiedNameAnyOf(List.class.getName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Iterable.class);
+    }
+
+    @Test
     public void haveSimpleName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().haveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);

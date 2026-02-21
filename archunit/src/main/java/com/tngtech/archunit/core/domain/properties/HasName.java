@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Formatters;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -117,6 +118,11 @@ public interface HasName {
             return new NameEqualsPredicate(name);
         }
 
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> nameAnyOf(String... classNames) {
+            return new NameEqualsAnyOfPredicate(classNames);
+        }
+
         /**
          * Matches names against a regular expression.
          */
@@ -151,6 +157,26 @@ public interface HasName {
             @Override
             public boolean test(HasName input) {
                 return input.getName().equals(name);
+            }
+        }
+
+        private static class NameEqualsAnyOfPredicate extends DescribedPredicate<HasName> {
+            private final String[] names;
+
+            NameEqualsAnyOfPredicate(String[] names) {
+                super(String.format("name '%s'", Formatters.joinSingleQuoted(names)));
+                this.names = names;
+            }
+
+            @Override
+            public boolean test(HasName input) {
+                for (String name : names) {
+                    if (input.getName().equals(name)) {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 

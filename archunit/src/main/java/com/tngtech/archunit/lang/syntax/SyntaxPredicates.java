@@ -35,6 +35,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedNameAnyOf;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class SyntaxPredicates {
@@ -108,6 +109,14 @@ class SyntaxPredicates {
 
     static DescribedPredicate<HasName> doNotHaveFullyQualifiedName(String name) {
         return doNot(have(fullyQualifiedName(name)));
+    }
+
+    static DescribedPredicate<HasName> haveFullyQualifiedNameAnyOf(String[] classNames) {
+        return have(fullyQualifiedNameAnyOf(classNames));
+    }
+
+    static DescribedPredicate<HasName> doNotHaveFullyQualifiedNameAnyOf(String[] classNames) {
+        return doNot(have(fullyQualifiedNameAnyOf(classNames)));
     }
 
     static DescribedPredicate<JavaClass> haveSimpleName(String name) {

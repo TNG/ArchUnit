@@ -116,6 +116,7 @@ import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicate
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameAnyOf;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameContaining;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
@@ -516,6 +517,22 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notHaveFullyQualifiedName(String name) {
         return not(haveFullyQualifiedName(name));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveFullyQualifiedNameAnyOf(String... classNames) {
+        return have(fullyQualifiedNameAnyOf(classNames));
+    }
+
+    @Internal
+    public static DescribedPredicate<HasName> fullyQualifiedNameAnyOf(String[] classNames) {
+        DescribedPredicate<HasName> predicate = nameAnyOf(classNames);
+        return predicate.as("fully qualified " + predicate.getDescription());
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notHaveFullyQualifiedNameAnyOf(String... classNames) {
+        return not(haveFullyQualifiedNameAnyOf(classNames));
     }
 
     @PublicAPI(usage = ACCESS)
