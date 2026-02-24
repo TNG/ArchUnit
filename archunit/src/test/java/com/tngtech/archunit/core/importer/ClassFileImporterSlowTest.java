@@ -179,18 +179,19 @@ public class ClassFileImporterSlowTest {
     }
 
     private JavaClasses importJavaBase() {
-        return new ClassFileImporter()
-                .withImportOption(location ->
-                        // before Java 9 packages like java.lang were in rt.jar
-                        location.contains("rt.jar") ||
-                                // from Java 9 on those packages were in a JRT with name 'java.base'
-                                (location.asURI().getScheme().equals("jrt") && location.contains("java.base"))
-                )
-                .importClasspath();
+        return new ClassFileImporter().withImportOption(location -> !isSunPackage(location) && (
+                // before Java 9 packages like java.lang were in rt.jar;
+                location.contains("rt.jar") ||
+                        // from Java 9 on those packages were in a JRT with name 'java.base'
+                        (location.asURI().getScheme().equals("jrt") && location.contains("java.base"))
+        )).importClasspath();
     }
 
     private ImportOption importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath() {
         return location -> {
+            if (isSunPackage(location)) {
+                return false;
+            }
             if (!location.isArchive()) {
                 return true;
             }
@@ -199,5 +200,14 @@ public class ClassFileImporterSlowTest {
             }
             return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
         };
+    }
+
+    /**
+     * Importing the full classpath may give thousands of classes in {@link sun} and (especially for Java 8) {@link com.sun} packages.
+     * Importing those would increase the memory footprint tremendously, but not give an additional benefit for the test,
+     * so it is convenient to ignore those.
+     */
+    private static boolean isSunPackage(Location location) {
+        return location.contains("/sun/");
     }
 }

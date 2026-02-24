@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 TNG Technology Consulting GmbH
+ * Copyright 2014-2026 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,15 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * @return A {@link DescribedPredicate} that will return {@code true} whenever this predicate would return {@code false}, and vice versa.
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public DescribedPredicate<T> negate() {
+        return new NotPredicate<>(this);
     }
 
     /**
@@ -176,7 +185,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     /**
      * @param predicate Any {@link DescribedPredicate}
-     * @return A predicate that will return {@code true} whenever the original predicate would return {@code false} and vice versa.
+     * @return A predicate that will return {@code true} whenever the original predicate would return {@code false}, and vice versa.
      * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
      */
     @PublicAPI(usage = ACCESS)

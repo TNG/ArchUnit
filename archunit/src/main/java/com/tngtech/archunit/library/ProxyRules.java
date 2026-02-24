@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 TNG Technology Consulting GmbH
+ * Copyright 2014-2026 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,18 @@ import java.lang.annotation.Annotation;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaModifier.BRIDGE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -44,7 +47,7 @@ public final class ProxyRules {
     /**
      * Returns a rule that checks that none of the given classes directly calls
      * other methods declared in the same class that are annotated with the
-     * given annotation.
+     * given annotation (ignoring calls from synthetic bridge methods).
      *
      * <p>
      * As an example, the Spring Framework handles transactions by creating a proxy.
@@ -92,7 +95,8 @@ public final class ProxyRules {
 
     /**
      * Returns a rule that checks that none of the given classes directly calls
-     * other methods declared in the same class that matches the given predicate.
+     * other methods declared in the same class that matches the given predicate
+     * (ignoring calls from synthetic bridge methods).
      *
      * <p>
      * For an example, see {@link #no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(Class)}
@@ -106,8 +110,8 @@ public final class ProxyRules {
 
     /**
      * Returns a condition that matches classes that directly calls other methods
-     * declared in the same class that are annotated with the given annotation.
-     *
+     * declared in the same class that are annotated with the given annotation
+     * (ignoring calls from synthetic bridge methods).
      * <p>
      * As an example, the Spring Framework handles transactions by creating a proxy.
      * This proxy does the actual transaction management every time a method
@@ -155,8 +159,8 @@ public final class ProxyRules {
 
     /**
      * Returns a condition that matches classes that directly calls other methods
-     * declared in the same class that matches the given predicate.
-     *
+     * declared in the same class that matches the given predicate
+     * (ignoring calls from synthetic bridge methods).
      * <p>
      * For an example, see {@link #directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(Class)}
      * </p>
@@ -166,10 +170,12 @@ public final class ProxyRules {
         return new ArchCondition<JavaClass>("directly call other methods declared in the same class that " + predicate.getDescription()) {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {
-                for (JavaMethodCall call : javaClass.getMethodCallsFromSelf()) {
-                    boolean satisfied = call.getOriginOwner().equals(call.getTargetOwner()) && predicate.test(call.getTarget());
-                    events.add(new SimpleConditionEvent(call, satisfied, call.getDescription()));
-                }
+                javaClass.getMethodCallsFromSelf().stream()
+                        .filter(Get.origin().is(not(modifier(BRIDGE))))
+                        .forEach(call -> {
+                            boolean satisfied = call.getOriginOwner().equals(call.getTargetOwner()) && predicate.test(call.getTarget());
+                            events.add(new SimpleConditionEvent(call, satisfied, call.getDescription()));
+                        });
             }
         };
     }
