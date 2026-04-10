@@ -2,10 +2,13 @@ package com.tngtech.archunit.core.domain;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
@@ -31,6 +34,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Files.newTemporaryFile;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -102,8 +106,47 @@ public class TestUtils {
         return new AccessesSimulator();
     }
 
-    public static DescribedPredicate<Object> predicateWithDescription(String description) {
-        return DescribedPredicate.alwaysTrue().as(description);
+    public static <T> DescribedPredicate<T> predicateWithDescription(String description) {
+        return DescribedPredicate.<T>alwaysTrue().as(description);
+    }
+
+    public static <T> CapturingDescribedPredicate<T> alwaysFalseCapturingPredicateWithDescription(String description) {
+        return new CapturingDescribedPredicate<T>(false, description);
+    }
+
+    public static <T> CapturingDescribedPredicate<T> alwaysTrueCapturingPredicateWithDescription(String description) {
+        return new CapturingDescribedPredicate<T>(true, description);
+    }
+
+    public static class CapturingDescribedPredicate<T> extends DescribedPredicate<T> {
+
+        private final List<T> capturedValues;
+        private final Predicate<T> check;
+
+        public CapturingDescribedPredicate(boolean result, String description, Object... params) {
+            this(o -> result, description, params);
+        }
+
+        public CapturingDescribedPredicate(Predicate<T> check, String description, Object... params) {
+            super(description, params);
+            this.check = check;
+            this.capturedValues = new ArrayList<>();
+        }
+
+        @Override
+        public boolean test(T t) {
+            this.capturedValues.add(t);
+            return check.test(t);
+        }
+
+        public List<T> getCapturedValues() {
+            return Collections.unmodifiableList(new ArrayList<>(capturedValues));
+        }
+
+        public T getCapturedValue() {
+            assertThat(capturedValues).as("to get the captured value, exactly one value must have been captured").hasSize(1);
+            return capturedValues.get(0);
+        }
     }
 
     public static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
