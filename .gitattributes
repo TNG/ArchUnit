@@ -1,0 +1,2 @@
+# Enforce Unix line endings (LF) for all java files
+*.java text=auto eol=lf
