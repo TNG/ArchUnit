@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release-*
+      - jdk26
   pull_request:
 
 env:
