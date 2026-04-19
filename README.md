@@ -1,5 +1,5 @@
 [![CI](https://github.com/TNG/ArchUnit/actions/workflows/build.yml/badge.svg)](https://github.com/TNG/ArchUnit/actions/workflows/build.yml?query=branch%3Amain++)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tngtech.archunit/archunit/badge.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.tngtech.archunit%22%20)
+[![Maven Central](https://img.shields.io/maven-central/v/com.tngtech.archunit/archunit.svg)](https://central.sonatype.com/search?q=g:com.tngtech.archunit)
 [![License](https://img.shields.io/github/license/TNG/ArchUnit.svg)](https://github.com/TNG/ArchUnit/blob/main/LICENSE)
 
 <img src="logo/ArchUnit-Logo.png" height="64" alt="ArchUnit">
@@ -56,17 +56,17 @@ public class MyArchitectureTest {
 
 ## Where to look next
 
-For further information, check out the user guide at [http://archunit.org](http://archunit.org) 
+For further information, check out the user guide at [https://archunit.org](https://archunit.org) 
 or test examples for the current release at
 [ArchUnit Examples](https://github.com/TNG/ArchUnit-Examples).
 
 ## License
 
-ArchUnit is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
+ArchUnit is published under the Apache License 2.0, see https://www.apache.org/licenses/LICENSE-2.0 for details.
 
 It redistributes some third party libraries:
 
-* ASM (http://asm.ow2.org), under BSD Licence
+* ASM (https://asm.ow2.org), under BSD Licence
 * Google Guava (https://github.com/google/guava), under Apache License 2.0
 
 All licenses for ArchUnit and redistributed libraries can be found within the [licenses](licenses) folder.
