@@ -56,17 +56,17 @@ public class MyArchitectureTest {
 
 ## Where to look next
 
-For further information, check out the user guide at [http://archunit.org](http://archunit.org) 
+For further information, check out the user guide at [https://archunit.org](https://archunit.org) 
 or test examples for the current release at
 [ArchUnit Examples](https://github.com/TNG/ArchUnit-Examples).
 
 ## License
 
-ArchUnit is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
+ArchUnit is published under the Apache License 2.0, see https://www.apache.org/licenses/LICENSE-2.0 for details.
 
 It redistributes some third party libraries:
 
-* ASM (http://asm.ow2.org), under BSD Licence
+* ASM (https://asm.ow2.org), under BSD Licence
 * Google Guava (https://github.com/google/guava), under Apache License 2.0
 
 All licenses for ArchUnit and redistributed libraries can be found within the [licenses](licenses) folder.
