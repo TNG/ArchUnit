@@ -1,5 +1,5 @@
 [![CI](https://github.com/TNG/ArchUnit/actions/workflows/build.yml/badge.svg)](https://github.com/TNG/ArchUnit/actions/workflows/build.yml?query=branch%3Amain++)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tngtech.archunit/archunit/badge.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.tngtech.archunit%22%20)
+[![Maven Central](https://img.shields.io/maven-central/v/com.tngtech.archunit/archunit.svg)](https://central.sonatype.com/search?q=g:com.tngtech.archunit)
 [![License](https://img.shields.io/github/license/TNG/ArchUnit.svg)](https://github.com/TNG/ArchUnit/blob/main/LICENSE)
 
 <img src="logo/ArchUnit-Logo.png" height="64" alt="ArchUnit">
