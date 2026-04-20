@@ -183,6 +183,7 @@ class ClassCache {
                 declaredLocations = ImmutableSet.<Location>builder()
                         .addAll(getLocationsOfPackages(classAnalysisRequest))
                         .addAll(getLocationsOfProviders(classAnalysisRequest, testClass))
+                        .addAll(getLocationsOfClasses(classAnalysisRequest))
                         .addAll(classAnalysisRequest.scanWholeClasspath() ? Locations.inClassPath() : emptySet())
                         .build();
             }
@@ -198,6 +199,12 @@ class ClassCache {
             private Set<Location> getLocationsOfProviders(ClassAnalysisRequest classAnalysisRequest, Class<?> testClass) {
                 return stream(classAnalysisRequest.getLocationProviders())
                         .flatMap(providerClass -> tryCreate(providerClass).get(testClass).stream())
+                        .collect(toSet());
+            }
+
+            private Set<Location> getLocationsOfClasses(ClassAnalysisRequest classAnalysisRequest) {
+                return stream(classAnalysisRequest.getClassesToAnalyze())
+                        .flatMap(clazz -> Locations.ofClass(clazz).stream())
                         .collect(toSet());
             }
 
@@ -240,6 +247,7 @@ class ClassCache {
             return classAnalysisRequest.getPackageNames().length == 0
                     && classAnalysisRequest.getPackageRoots().length == 0
                     && classAnalysisRequest.getLocationProviders().length == 0
+                    && classAnalysisRequest.getClassesToAnalyze().length == 0
                     && !classAnalysisRequest.scanWholeClasspath();
         }
     }
