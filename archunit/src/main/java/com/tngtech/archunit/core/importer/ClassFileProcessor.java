@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import codes.rafael.asmjdkbridge.ProbingClassReader;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -40,7 +41,6 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 import com.tngtech.archunit.core.importer.TryCatchRecorder.TryCatchBlocksFinishedListener;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,7 @@ class ClassFileProcessor {
             try (InputStream s = location.openStream()) {
                 JavaClassProcessor javaClassProcessor =
                         new JavaClassProcessor(new SourceDescriptor(location.getUri(), md5InClassSourcesEnabled), classDetailsRecorder, accessHandler);
-                new ClassReader(s).accept(javaClassProcessor, 0);
+                new ProbingClassReader(s).accept(javaClassProcessor, 0);
                 javaClassProcessor.createJavaClass().ifPresent(importRecord::add);
             } catch (Exception e) {
                 LOG.warn(String.format("Couldn't import class from %s", location.getUri()), e);
@@ -347,7 +347,7 @@ class ClassFileProcessor {
         public Optional<JavaClass> tryImport(URI uri) {
             try (InputStream inputStream = uri.toURL().openStream()) {
                 JavaClassProcessor classProcessor = new JavaClassProcessor(new SourceDescriptor(uri, md5InClassSourcesEnabled), declarationHandler);
-                new ClassReader(inputStream).accept(classProcessor, 0);
+                new ProbingClassReader(inputStream).accept(classProcessor, 0);
                 return classProcessor.createJavaClass();
             } catch (Exception e) {
                 LOG.warn(String.format("Error during import from %s, falling back to simple import", uri), e);
