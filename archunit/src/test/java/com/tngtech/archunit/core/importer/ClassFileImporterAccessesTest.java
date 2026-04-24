@@ -83,6 +83,7 @@ import com.tngtech.archunit.core.importer.testexamples.integration.ClassD;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependingOnClassesABCD;
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
+import com.tngtech.archunit.core.importer.testexamples.trycatch.CatchClauseTargetException;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassHoldingMethods;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithComplexTryCatchBlocks;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithSimpleTryCatchBlocks;
@@ -890,7 +891,7 @@ public class ClassFileImporterAccessesTest {
                         .atLocation(ClassWithComplexTryCatchBlocks.class, 14)
                 ).areExactly(1, tryCatchBlock()
                         .declaredIn(constructor)
-                        .catching(IllegalArgumentException.class, UnsupportedOperationException.class)
+                        .catching(IllegalArgumentException.class, UnsupportedOperationException.class, CatchClauseTargetException.class)
                         .atLocation(ClassWithComplexTryCatchBlocks.class, 17)
                 ).areExactly(1, tryCatchBlock()
                         .declaredIn(constructor)
