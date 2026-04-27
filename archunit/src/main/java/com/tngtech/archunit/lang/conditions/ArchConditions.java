@@ -315,6 +315,14 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveAnyDependenciesThat(DescribedPredicate<? super Dependency> predicate) {
+        return new AnyDependencyCondition(
+                "have any dependencies that " + predicate.getDescription(),
+                predicate,
+                GET_DIRECT_DEPENDENCIES_FROM_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> transitivelyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return new TransitiveDependencyCondition(predicate);
     }
