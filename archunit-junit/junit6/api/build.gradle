@@ -1,0 +1,39 @@
+plugins {
+    id 'archunit.java-release-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.junit6.api'
+
+ext.minimumJavaVersion = JavaVersion.VERSION_17
+
+dependencies {
+    api project(path: ':archunit')
+    api project(path: ':archunit-junit', configuration: 'archJunitApi')
+    api libs.junit6PlatformCommons
+}
+
+javadoc {
+    source(project(':archunit-junit').sourceSets.archJunitApi.allJava)
+}
+sourcesJar {
+    from project(':archunit-junit').sourceSets.archJunitApi.allSource
+}
+
+shadowJar {
+    exclude 'META-INF/maven/**'
+
+    dependencies {
+        exclude(dependency { !it.name.contains('archunit-junit') })
+    }
+}
+
+def configureDependencies = { deps ->
+    deps.children().removeIf { dep ->
+        dep.scope.text() != 'compile' || !(dep.artifactId.text() in ['archunit'])
+    }
+}
+this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
+
+singlePackageExport {
+    exportedPackage = 'com.tngtech.archunit.junit'
+}
