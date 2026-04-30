@@ -9,13 +9,20 @@ task testRelease() {
             text = text.replace('mavenCentral()', '''
             mavenCentral()
             maven {
-                url "https://oss.sonatype.org/content/repositories/staging/"
-                credentials {
-                    username project.getProperty('sonatypeUsername')
-                    password project.getProperty('sonatypePassword')
+                url "https://central.sonatype.com/api/v1/publisher/deployments/download/"
+                credentials(HttpHeaderCredentials) {
+                    name = "Authorization"
+                    value = "Bearer " + (project.getProperty('sonatypeUsername') + ":" + project.getProperty('sonatypePassword')).bytes.encodeBase64()
+                }
+                authentication {
+                    header(HttpHeaderAuthentication)
                 }
             }''')
         }
+    }
+
+    def configureHttpSocketTimeout = {
+        new File(testReleaseDir, 'gradle.properties') << 'systemProp.org.gradle.internal.http.socketTimeout=600000\n'
     }
 
     def testExampleProject = { String exampleProjectName ->
@@ -47,6 +54,7 @@ task testRelease() {
         updateArchUnitExampleVersion(testReleaseDir)
 
         configureStagingRepository()
+        configureHttpSocketTimeout()
 
         testExampleProject('example-plain')
         testExampleProject('example-junit4')
