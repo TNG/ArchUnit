@@ -17,6 +17,8 @@ spotbugsMain {
 spotbugsTest.enabled = false
 
 spotless {
+    lineEndings 'UNIX'
+
     java {
         removeUnusedImports()
     }

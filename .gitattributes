@@ -1,0 +1,2 @@
+# Enforce Unix line endings (LF) for all text files
+* text=auto eol=lf
