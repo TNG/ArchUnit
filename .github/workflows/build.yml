@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release-*
+      - gradle-9-test
   pull_request:
 
 env:
