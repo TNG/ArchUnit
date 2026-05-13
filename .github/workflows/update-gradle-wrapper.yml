@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-java@v5.2.0
         with:
           distribution: 'zulu'
-          java-version: 17
+          java-version: 25
 
       - name: Update Gradle Wrapper
         uses: gradle-update/update-gradle-wrapper-action@v2.1.0
