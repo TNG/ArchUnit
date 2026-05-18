@@ -25,13 +25,13 @@ import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.Convertible;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
-import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 
 @PublicAPI(usage = ACCESS)
 public abstract class JavaAccess<TARGET extends AccessTarget>
@@ -153,7 +153,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> originOwner(DescribedPredicate<? super JavaClass> predicate) {
-            return origin(Get.<JavaClass>owner().is(predicate));
+            return origin(owner(predicate));
         }
 
         @PublicAPI(usage = ACCESS)
@@ -168,7 +168,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> targetOwner(DescribedPredicate<? super JavaClass> predicate) {
-            return target(Get.<JavaClass>owner().is(predicate));
+            return target(owner(predicate));
         }
 
         @PublicAPI(usage = ACCESS)
