@@ -12,5 +12,7 @@ dependencies {
 }
 
 shadowJar {
-    exclude '**'
+    dependencies {
+        exclude { true }
+    }
 }
