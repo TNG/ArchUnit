@@ -17,6 +17,7 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Deque;
@@ -97,14 +98,12 @@ class MetricsComponentDependencyGraph<T> {
     private static final class TransitiveDependencyPrecomputation<T> {
         private final ImmutableList<MetricsComponent<T>> components;
         private final int[][] outgoingEdgesByComponentIndex;
-        private final int[][] incomingEdgesByComponentIndex;
 
         private TransitiveDependencyPrecomputation(
                 ImmutableList<MetricsComponent<T>> components,
                 ImmutableSetMultimap<MetricsComponent<T>, MetricsComponent<T>> outgoingComponentDependencies
         ) {
             this.components = components;
-            ImmutableSetMultimap<MetricsComponent<T>, MetricsComponent<T>> incomingComponentDependencies = outgoingComponentDependencies.inverse();
 
             Map<MetricsComponent<T>, Integer> componentIndexByComponent = new HashMap<>();
             for (int i = 0; i < components.size(); i++) {
@@ -112,12 +111,10 @@ class MetricsComponentDependencyGraph<T> {
             }
 
             outgoingEdgesByComponentIndex = new int[components.size()][];
-            incomingEdgesByComponentIndex = new int[components.size()][];
 
             for (int i = 0; i < components.size(); i++) {
                 MetricsComponent<T> component = components.get(i);
                 outgoingEdgesByComponentIndex[i] = toIndexes(outgoingComponentDependencies.get(component), componentIndexByComponent);
-                incomingEdgesByComponentIndex[i] = toIndexes(incomingComponentDependencies.get(component), componentIndexByComponent);
             }
         }
 
@@ -139,49 +136,73 @@ class MetricsComponentDependencyGraph<T> {
         }
 
         private StronglyConnectedComponents determineStronglyConnectedComponents() {
-            List<Integer> nodesByFinishingOrder = determineFinishingOrder();
-            int[] stronglyConnectedComponentIndexByComponentIndex = new int[components.size()];
-            java.util.Arrays.fill(stronglyConnectedComponentIndexByComponentIndex, -1);
+            int[] indices = new int[components.size()];
+            Arrays.fill(indices, -1);
+            int[] lowlink = new int[components.size()];
+            boolean[] onStack = new boolean[components.size()];
+            Deque<Integer> stack = new ArrayDeque<>();
             List<int[]> componentIndexesByStronglyConnectedComponentIndex = new ArrayList<>();
             boolean[] isStronglyConnectedComponentSelfReachable = new boolean[components.size()];
-            int stronglyConnectedComponentCount = 0;
+            int[] stronglyConnectedComponentIndexByComponentIndex = new int[components.size()];
+            Arrays.fill(stronglyConnectedComponentIndexByComponentIndex, -1);
 
-            for (int i = nodesByFinishingOrder.size() - 1; i >= 0; i--) {
-                int componentIndex = nodesByFinishingOrder.get(i);
-                if (stronglyConnectedComponentIndexByComponentIndex[componentIndex] >= 0) {
-                    continue;
+            int[] timer = new int[1];
+
+            for (int i = 0; i < components.size(); i++) {
+                if (indices[i] == -1) {
+                    strongConnect(i, indices, lowlink, onStack, stack, componentIndexesByStronglyConnectedComponentIndex,
+                            isStronglyConnectedComponentSelfReachable, stronglyConnectedComponentIndexByComponentIndex, timer);
                 }
-
-                IntCollector currentStronglyConnectedComponent = new IntCollector();
-                Deque<Integer> stack = new ArrayDeque<>();
-                stack.push(componentIndex);
-                stronglyConnectedComponentIndexByComponentIndex[componentIndex] = stronglyConnectedComponentCount;
-
-                while (!stack.isEmpty()) {
-                    int currentComponentIndex = stack.pop();
-                    currentStronglyConnectedComponent.add(currentComponentIndex);
-
-                    for (int incomingDependencyIndex : incomingEdgesByComponentIndex[currentComponentIndex]) {
-                        if (stronglyConnectedComponentIndexByComponentIndex[incomingDependencyIndex] < 0) {
-                            stronglyConnectedComponentIndexByComponentIndex[incomingDependencyIndex] = stronglyConnectedComponentCount;
-                            stack.push(incomingDependencyIndex);
-                        }
-                    }
-                }
-
-                int[] stronglyConnectedComponent = currentStronglyConnectedComponent.toArray();
-                componentIndexesByStronglyConnectedComponentIndex.add(stronglyConnectedComponent);
-                isStronglyConnectedComponentSelfReachable[stronglyConnectedComponentCount] =
-                        stronglyConnectedComponent.length > 1 || containsSelfLoop(stronglyConnectedComponent[0]);
-                stronglyConnectedComponentCount++;
             }
 
             return new StronglyConnectedComponents(
                     stronglyConnectedComponentIndexByComponentIndex,
                     componentIndexesByStronglyConnectedComponentIndex,
                     isStronglyConnectedComponentSelfReachable,
-                    stronglyConnectedComponentCount
+                    componentIndexesByStronglyConnectedComponentIndex.size()
             );
+        }
+
+        private void strongConnect(
+                int v,
+                int[] indices,
+                int[] lowlink,
+                boolean[] onStack,
+                Deque<Integer> stack,
+                List<int[]> componentIndexesByStronglyConnectedComponentIndex,
+                boolean[] isStronglyConnectedComponentSelfReachable,
+                int[] stronglyConnectedComponentIndexByComponentIndex,
+                int[] timer
+        ) {
+            indices[v] = lowlink[v] = timer[0]++;
+            stack.push(v);
+            onStack[v] = true;
+
+            for (int w : outgoingEdgesByComponentIndex[v]) {
+                if (indices[w] == -1) {
+                    strongConnect(w, indices, lowlink, onStack, stack, componentIndexesByStronglyConnectedComponentIndex,
+                            isStronglyConnectedComponentSelfReachable, stronglyConnectedComponentIndexByComponentIndex, timer);
+                    lowlink[v] = Math.min(lowlink[v], lowlink[w]);
+                } else if (onStack[w]) {
+                    lowlink[v] = Math.min(lowlink[v], indices[w]);
+                }
+            }
+
+            if (lowlink[v] == indices[v]) {
+                IntCollector currentStronglyConnectedComponent = new IntCollector();
+                int w;
+                do {
+                    w = stack.pop();
+                    onStack[w] = false;
+                    stronglyConnectedComponentIndexByComponentIndex[w] = componentIndexesByStronglyConnectedComponentIndex.size();
+                    currentStronglyConnectedComponent.add(w);
+                } while (w != v);
+
+                int[] stronglyConnectedComponent = currentStronglyConnectedComponent.toArray();
+                componentIndexesByStronglyConnectedComponentIndex.add(stronglyConnectedComponent);
+                isStronglyConnectedComponentSelfReachable[componentIndexesByStronglyConnectedComponentIndex.size() - 1] =
+                        stronglyConnectedComponent.length > 1 || containsSelfLoop(stronglyConnectedComponent[0]);
+            }
         }
 
         private boolean containsSelfLoop(int componentIndex) {
@@ -191,42 +212,6 @@ class MetricsComponentDependencyGraph<T> {
                 }
             }
             return false;
-        }
-
-        private List<Integer> determineFinishingOrder() {
-            List<Integer> nodesByFinishingOrder = new ArrayList<>(components.size());
-            boolean[] visited = new boolean[components.size()];
-
-            for (int componentIndex = 0; componentIndex < components.size(); componentIndex++) {
-                if (visited[componentIndex]) {
-                    continue;
-                }
-                depthFirstSearchOrderingByFinishTime(componentIndex, visited, nodesByFinishingOrder);
-            }
-            return nodesByFinishingOrder;
-        }
-
-        private void depthFirstSearchOrderingByFinishTime(int startComponentIndex, boolean[] visited, List<Integer> nodesByFinishingOrder) {
-            Deque<TraversalFrame> stack = new ArrayDeque<>();
-            stack.push(new TraversalFrame(startComponentIndex));
-
-            while (!stack.isEmpty()) {
-                TraversalFrame current = stack.peek();
-                if (!visited[current.componentIndex]) {
-                    visited[current.componentIndex] = true;
-                }
-
-                if (current.nextDependencyIndex < outgoingEdgesByComponentIndex[current.componentIndex].length) {
-                    int dependencyIndex = outgoingEdgesByComponentIndex[current.componentIndex][current.nextDependencyIndex++];
-                    if (!visited[dependencyIndex]) {
-                        stack.push(new TraversalFrame(dependencyIndex));
-                    }
-                    continue;
-                }
-
-                nodesByFinishingOrder.add(current.componentIndex);
-                stack.pop();
-            }
         }
 
         private CondensedGraph condense(StronglyConnectedComponents stronglyConnectedComponents) {
@@ -280,7 +265,7 @@ class MetricsComponentDependencyGraph<T> {
         }
 
         private int[] determineTopologicalOrder(CondensedGraph condensedGraph) {
-            int[] remainingIncomingDegree = java.util.Arrays.copyOf(
+            int[] remainingIncomingDegree = Arrays.copyOf(
                     condensedGraph.incomingDegreeByStronglyConnectedComponentIndex,
                     condensedGraph.incomingDegreeByStronglyConnectedComponentIndex.length
             );
@@ -346,15 +331,6 @@ class MetricsComponentDependencyGraph<T> {
         }
     }
 
-    private static final class TraversalFrame {
-        private final int componentIndex;
-        private int nextDependencyIndex = 0;
-
-        private TraversalFrame(int componentIndex) {
-            this.componentIndex = componentIndex;
-        }
-    }
-
     private static final class StronglyConnectedComponents {
         private final int[] stronglyConnectedComponentIndexByComponentIndex;
         private final List<int[]> componentIndexesByStronglyConnectedComponentIndex;
@@ -390,13 +366,13 @@ class MetricsComponentDependencyGraph<T> {
 
         private void add(int value) {
             if (size == values.length) {
-                values = java.util.Arrays.copyOf(values, values.length * 2);
+                values = Arrays.copyOf(values, values.length * 2);
             }
             values[size++] = value;
         }
 
         private int[] toArray() {
-            return java.util.Arrays.copyOf(values, size);
+            return Arrays.copyOf(values, size);
         }
     }
 }
