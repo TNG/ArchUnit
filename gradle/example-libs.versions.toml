@@ -5,7 +5,7 @@ springBeans = { group = "org.springframework", name = "spring-beans", version = 
 springBootLoader = { group = "org.springframework.boot", name = "spring-boot-loader", version = "2.7.18" } # spring-boot 3+ requires Java 17+
 jakartaInject = { group = "jakarta.inject", name = "jakarta.inject-api", version = "2.0.1" }
 jakartaAnnotations = { group = "jakarta.annotation", name = "jakarta.annotation-api", version = "2.1.1" }
-guice = { group = "com.google.inject", name = "guice", version = "5.1.0" }
+guice = { group = "com.google.inject", name = "guice", version = "6.0.0" } # guice 7 only supports jakarta namespaces, not javax
 # NOTE: The pure javaee-api dependencies are crippled, so to run any test we need to choose a full implementation provider
 geronimoEjb = { group = "org.apache.geronimo.specs", name = "geronimo-ejb_3.1_spec", version = "1.0.2" }
 geronimoJpa = { group = "org.apache.geronimo.specs", name = "geronimo-jpa_2.0_spec", version = "1.1" }
