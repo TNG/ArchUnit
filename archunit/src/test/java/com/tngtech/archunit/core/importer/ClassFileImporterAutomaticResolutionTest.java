@@ -51,6 +51,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getMethodCallsFromClassWithoutAutomaticNullCheck;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ENCLOSING_TYPES_DEFAULT_VALUE;
@@ -351,7 +352,7 @@ public class ClassFileImporterAutomaticResolutionTest {
 
         JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
                 .importClass(Origin.class);
-        JavaMethodCall call = getOnlyElement(javaClass.getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(getMethodCallsFromClassWithoutAutomaticNullCheck(javaClass));
 
         assertThat(call.getTargetOwner()).isFullyImported(true);
     }

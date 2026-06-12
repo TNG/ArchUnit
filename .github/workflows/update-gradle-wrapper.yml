@@ -3,6 +3,7 @@ name: Update Gradle Wrapper
 on:
   schedule:
     - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   update-gradle-wrapper:
@@ -10,12 +11,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install Gradle JDK
         uses: actions/setup-java@v5.2.0
         with:
           distribution: 'zulu'
-          java-version: 17
+          java-version: 25
 
       - name: Update Gradle Wrapper
         uses: gradle-update/update-gradle-wrapper-action@v2.1.0

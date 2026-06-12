@@ -4,14 +4,14 @@ Contributions are very welcome. The following will provide some helpful guidelin
 
 ## How to build the project
 
-ArchUnit requires at least JDK 15 to build.
+ArchUnit requires at least JDK 25 to build.
 The following is just an example input/output from a Unix command line.
 Windows users should use `gradlew.bat` instead.
 
 ```
 $ cd /path/to/git/clone/of/ArchUnit
 $ ./gradlew showJdkVersion
-Configured JDK: 15
+Configured JDK: 25
 $ ./gradlew build
 ```
 
