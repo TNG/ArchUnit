@@ -23,7 +23,7 @@ shadowJar {
     exclude 'META-INF/maven/**'
 
     dependencies {
-        exclude(dependency { !it.name.contains('archunit-junit') })
+        exclude { !it.name.contains('archunit-junit') }
     }
 }
 

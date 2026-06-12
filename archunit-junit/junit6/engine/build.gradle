@@ -43,11 +43,11 @@ shadowJar {
     exclude 'META-INF/maven/**'
 
     dependencies {
-        exclude(dependency {
+        exclude {
             def isApi = it.configuration == 'archJunitApi'
             def isUnwantedDependency = it.moduleName != 'archunit-junit'
             isUnwantedDependency || isApi
-        })
+        }
     }
 }
 
