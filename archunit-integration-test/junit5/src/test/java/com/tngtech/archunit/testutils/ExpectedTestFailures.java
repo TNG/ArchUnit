@@ -23,7 +23,6 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
-import org.junit.runner.JUnitCore;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.System.lineSeparator;
@@ -138,25 +137,7 @@ public class ExpectedTestFailures {
         abstract TestFailures run();
 
         static RunnableTest from(Class<?> testClass) {
-            if (testClass.getName().contains(".junit5.")) {
-                return new RunnableJUnit5Test(testClass);
-            } else {
-                return new RunnableJUnit4Test(testClass);
-            }
-        }
-    }
-
-    private static class RunnableJUnit4Test extends RunnableTest {
-        private RunnableJUnit4Test(Class<?> testClass) {
-            super(testClass);
-        }
-
-        @Override
-        TestFailures run() {
-            List<TestFailure> result = new JUnitCore().run(testClass).getFailures().stream()
-                    .map(failure -> new TestFailure(failure.getDescription().getMethodName(), failure.getException()))
-                    .collect(toList());
-            return new TestFailures(result);
+            return new RunnableJUnit5Test(testClass);
         }
     }
 

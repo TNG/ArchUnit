@@ -143,7 +143,7 @@ import com.tngtech.archunit.example.shopping.order.Order;
 import com.tngtech.archunit.example.shopping.product.Product;
 import com.tngtech.archunit.example.shopping.xml.processor.XmlProcessor;
 import com.tngtech.archunit.example.shopping.xml.types.XmlTypes;
-import com.tngtech.archunit.exampletest.ControllerRulesTest;
+import com.tngtech.archunit.exampletest.junit5.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
@@ -232,7 +232,6 @@ class ExamplesIntegrationTest {
         ExpectedTestFailures expectFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.CodingRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.CodingRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.CodingRulesTest.class);
 
         expectFailures.ofRule("no classes should access standard streams");
@@ -313,7 +312,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         ControllerRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ControllerRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.ControllerRulesTest.class)
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
@@ -377,7 +375,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.CyclicDependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.CyclicDependencyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.CyclicDependencyRulesTest.class)
 
                 .ofRule("slices matching '..(simplecycle).(*)..' should be free of cycles")
@@ -602,7 +599,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.DaoRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.DaoRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.DaoRulesTest.class)
 
                 .ofRule("DAOs should reside in a package '..dao..'")
@@ -631,7 +627,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.DependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.DependencyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.DependencyRulesTest.class)
 
                 .ofRule("no classes should depend on upper packages, because that might prevent packages on that level from being split into separate artifacts in a clean way")
@@ -662,7 +657,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.FrozenRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.FrozenRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.FrozenRulesTest.class)
 
                 .ofRule("no classes should depend on classes that reside in a package '..service..'")
@@ -717,7 +711,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.InterfaceRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.InterfaceRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.InterfaceRulesTest.class)
 
                 .ofRule("no classes that are interfaces should have name matching '.*Interface'")
@@ -738,7 +731,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.LayerDependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.LayerDependencyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.LayerDependencyRulesTest.class)
 
                 .ofRule("no classes that reside in a package '..service..' " +
@@ -1024,7 +1016,6 @@ class ExamplesIntegrationTest {
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.LayeredArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit4.LayeredArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit5.LayeredArchitectureTest.class);
 
         addExpectedCommonFailure.accept("layer_dependencies_are_respected", expectedTestFailures);
@@ -1092,7 +1083,6 @@ class ExamplesIntegrationTest {
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class);
 
         addExpectedCommonFailure.accept("onion_architecture_is_respected", expectedTestFailures);
@@ -1112,7 +1102,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.MethodsTest.class,
-                        com.tngtech.archunit.exampletest.junit4.MethodsTest.class,
                         com.tngtech.archunit.exampletest.junit5.MethodsTest.class)
 
                 .ofRule("methods that are declared in classes that reside in a package '..anticorruption..' and are public "
@@ -1134,7 +1123,6 @@ class ExamplesIntegrationTest {
         ExpectedTestFailures expectedFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ModulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ModulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.ModulesTest.class);
 
         BiConsumer<ModuleNames, ExpectedTestFailures> expectRespectTheirDeclaredDependenciesViolations =
@@ -1361,7 +1349,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.NamingConventionTest.class,
-                        com.tngtech.archunit.exampletest.junit4.NamingConventionTest.class,
                         com.tngtech.archunit.exampletest.junit5.NamingConventionTest.class)
 
                 .ofRule(String.format(
@@ -1406,7 +1393,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.PlantUmlArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit4.PlantUmlArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit5.PlantUmlArchitectureTest.class)
 
                 .ofRule("classes should adhere to PlantUML diagram <shopping_example.puml>"
@@ -1480,7 +1466,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ProxyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ProxyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.ProxyRulesTest.class)
 
                 .ofRule(String.format(
@@ -1499,7 +1484,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.RestrictNumberOfClassesWithACertainPropertyTest.class,
-                        com.tngtech.archunit.exampletest.junit4.RestrictNumberOfClassesWithACertainPropertyTest.class,
                         com.tngtech.archunit.exampletest.junit5.RestrictNumberOfClassesWithACertainPropertyTest.class)
 
                 .ofRule(String.format(
@@ -1599,7 +1583,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SessionBeanRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.SessionBeanRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.SessionBeanRulesTest.class)
 
                 .ofRule("No Stateless Session Bean should have state")
@@ -1621,7 +1604,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SingleClassTest.class,
-                        com.tngtech.archunit.exampletest.junit4.SingleClassTest.class,
                         com.tngtech.archunit.exampletest.junit5.SingleClassTest.class)
 
                 .ofRule(String.format("the class %s should only be accessed by classes that implement %s",
@@ -1676,7 +1658,6 @@ class ExamplesIntegrationTest {
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SlicesIsolationTest.class,
-                        com.tngtech.archunit.exampletest.junit4.SlicesIsolationTest.class,
                         com.tngtech.archunit.exampletest.junit5.SlicesIsolationTest.class);
 
         // controllers_should_only_use_their_own_slice
@@ -1732,7 +1713,6 @@ class ExamplesIntegrationTest {
         return ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ThirdPartyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ThirdPartyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit5.ThirdPartyRulesTest.class)
 
                 .ofRule(String.format("classes should not instantiate %s and its subclasses, but instead use %s",

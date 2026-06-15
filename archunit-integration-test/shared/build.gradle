@@ -1,0 +1,22 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.integrationtest.shared'
+
+ext.minimumJavaVersion = JavaVersion.VERSION_1_8
+
+dependencies {
+    api project(path: ':archunit')
+
+    implementation project(path: ':archunit-example:example-plain')
+    implementation project(path: ':archunit-example:example-plain', configuration: 'tests')
+    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
+    // Do not add direct or transitive dependencies on JUnit. Test utilities that require such dependencies
+    // should be placed into the ../junit* projects.
+}
+
+tasks.named('test') {
+    // This project only provides shared integration-test utilities and has no tests of its own.
+    enabled = false
+}
