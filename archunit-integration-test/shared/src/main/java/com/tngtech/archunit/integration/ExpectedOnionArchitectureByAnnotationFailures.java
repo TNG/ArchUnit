@@ -26,7 +26,7 @@ import static java.lang.System.lineSeparator;
 class ExpectedOnionArchitectureByAnnotationFailures {
     // This is only extracted to avoid the import clashes.
     // Otherwise, it would be really bloated two write down with fully qualified class names everywhere
-    static void addTo(ExpectedTestFailures expectedTestFailures) {
+    static <T> void addTo(ExpectedTestFailures<T> expectedTestFailures) {
         expectedTestFailures
                 .ofRule("onion_architecture_defined_by_annotations",
                         "Onion architecture consisting of" + lineSeparator() +
