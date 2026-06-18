@@ -16,13 +16,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.EvaluationResult;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
-import org.junit.platform.launcher.core.LauncherFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.System.lineSeparator;
@@ -30,20 +23,20 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 public class ExpectedTestFailures {
+    private final TestClassRunner testClassRunner;
     private final SortedSet<Class<?>> testClasses;
     private final LinkedList<ExpectedViolationToAssign> expectedViolations = new LinkedList<>();
 
-    private ExpectedTestFailures(Class<?>[] testClasses) {
+    private ExpectedTestFailures(TestClassRunner testClassRunner, Class<?>[] testClasses) {
+        this.testClassRunner = testClassRunner;
         this.testClasses = Arrays.stream(testClasses).collect(toCollection(() -> new TreeSet<Class<?>>(comparing(Class::getName))));
     }
 
-    public static ExpectedTestFailures forTests(Class<?>... testClasses) {
-        return new ExpectedTestFailures(testClasses);
+    public static ExpectedTestFailures forTests(TestClassRunner testClassRunner, Class<?>... testClasses) {
+        return new ExpectedTestFailures(testClassRunner, testClasses);
     }
 
     public ExpectedTestFailures ofRule(String memberName, String ruleText) {
@@ -78,7 +71,7 @@ public class ExpectedTestFailures {
 
     public Stream<DynamicTest> toDynamicTests(Consumer<Runnable> aroundTestInvoke) {
         return testClasses.stream()
-                .map(RunnableTest::from)
+                .map(testClass -> new RunnableTest(testClassRunner, testClass))
                 .map(test -> dynamicTest(
                         test.getDisplayName(),
                         () -> aroundTestInvoke.accept(() -> assertActualAndExpectedViolationsMatch(test))));
@@ -105,13 +98,13 @@ public class ExpectedTestFailures {
         }
 
         if (unexpectedErrors.exist() || wrongViolations.exist()) {
-            fail(String.format("Test class %s hasn't produced the correct violations:%n%s%n%s",
+            throw new AssertionError(String.format("Test class %s hasn't produced the correct violations:%n%s%n%s",
                     test.testClass.getName(),
                     unexpectedErrors.describe(),
                     wrongViolations.describe()));
         }
         if (!remainingExpected.isEmpty()) {
-            fail(String.format("Some expected violations haven't occurred. Expected:%n%s", remainingExpected.describe()));
+            throw new AssertionError(String.format("Some expected violations haven't occurred. Expected:%n%s", remainingExpected.describe()));
         }
     }
 
@@ -123,10 +116,12 @@ public class ExpectedTestFailures {
         return this;
     }
 
-    private abstract static class RunnableTest {
+    private static class RunnableTest {
         final Class<?> testClass;
+        final TestClassRunner testClassRunner;
 
-        RunnableTest(Class<?> testClass) {
+        RunnableTest(TestClassRunner testClassRunner, Class<?> testClass) {
+            this.testClassRunner = testClassRunner;
             this.testClass = testClass;
         }
 
@@ -134,40 +129,15 @@ public class ExpectedTestFailures {
             return "Expected violations of " + testClass.getName();
         }
 
-        abstract TestFailures run();
-
-        static RunnableTest from(Class<?> testClass) {
-            return new RunnableJUnit5Test(testClass);
+        TestFailures run() {
+            List<TestFailure> result = testClassRunner.run(testClass);
+            return new TestFailures(result);
         }
     }
 
-    private static class RunnableJUnit5Test extends RunnableTest {
-        private RunnableJUnit5Test(Class<?> testClass) {
-            super(testClass);
-        }
-
-        @Override
-        TestFailures run() {
-            List<TestFailure> result = new ArrayList<>();
-
-            LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                    .selectors(selectClass(testClass))
-                    .build();
-            Launcher launcher = LauncherFactory.create();
-            launcher.registerTestExecutionListeners(new TestExecutionListener() {
-                @Override
-                public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-                    if (!testIdentifier.isContainer() && testExecutionResult.getStatus() == TestExecutionResult.Status.FAILED) {
-                        testExecutionResult.getThrowable().ifPresent(throwable -> {
-                            result.add(new TestFailure(testIdentifier.getDisplayName(), throwable));
-                        });
-                    }
-                }
-            });
-            launcher.execute(request);
-
-            return new TestFailures(result);
-        }
+    @FunctionalInterface
+    public static interface TestClassRunner {
+        List<TestFailure> run(Class<?> testClass);
     }
 
     private static class RemainingViolations {
@@ -251,16 +221,16 @@ public class ExpectedTestFailures {
         }
     }
 
-    private static class TestFailure {
+    static class TestFailure {
         final String memberName;
         final Throwable error;
 
-        private TestFailure(String memberName, Throwable error) {
+        public TestFailure(String memberName, Throwable error) {
             this.memberName = memberName;
             this.error = error;
         }
 
-        AssertionError getAssertionError() {
+        public AssertionError getAssertionError() {
             return (AssertionError) error;
         }
 

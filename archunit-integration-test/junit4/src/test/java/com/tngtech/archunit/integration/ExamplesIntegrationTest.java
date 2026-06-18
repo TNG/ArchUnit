@@ -153,6 +153,7 @@ import com.tngtech.archunit.testutils.ExpectedField;
 import com.tngtech.archunit.testutils.ExpectedMethod;
 import com.tngtech.archunit.testutils.ExpectedModuleDependency;
 import com.tngtech.archunit.testutils.ExpectedTestFailures;
+import com.tngtech.archunit.testutils.ExpectedJUnit4TestFailures;
 import com.tngtech.archunit.testutils.MessageAssertionChain;
 import com.tngtech.archunit.testutils.ResultStoringExtension;
 import org.junit.jupiter.api.AfterAll;
@@ -229,7 +230,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> CodingRulesTest() {
-        ExpectedTestFailures expectFailures = ExpectedTestFailures
+        ExpectedTestFailures expectFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.CodingRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.CodingRulesTest.class);
@@ -309,7 +310,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> ControllerRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         ControllerRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.ControllerRulesTest.class)
@@ -372,7 +373,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> CyclicDependencyRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.CyclicDependencyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.CyclicDependencyRulesTest.class)
@@ -596,7 +597,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> DaoRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.DaoRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.DaoRulesTest.class)
@@ -624,7 +625,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> DependencyRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.DependencyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.DependencyRulesTest.class)
@@ -654,7 +655,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> FrozenRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.FrozenRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.FrozenRulesTest.class)
@@ -708,7 +709,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> InterfaceRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.InterfaceRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.InterfaceRulesTest.class)
@@ -728,7 +729,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> LayerDependencyRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.LayerDependencyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.LayerDependencyRulesTest.class)
@@ -1013,7 +1014,7 @@ class ExamplesIntegrationTest {
                                         .checkingInstanceOf(ProxiedConnection.class)
                                         .inLine(26));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
+        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.LayeredArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.LayeredArchitectureTest.class);
@@ -1080,7 +1081,7 @@ class ExamplesIntegrationTest {
                                         .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
                                         .inLine(25));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
+        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class);
@@ -1099,7 +1100,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> MethodsTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.MethodsTest.class,
                         com.tngtech.archunit.exampletest.junit4.MethodsTest.class)
@@ -1120,7 +1121,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> ModulesTest() {
-        ExpectedTestFailures expectedFailures = ExpectedTestFailures
+        ExpectedTestFailures expectedFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ModulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.ModulesTest.class);
@@ -1346,7 +1347,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> NamingConventionTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.NamingConventionTest.class,
                         com.tngtech.archunit.exampletest.junit4.NamingConventionTest.class)
@@ -1390,7 +1391,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> PlantUmlArchitectureTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.PlantUmlArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.PlantUmlArchitectureTest.class)
@@ -1463,7 +1464,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> ProxyRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ProxyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.ProxyRulesTest.class)
@@ -1481,7 +1482,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> RestrictNumberOfClassesWithACertainPropertyTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.RestrictNumberOfClassesWithACertainPropertyTest.class,
                         com.tngtech.archunit.exampletest.junit4.RestrictNumberOfClassesWithACertainPropertyTest.class)
@@ -1516,7 +1517,7 @@ class ExamplesIntegrationTest {
     // TODO: This can at the moment not really be covered by JUnit support, but probably should be...
     @TestFactory
     Stream<DynamicTest> SecurityTest() {
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
+        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(SecurityTest.class);
 
         Consumer<String> addExpectedFailure = ruleText -> expectedTestFailures.ofRule(ruleText)
@@ -1580,7 +1581,7 @@ class ExamplesIntegrationTest {
                     }
                 };
 
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SessionBeanRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.SessionBeanRulesTest.class)
@@ -1601,7 +1602,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> SingleClassTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SingleClassTest.class,
                         com.tngtech.archunit.exampletest.junit4.SingleClassTest.class)
@@ -1655,7 +1656,7 @@ class ExamplesIntegrationTest {
                                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                                 .inLine(10)));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
+        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SlicesIsolationTest.class,
                         com.tngtech.archunit.exampletest.junit4.SlicesIsolationTest.class);
@@ -1710,7 +1711,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> ThirdPartyRulesTest() {
-        return ExpectedTestFailures
+        return ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ThirdPartyRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.ThirdPartyRulesTest.class)
