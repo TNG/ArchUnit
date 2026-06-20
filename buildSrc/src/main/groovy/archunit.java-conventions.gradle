@@ -15,4 +15,5 @@ tasks.withType(JavaCompile) { Task task ->
 
 javadoc {
     options.addBooleanOption('html5', true)
+    options.addBooleanOption("-no-fonts", true)
 }
