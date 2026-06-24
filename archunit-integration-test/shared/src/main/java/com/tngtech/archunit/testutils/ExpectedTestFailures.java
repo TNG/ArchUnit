@@ -23,6 +23,9 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * @param <T> return type of {@link #toDynamicTests()}
+ */
 public abstract class ExpectedTestFailures<T> {
     protected final SortedSet<Class<?>> testClasses;
     private final LinkedList<ExpectedViolationToAssign> expectedViolations = new LinkedList<>();
