@@ -11,11 +11,9 @@ dependencies {
 
     implementation project(path: ':archunit-example:example-plain')
     implementation project(path: ':archunit-example:example-plain', configuration: 'tests')
-    implementation libs.junit5Jupiter
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
-    // Do not add direct or transitive dependencies on JUnit 4 or JUnit Platform Launcher.
-    // Test utilities that require such dependencies should be placed into the ../junit* projects.
-    // JUnit Jupiter API is used here for DynamicTest infrastructure only.
+    // Do not add direct or transitive dependencies on JUnit. Test utilities that require such dependencies
+    // should be placed into the ../junit* projects.
 }
 
 tasks.named('test') {

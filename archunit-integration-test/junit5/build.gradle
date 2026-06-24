@@ -19,6 +19,6 @@ dependencies {
     testImplementation project(path: ':archunit-example:example-junit5', configuration: 'tests')
 
     testRuntimeOnly project(path: ':archunit-junit5-engine')
-    testImplementation libs.junit5PlatformLauncher
+    testRuntimeOnly libs.junit5PlatformLauncher
     testRuntimeOnly libs.junit5VintageEngine // needed because `archunit-example:example-plain` uses JUnit 4 annotations
 }

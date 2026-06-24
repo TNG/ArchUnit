@@ -230,7 +230,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> CodingRulesTest() {
-        ExpectedTestFailures expectFailures = ExpectedJUnit4TestFailures
+        ExpectedJUnit4TestFailures expectFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.CodingRulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.CodingRulesTest.class);
@@ -276,7 +276,7 @@ class ExamplesIntegrationTest {
         return expectFailures.toDynamicTests();
     }
 
-    private static void expectAccessToStandardStreams(ExpectedTestFailures expectFailures) {
+    private static void expectAccessToStandardStreams(ExpectedTestFailures<?> expectFailures) {
         expectFailures
                 .by(callFromMethod(ClassViolatingCodingRules.class, "printToStandardStream")
                         .getting().field(System.class, "out")
@@ -292,7 +292,7 @@ class ExamplesIntegrationTest {
                         .inLine(23));
     }
 
-    private static void expectThrownGenericExceptions(ExpectedTestFailures expectFailures) {
+    private static void expectThrownGenericExceptions(ExpectedTestFailures<?> expectFailures) {
         expectFailures
                 .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
@@ -928,7 +928,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> LayeredArchitectureTest() {
-        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailure =
+        BiConsumer<String, ExpectedTestFailures<?>> addExpectedCommonFailure =
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName,
@@ -1014,7 +1014,7 @@ class ExamplesIntegrationTest {
                                         .checkingInstanceOf(ProxiedConnection.class)
                                         .inLine(26));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
+        ExpectedJUnit4TestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.LayeredArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.LayeredArchitectureTest.class);
@@ -1034,7 +1034,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> OnionArchitectureTest() {
-        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailure =
+        BiConsumer<String, ExpectedTestFailures<?>> addExpectedCommonFailure =
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName, "Onion architecture consisting of" + lineSeparator() +
@@ -1081,7 +1081,7 @@ class ExamplesIntegrationTest {
                                         .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
                                         .inLine(25));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
+        ExpectedTestFailures<DynamicTest> expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class);
@@ -1121,12 +1121,12 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> ModulesTest() {
-        ExpectedTestFailures expectedFailures = ExpectedJUnit4TestFailures
+        ExpectedTestFailures<DynamicTest> expectedFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.ModulesTest.class,
                         com.tngtech.archunit.exampletest.junit4.ModulesTest.class);
 
-        BiConsumer<ModuleNames, ExpectedTestFailures> expectRespectTheirDeclaredDependenciesViolations =
+        BiConsumer<ModuleNames, ExpectedTestFailures<?>> expectRespectTheirDeclaredDependenciesViolations =
                 (moduleNames, expected) -> expected
 
                         .by(ExpectedModuleDependency.uncontained(callFromConstructor(AddressController.class).toConstructor(AbstractController.class).inLine(8)))
@@ -1166,7 +1166,7 @@ class ExamplesIntegrationTest {
                         + "considering only dependencies in any package ['..example..']");
         expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByPackages(), expectedFailures);
 
-        Consumer<ExpectedTestFailures> expectDependOnEachOtherThroughViolations =
+        Consumer<ExpectedTestFailures<?>> expectDependOnEachOtherThroughViolations =
                 expected -> expected
                         .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
                         .by(field(ProductImport.class, "productCatalog").ofType(ProductCatalog.class))
@@ -1517,7 +1517,7 @@ class ExamplesIntegrationTest {
     // TODO: This can at the moment not really be covered by JUnit support, but probably should be...
     @TestFactory
     Stream<DynamicTest> SecurityTest() {
-        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
+        ExpectedJUnit4TestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(SecurityTest.class);
 
         Consumer<String> addExpectedFailure = ruleText -> expectedTestFailures.ofRule(ruleText)
@@ -1635,7 +1635,7 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> SlicesIsolationTest() {
-        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice =
+        BiConsumer<String, ExpectedTestFailures<?>> addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice =
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName, "Controllers should not depend on each other")
@@ -1656,7 +1656,7 @@ class ExamplesIntegrationTest {
                                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                                 .inLine(10)));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedJUnit4TestFailures
+        ExpectedJUnit4TestFailures expectedTestFailures = ExpectedJUnit4TestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.SlicesIsolationTest.class,
                         com.tngtech.archunit.exampletest.junit4.SlicesIsolationTest.class);
