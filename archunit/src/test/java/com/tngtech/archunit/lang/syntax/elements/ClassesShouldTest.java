@@ -372,6 +372,35 @@ public class ClassesShouldTest {
                 .doesNotContain(SomeClass.class.getName());
     }
 
+    @Test
+    public void haveSimpleNameEndingWith_should_show_hint_for_anonymous_classes() {
+        Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
+
+        ArchRule rule = classes()
+                .should().haveSimpleNameEndingWith("SomethingElse");
+
+        EvaluationResult result = rule.evaluate(importClasses(anonymousClass));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("does not have simple name ending with 'SomethingElse'")
+                .contains("Hint:")
+                .contains("synthetic or anonymous")
+                .contains("doNotHaveModifier(JavaModifier.SYNTHETIC)")
+                .contains("areNotAnonymousClasses()");
+    }
+
+    @Test
+    public void haveSimpleNameEndingWith_should_NOT_show_hint_for_regular_classes() {
+        ArchRule rule = classes()
+                .should().haveSimpleNameEndingWith("ValidSuffix");
+
+        EvaluationResult result = rule.evaluate(importClasses(WrongNamedClass.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("does not have simple name ending with 'ValidSuffix'")
+                .doesNotContain("Hint:");
+    }
+
     @DataProvider
     public static Object[][] resideInAPackage_rules() {
         String thePackage = ArchRule.class.getPackage().getName();
