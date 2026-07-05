@@ -16,8 +16,9 @@ public class ArchConfigurationExtension implements Extension, BeforeEachCallback
     private boolean beforeHasBeenExecuted = false;
     private final List<Runnable> configurationInitializers = new ArrayList<>();
 
-    public void resolveAdditionalDependenciesFromClassPath(boolean enabled) {
+    public ArchConfigurationExtension resolveAdditionalDependenciesFromClassPath(boolean enabled) {
         addConfigurationInitializer(() -> ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(enabled));
+        return this;
     }
 
     public ArchConfigurationExtension setFailOnEmptyShould(boolean failOnEmptyShould) {

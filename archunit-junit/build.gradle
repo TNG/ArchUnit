@@ -39,8 +39,8 @@ dependencies {
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
 
     testImplementation libs.junit4
-    testImplementation libs.junitDataprovider
     testImplementation libs.mockito
+    testImplementation libs.mockito.junit5
     testImplementation libs.assertj
     testImplementation project(path: ':archunit', configuration: 'tests')
 
