@@ -17,9 +17,12 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTests;
 import com.tngtech.archunit.junit.ArchUnitRunner;
+import com.tngtech.archunit.junit.engine_api.FieldSelector;
+import com.tngtech.archunit.junit.internal.ArchUnitTestEngine;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -113,7 +116,12 @@ public class ArchUnitArchitectureTest {
     }
 
     public static class ArchUnitProductionCode implements ImportOption {
-        private static final Set<String> SOURCE_ROOTS = sourceRootsOf(ArchConfiguration.class, ArchUnitRunner.class);
+        private static final Set<String> SOURCE_ROOTS = sourceRootsOf(
+                ArchConfiguration.class,
+                ArchUnitRunner.class,
+                ArchTag.class,
+                FieldSelector.class,
+                ArchUnitTestEngine.class);
 
         private static Set<String> sourceRootsOf(Class<?>... classes) {
             ImmutableSet.Builder<String> result = ImmutableSet.builder();

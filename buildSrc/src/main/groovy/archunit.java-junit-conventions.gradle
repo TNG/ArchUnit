@@ -1,0 +1,7 @@
+dependencies {
+    // We need to stay on JUnit 5 until we drop Java 8 support.
+    testImplementation libs.junit5Jupiter
+
+    testRuntimeOnly libs.junit5VintageEngine
+    testRuntimeOnly libs.junit5PlatformLauncher
+}

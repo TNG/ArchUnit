@@ -1,9 +1,6 @@
 package com.tngtech.archunit.integration;
 
-import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.CertificateFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,7 +18,6 @@ import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.example.AppModule;
 import com.tngtech.archunit.example.ModuleApi;
@@ -143,9 +139,7 @@ import com.tngtech.archunit.example.shopping.order.Order;
 import com.tngtech.archunit.example.shopping.product.Product;
 import com.tngtech.archunit.example.shopping.xml.processor.XmlProcessor;
 import com.tngtech.archunit.example.shopping.xml.types.XmlTypes;
-import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
-import com.tngtech.archunit.testutil.TransientCopyRule;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
 import com.tngtech.archunit.testutils.ExpectedConstructor;
@@ -154,15 +148,6 @@ import com.tngtech.archunit.testutils.ExpectedMethod;
 import com.tngtech.archunit.testutils.ExpectedModuleDependency;
 import com.tngtech.archunit.testutils.ExpectedTestFailures;
 import com.tngtech.archunit.testutils.MessageAssertionChain;
-import com.tngtech.archunit.testutils.ResultStoringExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -207,33 +192,17 @@ import static com.tngtech.archunit.testutils.SliceDependencyErrorMatcher.sliceDe
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
 
-class ExamplesIntegrationTest {
+/**
+ * @param <T> return type of {@link ExpectedTestFailures#toDynamicTests()}
+ */
+abstract class ExamplesIntegrationTestBase<T> {
 
-    @TempDir
-    static Path temporaryViolationStore;
+    abstract ExpectedTestFailures<T> createExpectedTestFailures(Class<?>... testClasses);
 
-    @BeforeAll
-    static void initExtension() {
-        ResultStoringExtension.enable();
-    }
+    abstract Stream<T> CodingRulesTest();
 
-    @AfterEach
-    void tearDown() {
-        ResultStoringExtension.reset();
-    }
-
-    @AfterAll
-    static void disableExtension() {
-        ResultStoringExtension.disable();
-    }
-
-    @TestFactory
-    Stream<DynamicTest> CodingRulesTest() {
-        ExpectedTestFailures expectFailures = ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.CodingRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.CodingRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.CodingRulesTest.class);
+    Stream<T> CodingRulesTest(Class<?> codingRulesTestClass) {
+        ExpectedTestFailures<T> expectFailures = createExpectedTestFailures(com.tngtech.archunit.exampletest.CodingRulesTest.class, codingRulesTestClass);
 
         expectFailures.ofRule("no classes should access standard streams");
         expectAccessToStandardStreams(expectFailures);
@@ -276,7 +245,7 @@ class ExamplesIntegrationTest {
         return expectFailures.toDynamicTests();
     }
 
-    private static void expectAccessToStandardStreams(ExpectedTestFailures expectFailures) {
+    private static void expectAccessToStandardStreams(ExpectedTestFailures<?> expectFailures) {
         expectFailures
                 .by(callFromMethod(ClassViolatingCodingRules.class, "printToStandardStream")
                         .getting().field(System.class, "out")
@@ -292,7 +261,7 @@ class ExamplesIntegrationTest {
                         .inLine(23));
     }
 
-    private static void expectThrownGenericExceptions(ExpectedTestFailures expectFailures) {
+    private static void expectThrownGenericExceptions(ExpectedTestFailures<?> expectFailures) {
         expectFailures
                 .by(callFromMethod(ClassViolatingCodingRules.class, "throwGenericExceptions")
                         .toConstructor(Throwable.class)
@@ -308,13 +277,10 @@ class ExamplesIntegrationTest {
                         .inLine(26));
     }
 
-    @TestFactory
-    Stream<DynamicTest> ControllerRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        ControllerRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ControllerRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.ControllerRulesTest.class)
+    abstract Stream<T> ControllerRulesTest();
+
+    Stream<T> ControllerRulesTest(Class<?> controllerRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.ControllerRulesTest.class, controllerRulesTestClass)
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
                                 + "only call methods that are declared in a package '..controller..' or are annotated with @%s",
@@ -372,13 +338,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> CyclicDependencyRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.CyclicDependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.CyclicDependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.CyclicDependencyRulesTest.class)
+    abstract Stream<T> CyclicDependencyRulesTest();
+
+    Stream<T> CyclicDependencyRulesTest(Class<?> cyclicDependencyRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.CyclicDependencyRulesTest.class, cyclicDependencyRulesTestClass)
 
                 .ofRule("slices matching '..(simplecycle).(*)..' should be free of cycles")
                 .by(cycle()
@@ -597,13 +560,10 @@ class ExamplesIntegrationTest {
                         .inLine(7));
     }
 
-    @TestFactory
-    Stream<DynamicTest> DaoRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.DaoRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.DaoRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.DaoRulesTest.class)
+    abstract Stream<T> DaoRulesTest();
+
+    Stream<T> DaoRulesTest(Class<?> daoRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.DaoRulesTest.class, daoRulesTestClass)
 
                 .ofRule("DAOs should reside in a package '..dao..'")
                 .by(javaPackageOf(InWrongPackageDao.class).notMatching("..dao.."))
@@ -626,13 +586,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> DependencyRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.DependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.DependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.DependencyRulesTest.class)
+    abstract Stream<T> DependencyRulesTest();
+
+    Stream<T> DependencyRulesTest(Class<?> dependencyRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.DependencyRulesTest.class, dependencyRulesTestClass)
 
                 .ofRule("no classes should depend on upper packages, because that might prevent packages on that level from being split into separate artifacts in a clean way")
                 .by(inheritanceFrom(UseCaseTwoController.class).extending(AbstractController.class))
@@ -657,13 +614,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> FrozenRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.FrozenRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.FrozenRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.FrozenRulesTest.class)
+    abstract Stream<T> FrozenRulesTest();
+
+    Stream<T> FrozenRulesTest(Class<?> frozenRulesTestClass, Consumer<Runnable> withTemporaryViolationStore) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.FrozenRulesTest.class, frozenRulesTestClass)
 
                 .ofRule("no classes should depend on classes that reside in a package '..service..'")
                 .by(callFromMethod(SomeController.class, "doSthController").
@@ -687,38 +641,13 @@ class ExamplesIntegrationTest {
                         toMethod(ServiceViolatingDaoRules.MyEntityManager.class, "persist", Object.class)
                         .inLine(27))
 
-                .toDynamicTests(this::withTemporaryViolationStore);
+                .toDynamicTests(withTemporaryViolationStore);
     }
 
-    private void withTemporaryViolationStore(Runnable test) {
-        try {
-            File sourceDir = Paths.get(ArchConfiguration.get().getProperty("freeze.store.default.path")).toFile();
-            TransientCopyRule transientCopyRule = new TransientCopyRule();
-            transientCopyRule.copy(sourceDir, temporaryViolationStore.toFile());
-            transientCopyRule.apply(new Statement() {
-                @Override
-                public void evaluate() {
-                    String oldStorePath = ArchConfiguration.get().getProperty("freeze.store.default.path");
-                    ArchConfiguration.get().setProperty("freeze.store.default.path", temporaryViolationStore.toAbsolutePath().toString());
-                    try {
-                        test.run();
-                    } finally {
-                        ArchConfiguration.get().setProperty("freeze.store.default.path", oldStorePath);
-                    }
-                }
-            }, Description.EMPTY).evaluate();
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
+    abstract Stream<T> InterfaceRulesTest();
 
-    @TestFactory
-    Stream<DynamicTest> InterfaceRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.InterfaceRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.InterfaceRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.InterfaceRulesTest.class)
+    Stream<T> InterfaceRulesTest(Class<?> interfaceRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.InterfaceRulesTest.class, interfaceRulesTestClass)
 
                 .ofRule("no classes that are interfaces should have name matching '.*Interface'")
                 .by(clazz(SomeBusinessInterface.class).havingNameMatching(".*Interface"))
@@ -733,13 +662,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> LayerDependencyRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.LayerDependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.LayerDependencyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.LayerDependencyRulesTest.class)
+    abstract Stream<T> LayerDependencyRulesTest();
+
+    Stream<T> LayerDependencyRulesTest(Class<?> layerDependencyRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.LayerDependencyRulesTest.class, layerDependencyRulesTestClass)
 
                 .ofRule("no classes that reside in a package '..service..' " +
                         "should access classes that reside in a package '..controller..'")
@@ -933,9 +859,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> LayeredArchitectureTest() {
-        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailure =
+    abstract Stream<T> LayeredArchitectureTest();
+
+    Stream<T> LayeredArchitectureTest(Class<?> layeredArchitectureTestClass) {
+        BiConsumer<String, ExpectedTestFailures<?>> addExpectedCommonFailure =
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName,
@@ -1021,11 +948,7 @@ class ExamplesIntegrationTest {
                                         .checkingInstanceOf(ProxiedConnection.class)
                                         .inLine(26));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.LayeredArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit4.LayeredArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit5.LayeredArchitectureTest.class);
+        ExpectedTestFailures<T> expectedTestFailures = createExpectedTestFailures(com.tngtech.archunit.exampletest.LayeredArchitectureTest.class, layeredArchitectureTestClass);
 
         addExpectedCommonFailure.accept("layer_dependencies_are_respected", expectedTestFailures);
         expectedTestFailures
@@ -1040,9 +963,10 @@ class ExamplesIntegrationTest {
         return expectedTestFailures.toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> OnionArchitectureTest() {
-        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailure =
+    abstract Stream<T> OnionArchitectureTest();
+
+    Stream<T> OnionArchitectureTest(Class<?> onionArchitectureTestClass) {
+        BiConsumer<String, ExpectedTestFailures<?>> addExpectedCommonFailure =
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName, "Onion architecture consisting of" + lineSeparator() +
@@ -1089,11 +1013,7 @@ class ExamplesIntegrationTest {
                                         .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
                                         .inLine(25));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class);
+        ExpectedTestFailures<T> expectedTestFailures = createExpectedTestFailures(com.tngtech.archunit.exampletest.OnionArchitectureTest.class, onionArchitectureTestClass);
 
         addExpectedCommonFailure.accept("onion_architecture_is_respected", expectedTestFailures);
         expectedTestFailures = expectedTestFailures
@@ -1107,13 +1027,10 @@ class ExamplesIntegrationTest {
         return expectedTestFailures.toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> MethodsTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.MethodsTest.class,
-                        com.tngtech.archunit.exampletest.junit4.MethodsTest.class,
-                        com.tngtech.archunit.exampletest.junit5.MethodsTest.class)
+    abstract Stream<T> MethodsTest();
+
+    Stream<T> MethodsTest(Class<?> methodsTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.MethodsTest.class, methodsTestClass)
 
                 .ofRule("methods that are declared in classes that reside in a package '..anticorruption..' and are public "
                         + String.format("should have raw return type %s, ", WrappedResult.class.getName())
@@ -1129,15 +1046,12 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> ModulesTest() {
-        ExpectedTestFailures expectedFailures = ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.ModulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ModulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.ModulesTest.class);
+    abstract Stream<T> ModulesTest();
 
-        BiConsumer<ModuleNames, ExpectedTestFailures> expectRespectTheirDeclaredDependenciesViolations =
+    Stream<T> ModulesTest(Class<?> modulesTestClass) {
+        ExpectedTestFailures<T> expectedFailures = createExpectedTestFailures(com.tngtech.archunit.exampletest.ModulesTest.class, modulesTestClass);
+
+        BiConsumer<ModuleNames, ExpectedTestFailures<?>> expectRespectTheirDeclaredDependenciesViolations =
                 (moduleNames, expected) -> expected
 
                         .by(ExpectedModuleDependency.uncontained(callFromConstructor(AddressController.class).toConstructor(AbstractController.class).inLine(8)))
@@ -1177,7 +1091,7 @@ class ExamplesIntegrationTest {
                         + "considering only dependencies in any package ['..example..']");
         expectRespectTheirDeclaredDependenciesViolations.accept(ModuleNames.definedByPackages(), expectedFailures);
 
-        Consumer<ExpectedTestFailures> expectDependOnEachOtherThroughViolations =
+        Consumer<ExpectedTestFailures<?>> expectDependOnEachOtherThroughViolations =
                 expected -> expected
                         .by(field(Address.class, "productCatalog").ofType(ProductCatalog.class))
                         .by(field(ProductImport.class, "productCatalog").ofType(ProductCatalog.class))
@@ -1356,13 +1270,10 @@ class ExamplesIntegrationTest {
         return expectedFailures.toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> NamingConventionTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.NamingConventionTest.class,
-                        com.tngtech.archunit.exampletest.junit4.NamingConventionTest.class,
-                        com.tngtech.archunit.exampletest.junit5.NamingConventionTest.class)
+    abstract Stream<T> NamingConventionTest();
+
+    Stream<T> NamingConventionTest(Class<?> namingConventionTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.NamingConventionTest.class, namingConventionTestClass)
 
                 .ofRule(String.format(
                         "classes that reside in a package '..service..' "
@@ -1401,13 +1312,12 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> PlantUmlArchitectureTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.PlantUmlArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit4.PlantUmlArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit5.PlantUmlArchitectureTest.class)
+    abstract Stream<T> PlantUmlArchitectureTest();
+
+    Stream<T> PlantUmlArchitectureTest(Class<?> plantUmlArchitectureTestClass) {
+        return createExpectedTestFailures(
+                com.tngtech.archunit.exampletest.PlantUmlArchitectureTest.class,
+                plantUmlArchitectureTestClass)
 
                 .ofRule("classes should adhere to PlantUML diagram <shopping_example.puml>"
                         + " while ignoring dependencies outside of packages ['..catalog']")
@@ -1475,13 +1385,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> ProxyRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.ProxyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ProxyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.ProxyRulesTest.class)
+    abstract Stream<T> ProxyRulesTest();
+
+    Stream<T> ProxyRulesTest(Class<?> proxyRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.ProxyRulesTest.class, proxyRulesTestClass)
 
                 .ofRule(String.format(
                         "no classes should directly call other methods declared in the same class that are annotated with @%s, "
@@ -1494,13 +1401,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> RestrictNumberOfClassesWithACertainPropertyTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.RestrictNumberOfClassesWithACertainPropertyTest.class,
-                        com.tngtech.archunit.exampletest.junit4.RestrictNumberOfClassesWithACertainPropertyTest.class,
-                        com.tngtech.archunit.exampletest.junit5.RestrictNumberOfClassesWithACertainPropertyTest.class)
+    abstract Stream<T> RestrictNumberOfClassesWithACertainPropertyTest();
+
+    Stream<T> RestrictNumberOfClassesWithACertainPropertyTest(Class<?> restrictNumberOfClassesWithACertainPropertyTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.RestrictNumberOfClassesWithACertainPropertyTest.class, restrictNumberOfClassesWithACertainPropertyTestClass)
 
                 .ofRule(String.format(
                         "classes that implement %s should contain number of elements less than or equal to '1', "
@@ -1529,11 +1433,11 @@ class ExamplesIntegrationTest {
         };
     }
 
+    abstract Stream<T> SecurityTest();
+
     // TODO: This can at the moment not really be covered by JUnit support, but probably should be...
-    @TestFactory
-    Stream<DynamicTest> SecurityTest() {
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
-                .forTests(SecurityTest.class);
+    Stream<T> SecurityTestImpl() {
+        ExpectedTestFailures<T> expectedTestFailures = createExpectedTestFailures(SecurityTest.class);
 
         Consumer<String> addExpectedFailure = ruleText -> expectedTestFailures.ofRule(ruleText)
                 .by(callFromMethod(WrongSecurityCheck.class, "doCustomNonsense")
@@ -1553,8 +1457,9 @@ class ExamplesIntegrationTest {
         return expectedTestFailures.toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> SessionBeanRulesTest() {
+    abstract Stream<T> SessionBeanRulesTest();
+
+    Stream<T> SessionBeanRulesTest(Class<?> sessionBeanRulesTestClass) {
         MessageAssertionChain.Link someBusinessInterfaceIsImplementedByTwoBeans =
                 new MessageAssertionChain.Link() {
                     @Override
@@ -1596,11 +1501,7 @@ class ExamplesIntegrationTest {
                     }
                 };
 
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.SessionBeanRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.SessionBeanRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.SessionBeanRulesTest.class)
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.SessionBeanRulesTest.class, sessionBeanRulesTestClass)
 
                 .ofRule("No Stateless Session Bean should have state")
                 .by(callFromMethod(ClassViolatingSessionBeanRules.class, "setState", String.class)
@@ -1616,13 +1517,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> SingleClassTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.SingleClassTest.class,
-                        com.tngtech.archunit.exampletest.junit4.SingleClassTest.class,
-                        com.tngtech.archunit.exampletest.junit5.SingleClassTest.class)
+    abstract Stream<T> SingleClassTest();
+
+    Stream<T> SingleClassTest(Class<?> singleClassTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.SingleClassTest.class, singleClassTestClass)
 
                 .ofRule(String.format("the class %s should only be accessed by classes that implement %s",
                         VeryCentralCore.class.getName(), CoreSatellite.class.getName()))
@@ -1650,9 +1548,10 @@ class ExamplesIntegrationTest {
                 .toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> SlicesIsolationTest() {
-        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice =
+    abstract Stream<T> SlicesIsolationTest();
+
+    Stream<T> SlicesIsolationTest(Class<?> slicesIsolationTestClass) {
+        BiConsumer<String, ExpectedTestFailures<?>> addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice =
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName, "Controllers should not depend on each other")
@@ -1673,11 +1572,7 @@ class ExamplesIntegrationTest {
                                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
                                                 .inLine(10)));
 
-        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.SlicesIsolationTest.class,
-                        com.tngtech.archunit.exampletest.junit4.SlicesIsolationTest.class,
-                        com.tngtech.archunit.exampletest.junit5.SlicesIsolationTest.class);
+        ExpectedTestFailures<T> expectedTestFailures = createExpectedTestFailures(com.tngtech.archunit.exampletest.SlicesIsolationTest.class, slicesIsolationTestClass);
 
         // controllers_should_only_use_their_own_slice
         addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice
@@ -1727,13 +1622,10 @@ class ExamplesIntegrationTest {
         return expectedTestFailures.toDynamicTests();
     }
 
-    @TestFactory
-    Stream<DynamicTest> ThirdPartyRulesTest() {
-        return ExpectedTestFailures
-                .forTests(
-                        com.tngtech.archunit.exampletest.ThirdPartyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit4.ThirdPartyRulesTest.class,
-                        com.tngtech.archunit.exampletest.junit5.ThirdPartyRulesTest.class)
+    abstract Stream<T> ThirdPartyRulesTest();
+
+    Stream<T> ThirdPartyRulesTest(Class<?> thirdPartyRulesTestClass) {
+        return createExpectedTestFailures(com.tngtech.archunit.exampletest.ThirdPartyRulesTest.class, thirdPartyRulesTestClass)
 
                 .ofRule(String.format("classes should not instantiate %s and its subclasses, but instead use %s",
                         ThirdPartyClassWithProblem.class.getSimpleName(),
