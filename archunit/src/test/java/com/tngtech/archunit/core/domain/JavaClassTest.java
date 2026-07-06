@@ -26,13 +26,19 @@ import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.testobjects.AAccessingB;
+import com.tngtech.archunit.core.domain.testobjects.ACatchingBException;
 import com.tngtech.archunit.core.domain.testobjects.AExtendingSuperAImplementingInterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.AReferencingB;
+import com.tngtech.archunit.core.domain.testobjects.AThrowingBException;
 import com.tngtech.archunit.core.domain.testobjects.AhavingMembersOfTypeB;
 import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ArrayComponentTypeDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
+import com.tngtech.archunit.core.domain.testobjects.BException1;
+import com.tngtech.archunit.core.domain.testobjects.BException2;
+import com.tngtech.archunit.core.domain.testobjects.BException3;
 import com.tngtech.archunit.core.domain.testobjects.BReferencedByA;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
 import com.tngtech.archunit.core.domain.testobjects.ComponentTypeDependency;
 import com.tngtech.archunit.core.domain.testobjects.DependenciesOnClassObjects;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
@@ -808,26 +814,159 @@ public class JavaClassTest {
         JavaClass javaClass = importClasses(AhavingMembersOfTypeB.class, B.class).get(AhavingMembersOfTypeB.class);
 
         assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(fieldTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
                 .areAtLeastOne(methodReturnTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
                         .inLineNumber(0))
-                .areAtLeastOne(methodThrowsDeclarationDependency()
+                .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
-                        .to(B.BException.class)
+                        .to(B.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_member_declarations() {
+        JavaClass javaClass = importClassesWithContext(AhavingMembersOfTypeB.class, B.class).get(B.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(fieldTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(methodReturnTypeDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
                         .inLineNumber(0))
                 .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
-                        .inLineNumber(0))
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_instanceof_checks() {
+        JavaClass javaClass = importClasses(ClassWithDependencyOnInstanceofCheck.class, ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                .get(ClassWithDependencyOnInstanceofCheck.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
                 .areAtLeastOne(methodChecksInstanceOfDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
+                        .from(ClassWithDependencyOnInstanceofCheck.class)
+                        .to(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                        .inLineNumber(6))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(ClassWithDependencyOnInstanceofCheck.class)
+                        .to(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                        .inLineNumber(9))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(ClassWithDependencyOnInstanceofCheck.class)
+                        .to(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                        .inLineNumber(13));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_instanceof_checks() {
+        JavaClass javaClass = importClasses(ClassWithDependencyOnInstanceofCheck.class, ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                .get(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(ClassWithDependencyOnInstanceofCheck.class)
+                        .to(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                        .inLineNumber(6))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(ClassWithDependencyOnInstanceofCheck.class)
+                        .to(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                        .inLineNumber(9))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(ClassWithDependencyOnInstanceofCheck.class)
+                        .to(ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget.class)
+                        .inLineNumber(13));
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_catch_clauses() {
+        JavaClass javaClass = importClasses(ACatchingBException.class, BException1.class)
+                .get(ACatchingBException.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(codeUnitTryCatchDependency()
+                        .from(ACatchingBException.class)
+                        .to(BException1.class)
                         .inLineNumber(7))
-                .areAtLeastOne(methodChecksInstanceOfDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(25));
+                .areAtLeastOne(codeUnitTryCatchDependency()
+                        .from(ACatchingBException.class)
+                        .to(BException1.class)
+                        .inLineNumber(14))
+                .areAtLeastOne(codeUnitTryCatchDependency()
+                        .from(ACatchingBException.class)
+                        .to(BException1.class)
+                        .inLineNumber(21));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_catch_clause() {
+        JavaClass javaClass = importClasses(ACatchingBException.class, BException1.class)
+                .get(BException1.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(codeUnitTryCatchDependency()
+                        .from(ACatchingBException.class)
+                        .to(BException1.class)
+                        .inLineNumber(7))
+                .areAtLeastOne(codeUnitTryCatchDependency()
+                        .from(ACatchingBException.class)
+                        .to(BException1.class)
+                        .inLineNumber(14))
+                .areAtLeastOne(codeUnitTryCatchDependency()
+                        .from(ACatchingBException.class)
+                        .to(BException1.class)
+                        .inLineNumber(21));
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_throws_clause() {
+        JavaClass javaClass = importClasses(AThrowingBException.class, BException1.class, BException2.class, BException3.class)
+                .get(AThrowingBException.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(methodThrowsDeclarationDependency()
+                        .from(AThrowingBException.class)
+                        .to(BException1.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(methodThrowsDeclarationDependency()
+                        .from(AThrowingBException.class)
+                        .to(BException2.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(methodThrowsDeclarationDependency()
+                        .from(AThrowingBException.class)
+                        .to(BException3.class)
+                        .inLineNumber(0));
+    }
+
+    @DataProvider
+    public static Object[][] with_throws_dependencies() {
+        return $$(
+                $(BException1.class, AThrowingBException.class, 0),
+                $(BException2.class, AThrowingBException.class, 0),
+                $(BException3.class, AThrowingBException.class, 0)
+        );
+    }
+
+    @Test
+    @UseDataProvider("with_throws_dependencies")
+    public void direct_dependencies_to_self_by_throws_clause(Class<? extends Throwable> selfClass, Class<?> throwingClass, int expectedLineNumber) {
+        JavaClass javaClass = importClasses(selfClass, throwingClass)
+                .get(selfClass);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(methodThrowsDeclarationDependency()
+                        .from(throwingClass)
+                        .to(selfClass)
+                        .inLineNumber(expectedLineNumber));
     }
 
     @Test
@@ -1280,42 +1419,6 @@ public class JavaClassTest {
                 .contain(from(FirstClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
                         .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
                 );
-    }
-
-    @Test
-    public void direct_dependencies_to_self_by_member_declarations() {
-        JavaClass javaClass = importClassesWithContext(AhavingMembersOfTypeB.class, B.class).get(B.class);
-
-        assertThat(javaClass.getDirectDependenciesToSelf())
-                .areAtLeastOne(fieldTypeDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(methodReturnTypeDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(0))
-                .areAtLeast(2, parameterTypeDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(0))
-                .areAtLeastOne(methodChecksInstanceOfDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(7))
-                .areAtLeastOne(methodChecksInstanceOfDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(25));
-
-        JavaClass exceptionClass = importClassesWithContext(AhavingMembersOfTypeB.class, B.BException.class)
-                .get(B.BException.class);
-
-        assertThat(exceptionClass.getDirectDependenciesToSelf())
-                .areAtLeastOne(methodThrowsDeclarationDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.BException.class)
-                        .inLineNumber(0));
     }
 
     @Test
@@ -2099,6 +2202,10 @@ public class JavaClassTest {
 
     private static DependencyConditionCreation methodThrowsDeclarationDependency() {
         return new DependencyConditionCreation("throws type");
+    }
+
+    private static DependencyConditionCreation codeUnitTryCatchDependency() {
+        return new DependencyConditionCreation("catches type");
     }
 
     private static DependencyConditionCreation methodChecksInstanceOfDependency() {

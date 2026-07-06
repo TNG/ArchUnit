@@ -647,6 +647,11 @@ public final class JavaClass
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<TryCatchBlock> getTryCatchBlocks() {
+        return members.getTryCatchBlocks();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Set<ReferencedClassObject> getReferencedClassObjects() {
         return members.getReferencedClassObjects();
     }
@@ -1308,6 +1313,14 @@ public final class JavaClass
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfSelf() {
         return reverseDependencies.getMethodThrowsDeclarationsWithTypeOf(this);
+    }
+
+    /**
+     * @return {@link TryCatchBlock TryCatchBlocks} of all imported classes that declare to catch this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<TryCatchBlock> getTryCatchBlocksThatCatchSelf() {
+        return reverseDependencies.getTryCatchBlocksThatCatch(this);
     }
 
     /**

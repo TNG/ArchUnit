@@ -3,10 +3,12 @@ package com.tngtech.archunit.library.dependencies;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.ClassOnlyDependentOnOwnPackageAndObject;
+import com.tngtech.archunit.library.testclasses.first.any.pkg.ClassWithCatch;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.second.any.pkg.SecondAnyClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgException;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
 import org.junit.Test;
 
@@ -26,6 +28,8 @@ public class SliceTest {
                         .from(ClassOnlyDependentOnOwnPackageAndObject.class).to(Object.class)
                         .from(FirstThreeAnyClass.class).to(Object.class)
                         .from(FirstThreeAnyClass.class).to(SecondThreeAnyClass.class)
+                        .from(ClassWithCatch.class).to(Object.class)
+                        .from(ClassWithCatch.class).to(SomePkgException.class)
         );
     }
 
