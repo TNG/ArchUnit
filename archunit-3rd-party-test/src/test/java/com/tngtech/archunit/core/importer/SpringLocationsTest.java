@@ -10,13 +10,10 @@ import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
-import com.tngtech.archunit.testutil.SystemPropertiesRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.tngtech.archunit.testutil.SystemPropertiesExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.loader.LaunchedURLClassLoader;
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.JarFileArchive;
@@ -28,31 +25,28 @@ import static com.google.common.io.ByteStreams.toByteArray;
 import static com.tngtech.archunit.core.importer.LocationTest.classFileEntry;
 import static com.tngtech.archunit.core.importer.LocationTest.urlOfClass;
 import static com.tngtech.archunit.core.importer.LocationsTest.unchecked;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class SpringLocationsTest {
     /**
      * Spring Boot configures some system properties that we want to reset afterward (e.g. custom URL stream handler)
      */
-    @Rule
-    public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
+    @RegisterExtension
+    final SystemPropertiesExtension systemPropertiesExtension = new SystemPropertiesExtension();
 
-    @DataProvider
-    public static Object[][] springBootJars() {
+    static Stream<TestJarFile> springBootJars() {
         Function<Function<TestJarFile, TestJarFile>, TestJarFile> createSpringBootJar = setUpJarFile -> setUpJarFile.apply(new TestJarFile())
                 .withNestedClassFilesDirectory("BOOT-INF/classes")
                 .withEntry(classFileEntry(SomeEnum.class).toAbsolutePath());
 
-        return testForEach(
+        return Stream.of(
                 createSpringBootJar.apply(TestJarFile::withDirectoryEntries),
                 createSpringBootJar.apply(TestJarFile::withoutDirectoryEntries)
         );
     }
 
-    @Test
-    @UseDataProvider("springBootJars")
+    @ParameterizedTest
+    @MethodSource("springBootJars")
     public void finds_locations_of_packages_from_Spring_Boot_ClassLoader_for_JARs(TestJarFile jarFileToTest) throws Exception {
         try (JarFile jarFile = jarFileToTest.create()) {
 
