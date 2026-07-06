@@ -91,6 +91,26 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
+    public void haveFullyQualifiedNameAnyOf(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.haveFullyQualifiedNameAnyOf(List.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassAccessingList.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void doNotHaveFullyQualifiedNameAnyOf(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.doNotHaveFullyQualifiedNameAnyOf(List.class.getName()))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveSimpleName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.haveSimpleName(List.class.getSimpleName()))
@@ -1735,7 +1755,7 @@ public class ShouldClassesThatTest {
 
         @SuppressWarnings("unused")
         static class Level1TransitivelyDependentClass1 {
-             Level2TransitivelyDependentClass1 transitiveDependency1;
+            Level2TransitivelyDependentClass1 transitiveDependency1;
         }
 
         static class Level2TransitivelyDependentClass1 {

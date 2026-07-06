@@ -86,6 +86,32 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
+    public void haveFullyQualifiedNameAnyOf(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.haveFullyQualifiedNameAnyOf(Foo.class.getName()))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void doNotHaveFullyQualifiedNameAnyOf(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.doNotHaveFullyQualifiedNameAnyOf(Foo.class.getName()))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
     public void haveSimpleName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleName(Foo.class.getSimpleName()))
@@ -1422,6 +1448,7 @@ public class ShouldOnlyByClassesThatTest {
 
     // This must be loaded via Reflection, otherwise the test will be tainted by the dependency on the class object
     private static final Class<?> ClassAccessingAnonymousClass_Reference = classForName("com.tngtech.archunit.lang.syntax.elements.ShouldOnlyByClassesThatTest$ClassAccessingAnonymousClass");
+
     private static class ClassAccessingAnonymousClass {
         @SuppressWarnings("unused")
         void access() {

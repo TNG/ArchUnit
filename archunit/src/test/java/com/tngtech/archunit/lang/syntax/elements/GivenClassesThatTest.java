@@ -74,6 +74,22 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void haveFullyQualifiedNameAnyOf() {
+        List<JavaClass> classes = filterResultOf(classes().that().haveFullyQualifiedNameAnyOf(List.class.getName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatType(getOnlyElement(classes)).matches(List.class);
+    }
+
+    @Test
+    public void doNotHaveFullyQualifiedNameAnyOf() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotHaveFullyQualifiedNameAnyOf(List.class.getName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
+    }
+
+    @Test
     public void haveSimpleName() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
