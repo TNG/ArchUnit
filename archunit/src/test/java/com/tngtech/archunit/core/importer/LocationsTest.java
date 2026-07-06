@@ -15,7 +15,6 @@ import java.util.stream.StreamSupport;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
-import com.tngtech.java.junit.dataprovider.DataProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -137,8 +136,7 @@ public class LocationsTest {
         Set<Location> locations = Locations.ofPackage("com.tngtech");
 
         assertThat(urisOf(locations)).contains(
-                resolvedUri(getClass(), "/com/tngtech"),
-                resolvedUri(DataProvider.class, "/com/tngtech")
+                resolvedUri(getClass(), "/com/tngtech")
         );
     }
 
@@ -160,7 +158,6 @@ public class LocationsTest {
     public void locations_in_classpath() throws Exception {
         assertThat(urisOf(Locations.inClassPath())).contains(
                 getClass().getResource("/").toURI(),
-                resolvedUri(DataProvider.class, "/"),
                 resolvedUri(org.junit.Test.class, "/")
         );
     }
