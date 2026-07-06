@@ -12,6 +12,7 @@ dependencies {
     implementation project(path: ':archunit')
     implementation project(path: ':archunit-junit4')
     implementation project(path: ':archunit-junit5')
+    implementation project(path: ':archunit-junit5-engine')
     implementation project(path: ':archunit-example:example-plain')
     implementation project(path: ':archunit-example:example-plain', configuration: 'tests')
     implementation project(path: ':archunit-example:example-junit4', configuration: 'tests')
