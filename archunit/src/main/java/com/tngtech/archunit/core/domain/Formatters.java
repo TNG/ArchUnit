@@ -118,7 +118,11 @@ public final class Formatters {
         int lastIndexOfDot = name.lastIndexOf('.');
         String partAfterDot = lastIndexOfDot >= 0 ? name.substring(lastIndexOfDot + 1) : name;
 
-        int lastIndexOf$ = partAfterDot.lastIndexOf('$');
+        int lastIndexOfNon$ = partAfterDot.length() - 1;
+        while(lastIndexOfNon$ > 0 && partAfterDot.charAt(lastIndexOfNon$) == '$') {
+            lastIndexOfNon$--;
+        }
+        int lastIndexOf$ = lastIndexOfNon$ > 0 ? partAfterDot.lastIndexOf('$', lastIndexOfNon$ - 1): -1;
         String simpleNameCandidate = lastIndexOf$ >= 0 ? partAfterDot.substring(lastIndexOf$ + 1) : partAfterDot;
 
         for (int i = 0; i < simpleNameCandidate.length(); i++) {
