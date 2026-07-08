@@ -1,6 +1,7 @@
 plugins {
     id 'archunit.java-release-conventions'
     id 'archunit.java-junit-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit6.engineapi'
@@ -16,12 +17,6 @@ dependencies {
 }
 
 compileJava.dependsOn project(':archunit-junit6-api').finishArchive
-
-test {
-    useJUnitPlatform() {
-        excludeEngines 'archunit'
-    }
-}
 
 shadowJar {
     exclude 'META-INF/maven/**'

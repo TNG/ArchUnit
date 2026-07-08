@@ -8,13 +8,16 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
-import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
+import static com.tngtech.archunit.ArchUnitArchitectureRules.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+/**
+ * Import rules that the ArchUnit Core must fulfill.
+ */
 public class ImporterRules {
 
     @ArchTest

@@ -1,6 +1,7 @@
 plugins {
     id 'archunit.java-release-conventions'
     id 'archunit.java-junit-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit5.engineapi'

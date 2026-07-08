@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-examples-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.example.junit6'

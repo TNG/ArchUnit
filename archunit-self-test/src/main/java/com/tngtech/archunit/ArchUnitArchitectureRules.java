@@ -1,9 +1,7 @@
 package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
@@ -13,16 +11,9 @@ import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
-import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTests;
-import com.tngtech.archunit.junit.ArchUnitRunner;
-import com.tngtech.archunit.junit.engine_api.FieldSelector;
-import com.tngtech.archunit.junit.internal.ArchUnitTestEngine;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -31,16 +22,18 @@ import static com.tngtech.archunit.core.domain.JavaAccess.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.has;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
-@AnalyzeClasses(
-        packagesOf = ArchUnitArchitectureTest.class,
-        importOptions = ArchUnitArchitectureTest.ArchUnitProductionCode.class)
-public class ArchUnitArchitectureTest {
+/**
+ * Structural rules that the ArchUnit Core must fulfill.
+ */
+public class ArchUnitArchitectureRules {
+    private ArchUnitArchitectureRules() {
+    }
+
     static final String THIRDPARTY_PACKAGE_IDENTIFIER = "..thirdparty..";
 
     @ArchTest
@@ -58,7 +51,7 @@ public class ArchUnitArchitectureTest {
             .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit")
             .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit")
 
-            // This is a conscious exception, to allow a more concise API. Otherwise the configuration of the
+            // This is a conscious exception, to allow a more concise API. Otherwise, the configuration of the
             // ClassResolver would need to be moved to `importer` making it harder to use,
             // or we would need to remove the bound from Class<? extends ClassResolver>, which also makes the
             // API harder to use
@@ -115,33 +108,4 @@ public class ArchUnitArchitectureTest {
         return defaultClassForName.or(targetIsMarked);
     }
 
-    public static class ArchUnitProductionCode implements ImportOption {
-        private static final Set<String> SOURCE_ROOTS = sourceRootsOf(
-                ArchConfiguration.class,
-                ArchUnitRunner.class,
-                ArchTag.class,
-                FieldSelector.class,
-                ArchUnitTestEngine.class);
-
-        private static Set<String> sourceRootsOf(Class<?>... classes) {
-            ImmutableSet.Builder<String> result = ImmutableSet.builder();
-            for (Class<?> c : classes) {
-                String classFile = "/" + c.getName().replace('.', '/') + ".class";
-                String file = c.getResource(classFile).getFile();
-                result.add(file.substring(0, file.indexOf(classFile)));
-            }
-            return result.build();
-        }
-
-        @Override
-        public boolean includes(Location location) {
-            boolean include = false;
-            for (String sourceRoot : SOURCE_ROOTS) {
-                if (location.contains(sourceRoot)) {
-                    include = true;
-                }
-            }
-            return include && DO_NOT_INCLUDE_TESTS.includes(location);
-        }
-    }
 }
