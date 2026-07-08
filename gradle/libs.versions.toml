@@ -30,3 +30,5 @@ mockito = { group = "org.mockito", name = "mockito-core", version = "4.11.0" } #
 mockito_junit5 = { group = "org.mockito", name = "mockito-junit-jupiter", version = "4.11.0" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 assertj_guava = { group = "org.assertj", name = "assertj-guava", version.ref = "assertj" }
+mavenSurefirePlugin = { group = "org.apache.maven.plugins", name = "maven-surefire-plugin", version = "3.5.6" }
+mavenCompilerPlugin = { group = "org.apache.maven.plugins", name = "maven-compiler-plugin", version = "3.15.0" }
