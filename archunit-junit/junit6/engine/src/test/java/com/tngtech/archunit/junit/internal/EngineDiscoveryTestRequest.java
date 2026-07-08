@@ -168,11 +168,6 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         }
 
         @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
         public Set<String> keySet() {
             return emptySet();
         }
