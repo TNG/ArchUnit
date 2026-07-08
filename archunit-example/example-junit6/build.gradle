@@ -1,0 +1,19 @@
+plugins {
+    id 'archunit.java-examples-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.example.junit6'
+ext.minimumJavaVersion = JavaVersion.VERSION_17
+
+dependencies {
+    testImplementation project(path: ':archunit-junit6')
+    testImplementation project(path: ':archunit-example:example-plain')
+}
+
+test {
+    useJUnitPlatform {
+        if (!project.hasProperty('example')) {
+            excludeTags 'example'
+        }
+    }
+}

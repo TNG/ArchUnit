@@ -74,6 +74,7 @@ class ExamplesJUnit5IntegrationTest extends ExamplesIntegrationTestBase<DynamicT
         return FrozenRulesTest(com.tngtech.archunit.exampletest.junit5.FrozenRulesTest.class, this::withTemporaryViolationStore);
     }
 
+    /** Without this step, older Java versions (e.g. Java 11) modify the ArchUnit store in the source code. */
     private void withTemporaryViolationStore(Runnable test) {
         try {
             File sourceDir = Paths.get(ArchConfiguration.get().getProperty("freeze.store.default.path")).toFile();
