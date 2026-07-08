@@ -17,6 +17,8 @@ dependencies {
     implementation project(path: ':archunit-example:example-plain', configuration: 'tests')
     implementation project(path: ':archunit-example:example-junit4', configuration: 'tests')
     implementation project(path: ':archunit-example:example-junit5', configuration: 'tests')
+    // TODO fix Exclude Junit6
+    // implementation project(path: ':archunit-example:example-junit6', configuration: 'tests')
 
     testImplementation project(path: ':archunit-junit5')
 }

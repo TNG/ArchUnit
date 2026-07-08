@@ -42,7 +42,7 @@ private void updateArchUnitExampleDependencies(File targetArchUnitExampleDir) {
 }
 
 private List updateArchUnitExampleJavaSources(File targetArchUnitExampleDir) {
-    ['example-plain', 'example-junit4', 'example-junit5'].each { exampleFolder ->
+    ['example-plain', 'example-junit4', 'example-junit5', 'example-junit6'].each { exampleFolder ->
         def targetSource = new File(new File(targetArchUnitExampleDir, exampleFolder), 'src')
         targetSource.deleteDir()
         copy {

@@ -9,7 +9,7 @@ include 'archunit',
         'archunit-java-modules-test', 'archunit-3rd-party-test',
         'archunit-junit', 'archunit-junit4', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'archunit-junit5-engine', 'archunit-junit5',
         'archunit-junit6-api', 'archunit-junit6-engine-api', 'archunit-junit6-engine', 'archunit-junit6',
-        'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5',
+        'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5', 'archunit-example:example-junit6',
         'archunit-maven-test',
         'archunit-self-test',
         'docs'

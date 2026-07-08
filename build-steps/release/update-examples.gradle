@@ -49,6 +49,7 @@ task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
         removeExampleCategory(new File(checkoutDir, 'example-plain'), 'com.tngtech.archunit.exampletest.Example')
         removeExampleCategory(new File(checkoutDir, 'example-junit4'), 'com.tngtech.archunit.exampletest.junit4.Example')
         removeExampleTag(new File(checkoutDir, 'example-junit5'))
+        removeExampleTag(new File(checkoutDir, 'example-junit6'))
     }
 }
 
