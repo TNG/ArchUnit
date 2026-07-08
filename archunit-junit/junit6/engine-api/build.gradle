@@ -1,6 +1,7 @@
 plugins {
     id 'archunit.java-release-conventions'
     id 'archunit.java-junit-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit6.engineapi'
@@ -13,15 +14,13 @@ dependencies {
 
     testImplementation project(path: ':archunit-junit6-api')
     testImplementation libs.assertj
+
+    // Important: Use the version of archunit-junit* that matches this package.
+    archTestImplementation project(path: ':archunit-junit6')
+    archTestRuntimeOnly libs.junit6PlatformLauncher
 }
 
 compileJava.dependsOn project(':archunit-junit6-api').finishArchive
-
-test {
-    useJUnitPlatform() {
-        excludeEngines 'archunit'
-    }
-}
 
 shadowJar {
     exclude 'META-INF/maven/**'

@@ -13,7 +13,7 @@ include 'archunit',
         'archunit-junit6-api', 'archunit-junit6-engine-api', 'archunit-junit6-engine', 'archunit-junit6',
         'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5', 'archunit-example:example-junit6',
         'archunit-maven-test',
-        'archunit-self-test',
+        'archunit-self-test-library',
         'docs'
 
 project(':archunit-junit4').projectDir = file('archunit-junit/junit4')

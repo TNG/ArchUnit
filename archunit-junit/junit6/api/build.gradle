@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-release-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit6.api'
@@ -10,6 +11,10 @@ dependencies {
     api project(path: ':archunit')
     api project(path: ':archunit-junit', configuration: 'archJunitApi')
     api libs.junit6PlatformCommons
+
+    // Important: Use the version of archunit-junit* that matches this package.
+    archTestImplementation project(path: ':archunit-junit6')
+    archTestRuntimeOnly libs.junit6PlatformLauncher
 }
 
 javadoc {
