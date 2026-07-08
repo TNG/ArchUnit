@@ -5,7 +5,7 @@ plugins {
 
 ext.moduleName = 'com.tngtech.archunit.junit6.engineapi'
 
-ext.minimumJavaVersion = JavaVersion.VERSION_1_8
+ext.minimumJavaVersion = JavaVersion.VERSION_17
 
 dependencies {
     api libs.junit6PlatformEngine
