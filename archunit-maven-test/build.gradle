@@ -193,6 +193,12 @@ def addMavenTest = { IntegrationTestConfig config ->
 
         tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
 
+        [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest, runMavenTest].each { taskName ->
+            tasks[taskName].onlyIf("requires Java ${config.minimumJavaVersion} or higher") {
+                config.supports(integrationTestJavaVersion)
+            }
+        }
+
         def executeRulesTask = tasks[executeRules]
         gradle.projectsEvaluated {
             def publishTasks = allprojects
@@ -203,35 +209,59 @@ def addMavenTest = { IntegrationTestConfig config ->
     }
 }
 
-List<IntegrationTestConfig> integrationTestConfigs = [
-        new IntegrationTestConfig(
-                javaVersion: integrationTestJavaVersion,
-                testType: TestType.PLAIN,
-                surefireExampleConfiguration: '<groups>com.tngtech.archunit.exampletest.Example</groups>',
-                archunitTestArtifact: 'archunit'
-        ),
-        new IntegrationTestConfig(
-                javaVersion: integrationTestJavaVersion,
-                testType: TestType.JUNIT4,
-                surefireExampleConfiguration: '<groups>com.tngtech.archunit.exampletest.junit4.Example</groups>',
-                archunitTestArtifact: 'archunit-junit4'
-        )
-]
+def junit5VintageEngine = libs.junit5VintageEngine.get()
+def junit6VintageEngine = libs.junit6VintageEngine.get()
 
-def vintageEngine = libs.junit5VintageEngine.get()
-integrationTestConfigs << new IntegrationTestConfig(
-        javaVersion: integrationTestJavaVersion,
-        testType: TestType.JUNIT5,
-        surefireExampleConfiguration: '<groups>example</groups>',
-        archunitTestArtifact: 'archunit-junit5',
-        additionalDependencies: """
+def testConfigFor = (TestType testType) -> {
+    switch (testType) {
+        case TestType.PLAIN:
+            return new IntegrationTestConfig(
+                    javaVersion: integrationTestJavaVersion,
+                    testType: testType,
+                    surefireExampleConfiguration: '<groups>com.tngtech.archunit.exampletest.Example</groups>',
+                    archunitTestArtifact: 'archunit',
+            )
+        case TestType.JUNIT4:
+            return new IntegrationTestConfig(
+                    javaVersion: integrationTestJavaVersion,
+                    testType: testType,
+                    surefireExampleConfiguration: '<groups>com.tngtech.archunit.exampletest.junit4.Example</groups>',
+                    archunitTestArtifact: 'archunit-junit4'
+            )
+        case TestType.JUNIT5:
+            return new IntegrationTestConfig(
+                    javaVersion: integrationTestJavaVersion,
+                    testType: testType,
+                    surefireExampleConfiguration: '<groups>example</groups>',
+                    archunitTestArtifact: 'archunit-junit5',
+                    additionalDependencies: """
             <dependency>
-                <groupId>${vintageEngine.group}</groupId>
-                <artifactId>${vintageEngine.name}</artifactId>
-                <version>${vintageEngine.version}</version>
+                <groupId>${junit5VintageEngine.group}</groupId>
+                <artifactId>${junit5VintageEngine.name}</artifactId>
+                <version>${junit5VintageEngine.version}</version>
                 <scope>test</scope>
             </dependency>"""
-)
+            )
+        case TestType.JUNIT6:
+            return new IntegrationTestConfig(
+                    javaVersion: integrationTestJavaVersion,
+                    testType: testType,
+                    surefireExampleConfiguration: '<groups>example</groups>',
+                    archunitTestArtifact: 'archunit-junit6',
+                    additionalDependencies: """
+            <dependency>
+                <groupId>${junit6VintageEngine.group}</groupId>
+                <artifactId>${junit6VintageEngine.name}</artifactId>
+                <version>${junit6VintageEngine.version}</version>
+                <scope>test</scope>
+            </dependency>"""
+            )
+        default:
+            throw new GradleException("Test config missing for test type ${testType}")
+    }
+}
+
+List<IntegrationTestConfig> integrationTestConfigs = TestType.values().toList().stream().map(testConfigFor).toList()
 
 integrationTestConfigs.each { config -> project.with(addMavenTest(config)) }
 
@@ -262,10 +292,25 @@ class IntegrationTestConfig {
     String getSuffix() {
         testType.name().toLowerCase().capitalize()
     }
+
+    JavaVersion getMinimumJavaVersion() {
+        testType.minimumJavaVersion
+    }
+
+    boolean supports(JavaVersion javaVersion) {
+        javaVersion.isCompatibleWith(minimumJavaVersion)
+    }
 }
 
 enum TestType {
-    PLAIN,
-    JUNIT4,
-    JUNIT5
+    PLAIN(JavaVersion.VERSION_1_8),
+    JUNIT4(JavaVersion.VERSION_1_8),
+    JUNIT5(JavaVersion.VERSION_1_8),
+    JUNIT6(JavaVersion.VERSION_17)
+
+    final JavaVersion minimumJavaVersion
+
+    TestType(JavaVersion minimumJavaVersion) {
+        this.minimumJavaVersion = minimumJavaVersion
+    }
 }

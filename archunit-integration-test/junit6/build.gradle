@@ -1,0 +1,24 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.integrationtest.junit6'
+
+ext.minimumJavaVersion = JavaVersion.VERSION_17
+
+dependencies {
+    testImplementation libs.junit6PlatformLauncher
+    testImplementation libs.junit6Jupiter
+    testImplementation libs.assertj
+    testImplementation project(path: ':archunit', configuration: 'tests')
+    testImplementation project(path: ':archunit-junit6-api')
+    testImplementation project(path: ':archunit-junit6-engine-api')
+    testImplementation project(path: ':archunit-integration-test:shared')
+    testImplementation project(path: ':archunit-example:example-plain')
+    testImplementation project(path: ':archunit-example:example-plain', configuration: 'tests')
+    testImplementation project(path: ':archunit-example:example-junit6', configuration: 'tests')
+
+    testRuntimeOnly project(path: ':archunit-junit6-engine')
+    // TODO still up-to-date?
+    testRuntimeOnly libs.junit6VintageEngine // needed because `archunit-example:example-plain` uses JUnit 4 annotations
+}
