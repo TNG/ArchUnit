@@ -69,7 +69,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.2</version>
+                    <version>#{mavenSurefirePluginVersion}</version>
                     <configuration>
                         <argLine>-Xmx2G</argLine>
                     </configuration>
@@ -77,7 +77,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>#{mavenCompilerPluginVersion}</version>
                     <configuration>
                         <fork>true</fork>
                         <source>#{javaVersion}</source>

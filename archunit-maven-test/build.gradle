@@ -107,6 +107,8 @@ def addMavenTest = { IntegrationTestConfig config ->
     String verifyRules = "verifyRules${config.suffix}"
     String cleanUpMavenTest = "cleanUpMavenTest${config.suffix}"
     String runMavenTest = "runMavenTest${config.suffix}"
+    def mavenSurefirePlugin = libs.mavenSurefirePlugin.get()
+    def mavenCompilerPlugin = libs.mavenCompilerPlugin.get()
 
     return {
         tasks.create(name: prepareMavenTest, dependsOn: initializeMavenTest) {
@@ -119,23 +121,25 @@ def addMavenTest = { IntegrationTestConfig config ->
                         ''
 
                 mavenPom.text = mavenPom.text
-                                        .replace('#{archunit.version}', "${version}")
-                                        .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
-                                        .replace('#{repositories}', repositories)
-                                        .replace('#{javaVersion}', "${config.javaVersion}")
-                                        .replace('#{additionalDependencies}', config.additionalDependencies ?: '')
-                                        .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
-                                        .replaceAll(/#\{(libs|exampleLibs).([^}:]+):?([^}]*)}/) { all, catalog, dependencyReference, scope ->
-                                                def versionCatalog = versionCatalogs.named(catalog)
-                                                def targetDependency = versionCatalog.findLibrary(dependencyReference).get().get()
-                                                def scopePart = scope ? "\n            <scope>${scope}</scope>" : ''
-                                                """
-                                                |        <dependency>
-                                                |            <groupId>${targetDependency.group}</groupId>
-                                                |            <artifactId>${targetDependency.name}</artifactId>
-                                                |            <version>${targetDependency.version}</version>${scopePart}
-                                                |        </dependency>""".stripMargin().trim()
-                                        }
+                        .replace('#{archunit.version}', "${version}")
+                        .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
+                        .replace('#{repositories}', repositories)
+                        .replace('#{javaVersion}', "${config.javaVersion}")
+                        .replace('#{mavenSurefirePluginVersion}', "${mavenSurefirePlugin.version}")
+                        .replace('#{mavenCompilerPluginVersion}', "${mavenCompilerPlugin.version}")
+                        .replace('#{additionalDependencies}', config.additionalDependencies ?: '')
+                        .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
+                        .replaceAll(/#\{(libs|exampleLibs).([^}:]+):?([^}]*)}/) { all, catalog, dependencyReference, scope ->
+                            def versionCatalog = versionCatalogs.named(catalog)
+                            def targetDependency = versionCatalog.findLibrary(dependencyReference).get().get()
+                            def scopePart = scope ? "\n            <scope>${scope}</scope>" : ''
+                            """
+                            |        <dependency>
+                            |            <groupId>${targetDependency.group}</groupId>
+                            |            <artifactId>${targetDependency.name}</artifactId>
+                            |            <version>${targetDependency.version}</version>${scopePart}
+                            |        </dependency>""".stripMargin().trim()
+                        }
 
                 copy {
                     from new File(new File(project(':archunit-example:example-plain').projectDir, 'src'), 'main')
