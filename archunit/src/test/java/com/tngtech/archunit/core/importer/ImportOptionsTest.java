@@ -76,6 +76,11 @@ public class ImportOptionsTest {
                 new FolderPattern("build", "classes", "main").expectMainFolder(),
                 new FolderPattern("build", "classes", "java", "main").expectMainFolder(),
                 new FolderPattern("build", "classes", "java", "main", "my", "test").expectMainFolder(),
+                new FolderPattern("build", "classes", "java", "integrationTest").expectTestFolder(),
+                new FolderPattern("build", "classes", "otherlang", "functionalTest").expectTestFolder(),
+                new FolderPattern("build", "classes", "java", "e2eTest").expectTestFolder(),
+                new FolderPattern("build", "classes", "java", "tests").expectTestFolder(),
+                new FolderPattern("build", "classes", "java", "testFixtures").expectMainFolder(),
 
                 // Maven
                 new FolderPattern("target", "classes", "test").expectMainFolder(),
