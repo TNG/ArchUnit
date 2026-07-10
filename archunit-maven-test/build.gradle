@@ -209,9 +209,6 @@ def addMavenTest = { IntegrationTestConfig config ->
     }
 }
 
-def junit5VintageEngine = libs.junit5VintageEngine.get()
-def junit6VintageEngine = libs.junit6VintageEngine.get()
-
 def testConfigFor = (TestType testType) -> {
     switch (testType) {
         case TestType.PLAIN:
@@ -229,6 +226,7 @@ def testConfigFor = (TestType testType) -> {
                     archunitTestArtifact: 'archunit-junit4'
             )
         case TestType.JUNIT5:
+            def junit5VintageEngine = libs.junit5VintageEngine.get()
             return new IntegrationTestConfig(
                     javaVersion: integrationTestJavaVersion,
                     testType: testType,
@@ -243,6 +241,7 @@ def testConfigFor = (TestType testType) -> {
             </dependency>"""
             )
         case TestType.JUNIT6:
+            def junit6VintageEngine = libs.junit6VintageEngine.get()
             return new IntegrationTestConfig(
                     javaVersion: integrationTestJavaVersion,
                     testType: testType,
