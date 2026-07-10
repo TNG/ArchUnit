@@ -21,12 +21,12 @@ import static com.google.common.collect.Sets.union;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class FormattersTest {
 
@@ -81,10 +81,10 @@ public class FormattersTest {
         }
 
         return ImmutableList.<Arguments>builder()
-                .add($("", ""))
-                .add($(SomeClass.class.getSimpleName(), SomeClass.class.getSimpleName()))
+                .add(arguments("", ""))
+                .add(arguments(SomeClass.class.getSimpleName(), SomeClass.class.getSimpleName()))
                 .addAll(generateCanonicalNameTestCases(union(ImmutableSet.of(String.class, SomeClass.class), allRelevantPrimitiveTypes())))
-                .add($("[[Lorg.example.Some$Inner;", "org.example.Some$Inner[][]"))
+                .add(arguments("[[Lorg.example.Some$Inner;", "org.example.Some$Inner[][]"))
                 .build();
     }
 
@@ -95,13 +95,13 @@ public class FormattersTest {
     private static List<Arguments> generateCanonicalNameTestCases(Iterable<Class<?>> classes) {
         List<Arguments> result = new ArrayList<>();
         for (Class<?> componentType : classes) {
-            result.add($(componentType.getName(), componentType.getName()));
+            result.add(arguments(componentType.getName(), componentType.getName()));
 
             Class<?> oneDim = Array.newInstance(componentType, 0).getClass();
-            result.add($(oneDim.getName(), componentType.getName() + "[]"));
+            result.add(arguments(oneDim.getName(), componentType.getName() + "[]"));
 
             Class<?> twoDim = Array.newInstance(oneDim, 0).getClass();
-            result.add($(twoDim.getName(), componentType.getName() + "[][]"));
+            result.add(arguments(twoDim.getName(), componentType.getName() + "[][]"));
         }
         return result;
     }
@@ -114,11 +114,11 @@ public class FormattersTest {
 
     static Stream<Arguments> test_joinSingleQuoted() {
         return Stream.of(
-                $(new String[0], ""),
-                $(new String[]{"one"}, "'one'"),
-                $(new String[]{"one", "two"}, "'one', 'two'"),
-                $(new String[]{"one", "two", "three"}, "'one', 'two', 'three'"),
-                $(new String[]{"", ""}, "'', ''")
+                arguments(new String[0], ""),
+                arguments(new String[]{"one"}, "'one'"),
+                arguments(new String[]{"one", "two"}, "'one', 'two'"),
+                arguments(new String[]{"one", "two", "three"}, "'one', 'two', 'three'"),
+                arguments(new String[]{"", ""}, "'', ''")
         );
     }
 

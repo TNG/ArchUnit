@@ -15,15 +15,15 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassesShouldNewerJavaVersionTest {
 
     static Stream<Arguments> be_records() {
         return Stream.of(
-                $(classes().should().beRecords(), SomeRecord.class, String.class),
-                $(classes().should(ArchConditions.beRecords()), SomeRecord.class, String.class));
+                arguments(classes().should().beRecords(), SomeRecord.class, String.class),
+                arguments(classes().should(ArchConditions.beRecords()), SomeRecord.class, String.class));
     }
 
     @ParameterizedTest
@@ -41,8 +41,8 @@ public class ClassesShouldNewerJavaVersionTest {
 
     static Stream<Arguments> not_be_records() {
         return Stream.of(
-                $(classes().should().notBeRecords(), String.class, SomeRecord.class),
-                $(classes().should(ArchConditions.notBeRecords()), String.class, SomeRecord.class));
+                arguments(classes().should().notBeRecords(), String.class, SomeRecord.class),
+                arguments(classes().should(ArchConditions.notBeRecords()), String.class, SomeRecord.class));
     }
 
     @ParameterizedTest

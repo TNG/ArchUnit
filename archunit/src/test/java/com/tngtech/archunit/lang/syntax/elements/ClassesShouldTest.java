@@ -72,10 +72,10 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassesShouldTest {
     static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
@@ -85,8 +85,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> haveFullyQualifiedName_rules() {
         return Stream.of(
-                $(classes().should().haveFullyQualifiedName(SomeClass.class.getName())),
-                $(classes().should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())))
+                arguments(classes().should().haveFullyQualifiedName(SomeClass.class.getName())),
+                arguments(classes().should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())))
         );
     }
 
@@ -106,8 +106,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notHaveFullyQualifiedName_rules() {
         return Stream.of(
-                $(classes().should().notHaveFullyQualifiedName(WrongNamedClass.class.getName())),
-                $(classes().should(ArchConditions.notHaveFullyQualifiedName(WrongNamedClass.class.getName())))
+                arguments(classes().should().notHaveFullyQualifiedName(WrongNamedClass.class.getName())),
+                arguments(classes().should(ArchConditions.notHaveFullyQualifiedName(WrongNamedClass.class.getName())))
         );
     }
 
@@ -125,8 +125,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> haveSimpleName_rules() {
         return Stream.of(
-                $(classes().should().haveSimpleName(SomeClass.class.getSimpleName())),
-                $(classes().should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())))
+                arguments(classes().should().haveSimpleName(SomeClass.class.getSimpleName())),
+                arguments(classes().should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())))
         );
     }
 
@@ -147,8 +147,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notHaveSimpleName_rules() {
         return Stream.of(
-                $(classes().should().notHaveSimpleName(WrongNamedClass.class.getSimpleName())),
-                $(classes().should(ArchConditions.notHaveSimpleName(WrongNamedClass.class.getSimpleName())))
+                arguments(classes().should().notHaveSimpleName(WrongNamedClass.class.getSimpleName())),
+                arguments(classes().should(ArchConditions.notHaveSimpleName(WrongNamedClass.class.getSimpleName())))
         );
     }
 
@@ -170,8 +170,8 @@ public class ClassesShouldTest {
     static Stream<Arguments> haveNameMatching_rules() {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
         return Stream.of(
-                $(classes().should().haveNameMatching(regex), regex),
-                $(classes().should(ArchConditions.haveNameMatching(regex)), regex)
+                arguments(classes().should().haveNameMatching(regex), regex),
+                arguments(classes().should(ArchConditions.haveNameMatching(regex)), regex)
         );
     }
 
@@ -193,8 +193,8 @@ public class ClassesShouldTest {
     static Stream<Arguments> haveNameNotMatching_rules() {
         String regex = containsPartOfRegex(WrongNamedClass.class.getSimpleName());
         return Stream.of(
-                $(classes().should().haveNameNotMatching(regex), regex),
-                $(classes().should(ArchConditions.haveNameNotMatching(regex)), regex)
+                arguments(classes().should().haveNameNotMatching(regex), regex),
+                arguments(classes().should(ArchConditions.haveNameNotMatching(regex)), regex)
         );
     }
 
@@ -217,8 +217,8 @@ public class ClassesShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         return Stream.of(
-                $(classes().should().haveSimpleNameStartingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleNameStartingWith(prefix)), prefix)
+                arguments(classes().should().haveSimpleNameStartingWith(prefix), prefix),
+                arguments(classes().should(ArchConditions.haveSimpleNameStartingWith(prefix)), prefix)
         );
     }
 
@@ -241,8 +241,8 @@ public class ClassesShouldTest {
         String simpleName = WrongNamedClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         return Stream.of(
-                $(classes().should().haveSimpleNameNotStartingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleNameNotStartingWith(prefix)), prefix)
+                arguments(classes().should().haveSimpleNameNotStartingWith(prefix), prefix),
+                arguments(classes().should(ArchConditions.haveSimpleNameNotStartingWith(prefix)), prefix)
         );
     }
 
@@ -265,8 +265,8 @@ public class ClassesShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         return Stream.of(
-                $(classes().should().haveSimpleNameContaining(infix), infix),
-                $(classes().should(ArchConditions.haveSimpleNameContaining(infix)), infix)
+                arguments(classes().should().haveSimpleNameContaining(infix), infix),
+                arguments(classes().should(ArchConditions.haveSimpleNameContaining(infix)), infix)
         );
     }
 
@@ -289,8 +289,8 @@ public class ClassesShouldTest {
         String simpleName = WrongNamedClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         return Stream.of(
-                $(classes().should().haveSimpleNameNotContaining(infix), infix),
-                $(classes().should(ArchConditions.haveSimpleNameNotContaining(infix)), infix)
+                arguments(classes().should().haveSimpleNameNotContaining(infix), infix),
+                arguments(classes().should(ArchConditions.haveSimpleNameNotContaining(infix)), infix)
         );
     }
 
@@ -313,8 +313,8 @@ public class ClassesShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
         return Stream.of(
-                $(classes().should().haveSimpleNameEndingWith(suffix), suffix),
-                $(classes().should(ArchConditions.haveSimpleNameEndingWith(suffix)), suffix)
+                arguments(classes().should().haveSimpleNameEndingWith(suffix), suffix),
+                arguments(classes().should(ArchConditions.haveSimpleNameEndingWith(suffix)), suffix)
         );
     }
 
@@ -337,8 +337,8 @@ public class ClassesShouldTest {
         String simpleName = WrongNamedClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
         return Stream.of(
-                $(classes().should().haveSimpleNameNotEndingWith(suffix), suffix),
-                $(classes().should(ArchConditions.haveSimpleNameNotEndingWith(suffix)), suffix)
+                arguments(classes().should().haveSimpleNameNotEndingWith(suffix), suffix),
+                arguments(classes().should(ArchConditions.haveSimpleNameNotEndingWith(suffix)), suffix)
         );
     }
 
@@ -360,8 +360,8 @@ public class ClassesShouldTest {
     static Stream<Arguments> resideInAPackage_rules() {
         String thePackage = ArchRule.class.getPackage().getName();
         return Stream.of(
-                $(classes().should().resideInAPackage(thePackage), thePackage),
-                $(classes().should(ArchConditions.resideInAPackage(thePackage)), thePackage)
+                arguments(classes().should().resideInAPackage(thePackage), thePackage),
+                arguments(classes().should(ArchConditions.resideInAPackage(thePackage)), thePackage)
         );
     }
 
@@ -388,10 +388,8 @@ public class ClassesShouldTest {
         String firstPackage = ArchRule.class.getPackage().getName();
         String secondPackage = ArchConfiguration.class.getPackage().getName();
         return Stream.of(
-                $(classes().should().resideInAnyPackage(firstPackage, secondPackage),
-                        new String[]{firstPackage, secondPackage}),
-                $(classes().should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
-                        new String[]{firstPackage, secondPackage})
+                arguments(classes().should().resideInAnyPackage(firstPackage, secondPackage), new String[]{firstPackage, secondPackage}),
+                arguments(classes().should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)), new String[]{firstPackage, secondPackage})
         );
     }
 
@@ -415,8 +413,8 @@ public class ClassesShouldTest {
     static Stream<Arguments> resideOutsideOfPackage_rules() {
         String thePackage = ArchRule.class.getPackage().getName();
         return Stream.of(
-                $(classes().should().resideOutsideOfPackage(thePackage), thePackage),
-                $(classes().should(ArchConditions.resideOutsideOfPackage(thePackage)), thePackage)
+                arguments(classes().should().resideOutsideOfPackage(thePackage), thePackage),
+                arguments(classes().should(ArchConditions.resideOutsideOfPackage(thePackage)), thePackage)
         );
     }
 
@@ -443,10 +441,8 @@ public class ClassesShouldTest {
         String firstPackage = ArchRule.class.getPackage().getName();
         String secondPackage = ArchConfiguration.class.getPackage().getName();
         return Stream.of(
-                $(classes().should().resideOutsideOfPackages(firstPackage, secondPackage),
-                        new String[]{firstPackage, secondPackage}),
-                $(classes().should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
-                        new String[]{firstPackage, secondPackage})
+                arguments(classes().should().resideOutsideOfPackages(firstPackage, secondPackage), new String[]{firstPackage, secondPackage}),
+                arguments(classes().should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)), new String[]{firstPackage, secondPackage})
         );
     }
 
@@ -469,12 +465,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> visibility_rules() {
         return Stream.of(
-                $(classes().should().bePublic(), PUBLIC, PublicClass.class, PrivateClass.class),
-                $(classes().should(bePublic()), PUBLIC, PublicClass.class, PrivateClass.class),
-                $(classes().should().beProtected(), PROTECTED, ProtectedClass.class, PrivateClass.class),
-                $(classes().should(beProtected()), PROTECTED, ProtectedClass.class, PrivateClass.class),
-                $(classes().should().bePrivate(), PRIVATE, PrivateClass.class, PublicClass.class),
-                $(classes().should(bePrivate()), PRIVATE, PrivateClass.class, PublicClass.class));
+                arguments(classes().should().bePublic(), PUBLIC, PublicClass.class, PrivateClass.class),
+                arguments(classes().should(bePublic()), PUBLIC, PublicClass.class, PrivateClass.class),
+                arguments(classes().should().beProtected(), PROTECTED, ProtectedClass.class, PrivateClass.class),
+                arguments(classes().should(beProtected()), PROTECTED, ProtectedClass.class, PrivateClass.class),
+                arguments(classes().should().bePrivate(), PRIVATE, PrivateClass.class, PublicClass.class),
+                arguments(classes().should(bePrivate()), PRIVATE, PrivateClass.class, PublicClass.class));
     }
 
     @ParameterizedTest
@@ -490,12 +486,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> not_visibility_rules() {
         return Stream.of(
-                $(classes().should().notBePublic(), PUBLIC, PrivateClass.class, PublicClass.class),
-                $(classes().should(notBePublic()), PUBLIC, PrivateClass.class, PublicClass.class),
-                $(classes().should().notBeProtected(), PROTECTED, PrivateClass.class, ProtectedClass.class),
-                $(classes().should(notBeProtected()), PROTECTED, PrivateClass.class, ProtectedClass.class),
-                $(classes().should().notBePrivate(), PRIVATE, PublicClass.class, PrivateClass.class),
-                $(classes().should(notBePrivate()), PRIVATE, PublicClass.class, PrivateClass.class));
+                arguments(classes().should().notBePublic(), PUBLIC, PrivateClass.class, PublicClass.class),
+                arguments(classes().should(notBePublic()), PUBLIC, PrivateClass.class, PublicClass.class),
+                arguments(classes().should().notBeProtected(), PROTECTED, PrivateClass.class, ProtectedClass.class),
+                arguments(classes().should(notBeProtected()), PROTECTED, PrivateClass.class, ProtectedClass.class),
+                arguments(classes().should().notBePrivate(), PRIVATE, PublicClass.class, PrivateClass.class),
+                arguments(classes().should(notBePrivate()), PRIVATE, PublicClass.class, PrivateClass.class));
     }
 
     @ParameterizedTest
@@ -511,8 +507,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> package_private_visibility_rules() {
         return Stream.of(
-                $(classes().should().bePackagePrivate(), "be package private"),
-                $(classes().should(bePackagePrivate()), "be package private"));
+                arguments(classes().should().bePackagePrivate(), "be package private"),
+                arguments(classes().should(bePackagePrivate()), "be package private"));
     }
 
     @ParameterizedTest
@@ -528,8 +524,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> non_package_private_visibility_rules() {
         return Stream.of(
-                $(classes().should().notBePackagePrivate(), "not be package private"),
-                $(classes().should(notBePackagePrivate()), "not be package private"));
+                arguments(classes().should().notBePackagePrivate(), "not be package private"),
+                arguments(classes().should(notBePackagePrivate()), "not be package private"));
     }
 
     @ParameterizedTest
@@ -548,14 +544,10 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> modifiers_rules() {
         return Stream.of(
-                $(classes().should().haveModifier(PUBLIC), "", PUBLIC,
-                        PublicClass.class, PrivateClass.class),
-                $(classes().should(haveModifier(PUBLIC)), "", PUBLIC,
-                        PublicClass.class, PrivateClass.class),
-                $(classes().should().notHaveModifier(PUBLIC), "not ", PUBLIC,
-                        PrivateClass.class, PublicClass.class),
-                $(classes().should(notHaveModifier(PUBLIC)), "not ", PUBLIC,
-                        PrivateClass.class, PublicClass.class));
+                arguments(classes().should().haveModifier(PUBLIC), "", PUBLIC, PublicClass.class, PrivateClass.class),
+                arguments(classes().should(haveModifier(PUBLIC)), "", PUBLIC, PublicClass.class, PrivateClass.class),
+                arguments(classes().should().notHaveModifier(PUBLIC), "not ", PUBLIC, PrivateClass.class, PublicClass.class),
+                arguments(classes().should(notHaveModifier(PUBLIC)), "not ", PUBLIC, PrivateClass.class, PublicClass.class));
     }
 
     @ParameterizedTest
@@ -573,18 +565,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> annotated_rules() {
         return Stream.of(
-                $(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class.getName()),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class.getName())),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should().beAnnotatedWith(annotation(RuntimeRetentionAnnotation.class)),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beAnnotatedWith(annotation(RuntimeRetentionAnnotation.class))),
-                        SomeAnnotatedClass.class, String.class));
+                arguments(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should().beAnnotatedWith(RuntimeRetentionAnnotation.class.getName()), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class.getName())), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should().beAnnotatedWith(annotation(RuntimeRetentionAnnotation.class)), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should(ArchConditions.beAnnotatedWith(annotation(RuntimeRetentionAnnotation.class))), SomeAnnotatedClass.class, String.class));
     }
 
     @ParameterizedTest
@@ -615,18 +601,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notAnnotated_rules() {
         return Stream.of(
-                $(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class.getName()),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class.getName())),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should().notBeAnnotatedWith(annotation(RuntimeRetentionAnnotation.class)),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeAnnotatedWith(annotation(RuntimeRetentionAnnotation.class))),
-                        String.class, SomeAnnotatedClass.class));
+                arguments(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class.getName()), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class.getName())), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should().notBeAnnotatedWith(annotation(RuntimeRetentionAnnotation.class)), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should(ArchConditions.notBeAnnotatedWith(annotation(RuntimeRetentionAnnotation.class))), String.class, SomeAnnotatedClass.class));
     }
 
     @ParameterizedTest
@@ -645,18 +625,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> metaAnnotated_rules() {
         return Stream.of(
-                $(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class)),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class.getName()),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class.getName())),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should().beMetaAnnotatedWith(annotation(SomeMetaAnnotation.class)),
-                        SomeAnnotatedClass.class, String.class),
-                $(classes().should(ArchConditions.beMetaAnnotatedWith(annotation(SomeMetaAnnotation.class))),
-                        SomeAnnotatedClass.class, String.class));
+                arguments(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class)), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class.getName()), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class.getName())), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should().beMetaAnnotatedWith(annotation(SomeMetaAnnotation.class)), SomeAnnotatedClass.class, String.class),
+                arguments(classes().should(ArchConditions.beMetaAnnotatedWith(annotation(SomeMetaAnnotation.class))), SomeAnnotatedClass.class, String.class));
     }
 
     @ParameterizedTest
@@ -675,18 +649,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notMetaAnnotated_rules() {
         return Stream.of(
-                $(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class)),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class.getName()),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class.getName())),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should().notBeMetaAnnotatedWith(annotation(SomeMetaAnnotation.class)),
-                        String.class, SomeAnnotatedClass.class),
-                $(classes().should(ArchConditions.notBeMetaAnnotatedWith(annotation(SomeMetaAnnotation.class))),
-                        String.class, SomeAnnotatedClass.class));
+                arguments(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class)), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class.getName()), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class.getName())), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should().notBeMetaAnnotatedWith(annotation(SomeMetaAnnotation.class)), String.class, SomeAnnotatedClass.class),
+                arguments(classes().should(ArchConditions.notBeMetaAnnotatedWith(annotation(SomeMetaAnnotation.class))), String.class, SomeAnnotatedClass.class));
     }
 
     @ParameterizedTest
@@ -717,12 +685,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> implement_satisfied_rules() {
         return Stream.of(
-                $(classes().should().implement(Collection.class), ArrayList.class),
-                $(classes().should(ArchConditions.implement(Collection.class)), ArrayList.class),
-                $(classes().should().implement(Collection.class.getName()), ArrayList.class),
-                $(classes().should(ArchConditions.implement(Collection.class.getName())), ArrayList.class),
-                $(classes().should().implement(name(Collection.class.getName()).as(Collection.class.getName())), ArrayList.class),
-                $(classes().should(ArchConditions.implement(name(Collection.class.getName()).as(Collection.class.getName()))), ArrayList.class));
+                arguments(classes().should().implement(Collection.class), ArrayList.class),
+                arguments(classes().should(ArchConditions.implement(Collection.class)), ArrayList.class),
+                arguments(classes().should().implement(Collection.class.getName()), ArrayList.class),
+                arguments(classes().should(ArchConditions.implement(Collection.class.getName())), ArrayList.class),
+                arguments(classes().should().implement(name(Collection.class.getName()).as(Collection.class.getName())), ArrayList.class),
+                arguments(classes().should(ArchConditions.implement(name(Collection.class.getName()).as(Collection.class.getName()))), ArrayList.class));
     }
 
     @ParameterizedTest
@@ -750,18 +718,12 @@ public class ClassesShouldTest {
 
     private static List<Arguments> implementNotSatisfiedCases(Class<?> classToCheckAgainst, Class<?> violating) {
         return ImmutableList.of(
-                $(classes().should().implement(classToCheckAgainst),
-                        classToCheckAgainst, violating),
-                $(classes().should(ArchConditions.implement(classToCheckAgainst)),
-                        classToCheckAgainst, violating),
-                $(classes().should().implement(classToCheckAgainst.getName()),
-                        classToCheckAgainst, violating),
-                $(classes().should(ArchConditions.implement(classToCheckAgainst.getName())),
-                        classToCheckAgainst, violating),
-                $(classes().should().implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName())),
-                        classToCheckAgainst, violating),
-                $(classes().should(ArchConditions.implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName()))),
-                        classToCheckAgainst, violating));
+                arguments(classes().should().implement(classToCheckAgainst), classToCheckAgainst, violating),
+                arguments(classes().should(ArchConditions.implement(classToCheckAgainst)), classToCheckAgainst, violating),
+                arguments(classes().should().implement(classToCheckAgainst.getName()), classToCheckAgainst, violating),
+                arguments(classes().should(ArchConditions.implement(classToCheckAgainst.getName())), classToCheckAgainst, violating),
+                arguments(classes().should().implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName())), classToCheckAgainst, violating),
+                arguments(classes().should(ArchConditions.implement(name(classToCheckAgainst.getName()).as(classToCheckAgainst.getName()))), classToCheckAgainst, violating));
     }
 
     @ParameterizedTest
@@ -779,13 +741,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notImplement_rules() {
         return Stream.of(
-                $(classes().should().notImplement(Collection.class), List.class, ArrayList.class),
-                $(classes().should(ArchConditions.notImplement(Collection.class)), List.class, ArrayList.class),
-                $(classes().should().notImplement(Collection.class.getName()), List.class, ArrayList.class),
-                $(classes().should(ArchConditions.notImplement(Collection.class.getName())), List.class, ArrayList.class),
-                $(classes().should().notImplement(name(Collection.class.getName()).as(Collection.class.getName())), List.class, ArrayList.class),
-                $(classes().should(ArchConditions.notImplement(name(Collection.class.getName()).as(Collection.class.getName()))),
-                        List.class, ArrayList.class));
+                arguments(classes().should().notImplement(Collection.class), List.class, ArrayList.class),
+                arguments(classes().should(ArchConditions.notImplement(Collection.class)), List.class, ArrayList.class),
+                arguments(classes().should().notImplement(Collection.class.getName()), List.class, ArrayList.class),
+                arguments(classes().should(ArchConditions.notImplement(Collection.class.getName())), List.class, ArrayList.class),
+                arguments(classes().should().notImplement(name(Collection.class.getName()).as(Collection.class.getName())), List.class, ArrayList.class),
+                arguments(classes().should(ArchConditions.notImplement(name(Collection.class.getName()).as(Collection.class.getName()))), List.class, ArrayList.class));
     }
 
     @ParameterizedTest
@@ -811,13 +772,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> assignableTo_rules() {
         return Stream.of(
-                $(classes().should().beAssignableTo(Collection.class), List.class, String.class),
-                $(classes().should(ArchConditions.beAssignableTo(Collection.class)), List.class, String.class),
-                $(classes().should().beAssignableTo(Collection.class.getName()), List.class, String.class),
-                $(classes().should(ArchConditions.beAssignableTo(Collection.class.getName())), List.class, String.class),
-                $(classes().should().beAssignableTo(name(Collection.class.getName()).as(Collection.class.getName())), List.class, String.class),
-                $(classes().should(ArchConditions.beAssignableTo(name(Collection.class.getName()).as(Collection.class.getName()))),
-                        List.class, String.class));
+                arguments(classes().should().beAssignableTo(Collection.class), List.class, String.class),
+                arguments(classes().should(ArchConditions.beAssignableTo(Collection.class)), List.class, String.class),
+                arguments(classes().should().beAssignableTo(Collection.class.getName()), List.class, String.class),
+                arguments(classes().should(ArchConditions.beAssignableTo(Collection.class.getName())), List.class, String.class),
+                arguments(classes().should().beAssignableTo(name(Collection.class.getName()).as(Collection.class.getName())), List.class, String.class),
+                arguments(classes().should(ArchConditions.beAssignableTo(name(Collection.class.getName()).as(Collection.class.getName()))), List.class, String.class));
     }
 
     @ParameterizedTest
@@ -836,13 +796,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notAssignableTo_rules() {
         return Stream.of(
-                $(classes().should().notBeAssignableTo(Collection.class), String.class, List.class),
-                $(classes().should(ArchConditions.notBeAssignableTo(Collection.class)), String.class, List.class),
-                $(classes().should().notBeAssignableTo(Collection.class.getName()), String.class, List.class),
-                $(classes().should(ArchConditions.notBeAssignableTo(Collection.class.getName())), String.class, List.class),
-                $(classes().should().notBeAssignableTo(name(Collection.class.getName()).as(Collection.class.getName())), String.class, List.class),
-                $(classes().should(ArchConditions.notBeAssignableTo(name(Collection.class.getName()).as(Collection.class.getName()))),
-                        String.class, List.class));
+                arguments(classes().should().notBeAssignableTo(Collection.class), String.class, List.class),
+                arguments(classes().should(ArchConditions.notBeAssignableTo(Collection.class)), String.class, List.class),
+                arguments(classes().should().notBeAssignableTo(Collection.class.getName()), String.class, List.class),
+                arguments(classes().should(ArchConditions.notBeAssignableTo(Collection.class.getName())), String.class, List.class),
+                arguments(classes().should().notBeAssignableTo(name(Collection.class.getName()).as(Collection.class.getName())), String.class, List.class),
+                arguments(classes().should(ArchConditions.notBeAssignableTo(name(Collection.class.getName()).as(Collection.class.getName()))), String.class, List.class));
     }
 
     @ParameterizedTest
@@ -861,13 +820,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> assignableFrom_rules() {
         return Stream.of(
-                $(classes().should().beAssignableFrom(List.class), Collection.class, String.class),
-                $(classes().should(ArchConditions.beAssignableFrom(List.class)), Collection.class, String.class),
-                $(classes().should().beAssignableFrom(List.class.getName()), Collection.class, String.class),
-                $(classes().should(ArchConditions.beAssignableFrom(List.class.getName())), Collection.class, String.class),
-                $(classes().should().beAssignableFrom(name(List.class.getName()).as(List.class.getName())), Collection.class, String.class),
-                $(classes().should(ArchConditions.beAssignableFrom(name(List.class.getName()).as(List.class.getName()))),
-                        Collection.class, String.class));
+                arguments(classes().should().beAssignableFrom(List.class), Collection.class, String.class),
+                arguments(classes().should(ArchConditions.beAssignableFrom(List.class)), Collection.class, String.class),
+                arguments(classes().should().beAssignableFrom(List.class.getName()), Collection.class, String.class),
+                arguments(classes().should(ArchConditions.beAssignableFrom(List.class.getName())), Collection.class, String.class),
+                arguments(classes().should().beAssignableFrom(name(List.class.getName()).as(List.class.getName())), Collection.class, String.class),
+                arguments(classes().should(ArchConditions.beAssignableFrom(name(List.class.getName()).as(List.class.getName()))), Collection.class, String.class));
     }
 
     @ParameterizedTest
@@ -886,13 +844,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notAssignableFrom_rules() {
         return Stream.of(
-                $(classes().should().notBeAssignableFrom(List.class), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBeAssignableFrom(List.class)), String.class, Collection.class),
-                $(classes().should().notBeAssignableFrom(List.class.getName()), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBeAssignableFrom(List.class.getName())), String.class, Collection.class),
-                $(classes().should().notBeAssignableFrom(name(List.class.getName()).as(List.class.getName())), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBeAssignableFrom(name(List.class.getName()).as(List.class.getName()))),
-                        String.class, Collection.class));
+                arguments(classes().should().notBeAssignableFrom(List.class), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.notBeAssignableFrom(List.class)), String.class, Collection.class),
+                arguments(classes().should().notBeAssignableFrom(List.class.getName()), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.notBeAssignableFrom(List.class.getName())), String.class, Collection.class),
+                arguments(classes().should().notBeAssignableFrom(name(List.class.getName()).as(List.class.getName())), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.notBeAssignableFrom(name(List.class.getName()).as(List.class.getName()))), String.class, Collection.class));
     }
 
     @ParameterizedTest
@@ -911,18 +868,18 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> accessField_rules() {
         return Stream.of(
-                $(classes().should().getField(ClassWithField.class, "field"), "get", "gets"),
-                $(classes().should(ArchConditions.getField(ClassWithField.class, "field")), "get", "gets"),
-                $(classes().should().getField(ClassWithField.class.getName(), "field"), "get", "gets"),
-                $(classes().should(ArchConditions.getField(ClassWithField.class.getName(), "field")), "get", "gets"),
-                $(classes().should().setField(ClassWithField.class, "field"), "set", "sets"),
-                $(classes().should(ArchConditions.setField(ClassWithField.class, "field")), "set", "sets"),
-                $(classes().should().setField(ClassWithField.class.getName(), "field"), "set", "sets"),
-                $(classes().should(ArchConditions.setField(ClassWithField.class.getName(), "field")), "set", "sets"),
-                $(classes().should().accessField(ClassWithField.class, "field"), "access", "(gets|sets)"),
-                $(classes().should(ArchConditions.accessField(ClassWithField.class, "field")), "access", "(gets|sets)"),
-                $(classes().should().accessField(ClassWithField.class.getName(), "field"), "access", "(gets|sets)"),
-                $(classes().should(ArchConditions.accessField(ClassWithField.class.getName(), "field")), "access", "(gets|sets)")
+                arguments(classes().should().getField(ClassWithField.class, "field"), "get", "gets"),
+                arguments(classes().should(ArchConditions.getField(ClassWithField.class, "field")), "get", "gets"),
+                arguments(classes().should().getField(ClassWithField.class.getName(), "field"), "get", "gets"),
+                arguments(classes().should(ArchConditions.getField(ClassWithField.class.getName(), "field")), "get", "gets"),
+                arguments(classes().should().setField(ClassWithField.class, "field"), "set", "sets"),
+                arguments(classes().should(ArchConditions.setField(ClassWithField.class, "field")), "set", "sets"),
+                arguments(classes().should().setField(ClassWithField.class.getName(), "field"), "set", "sets"),
+                arguments(classes().should(ArchConditions.setField(ClassWithField.class.getName(), "field")), "set", "sets"),
+                arguments(classes().should().accessField(ClassWithField.class, "field"), "access", "(gets|sets)"),
+                arguments(classes().should(ArchConditions.accessField(ClassWithField.class, "field")), "access", "(gets|sets)"),
+                arguments(classes().should().accessField(ClassWithField.class.getName(), "field"), "access", "(gets|sets)"),
+                arguments(classes().should(ArchConditions.accessField(ClassWithField.class.getName(), "field")), "access", "(gets|sets)")
         );
     }
 
@@ -945,12 +902,12 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> accessFieldWhere_rules() {
         return Stream.of(
-                $(classes().should().getFieldWhere(accessTargetIs(ClassWithField.class)), "get", "gets"),
-                $(classes().should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))), "get", "gets"),
-                $(classes().should().setFieldWhere(accessTargetIs(ClassWithField.class)), "set", "sets"),
-                $(classes().should(ArchConditions.setFieldWhere(accessTargetIs(ClassWithField.class))), "set", "sets"),
-                $(classes().should().accessFieldWhere(accessTargetIs(ClassWithField.class)), "access", "(gets|sets)"),
-                $(classes().should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))), "access", "(gets|sets)")
+                arguments(classes().should().getFieldWhere(accessTargetIs(ClassWithField.class)), "get", "gets"),
+                arguments(classes().should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))), "get", "gets"),
+                arguments(classes().should().setFieldWhere(accessTargetIs(ClassWithField.class)), "set", "sets"),
+                arguments(classes().should(ArchConditions.setFieldWhere(accessTargetIs(ClassWithField.class))), "set", "sets"),
+                arguments(classes().should().accessFieldWhere(accessTargetIs(ClassWithField.class)), "access", "(gets|sets)"),
+                arguments(classes().should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))), "access", "(gets|sets)")
         );
     }
 
@@ -1028,8 +985,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> callMethodWhere_rules() {
         return Stream.of(
-                $(classes().should().callMethodWhere(callTargetIs(ClassWithMethod.class))),
-                $(classes().should(ArchConditions.callMethodWhere(callTargetIs(ClassWithMethod.class))))
+                arguments(classes().should().callMethodWhere(callTargetIs(ClassWithMethod.class))),
+                arguments(classes().should(ArchConditions.callMethodWhere(callTargetIs(ClassWithMethod.class))))
         );
     }
 
@@ -1055,8 +1012,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> onlyCallMethodsThat_rules() {
         return Stream.of(
-                $(classes().should().onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))),
-                $(classes().should(ArchConditions.onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))))
+                arguments(classes().should().onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))),
+                arguments(classes().should(ArchConditions.onlyCallMethodsThat(are(declaredIn(ClassWithMethod.class)))))
         );
     }
 
@@ -1082,10 +1039,10 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> callConstructor_rules() {
         return Stream.of(
-                $(classes().should().callConstructor(ClassWithConstructor.class, String.class)),
-                $(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class, String.class))),
-                $(classes().should().callConstructor(ClassWithConstructor.class.getName(), String.class.getName())),
-                $(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class.getName(), String.class.getName())))
+                arguments(classes().should().callConstructor(ClassWithConstructor.class, String.class)),
+                arguments(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class, String.class))),
+                arguments(classes().should().callConstructor(ClassWithConstructor.class.getName(), String.class.getName())),
+                arguments(classes().should(ArchConditions.callConstructor(ClassWithConstructor.class.getName(), String.class.getName())))
         );
     }
 
@@ -1108,8 +1065,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> callConstructorWhere_rules() {
         return Stream.of(
-                $(classes().should().callConstructorWhere(callTargetIs(ClassWithConstructor.class))),
-                $(classes().should(ArchConditions.callConstructorWhere(callTargetIs(ClassWithConstructor.class))))
+                arguments(classes().should().callConstructorWhere(callTargetIs(ClassWithConstructor.class))),
+                arguments(classes().should(ArchConditions.callConstructorWhere(callTargetIs(ClassWithConstructor.class))))
         );
     }
 
@@ -1132,8 +1089,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> onlyCallConstructorsThat_rules() {
         return Stream.of(
-                $(classes().should().onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))),
-                $(classes().should(ArchConditions.onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))))
+                arguments(classes().should().onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))),
+                arguments(classes().should(ArchConditions.onlyCallConstructorsThat(are(declaredIn(ClassWithConstructor.class)))))
         );
     }
 
@@ -1159,8 +1116,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> accessTargetWhere_rules() {
         return Stream.of(
-                $(classes().should().accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
-                $(classes().should(ArchConditions.accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
+                arguments(classes().should().accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
+                arguments(classes().should(ArchConditions.accessTargetWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
         );
     }
 
@@ -1190,8 +1147,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> callCodeUnitWhere_rules() {
         return Stream.of(
-                $(classes().should().callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
-                $(classes().should(ArchConditions.callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
+                arguments(classes().should().callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))),
+                arguments(classes().should(ArchConditions.callCodeUnitWhere(accessTargetIs(ClassWithFieldMethodAndConstructor.class))))
         );
     }
 
@@ -1221,8 +1178,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> onlyCallCodeUnitsThat_rules() {
         return Stream.of(
-                $(classes().should().onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
-                $(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
+                arguments(classes().should().onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
+                arguments(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
         );
     }
 
@@ -1255,8 +1212,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> onlyAccessMembersThat_rules() {
         return Stream.of(
-                $(classes().should().onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
-                $(classes().should(ArchConditions.onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
+                arguments(classes().should().onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))),
+                arguments(classes().should(ArchConditions.onlyAccessMembersThat(are(declaredIn(ClassWithFieldMethodAndConstructor.class)))))
         );
     }
 
@@ -1289,8 +1246,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> beInterfaces_rules() {
         return Stream.of(
-                $(classes().should().beInterfaces(), Collection.class, String.class),
-                $(classes().should(ArchConditions.beInterfaces()), Collection.class, String.class));
+                arguments(classes().should().beInterfaces(), Collection.class, String.class),
+                arguments(classes().should(ArchConditions.beInterfaces()), Collection.class, String.class));
     }
 
     @ParameterizedTest
@@ -1308,8 +1265,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notBeInterfaces_rules() {
         return Stream.of(
-                $(classes().should().notBeInterfaces(), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBeInterfaces()), String.class, Collection.class));
+                arguments(classes().should().notBeInterfaces(), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.notBeInterfaces()), String.class, Collection.class));
     }
 
     @ParameterizedTest
@@ -1327,8 +1284,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> beEnums_rules() {
         return Stream.of(
-                $(classes().should().beEnums(), StandardCopyOption.class, String.class),
-                $(classes().should(ArchConditions.beEnums()), StandardCopyOption.class, String.class));
+                arguments(classes().should().beEnums(), StandardCopyOption.class, String.class),
+                arguments(classes().should(ArchConditions.beEnums()), StandardCopyOption.class, String.class));
     }
 
     @ParameterizedTest
@@ -1346,8 +1303,8 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notBeEnums_rules() {
         return Stream.of(
-                $(classes().should().notBeEnums(), String.class, StandardCopyOption.class),
-                $(classes().should(ArchConditions.notBeEnums()), String.class, StandardCopyOption.class));
+                arguments(classes().should().notBeEnums(), String.class, StandardCopyOption.class),
+                arguments(classes().should(ArchConditions.notBeEnums()), String.class, StandardCopyOption.class));
     }
 
     @ParameterizedTest
@@ -1368,8 +1325,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().beTopLevelClasses(), topLevelClass, staticNestedClass),
-                $(classes().should(ArchConditions.beTopLevelClasses()), topLevelClass, staticNestedClass)
+                arguments(classes().should().beTopLevelClasses(), topLevelClass, staticNestedClass),
+                arguments(classes().should(ArchConditions.beTopLevelClasses()), topLevelClass, staticNestedClass)
         );
     }
 
@@ -1389,8 +1346,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().notBeTopLevelClasses(), staticNestedClass, topLevelClass),
-                $(classes().should(ArchConditions.notBeTopLevelClasses()), staticNestedClass, topLevelClass)
+                arguments(classes().should().notBeTopLevelClasses(), staticNestedClass, topLevelClass),
+                arguments(classes().should(ArchConditions.notBeTopLevelClasses()), staticNestedClass, topLevelClass)
         );
     }
 
@@ -1410,8 +1367,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().beNestedClasses(), staticNestedClass, topLevelClass),
-                $(classes().should(ArchConditions.beNestedClasses()), staticNestedClass, topLevelClass)
+                arguments(classes().should().beNestedClasses(), staticNestedClass, topLevelClass),
+                arguments(classes().should(ArchConditions.beNestedClasses()), staticNestedClass, topLevelClass)
         );
     }
 
@@ -1431,8 +1388,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().notBeNestedClasses(), topLevelClass, staticNestedClass),
-                $(classes().should(ArchConditions.notBeNestedClasses()), topLevelClass, staticNestedClass)
+                arguments(classes().should().notBeNestedClasses(), topLevelClass, staticNestedClass),
+                arguments(classes().should(ArchConditions.notBeNestedClasses()), topLevelClass, staticNestedClass)
         );
     }
 
@@ -1452,8 +1409,8 @@ public class ClassesShouldTest {
         Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
 
         return Stream.of(
-                $(classes().should().beMemberClasses(), staticNestedClass, anonymousClass),
-                $(classes().should(ArchConditions.beMemberClasses()), staticNestedClass, anonymousClass)
+                arguments(classes().should().beMemberClasses(), staticNestedClass, anonymousClass),
+                arguments(classes().should(ArchConditions.beMemberClasses()), staticNestedClass, anonymousClass)
         );
     }
 
@@ -1473,8 +1430,8 @@ public class ClassesShouldTest {
         Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
 
         return Stream.of(
-                $(classes().should().notBeMemberClasses(), anonymousClass, staticNestedClass),
-                $(classes().should(ArchConditions.notBeMemberClasses()), anonymousClass, staticNestedClass)
+                arguments(classes().should().notBeMemberClasses(), anonymousClass, staticNestedClass),
+                arguments(classes().should(ArchConditions.notBeMemberClasses()), anonymousClass, staticNestedClass)
         );
     }
 
@@ -1494,8 +1451,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().beInnerClasses(), innerMemberClass, staticNestedClass),
-                $(classes().should(ArchConditions.beInnerClasses()), innerMemberClass, staticNestedClass)
+                arguments(classes().should().beInnerClasses(), innerMemberClass, staticNestedClass),
+                arguments(classes().should(ArchConditions.beInnerClasses()), innerMemberClass, staticNestedClass)
         );
     }
 
@@ -1515,8 +1472,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().notBeInnerClasses(), staticNestedClass, nonStaticNestedClass),
-                $(classes().should(ArchConditions.notBeInnerClasses()), staticNestedClass, nonStaticNestedClass)
+                arguments(classes().should().notBeInnerClasses(), staticNestedClass, nonStaticNestedClass),
+                arguments(classes().should(ArchConditions.notBeInnerClasses()), staticNestedClass, nonStaticNestedClass)
         );
     }
 
@@ -1536,8 +1493,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().beAnonymousClasses(), anonymousClass, staticNestedClass),
-                $(classes().should(ArchConditions.beAnonymousClasses()), anonymousClass, staticNestedClass)
+                arguments(classes().should().beAnonymousClasses(), anonymousClass, staticNestedClass),
+                arguments(classes().should(ArchConditions.beAnonymousClasses()), anonymousClass, staticNestedClass)
         );
     }
 
@@ -1557,8 +1514,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().notBeAnonymousClasses(), staticNestedClass, anonymousClass),
-                $(classes().should(ArchConditions.notBeAnonymousClasses()), staticNestedClass, anonymousClass)
+                arguments(classes().should().notBeAnonymousClasses(), staticNestedClass, anonymousClass),
+                arguments(classes().should(ArchConditions.notBeAnonymousClasses()), staticNestedClass, anonymousClass)
         );
     }
 
@@ -1578,8 +1535,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().beLocalClasses(), localClass, staticNestedClass),
-                $(classes().should(ArchConditions.beLocalClasses()), localClass, staticNestedClass)
+                arguments(classes().should().beLocalClasses(), localClass, staticNestedClass),
+                arguments(classes().should(ArchConditions.beLocalClasses()), localClass, staticNestedClass)
         );
     }
 
@@ -1599,8 +1556,8 @@ public class ClassesShouldTest {
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return Stream.of(
-                $(classes().should().notBeLocalClasses(), staticNestedClass, localClass),
-                $(classes().should(ArchConditions.notBeLocalClasses()), staticNestedClass, localClass)
+                arguments(classes().should().notBeLocalClasses(), staticNestedClass, localClass),
+                arguments(classes().should(ArchConditions.notBeLocalClasses()), staticNestedClass, localClass)
         );
     }
 
@@ -1631,10 +1588,10 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> beClass_rules() {
         return Stream.of(
-                $(classes().should().be(String.class), String.class, Collection.class),
-                $(classes().should().be(String.class.getName()), String.class, Collection.class),
-                $(classes().should(ArchConditions.be(String.class)), String.class, Collection.class),
-                $(classes().should(ArchConditions.be(String.class.getName())), String.class, Collection.class));
+                arguments(classes().should().be(String.class), String.class, Collection.class),
+                arguments(classes().should().be(String.class.getName()), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.be(String.class)), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.be(String.class.getName())), String.class, Collection.class));
     }
 
     @ParameterizedTest
@@ -1653,10 +1610,10 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> notBeClass_rules() {
         return Stream.of(
-                $(classes().should().notBe(Collection.class), String.class, Collection.class),
-                $(classes().should().notBe(Collection.class.getName()), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBe(Collection.class)), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBe(Collection.class.getName())), String.class, Collection.class));
+                arguments(classes().should().notBe(Collection.class), String.class, Collection.class),
+                arguments(classes().should().notBe(Collection.class.getName()), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.notBe(Collection.class)), String.class, Collection.class),
+                arguments(classes().should(ArchConditions.notBe(Collection.class.getName())), String.class, Collection.class));
     }
 
     @ParameterizedTest
@@ -1675,16 +1632,16 @@ public class ClassesShouldTest {
 
     static Stream<Arguments> onlyAccessRules_rules() {
         return Stream.of(
-                $(classes().should().onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
-                $(classes().should(ArchConditions.onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
-                $(classes().should().onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class)))), ClassCallingConstructor.class),
-                $(classes().should(ArchConditions.onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class))))), ClassCallingConstructor.class),
-                $(classes().should().onlyCallCodeUnitsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
-                $(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
-                $(classes().should().onlyAccessFieldsThat(are(not(declaredIn(ClassWithField.class)))), ClassAccessingField.class),
-                $(classes().should(ArchConditions.onlyAccessFieldsThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class),
-                $(classes().should().onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class)))), ClassAccessingField.class),
-                $(classes().should(ArchConditions.onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class));
+                arguments(classes().should().onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
+                arguments(classes().should(ArchConditions.onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
+                arguments(classes().should().onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class)))), ClassCallingConstructor.class),
+                arguments(classes().should(ArchConditions.onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class))))), ClassCallingConstructor.class),
+                arguments(classes().should().onlyCallCodeUnitsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
+                arguments(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
+                arguments(classes().should().onlyAccessFieldsThat(are(not(declaredIn(ClassWithField.class)))), ClassAccessingField.class),
+                arguments(classes().should(ArchConditions.onlyAccessFieldsThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class),
+                arguments(classes().should().onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class)))), ClassAccessingField.class),
+                arguments(classes().should(ArchConditions.onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class));
     }
 
     @ParameterizedTest

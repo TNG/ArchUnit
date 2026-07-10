@@ -12,8 +12,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class JavaClassDescriptorTest {
 
@@ -156,8 +156,8 @@ public class JavaClassDescriptorTest {
 
     private static List<Arguments> namesToPrimitive(Class<?> primitiveType) {
         return ImmutableList.of(
-                $(primitiveType.getName(), primitiveType),
-                $(Type.getType(primitiveType).getDescriptor(), primitiveType));
+                arguments(primitiveType.getName(), primitiveType),
+                arguments(Type.getType(primitiveType).getDescriptor(), primitiveType));
     }
 
     static List<Arguments> arrays() {
@@ -185,7 +185,7 @@ public class JavaClassDescriptorTest {
 
     private static List<Arguments> namesToArray(Class<?> arrayType) {
         return ImmutableList.of(
-                $(arrayType.getName(), arrayType),
-                $(arrayType.getCanonicalName(), arrayType));
+                arguments(arrayType.getName(), arrayType),
+                arguments(arrayType.getCanonicalName(), arrayType));
     }
 }

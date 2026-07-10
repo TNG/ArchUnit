@@ -34,7 +34,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -42,6 +41,7 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public abstract class RandomSyntaxTestBase {
     private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTestBase.class);
@@ -74,7 +74,7 @@ public abstract class RandomSyntaxTestBase {
                         blueprint.parameterProviders,
                         ExpectedDescription.from(blueprint.seed, blueprint.descriptionReplacements))
                 )
-                .map(spec -> $(spec.getActualArchRule(), spec.getExpectedDescription()));
+                .map(spec -> arguments(spec.getActualArchRule(), spec.getExpectedDescription()));
     }
 
     @ParameterizedTest

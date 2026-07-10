@@ -26,11 +26,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class SourceTest {
     @AfterEach
@@ -49,13 +49,13 @@ public class SourceTest {
 
     static Stream<Arguments> expectedHexCodes() {
         return Stream.of(
-            $(new byte[]{0}, "00"),
-            $(new byte[]{15}, "0f"),
-            $(new byte[]{16}, "10"),
-            $(new byte[]{31}, "1f"),
-            $(new byte[]{32}, "20"),
-            $(new byte[]{(byte) 255}, "ff"),
-            $(new byte[]{(byte) 128, 37, 45, 22, 99}, "80252d1663")
+                arguments(new byte[]{0}, "00"),
+                arguments(new byte[]{15}, "0f"),
+                arguments(new byte[]{16}, "10"),
+                arguments(new byte[]{31}, "1f"),
+                arguments(new byte[]{32}, "20"),
+                arguments(new byte[]{(byte) 255}, "ff"),
+                arguments(new byte[]{(byte) 128, 37, 45, 22, 99}, "80252d1663")
         );
     }
 
@@ -93,9 +93,9 @@ public class SourceTest {
 
     static Stream<Arguments> equalMd5Sums() {
         return Stream.of(
-                $(Md5sum.UNDETERMINED, Md5sum.UNDETERMINED),
-                $(Md5sum.NOT_SUPPORTED, Md5sum.NOT_SUPPORTED),
-                $(md5sumOf("anything"), md5sumOf("anything")));
+                arguments(Md5sum.UNDETERMINED, Md5sum.UNDETERMINED),
+                arguments(Md5sum.NOT_SUPPORTED, Md5sum.NOT_SUPPORTED),
+                arguments(md5sumOf("anything"), md5sumOf("anything")));
     }
 
     @ParameterizedTest
@@ -126,7 +126,7 @@ public class SourceTest {
 
     private static List<Arguments> zip(List<?> first, List<?> second) {
         return IntStream.range(0, first.size())
-                .mapToObj(i -> $(first.get(i), second.get(i)))
+                .mapToObj(i -> arguments(first.get(i), second.get(i)))
                 .collect(toList());
     }
 

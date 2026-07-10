@@ -7,9 +7,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ArchModuleTest {
 
@@ -37,8 +37,8 @@ public class ArchModuleTest {
 
     static Stream<Arguments> illegal_indices() {
         return Stream.of(
-                $(ArchModule.Identifier.from("one"), 0),
-                $(ArchModule.Identifier.from("one"), 2)
+                arguments(ArchModule.Identifier.from("one"), 0),
+                arguments(ArchModule.Identifier.from("one"), 2)
         );
     }
 

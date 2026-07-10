@@ -16,10 +16,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class TransformersTest {
     @Test
@@ -33,25 +33,25 @@ public class TransformersTest {
 
     static Stream<Arguments> members_testcases() {
         return Stream.of(
-                $(Transformers.members(),
+                arguments(Transformers.members(),
                         Sets.union(
                                 createMemberStrings(ClassWithMembers.class,
                                         "field1", "field2", "<init>()", "<init>(java.lang.String)", "method1()", "method2()"),
                                 createMemberStrings(AnotherClassWithMembers.class, "field3", "<init>()", "method3()"))),
-                $(Transformers.fields(),
+                arguments(Transformers.fields(),
                         Sets.union(
                                 createMemberStrings(ClassWithMembers.class, "field1", "field2"),
                                 createMemberStrings(AnotherClassWithMembers.class, "field3"))),
-                $(Transformers.codeUnits(),
+                arguments(Transformers.codeUnits(),
                         Sets.union(
                                 createMemberStrings(ClassWithMembers.class,
                                         "<init>()", "<init>(java.lang.String)", "method1()", "method2()"),
                                 createMemberStrings(AnotherClassWithMembers.class, "<init>()", "method3()"))),
-                $(Transformers.methods(),
+                arguments(Transformers.methods(),
                         Sets.union(
                                 createMemberStrings(ClassWithMembers.class, "method1()", "method2()"),
                                 createMemberStrings(AnotherClassWithMembers.class, "method3()"))),
-                $(Transformers.constructors(),
+                arguments(Transformers.constructors(),
                         Sets.union(
                                 createMemberStrings(ClassWithMembers.class, "<init>()", "<init>(java.lang.String)"),
                                 createMemberStrings(AnotherClassWithMembers.class, "<init>()")))

@@ -97,7 +97,6 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -106,6 +105,7 @@ import static java.util.regex.Pattern.quote;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @SuppressWarnings("SameParameterValue")
 public class JavaClassTest {
@@ -193,13 +193,13 @@ public class JavaClassTest {
             SomePackagePrivateClass[] array;
         }
         return Stream.of(
-                $(PublicClassArray.class, String[].class),
-                $(PublicClassMultiDimArray.class, String[][].class),
-                $(PrimitiveClassArray.class, int[].class),
-                $(LocalClassArray.class, LocalClass[].class),
-                $(PrivateClassArray.class, SomePrivateClass[].class),
-                $(ProtectedClassArray.class, SomeProtectedClass[].class),
-                $(InnerPackagePrivateClassArray.class, SomePackagePrivateClass[].class)
+                arguments(PublicClassArray.class, String[].class),
+                arguments(PublicClassMultiDimArray.class, String[][].class),
+                arguments(PrimitiveClassArray.class, int[].class),
+                arguments(LocalClassArray.class, LocalClass[].class),
+                arguments(PrivateClassArray.class, SomePrivateClass[].class),
+                arguments(ProtectedClassArray.class, SomeProtectedClass[].class),
+                arguments(InnerPackagePrivateClassArray.class, SomePackagePrivateClass[].class)
         );
     }
 
@@ -1503,12 +1503,12 @@ public class JavaClassTest {
                 SecondDependingOnOtherThroughMethodTypeParameter.class
         );
         return Stream.of(
-                $(
+                arguments(
                         dependenciesThroughConstructorTypeParameters.get(FirstDependingOnOtherThroughConstructorTypeParameter.class),
                         dependenciesThroughConstructorTypeParameters.get(SecondDependingOnOtherThroughConstructorTypeParameter.class),
                         dependenciesThroughConstructorTypeParameters.get(ClassOtherConstructorTypeSignaturesDependOn.class)
                 ),
-                $(
+                arguments(
                         dependenciesThroughMethodTypeParameters.get(FirstDependingOnOtherThroughMethodTypeParameter.class),
                         dependenciesThroughMethodTypeParameters.get(SecondDependingOnOtherThroughMethodTypeParameter.class),
                         dependenciesThroughMethodTypeParameters.get(ClassOtherMethodTypeSignaturesDependOn.class)

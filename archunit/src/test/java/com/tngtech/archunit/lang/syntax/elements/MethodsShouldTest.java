@@ -14,19 +14,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class MethodsShouldTest {
 
     static Stream<Arguments> restricted_property_rule_ends() {
         return Stream.of(
-                $(methods().should().beFinal(), ImmutableSet.of(METHOD_C, METHOD_D)),
-                $(methods().should().notBeFinal(), ImmutableSet.of(METHOD_A, METHOD_B)),
-                $(methods().should().beStatic(), ImmutableSet.of(METHOD_A, METHOD_C)),
-                $(methods().should().notBeStatic(), ImmutableSet.of(METHOD_B, METHOD_D)),
-                $(methods().should().notBeFinal().andShould().notBeStatic(), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D)),
-                $(methods().should().notBeFinal().orShould().notBeStatic(), ImmutableSet.of(METHOD_B))
+                arguments(methods().should().beFinal(), ImmutableSet.of(METHOD_C, METHOD_D)),
+                arguments(methods().should().notBeFinal(), ImmutableSet.of(METHOD_A, METHOD_B)),
+                arguments(methods().should().beStatic(), ImmutableSet.of(METHOD_A, METHOD_C)),
+                arguments(methods().should().notBeStatic(), ImmutableSet.of(METHOD_B, METHOD_D)),
+                arguments(methods().should().notBeFinal().andShould().notBeStatic(), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D)),
+                arguments(methods().should().notBeFinal().orShould().notBeStatic(), ImmutableSet.of(METHOD_B))
         );
     }
 

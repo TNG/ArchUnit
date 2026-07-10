@@ -17,8 +17,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static com.tngtech.archunit.library.metrics.TestElement.GET_DEPENDENCIES;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.fromNode;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.graph;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class LakosMetricsTest {
 
@@ -33,38 +33,38 @@ public class LakosMetricsTest {
 
     static Stream<Arguments> dependency_graphs_with_expected_metrics() {
         return Stream.of(
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B")),
                         ExpectedMetrics.ccd(3).acd(1.5).racd(0.75).nccd(1)
                 ),
                 // some binary trees that all have NCCD = 1
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "C")),
                         ExpectedMetrics.ccd(5).acd(5 / 3.0).racd(5 / 3.0 / 3.0).nccd(1.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "C")
                                 .fromNode("B").toNodes("D")),
                         ExpectedMetrics.ccd(8).acd(8 / 4.0).racd(8 / 4.0 / 4.0).nccd(1.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "C")
                                 .fromNode("B").toNodes("D", "E")),
                         ExpectedMetrics.ccd(11).acd(11 / 5.0).racd(11 / 5.0 / 5.0).nccd(1.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "C")
                                 .fromNode("B").toNodes("D", "E")
                                 .fromNode("C").toNodes("F")),
                         ExpectedMetrics.ccd(14).acd(14 / 6.0).racd(14 / 6.0 / 6.0).nccd(1.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "C")
                                 .fromNode("B").toNodes("D", "E")
                                 .fromNode("C").toNodes("F", "G")),
                         ExpectedMetrics.ccd(17).acd(17 / 7.0).racd(17 / 7.0 / 7.0).nccd(1.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("1").toNodes("21", "22")
                                 .fromNode("21").toNodes("311", "312")
                                 .fromNode("311").toNodes("4111", "4112")
@@ -75,12 +75,12 @@ public class LakosMetricsTest {
                         ExpectedMetrics.ccd(49).acd(49 / 15.0).racd(49 / 15.0 / 15.0).nccd(1.0)
                 ),
                 // some linear graphs
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B")
                                 .fromNode("B").toNodes("C")),
                         ExpectedMetrics.ccd(6).acd(2).racd(2 / 3.0).nccd(6 / 5.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B")
                                 .fromNode("B").toNodes("C")
                                 .fromNode("C").toNodes("D")
@@ -89,7 +89,7 @@ public class LakosMetricsTest {
                         ExpectedMetrics.ccd(21).acd(21 / 6.0).racd(21 / 6.0 / 6.0).nccd(21 / 14.0)
                 ),
                 // some cyclic graphs
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "Z")
                                 .fromNode("B").toNodes("C")
                                 .fromNode("C").toNodes("D")
@@ -98,7 +98,7 @@ public class LakosMetricsTest {
                                 .fromNode("W").toNodes("Z")),
                         ExpectedMetrics.ccd(19).acd(19 / 6.0).racd(19 / 6.0 / 6.0).nccd(19 / 14.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B")
                                 .fromNode("B").toNodes("C")
                                 .fromNode("C").toNodes("D")
@@ -107,7 +107,7 @@ public class LakosMetricsTest {
                                 .fromNode("F").toNodes("A")),
                         ExpectedMetrics.ccd(36).acd(36 / 6.0).racd(36 / 6.0 / 6.0).nccd(36 / 14.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "D")
                                 .fromNode("B").toNodes("C")
                                 .fromNode("C").toNodes("A")
@@ -116,7 +116,7 @@ public class LakosMetricsTest {
                                 .fromNode("F").toNodes("D")),
                         ExpectedMetrics.ccd(27).acd(27 / 6.0).racd(27 / 6.0 / 6.0).nccd(27 / 14.0)
                 ),
-                $(
+                arguments(
                         graph(fromNode("A").toNodes("B", "D")
                                 .fromNode("B").toNodes("C")
                                 .fromNode("C").toNodes("A")

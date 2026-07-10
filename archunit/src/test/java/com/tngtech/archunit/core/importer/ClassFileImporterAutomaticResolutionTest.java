@@ -67,8 +67,8 @@ import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigura
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassFileImporterAutomaticResolutionTest {
 
@@ -481,9 +481,9 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     private static List<Arguments> nestedAnnotationValueTestCases(HasAnnotations<?> hasAnnotations) {
         return ImmutableList.of(
-                $(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithClassParameter.class), expect(String.class)),
-                $(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithAnnotationParameter.class), expect(File.class)),
-                $(getNestedAnnotationClassValue(hasAnnotations, AnotherAnnotationWithAnnotationParameter.class), expect(Serializable.class))
+                arguments(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithClassParameter.class), expect(String.class)),
+                arguments(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithAnnotationParameter.class), expect(File.class)),
+                arguments(getNestedAnnotationClassValue(hasAnnotations, AnotherAnnotationWithAnnotationParameter.class), expect(Serializable.class))
         );
     }
 
@@ -662,16 +662,16 @@ public class ClassFileImporterAutomaticResolutionTest {
         }
 
         return Stream.of(
-                $(importFirstTypeParameterClassBound(TypeParameterOnClassWithClassBound.class), String.class),
-                $(importFirstTypeParameterClassBound(TypeParameterOnClassWithInterfaceBound.class), Serializable.class),
-                $(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithClassBound.class), String.class),
-                $(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithInterfaceBound.class), Serializable.class),
-                $(importFirstTypeArgumentFieldBound(TypeArgumentWithClassBoundOnField.class), String.class),
-                $(importFirstTypeArgumentFieldBound(TypeArgumentWithInterfaceBoundOnField.class), Serializable.class),
-                $(importFirstTypeArgumentMethodParameterBound(TypeArgumentWithClassBoundOnMethod.class), String.class),
-                $(importFirstTypeArgumentMethodParameterBound(TypeArgumentWithInterfaceBoundOnMethod.class), Serializable.class),
-                $(importFirstTypeArgumentConstructorParameterBound(TypeArgumentWithClassBoundOnConstructor.class), String.class),
-                $(importFirstTypeArgumentConstructorParameterBound(TypeArgumentWithInterfaceBoundOnConstructor.class), Serializable.class)
+                arguments(importFirstTypeParameterClassBound(TypeParameterOnClassWithClassBound.class), String.class),
+                arguments(importFirstTypeParameterClassBound(TypeParameterOnClassWithInterfaceBound.class), Serializable.class),
+                arguments(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithClassBound.class), String.class),
+                arguments(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithInterfaceBound.class), Serializable.class),
+                arguments(importFirstTypeArgumentFieldBound(TypeArgumentWithClassBoundOnField.class), String.class),
+                arguments(importFirstTypeArgumentFieldBound(TypeArgumentWithInterfaceBoundOnField.class), Serializable.class),
+                arguments(importFirstTypeArgumentMethodParameterBound(TypeArgumentWithClassBoundOnMethod.class), String.class),
+                arguments(importFirstTypeArgumentMethodParameterBound(TypeArgumentWithInterfaceBoundOnMethod.class), Serializable.class),
+                arguments(importFirstTypeArgumentConstructorParameterBound(TypeArgumentWithClassBoundOnConstructor.class), String.class),
+                arguments(importFirstTypeArgumentConstructorParameterBound(TypeArgumentWithInterfaceBoundOnConstructor.class), Serializable.class)
         );
     }
 
@@ -729,16 +729,16 @@ public class ClassFileImporterAutomaticResolutionTest {
         }
 
         return Stream.of(
-                $(importFirstTypeParameterClassBound(InterfaceTypeParameterBoundsOnClass.class), List.class, Map.class, Serializable.class),
-                $(importFirstTypeParameterClassBound(ClassTypeParameterBoundsOnClass.class), ArrayList.class, HashMap.class, String.class),
-                $(importFirstTypeParameterMethodBound(InterfaceTypeParameterBoundsOnMethod.class), List.class, Map.class, Serializable.class),
-                $(importFirstTypeParameterMethodBound(ClassTypeParameterBoundsOnMethod.class), ArrayList.class, HashMap.class, String.class),
-                $(importFirstTypeArgumentFieldBound(InterfaceTypeArgumentBoundsOnField.class), List.class, Map.class, Serializable.class),
-                $(importFirstTypeArgumentFieldBound(ClassTypeArgumentBoundsOnField.class), ArrayList.class, HashMap.class, String.class),
-                $(importFirstTypeArgumentMethodParameterBound(InterfaceTypeArgumentBoundsOnMethod.class), List.class, Map.class, Serializable.class),
-                $(importFirstTypeArgumentMethodParameterBound(ClassTypeArgumentBoundsOnMethod.class), ArrayList.class, HashMap.class, String.class),
-                $(importFirstTypeArgumentConstructorParameterBound(InterfaceTypeArgumentBoundsOnConstructor.class), List.class, Map.class, Serializable.class),
-                $(importFirstTypeArgumentConstructorParameterBound(ClassTypeArgumentBoundsOnConstructor.class), ArrayList.class, HashMap.class, String.class)
+                arguments(importFirstTypeParameterClassBound(InterfaceTypeParameterBoundsOnClass.class), List.class, Map.class, Serializable.class),
+                arguments(importFirstTypeParameterClassBound(ClassTypeParameterBoundsOnClass.class), ArrayList.class, HashMap.class, String.class),
+                arguments(importFirstTypeParameterMethodBound(InterfaceTypeParameterBoundsOnMethod.class), List.class, Map.class, Serializable.class),
+                arguments(importFirstTypeParameterMethodBound(ClassTypeParameterBoundsOnMethod.class), ArrayList.class, HashMap.class, String.class),
+                arguments(importFirstTypeArgumentFieldBound(InterfaceTypeArgumentBoundsOnField.class), List.class, Map.class, Serializable.class),
+                arguments(importFirstTypeArgumentFieldBound(ClassTypeArgumentBoundsOnField.class), ArrayList.class, HashMap.class, String.class),
+                arguments(importFirstTypeArgumentMethodParameterBound(InterfaceTypeArgumentBoundsOnMethod.class), List.class, Map.class, Serializable.class),
+                arguments(importFirstTypeArgumentMethodParameterBound(ClassTypeArgumentBoundsOnMethod.class), ArrayList.class, HashMap.class, String.class),
+                arguments(importFirstTypeArgumentConstructorParameterBound(InterfaceTypeArgumentBoundsOnConstructor.class), List.class, Map.class, Serializable.class),
+                arguments(importFirstTypeArgumentConstructorParameterBound(ClassTypeArgumentBoundsOnConstructor.class), ArrayList.class, HashMap.class, String.class)
         );
     }
 

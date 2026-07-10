@@ -19,8 +19,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassFileImporterCodeUnitReferencesTest {
 
@@ -51,11 +51,11 @@ public class ClassFileImporterCodeUnitReferencesTest {
 
     static Stream<Arguments> imports_static_method_references() {
         return Stream.of(
-                $(
+                arguments(
                         Data_imports_static_method_references.OriginReferencingInterface.class,
                         Data_imports_static_method_references.ReferencedInterfaceTarget.class
                 ),
-                $(
+                arguments(
                         Data_imports_static_method_references.OriginReferencingClass.class,
                         Data_imports_static_method_references.ReferencedClassTarget.class
                 ));
@@ -107,11 +107,11 @@ public class ClassFileImporterCodeUnitReferencesTest {
 
     static Stream<Arguments> imports_instance_method_references_bound_to_instance() {
         return Stream.of(
-                $(
+                arguments(
                         Data_imports_instance_method_references_bound_to_instance.OriginReferencingInterface.class,
                         Data_imports_instance_method_references_bound_to_instance.ReferencedInterfaceTarget.class
                 ),
-                $(
+                arguments(
                         Data_imports_instance_method_references_bound_to_instance.OriginReferencingClass.class,
                         Data_imports_instance_method_references_bound_to_instance.ReferencedClassTarget.class
                 ));
@@ -159,11 +159,11 @@ public class ClassFileImporterCodeUnitReferencesTest {
 
     static Stream<Arguments> imports_instance_method_references_not_bound_to_instance() {
         return Stream.of(
-                $(
+                arguments(
                         Data_imports_instance_method_references_not_bound_to_instance.OriginReferencingInterface.class,
                         Data_imports_instance_method_references_not_bound_to_instance.ReferencedInterfaceTarget.class
                 ),
-                $(
+                arguments(
                         Data_imports_instance_method_references_not_bound_to_instance.OriginReferencingClass.class,
                         Data_imports_instance_method_references_not_bound_to_instance.ReferencedClassTarget.class
                 ));

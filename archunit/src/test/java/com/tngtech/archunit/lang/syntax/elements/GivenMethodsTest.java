@@ -14,19 +14,19 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class GivenMethodsTest {
 
     static Stream<Arguments> restricted_property_rule_starts() {
         return Stream.of(
-                $(described(methods().that().areFinal()), ImmutableSet.of(METHOD_A, METHOD_B)),
-                $(described(methods().that().areNotFinal()), ImmutableSet.of(METHOD_C, METHOD_D)),
-                $(described(methods().that().areStatic()), ImmutableSet.of(METHOD_B, METHOD_D)),
-                $(described(methods().that().areNotStatic()), ImmutableSet.of(METHOD_A, METHOD_C)),
-                $(described(methods().that().areFinal().and().areStatic()), ImmutableSet.of(METHOD_B)),
-                $(described(methods().that().areFinal().or().areStatic()), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D))
+                arguments(described(methods().that().areFinal()), ImmutableSet.of(METHOD_A, METHOD_B)),
+                arguments(described(methods().that().areNotFinal()), ImmutableSet.of(METHOD_C, METHOD_D)),
+                arguments(described(methods().that().areStatic()), ImmutableSet.of(METHOD_B, METHOD_D)),
+                arguments(described(methods().that().areNotStatic()), ImmutableSet.of(METHOD_A, METHOD_C)),
+                arguments(described(methods().that().areFinal().and().areStatic()), ImmutableSet.of(METHOD_B)),
+                arguments(described(methods().that().areFinal().or().areStatic()), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D))
         );
     }
 

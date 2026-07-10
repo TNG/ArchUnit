@@ -21,8 +21,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassFileSourceTest {
     static final String MODULE_INFO_FILE_NAME = "module-info.class";
@@ -32,23 +32,23 @@ public class ClassFileSourceTest {
 
     static Stream<Arguments> expected_classes() {
         return Stream.of(
-                $(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
+                arguments(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
                         new ImportOptions(),
                         ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class")),
 
-                $(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
+                arguments(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
                         locationContains("/one/"),
                         ImmutableSet.of("/one/Foo.class", "/one/Bar.class")),
 
-                $(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
+                arguments(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
                         locationContains("/two/"),
                         ImmutableSet.of("/two/Bar.class")),
 
-                $(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
+                arguments(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
                         locationContains("Bar"),
                         ImmutableSet.of("/one/Bar.class", "/two/Bar.class")),
 
-                $(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
+                arguments(ImmutableSet.of("/one/Foo.class", "/one/Bar.class", "/two/Bar.class"),
                         locationContains("notthere"),
                         ImmutableSet.of()));
     }

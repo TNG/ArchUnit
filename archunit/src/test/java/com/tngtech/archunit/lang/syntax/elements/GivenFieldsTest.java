@@ -24,8 +24,8 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertV
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class GivenFieldsTest {
 
@@ -46,20 +46,20 @@ public class GivenFieldsTest {
 
     static Stream<Arguments> restricted_property_rule_starts() {
         return Stream.of(
-                $(described(fields().that().haveRawType(String.class)), ImmutableSet.of(FIELD_A)),
-                $(described(fields().that().haveRawType(String.class.getName())), ImmutableSet.of(FIELD_A)),
-                $(described(fields().that().haveRawType(equivalentTo(String.class))), ImmutableSet.of(FIELD_A)),
+                arguments(described(fields().that().haveRawType(String.class)), ImmutableSet.of(FIELD_A)),
+                arguments(described(fields().that().haveRawType(String.class.getName())), ImmutableSet.of(FIELD_A)),
+                arguments(described(fields().that().haveRawType(equivalentTo(String.class))), ImmutableSet.of(FIELD_A)),
 
-                $(described(fields().that().doNotHaveRawType(String.class)), allFieldsExcept(FIELD_A)),
-                $(described(fields().that().doNotHaveRawType(String.class.getName())), allFieldsExcept(FIELD_A)),
-                $(described(fields().that().doNotHaveRawType(equivalentTo(String.class))), allFieldsExcept(FIELD_A)),
+                arguments(described(fields().that().doNotHaveRawType(String.class)), allFieldsExcept(FIELD_A)),
+                arguments(described(fields().that().doNotHaveRawType(String.class.getName())), allFieldsExcept(FIELD_A)),
+                arguments(described(fields().that().doNotHaveRawType(equivalentTo(String.class))), allFieldsExcept(FIELD_A)),
 
-                $(described(fields().that().areFinal()), ImmutableSet.of(FIELD_A, FIELD_B)),
-                $(described(fields().that().areNotFinal()), ImmutableSet.of(FIELD_C, FIELD_D)),
-                $(described(fields().that().areStatic()), ImmutableSet.of(FIELD_B, FIELD_D)),
-                $(described(fields().that().areNotStatic()), ImmutableSet.of(FIELD_A, FIELD_C)),
+                arguments(described(fields().that().areFinal()), ImmutableSet.of(FIELD_A, FIELD_B)),
+                arguments(described(fields().that().areNotFinal()), ImmutableSet.of(FIELD_C, FIELD_D)),
+                arguments(described(fields().that().areStatic()), ImmutableSet.of(FIELD_B, FIELD_D)),
+                arguments(described(fields().that().areNotStatic()), ImmutableSet.of(FIELD_A, FIELD_C)),
 
-                $(described(fields().that().areStatic().and().areFinal()), ImmutableSet.of(FIELD_B))
+                arguments(described(fields().that().areStatic().and().areFinal()), ImmutableSet.of(FIELD_B))
         );
     }
 

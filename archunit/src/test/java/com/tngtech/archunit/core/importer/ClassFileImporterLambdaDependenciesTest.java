@@ -42,12 +42,12 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatInstanceofChecks;
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
 import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 import static com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion.tryCatchBlock;
 import static java.util.stream.Collectors.toSet;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassFileImporterLambdaDependenciesTest {
     @Test
@@ -527,11 +527,11 @@ public class ClassFileImporterLambdaDependenciesTest {
         }
 
         return Stream.of(
-                $(FieldAccessCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
-                $(MethodCallCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
-                $(ConstructorCallCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
-                $(MethodReferenceCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
-                $(ConstructorReferenceCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class)
+                arguments(FieldAccessCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
+                arguments(MethodCallCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
+                arguments(ConstructorCallCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
+                arguments(MethodReferenceCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class),
+                arguments(ConstructorReferenceCase.class, Data_of_adds_information_about_being_declared_inside_a_lambda_to_accesses.Target.class)
         );
     }
 

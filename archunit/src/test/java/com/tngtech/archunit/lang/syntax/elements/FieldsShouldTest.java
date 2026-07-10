@@ -26,9 +26,9 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFi
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class FieldsShouldTest {
 
@@ -51,16 +51,16 @@ public class FieldsShouldTest {
 
     static Stream<Arguments> restricted_property_rule_ends() {
         return Stream.of(
-                $(fields().should().haveRawType(String.class), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
-                $(fields().should().haveRawType(String.class.getName()), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
-                $(fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
-                $(fields().should().notHaveRawType(String.class), ImmutableList.of(FIELD_A)),
-                $(fields().should().notHaveRawType(String.class.getName()), ImmutableList.of(FIELD_A)),
-                $(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)),
-                $(fields().should().beFinal(), ImmutableList.of(FIELD_C, FIELD_D)),
-                $(fields().should().notBeFinal(), ImmutableList.of(FIELD_A, FIELD_B)),
-                $(fields().should().beStatic(), ImmutableList.of(FIELD_A, FIELD_C)),
-                $(fields().should().notBeStatic(), ImmutableList.of(FIELD_B, FIELD_D))
+                arguments(fields().should().haveRawType(String.class), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                arguments(fields().should().haveRawType(String.class.getName()), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                arguments(fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                arguments(fields().should().notHaveRawType(String.class), ImmutableList.of(FIELD_A)),
+                arguments(fields().should().notHaveRawType(String.class.getName()), ImmutableList.of(FIELD_A)),
+                arguments(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)),
+                arguments(fields().should().beFinal(), ImmutableList.of(FIELD_C, FIELD_D)),
+                arguments(fields().should().notBeFinal(), ImmutableList.of(FIELD_A, FIELD_B)),
+                arguments(fields().should().beStatic(), ImmutableList.of(FIELD_A, FIELD_C)),
+                arguments(fields().should().notBeStatic(), ImmutableList.of(FIELD_B, FIELD_D))
         );
     }
 

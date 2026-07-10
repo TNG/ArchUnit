@@ -36,11 +36,11 @@ import static com.tngtech.archunit.library.cycle_detection.rules.CycleRuleTestCo
 import static com.tngtech.archunit.library.dependencies.GivenSlicesTest.TEST_CLASSES_PACKAGE;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class SliceRuleTest {
 
@@ -51,7 +51,7 @@ public class SliceRuleTest {
         int totalNumberOfCycles = getNumberOfCyclesInCompleteGraph(7);
         int halfOfTotal = totalNumberOfCycles / 2;
         return Stream.of(
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME,
@@ -63,7 +63,7 @@ public class SliceRuleTest {
                         return "limited number of cycles to half of existing number of cycles should report half the cycles";
                     }
                 }, halfOfTotal),
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         // keep default
@@ -74,7 +74,7 @@ public class SliceRuleTest {
                         return "if no limit of cycles is configured should report max. 100 cycles";
                     }
                 }, 100),
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME,
@@ -86,7 +86,7 @@ public class SliceRuleTest {
                         return "if the exact amount of existing cycles is configured as limit should report all cycles";
                     }
                 }, totalNumberOfCycles),
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME,

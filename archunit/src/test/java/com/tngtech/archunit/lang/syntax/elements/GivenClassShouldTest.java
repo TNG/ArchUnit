@@ -33,8 +33,8 @@ import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locati
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class GivenClassShouldTest {
 
@@ -42,13 +42,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_haveFullyQualifiedName_rules() {
         return Stream.of(
-                $(theClass(SomeClass.class).should().haveFullyQualifiedName(SomeClass.class.getName()),
+                arguments(theClass(SomeClass.class).should().haveFullyQualifiedName(SomeClass.class.getName()),
                         theClass(SomeClass.class).should().notHaveFullyQualifiedName(SomeClass.class.getName())),
-                $(theClass(SomeClass.class).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())),
+                arguments(theClass(SomeClass.class).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())),
                         theClass(SomeClass.class).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName()))),
-                $(theClass(SomeClass.class.getName()).should().haveFullyQualifiedName(SomeClass.class.getName()),
+                arguments(theClass(SomeClass.class.getName()).should().haveFullyQualifiedName(SomeClass.class.getName()),
                         theClass(SomeClass.class.getName()).should().notHaveFullyQualifiedName(SomeClass.class.getName())),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())),
                         theClass(SomeClass.class.getName()).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName())))
         );
     }
@@ -71,13 +71,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_haveFullyQualifiedName_rules() {
         return Stream.of(
-                $(noClass(SomeClass.class).should().notHaveFullyQualifiedName(SomeClass.class.getName()),
+                arguments(noClass(SomeClass.class).should().notHaveFullyQualifiedName(SomeClass.class.getName()),
                         noClass(SomeClass.class).should().haveFullyQualifiedName(SomeClass.class.getName())),
-                $(noClass(SomeClass.class).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName())),
+                arguments(noClass(SomeClass.class).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName())),
                         noClass(SomeClass.class).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName()))),
-                $(noClass(SomeClass.class.getName()).should().notHaveFullyQualifiedName(SomeClass.class.getName()),
+                arguments(noClass(SomeClass.class.getName()).should().notHaveFullyQualifiedName(SomeClass.class.getName()),
                         noClass(SomeClass.class.getName()).should().haveFullyQualifiedName(SomeClass.class.getName())),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName())),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.notHaveFullyQualifiedName(SomeClass.class.getName())),
                         noClass(SomeClass.class.getName()).should(ArchConditions.haveFullyQualifiedName(SomeClass.class.getName())))
         );
     }
@@ -99,13 +99,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_haveSimpleName_rules() {
         return Stream.of(
-                $(theClass(SomeClass.class).should().haveSimpleName(SomeClass.class.getSimpleName()),
+                arguments(theClass(SomeClass.class).should().haveSimpleName(SomeClass.class.getSimpleName()),
                         theClass(SomeClass.class).should().notHaveSimpleName(SomeClass.class.getSimpleName())),
-                $(theClass(SomeClass.class).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())),
+                arguments(theClass(SomeClass.class).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())),
                         theClass(SomeClass.class).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName()))),
-                $(theClass(SomeClass.class.getName()).should().haveSimpleName(SomeClass.class.getSimpleName()),
+                arguments(theClass(SomeClass.class.getName()).should().haveSimpleName(SomeClass.class.getSimpleName()),
                         theClass(SomeClass.class.getName()).should().notHaveSimpleName(SomeClass.class.getSimpleName())),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())),
                         theClass(SomeClass.class.getName()).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName())))
         );
     }
@@ -127,13 +127,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_haveSimpleName_rules() {
         return Stream.of(
-                $(noClass(SomeClass.class).should().notHaveSimpleName(SomeClass.class.getSimpleName()),
+                arguments(noClass(SomeClass.class).should().notHaveSimpleName(SomeClass.class.getSimpleName()),
                         noClass(SomeClass.class).should().haveSimpleName(SomeClass.class.getSimpleName())),
-                $(noClass(SomeClass.class).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName())),
+                arguments(noClass(SomeClass.class).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName())),
                         noClass(SomeClass.class).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName()))),
-                $(noClass(SomeClass.class.getName()).should().notHaveSimpleName(SomeClass.class.getSimpleName()),
+                arguments(noClass(SomeClass.class.getName()).should().notHaveSimpleName(SomeClass.class.getSimpleName()),
                         noClass(SomeClass.class.getName()).should().haveSimpleName(SomeClass.class.getSimpleName())),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName())),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.notHaveSimpleName(SomeClass.class.getSimpleName())),
                         noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleName(SomeClass.class.getSimpleName())))
         );
     }
@@ -156,13 +156,13 @@ public class GivenClassShouldTest {
     static Stream<Arguments> theClass_should_haveNameMatching_rules() {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
         return Stream.of(
-                $(theClass(SomeClass.class).should().haveNameMatching(regex),
+                arguments(theClass(SomeClass.class).should().haveNameMatching(regex),
                         theClass(SomeClass.class).should().haveNameNotMatching(regex)),
-                $(theClass(SomeClass.class).should(ArchConditions.haveNameMatching(regex)),
+                arguments(theClass(SomeClass.class).should(ArchConditions.haveNameMatching(regex)),
                         theClass(SomeClass.class).should(ArchConditions.haveNameNotMatching(regex))),
-                $(theClass(SomeClass.class.getName()).should().haveNameMatching(regex),
+                arguments(theClass(SomeClass.class.getName()).should().haveNameMatching(regex),
                         theClass(SomeClass.class.getName()).should().haveNameNotMatching(regex)),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.haveNameMatching(regex)),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.haveNameMatching(regex)),
                         theClass(SomeClass.class.getName()).should(ArchConditions.haveNameNotMatching(regex)))
         );
     }
@@ -187,13 +187,13 @@ public class GivenClassShouldTest {
     static Stream<Arguments> noClass_should_haveNameMatching_rules() {
         String regex = containsPartOfRegex(SomeClass.class.getSimpleName());
         return Stream.of(
-                $(noClass(SomeClass.class).should().haveNameNotMatching(regex),
+                arguments(noClass(SomeClass.class).should().haveNameNotMatching(regex),
                         noClass(SomeClass.class).should().haveNameMatching(regex)),
-                $(noClass(SomeClass.class).should(ArchConditions.haveNameNotMatching(regex)),
+                arguments(noClass(SomeClass.class).should(ArchConditions.haveNameNotMatching(regex)),
                         noClass(SomeClass.class).should(ArchConditions.haveNameMatching(regex))),
-                $(noClass(SomeClass.class.getName()).should().haveNameNotMatching(regex),
+                arguments(noClass(SomeClass.class.getName()).should().haveNameNotMatching(regex),
                         noClass(SomeClass.class.getName()).should().haveNameMatching(regex)),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.haveNameNotMatching(regex)),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.haveNameNotMatching(regex)),
                         noClass(SomeClass.class.getName()).should(ArchConditions.haveNameMatching(regex)))
         );
     }
@@ -219,13 +219,13 @@ public class GivenClassShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         return Stream.of(
-                $(theClass(SomeClass.class).should().haveSimpleNameStartingWith(prefix),
+                arguments(theClass(SomeClass.class).should().haveSimpleNameStartingWith(prefix),
                         theClass(SomeClass.class).should().haveSimpleNameNotStartingWith(prefix)),
-                $(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameStartingWith(prefix)),
+                arguments(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameStartingWith(prefix)),
                         theClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotStartingWith(prefix))),
-                $(theClass(SomeClass.class.getName()).should().haveSimpleNameStartingWith(prefix),
+                arguments(theClass(SomeClass.class.getName()).should().haveSimpleNameStartingWith(prefix),
                         theClass(SomeClass.class.getName()).should().haveSimpleNameNotStartingWith(prefix)),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameStartingWith(prefix)),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameStartingWith(prefix)),
                         theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotStartingWith(prefix)))
         );
     }
@@ -251,13 +251,13 @@ public class GivenClassShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String prefix = simpleName.substring(0, simpleName.length() - 1);
         return Stream.of(
-                $(noClass(SomeClass.class).should().haveSimpleNameNotStartingWith(prefix),
+                arguments(noClass(SomeClass.class).should().haveSimpleNameNotStartingWith(prefix),
                         noClass(SomeClass.class).should().haveSimpleNameStartingWith(prefix)),
-                $(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotStartingWith(prefix)),
+                arguments(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotStartingWith(prefix)),
                         noClass(SomeClass.class).should(ArchConditions.haveSimpleNameStartingWith(prefix))),
-                $(noClass(SomeClass.class.getName()).should().haveSimpleNameNotStartingWith(prefix),
+                arguments(noClass(SomeClass.class.getName()).should().haveSimpleNameNotStartingWith(prefix),
                         noClass(SomeClass.class.getName()).should().haveSimpleNameStartingWith(prefix)),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotStartingWith(prefix)),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotStartingWith(prefix)),
                         noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameStartingWith(prefix)))
         );
     }
@@ -283,13 +283,13 @@ public class GivenClassShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         return Stream.of(
-                $(theClass(SomeClass.class).should().haveSimpleNameContaining(infix),
+                arguments(theClass(SomeClass.class).should().haveSimpleNameContaining(infix),
                         theClass(SomeClass.class).should().haveSimpleNameNotContaining(infix)),
-                $(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameContaining(infix)),
+                arguments(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameContaining(infix)),
                         theClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotContaining(infix))),
-                $(theClass(SomeClass.class.getName()).should().haveSimpleNameContaining(infix),
+                arguments(theClass(SomeClass.class.getName()).should().haveSimpleNameContaining(infix),
                         theClass(SomeClass.class.getName()).should().haveSimpleNameNotContaining(infix)),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameContaining(infix)),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameContaining(infix)),
                         theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotContaining(infix)))
         );
     }
@@ -315,13 +315,13 @@ public class GivenClassShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
         return Stream.of(
-                $(noClass(SomeClass.class).should().haveSimpleNameNotContaining(infix),
+                arguments(noClass(SomeClass.class).should().haveSimpleNameNotContaining(infix),
                         noClass(SomeClass.class).should().haveSimpleNameContaining(infix)),
-                $(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotContaining(infix)),
+                arguments(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotContaining(infix)),
                         noClass(SomeClass.class).should(ArchConditions.haveSimpleNameContaining(infix))),
-                $(noClass(SomeClass.class.getName()).should().haveSimpleNameNotContaining(infix),
+                arguments(noClass(SomeClass.class.getName()).should().haveSimpleNameNotContaining(infix),
                         noClass(SomeClass.class.getName()).should().haveSimpleNameContaining(infix)),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotContaining(infix)),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotContaining(infix)),
                         noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameContaining(infix)))
         );
     }
@@ -348,13 +348,13 @@ public class GivenClassShouldTest {
         String suffix = simpleName.substring(1);
 
         return Stream.of(
-                $(theClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix),
+                arguments(theClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix),
                         theClass(SomeClass.class).should().haveSimpleNameNotEndingWith(suffix)),
-                $(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameEndingWith(suffix)),
+                arguments(theClass(SomeClass.class).should(ArchConditions.haveSimpleNameEndingWith(suffix)),
                         theClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotEndingWith(suffix))),
-                $(theClass(SomeClass.class.getName()).should().haveSimpleNameEndingWith(suffix),
+                arguments(theClass(SomeClass.class.getName()).should().haveSimpleNameEndingWith(suffix),
                         theClass(SomeClass.class.getName()).should().haveSimpleNameNotEndingWith(suffix)),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameEndingWith(suffix)),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameEndingWith(suffix)),
                         theClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotEndingWith(suffix)))
         );
     }
@@ -380,13 +380,13 @@ public class GivenClassShouldTest {
         String simpleName = SomeClass.class.getSimpleName();
         String suffix = simpleName.substring(1);
         return Stream.of(
-                $(noClass(SomeClass.class).should().haveSimpleNameNotEndingWith(suffix),
+                arguments(noClass(SomeClass.class).should().haveSimpleNameNotEndingWith(suffix),
                         noClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix)),
-                $(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotEndingWith(suffix)),
+                arguments(noClass(SomeClass.class).should(ArchConditions.haveSimpleNameNotEndingWith(suffix)),
                         noClass(SomeClass.class).should(ArchConditions.haveSimpleNameEndingWith(suffix))),
-                $(noClass(SomeClass.class.getName()).should().haveSimpleNameNotEndingWith(suffix),
+                arguments(noClass(SomeClass.class.getName()).should().haveSimpleNameNotEndingWith(suffix),
                         noClass(SomeClass.class.getName()).should().haveSimpleNameEndingWith(suffix)),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotEndingWith(suffix)),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameNotEndingWith(suffix)),
                         noClass(SomeClass.class.getName()).should(ArchConditions.haveSimpleNameEndingWith(suffix)))
         );
     }
@@ -411,13 +411,13 @@ public class GivenClassShouldTest {
     static Stream<Arguments> theClass_should_resideInAPackage_rules() {
         String thePackage = SomeClass.class.getPackage().getName();
         return Stream.of(
-                $(theClass(SomeClass.class).should().resideInAPackage(thePackage),
+                arguments(theClass(SomeClass.class).should().resideInAPackage(thePackage),
                         theClass(SomeClass.class).should().resideOutsideOfPackage(thePackage)),
-                $(theClass(SomeClass.class).should(ArchConditions.resideInAPackage(thePackage)),
+                arguments(theClass(SomeClass.class).should(ArchConditions.resideInAPackage(thePackage)),
                         theClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackage(thePackage))),
-                $(theClass(SomeClass.class.getName()).should().resideInAPackage(thePackage),
+                arguments(theClass(SomeClass.class.getName()).should().resideInAPackage(thePackage),
                         theClass(SomeClass.class.getName()).should().resideOutsideOfPackage(thePackage)),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.resideInAPackage(thePackage)),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.resideInAPackage(thePackage)),
                         theClass(SomeClass.class.getName()).should(ArchConditions.resideOutsideOfPackage(thePackage)))
         );
     }
@@ -441,13 +441,13 @@ public class GivenClassShouldTest {
     static Stream<Arguments> noClass_should_resideInAPackage_rules() {
         String thePackage = SomeClass.class.getPackage().getName();
         return Stream.of(
-                $(noClass(SomeClass.class).should().resideOutsideOfPackage(thePackage),
+                arguments(noClass(SomeClass.class).should().resideOutsideOfPackage(thePackage),
                         noClass(SomeClass.class).should().resideInAPackage(thePackage)),
-                $(noClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackage(thePackage)),
+                arguments(noClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackage(thePackage)),
                         noClass(SomeClass.class).should(ArchConditions.resideInAPackage(thePackage))),
-                $(noClass(SomeClass.class.getName()).should().resideOutsideOfPackage(thePackage),
+                arguments(noClass(SomeClass.class.getName()).should().resideOutsideOfPackage(thePackage),
                         noClass(SomeClass.class.getName()).should().resideInAPackage(thePackage)),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.resideOutsideOfPackage(thePackage)),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.resideOutsideOfPackage(thePackage)),
                         noClass(SomeClass.class.getName()).should(ArchConditions.resideInAPackage(thePackage)))
         );
     }
@@ -473,13 +473,13 @@ public class GivenClassShouldTest {
         String firstPackage = SomeClass.class.getPackage().getName();
         String secondPackage = Object.class.getPackage().getName();
         return Stream.of(
-                $(theClass(SomeClass.class).should().resideInAnyPackage(firstPackage, secondPackage),
+                arguments(theClass(SomeClass.class).should().resideInAnyPackage(firstPackage, secondPackage),
                         theClass(SomeClass.class).should().resideOutsideOfPackages(firstPackage, secondPackage)),
-                $(theClass(SomeClass.class).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
+                arguments(theClass(SomeClass.class).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
                         theClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage))),
-                $(theClass(SomeClass.class.getName()).should().resideInAnyPackage(firstPackage, secondPackage),
+                arguments(theClass(SomeClass.class.getName()).should().resideInAnyPackage(firstPackage, secondPackage),
                         theClass(SomeClass.class.getName()).should().resideOutsideOfPackages(firstPackage, secondPackage)),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)),
                         theClass(SomeClass.class.getName()).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)))
         );
     }
@@ -510,13 +510,13 @@ public class GivenClassShouldTest {
         String secondPackage = Object.class.getPackage().getName();
 
         return Stream.of(
-                $(noClass(SomeClass.class).should().resideOutsideOfPackages(firstPackage, secondPackage),
+                arguments(noClass(SomeClass.class).should().resideOutsideOfPackages(firstPackage, secondPackage),
                         noClass(SomeClass.class).should().resideInAnyPackage(firstPackage, secondPackage)),
-                $(noClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
+                arguments(noClass(SomeClass.class).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
                         noClass(SomeClass.class).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage))),
-                $(noClass(SomeClass.class.getName()).should().resideOutsideOfPackages(firstPackage, secondPackage),
+                arguments(noClass(SomeClass.class.getName()).should().resideOutsideOfPackages(firstPackage, secondPackage),
                         noClass(SomeClass.class.getName()).should().resideInAnyPackage(firstPackage, secondPackage)),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.resideOutsideOfPackages(firstPackage, secondPackage)),
                         noClass(SomeClass.class.getName()).should(ArchConditions.resideInAnyPackage(firstPackage, secondPackage)))
         );
     }
@@ -544,13 +544,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_bePublic_rules() {
         return Stream.of(
-                $(theClass(SomeClass.class).should().bePublic(),
+                arguments(theClass(SomeClass.class).should().bePublic(),
                         theClass(SomeClass.class).should().notBePublic()),
-                $(theClass(SomeClass.class).should(ArchConditions.bePublic()),
+                arguments(theClass(SomeClass.class).should(ArchConditions.bePublic()),
                         theClass(SomeClass.class).should(ArchConditions.notBePublic())),
-                $(theClass(SomeClass.class.getName()).should().bePublic(),
+                arguments(theClass(SomeClass.class.getName()).should().bePublic(),
                         theClass(SomeClass.class.getName()).should().notBePublic()),
-                $(theClass(SomeClass.class.getName()).should(ArchConditions.bePublic()),
+                arguments(theClass(SomeClass.class.getName()).should(ArchConditions.bePublic()),
                         theClass(SomeClass.class.getName()).should(ArchConditions.notBePublic()))
         );
     }
@@ -572,13 +572,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_bePublic_rules() {
         return Stream.of(
-                $(noClass(SomeClass.class).should().notBePublic(),
+                arguments(noClass(SomeClass.class).should().notBePublic(),
                         noClass(SomeClass.class).should().bePublic()),
-                $(noClass(SomeClass.class).should(ArchConditions.notBePublic()),
+                arguments(noClass(SomeClass.class).should(ArchConditions.notBePublic()),
                         noClass(SomeClass.class).should(ArchConditions.bePublic())),
-                $(noClass(SomeClass.class.getName()).should().notBePublic(),
+                arguments(noClass(SomeClass.class.getName()).should().notBePublic(),
                         noClass(SomeClass.class.getName()).should().bePublic()),
-                $(noClass(SomeClass.class.getName()).should(ArchConditions.notBePublic()),
+                arguments(noClass(SomeClass.class.getName()).should(ArchConditions.notBePublic()),
                         noClass(SomeClass.class.getName()).should(ArchConditions.bePublic()))
         );
     }
@@ -600,13 +600,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_bePrivate_rules() {
         return Stream.of(
-                $(theClass(PrivateClass.class).should().bePrivate(),
+                arguments(theClass(PrivateClass.class).should().bePrivate(),
                         theClass(PrivateClass.class).should().notBePrivate()),
-                $(theClass(PrivateClass.class).should(ArchConditions.bePrivate()),
+                arguments(theClass(PrivateClass.class).should(ArchConditions.bePrivate()),
                         theClass(PrivateClass.class).should(ArchConditions.notBePrivate())),
-                $(theClass(PrivateClass.class.getName()).should().bePrivate(),
+                arguments(theClass(PrivateClass.class.getName()).should().bePrivate(),
                         theClass(PrivateClass.class.getName()).should().notBePrivate()),
-                $(theClass(PrivateClass.class.getName()).should(ArchConditions.bePrivate()),
+                arguments(theClass(PrivateClass.class.getName()).should(ArchConditions.bePrivate()),
                         theClass(PrivateClass.class.getName()).should(ArchConditions.notBePrivate()))
         );
     }
@@ -628,13 +628,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_bePrivate_rules() {
         return Stream.of(
-                $(noClass(PrivateClass.class).should().notBePrivate(),
+                arguments(noClass(PrivateClass.class).should().notBePrivate(),
                         noClass(PrivateClass.class).should().bePrivate()),
-                $(noClass(PrivateClass.class).should(ArchConditions.notBePrivate()),
+                arguments(noClass(PrivateClass.class).should(ArchConditions.notBePrivate()),
                         noClass(PrivateClass.class).should(ArchConditions.bePrivate())),
-                $(noClass(PrivateClass.class.getName()).should().notBePrivate(),
+                arguments(noClass(PrivateClass.class.getName()).should().notBePrivate(),
                         noClass(PrivateClass.class.getName()).should().bePrivate()),
-                $(noClass(PrivateClass.class.getName()).should(ArchConditions.notBePrivate()),
+                arguments(noClass(PrivateClass.class.getName()).should(ArchConditions.notBePrivate()),
                         noClass(PrivateClass.class.getName()).should(ArchConditions.bePrivate()))
         );
     }
@@ -656,13 +656,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_haveOnlyFinalFields_rules() {
         return Stream.of(
-                $(theClass(ClassWithFinalFields.class).should().haveOnlyFinalFields(),
+                arguments(theClass(ClassWithFinalFields.class).should().haveOnlyFinalFields(),
                         theClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields()),
-                $(theClass(ClassWithFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
+                arguments(theClass(ClassWithFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
                         theClass(ClassWithNonFinalFields.class).should(ArchConditions.haveOnlyFinalFields())),
-                $(theClass(ClassWithFinalFields.class.getName()).should().haveOnlyFinalFields(),
+                arguments(theClass(ClassWithFinalFields.class.getName()).should().haveOnlyFinalFields(),
                         theClass(ClassWithNonFinalFields.class.getName()).should().haveOnlyFinalFields()),
-                $(theClass(ClassWithFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
+                arguments(theClass(ClassWithFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
                         theClass(ClassWithNonFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
         );
     }
@@ -686,13 +686,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_haveOnlyFinalFields_rules() {
         return Stream.of(
-                $(noClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields(),
+                arguments(noClass(ClassWithNonFinalFields.class).should().haveOnlyFinalFields(),
                         noClass(ClassWithFinalFields.class).should().haveOnlyFinalFields()),
-                $(noClass(ClassWithNonFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
+                arguments(noClass(ClassWithNonFinalFields.class).should(ArchConditions.haveOnlyFinalFields()),
                         noClass(ClassWithFinalFields.class).should(ArchConditions.haveOnlyFinalFields())),
-                $(noClass(ClassWithNonFinalFields.class.getName()).should().haveOnlyFinalFields(),
+                arguments(noClass(ClassWithNonFinalFields.class.getName()).should().haveOnlyFinalFields(),
                         noClass(ClassWithFinalFields.class.getName()).should().haveOnlyFinalFields()),
-                $(noClass(ClassWithNonFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
+                arguments(noClass(ClassWithNonFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()),
                         noClass(ClassWithFinalFields.class.getName()).should(ArchConditions.haveOnlyFinalFields()))
         );
     }
@@ -731,13 +731,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_beProtected_rules() {
         return Stream.of(
-                $(theClass(ProtectedClass.class).should().beProtected(),
+                arguments(theClass(ProtectedClass.class).should().beProtected(),
                         theClass(ProtectedClass.class).should().notBeProtected()),
-                $(theClass(ProtectedClass.class).should(ArchConditions.beProtected()),
+                arguments(theClass(ProtectedClass.class).should(ArchConditions.beProtected()),
                         theClass(ProtectedClass.class).should(ArchConditions.notBeProtected())),
-                $(theClass(ProtectedClass.class.getName()).should().beProtected(),
+                arguments(theClass(ProtectedClass.class.getName()).should().beProtected(),
                         theClass(ProtectedClass.class.getName()).should().notBeProtected()),
-                $(theClass(ProtectedClass.class.getName()).should(ArchConditions.beProtected()),
+                arguments(theClass(ProtectedClass.class.getName()).should(ArchConditions.beProtected()),
                         theClass(ProtectedClass.class.getName()).should(ArchConditions.notBeProtected()))
         );
     }
@@ -759,13 +759,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_beProtected_rules() {
         return Stream.of(
-                $(noClass(ProtectedClass.class).should().notBeProtected(),
+                arguments(noClass(ProtectedClass.class).should().notBeProtected(),
                         noClass(ProtectedClass.class).should().beProtected()),
-                $(noClass(ProtectedClass.class).should(ArchConditions.notBeProtected()),
+                arguments(noClass(ProtectedClass.class).should(ArchConditions.notBeProtected()),
                         noClass(ProtectedClass.class).should(ArchConditions.beProtected())),
-                $(noClass(ProtectedClass.class.getName()).should().notBeProtected(),
+                arguments(noClass(ProtectedClass.class.getName()).should().notBeProtected(),
                         noClass(ProtectedClass.class.getName()).should().beProtected()),
-                $(noClass(ProtectedClass.class.getName()).should(ArchConditions.notBeProtected()),
+                arguments(noClass(ProtectedClass.class.getName()).should(ArchConditions.notBeProtected()),
                         noClass(ProtectedClass.class.getName()).should(ArchConditions.beProtected()))
         );
     }
@@ -787,13 +787,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_bePackagePrivate_rules() {
         return Stream.of(
-                $(theClass(PackagePrivateClass.class).should().bePackagePrivate(),
+                arguments(theClass(PackagePrivateClass.class).should().bePackagePrivate(),
                         theClass(PackagePrivateClass.class).should().notBePackagePrivate()),
-                $(theClass(PackagePrivateClass.class).should(ArchConditions.bePackagePrivate()),
+                arguments(theClass(PackagePrivateClass.class).should(ArchConditions.bePackagePrivate()),
                         theClass(PackagePrivateClass.class).should(ArchConditions.notBePackagePrivate())),
-                $(theClass(PackagePrivateClass.class.getName()).should().bePackagePrivate(),
+                arguments(theClass(PackagePrivateClass.class.getName()).should().bePackagePrivate(),
                         theClass(PackagePrivateClass.class.getName()).should().notBePackagePrivate()),
-                $(theClass(PackagePrivateClass.class.getName()).should(ArchConditions.bePackagePrivate()),
+                arguments(theClass(PackagePrivateClass.class.getName()).should(ArchConditions.bePackagePrivate()),
                         theClass(PackagePrivateClass.class.getName()).should(ArchConditions.notBePackagePrivate()))
         );
     }
@@ -823,13 +823,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_bePackagePrivate_rules() {
         return Stream.of(
-                $(noClass(PackagePrivateClass.class).should().notBePackagePrivate(),
+                arguments(noClass(PackagePrivateClass.class).should().notBePackagePrivate(),
                         noClass(PackagePrivateClass.class).should().bePackagePrivate()),
-                $(noClass(PackagePrivateClass.class).should(ArchConditions.notBePackagePrivate()),
+                arguments(noClass(PackagePrivateClass.class).should(ArchConditions.notBePackagePrivate()),
                         noClass(PackagePrivateClass.class).should(ArchConditions.bePackagePrivate())),
-                $(noClass(PackagePrivateClass.class.getName()).should().notBePackagePrivate(),
+                arguments(noClass(PackagePrivateClass.class.getName()).should().notBePackagePrivate(),
                         noClass(PackagePrivateClass.class.getName()).should().bePackagePrivate()),
-                $(noClass(PackagePrivateClass.class.getName()).should(ArchConditions.notBePackagePrivate()),
+                arguments(noClass(PackagePrivateClass.class.getName()).should(ArchConditions.notBePackagePrivate()),
                         noClass(PackagePrivateClass.class.getName()).should(ArchConditions.bePackagePrivate()))
         );
     }
@@ -859,14 +859,14 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_haveModifier_public_rules() {
         return Stream.of(
-                $(theClass(PublicClass.class).should().haveModifier(PUBLIC),
-                        theClass(PublicClass.class).should().notHaveModifier(PUBLIC)),
-                $(theClass(PublicClass.class).should(ArchConditions.haveModifier(PUBLIC)),
-                        theClass(PublicClass.class).should(ArchConditions.notHaveModifier(PUBLIC))),
-                $(theClass(PublicClass.class.getName()).should().haveModifier(PUBLIC),
-                        theClass(PublicClass.class.getName()).should().notHaveModifier(PUBLIC)),
-                $(theClass(PublicClass.class.getName()).should(ArchConditions.haveModifier(PUBLIC)),
-                        theClass(PublicClass.class.getName()).should(ArchConditions.notHaveModifier(PUBLIC)))
+                arguments(theClass(PublicClass.class).should().haveModifier(JavaModifier.PUBLIC),
+                        theClass(PublicClass.class).should().notHaveModifier(JavaModifier.PUBLIC)),
+                arguments(theClass(PublicClass.class).should(ArchConditions.haveModifier(JavaModifier.PUBLIC)),
+                        theClass(PublicClass.class).should(ArchConditions.notHaveModifier(JavaModifier.PUBLIC))),
+                arguments(theClass(PublicClass.class.getName()).should().haveModifier(JavaModifier.PUBLIC),
+                        theClass(PublicClass.class.getName()).should().notHaveModifier(JavaModifier.PUBLIC)),
+                arguments(theClass(PublicClass.class.getName()).should(ArchConditions.haveModifier(JavaModifier.PUBLIC)),
+                        theClass(PublicClass.class.getName()).should(ArchConditions.notHaveModifier(JavaModifier.PUBLIC)))
         );
     }
 
@@ -887,14 +887,14 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_haveModifier_public_rules() {
         return Stream.of(
-                $(noClass(PublicClass.class).should().notHaveModifier(PUBLIC),
-                        noClass(PublicClass.class).should().haveModifier(PUBLIC)),
-                $(noClass(PublicClass.class).should(ArchConditions.notHaveModifier(PUBLIC)),
-                        noClass(PublicClass.class).should(ArchConditions.haveModifier(PUBLIC))),
-                $(noClass(PublicClass.class.getName()).should().notHaveModifier(PUBLIC),
-                        noClass(PublicClass.class.getName()).should().haveModifier(PUBLIC)),
-                $(noClass(PublicClass.class.getName()).should(ArchConditions.notHaveModifier(PUBLIC)),
-                        noClass(PublicClass.class.getName()).should(ArchConditions.haveModifier(PUBLIC)))
+                arguments(noClass(PublicClass.class).should().notHaveModifier(JavaModifier.PUBLIC),
+                        noClass(PublicClass.class).should().haveModifier(JavaModifier.PUBLIC)),
+                arguments(noClass(PublicClass.class).should(ArchConditions.notHaveModifier(JavaModifier.PUBLIC)),
+                        noClass(PublicClass.class).should(ArchConditions.haveModifier(JavaModifier.PUBLIC))),
+                arguments(noClass(PublicClass.class.getName()).should().notHaveModifier(JavaModifier.PUBLIC),
+                        noClass(PublicClass.class.getName()).should().haveModifier(JavaModifier.PUBLIC)),
+                arguments(noClass(PublicClass.class.getName()).should(ArchConditions.notHaveModifier(JavaModifier.PUBLIC)),
+                        noClass(PublicClass.class.getName()).should(ArchConditions.haveModifier(JavaModifier.PUBLIC)))
         );
     }
 
@@ -915,13 +915,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_beAnnotatedWith_rules() {
         return Stream.of(
-                $(theClass(SomeAnnotatedClass.class).should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
+                arguments(theClass(SomeAnnotatedClass.class).should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
                         theClass(SomeAnnotatedClass.class).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
-                $(theClass(SomeAnnotatedClass.class).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
+                arguments(theClass(SomeAnnotatedClass.class).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
                         theClass(SomeAnnotatedClass.class).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class))),
-                $(theClass(SomeAnnotatedClass.class.getName()).should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
+                arguments(theClass(SomeAnnotatedClass.class.getName()).should().beAnnotatedWith(RuntimeRetentionAnnotation.class),
                         theClass(SomeAnnotatedClass.class.getName()).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
-                $(theClass(SomeAnnotatedClass.class.getName()).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
+                arguments(theClass(SomeAnnotatedClass.class.getName()).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)),
                         theClass(SomeAnnotatedClass.class.getName()).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)))
         );
     }
@@ -943,13 +943,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_beAnnotatedWith_rules() {
         return Stream.of(
-                $(noClass(SomeAnnotatedClass.class).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
+                arguments(noClass(SomeAnnotatedClass.class).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
                         noClass(SomeAnnotatedClass.class).should().beAnnotatedWith(RuntimeRetentionAnnotation.class)),
-                $(noClass(SomeAnnotatedClass.class).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
+                arguments(noClass(SomeAnnotatedClass.class).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
                         noClass(SomeAnnotatedClass.class).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class))),
-                $(noClass(SomeAnnotatedClass.class.getName()).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
+                arguments(noClass(SomeAnnotatedClass.class.getName()).should().notBeAnnotatedWith(RuntimeRetentionAnnotation.class),
                         noClass(SomeAnnotatedClass.class.getName()).should().beAnnotatedWith(RuntimeRetentionAnnotation.class)),
-                $(noClass(SomeAnnotatedClass.class.getName()).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
+                arguments(noClass(SomeAnnotatedClass.class.getName()).should(ArchConditions.notBeAnnotatedWith(RuntimeRetentionAnnotation.class)),
                         noClass(SomeAnnotatedClass.class.getName()).should(ArchConditions.beAnnotatedWith(RuntimeRetentionAnnotation.class)))
         );
     }
@@ -971,13 +971,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_implement_rules() {
         return Stream.of(
-                $(theClass(ArrayList.class).should().implement(Collection.class),
+                arguments(theClass(ArrayList.class).should().implement(Collection.class),
                         theClass(ArrayList.class).should().notImplement(Collection.class)),
-                $(theClass(ArrayList.class).should(ArchConditions.implement(Collection.class)),
+                arguments(theClass(ArrayList.class).should(ArchConditions.implement(Collection.class)),
                         theClass(ArrayList.class).should(ArchConditions.notImplement(Collection.class))),
-                $(theClass(ArrayList.class.getName()).should().implement(Collection.class),
+                arguments(theClass(ArrayList.class.getName()).should().implement(Collection.class),
                         theClass(ArrayList.class.getName()).should().notImplement(Collection.class)),
-                $(theClass(ArrayList.class.getName()).should(ArchConditions.implement(Collection.class)),
+                arguments(theClass(ArrayList.class.getName()).should(ArchConditions.implement(Collection.class)),
                         theClass(ArrayList.class.getName()).should(ArchConditions.notImplement(Collection.class)))
         );
     }
@@ -999,13 +999,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_implement_rules() {
         return Stream.of(
-                $(noClass(ArrayList.class).should().notImplement(Collection.class),
+                arguments(noClass(ArrayList.class).should().notImplement(Collection.class),
                         noClass(ArrayList.class).should().implement(Collection.class)),
-                $(noClass(ArrayList.class).should(ArchConditions.notImplement(Collection.class)),
+                arguments(noClass(ArrayList.class).should(ArchConditions.notImplement(Collection.class)),
                         noClass(ArrayList.class).should(ArchConditions.implement(Collection.class))),
-                $(noClass(ArrayList.class.getName()).should().notImplement(Collection.class),
+                arguments(noClass(ArrayList.class.getName()).should().notImplement(Collection.class),
                         noClass(ArrayList.class.getName()).should().implement(Collection.class)),
-                $(noClass(ArrayList.class.getName()).should(ArchConditions.notImplement(Collection.class)),
+                arguments(noClass(ArrayList.class.getName()).should(ArchConditions.notImplement(Collection.class)),
                         noClass(ArrayList.class.getName()).should(ArchConditions.implement(Collection.class)))
         );
     }
@@ -1027,13 +1027,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_beAssignableTo_rules() {
         return Stream.of(
-                $(theClass(List.class).should().beAssignableTo(Collection.class),
+                arguments(theClass(List.class).should().beAssignableTo(Collection.class),
                         theClass(List.class).should().notBeAssignableTo(Collection.class)),
-                $(theClass(List.class).should(ArchConditions.beAssignableTo(Collection.class)),
+                arguments(theClass(List.class).should(ArchConditions.beAssignableTo(Collection.class)),
                         theClass(List.class).should(ArchConditions.notBeAssignableTo(Collection.class))),
-                $(theClass(List.class.getName()).should().beAssignableTo(Collection.class),
+                arguments(theClass(List.class.getName()).should().beAssignableTo(Collection.class),
                         theClass(List.class.getName()).should().notBeAssignableTo(Collection.class)),
-                $(theClass(List.class.getName()).should(ArchConditions.beAssignableTo(Collection.class)),
+                arguments(theClass(List.class.getName()).should(ArchConditions.beAssignableTo(Collection.class)),
                         theClass(List.class.getName()).should(ArchConditions.notBeAssignableTo(Collection.class)))
         );
     }
@@ -1055,13 +1055,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_beAssignableTo_rules() {
         return Stream.of(
-                $(noClass(List.class).should().notBeAssignableTo(Collection.class),
+                arguments(noClass(List.class).should().notBeAssignableTo(Collection.class),
                         noClass(List.class).should().beAssignableTo(Collection.class)),
-                $(noClass(List.class).should(ArchConditions.notBeAssignableTo(Collection.class)),
+                arguments(noClass(List.class).should(ArchConditions.notBeAssignableTo(Collection.class)),
                         noClass(List.class).should(ArchConditions.beAssignableTo(Collection.class))),
-                $(noClass(List.class.getName()).should().notBeAssignableTo(Collection.class),
+                arguments(noClass(List.class.getName()).should().notBeAssignableTo(Collection.class),
                         noClass(List.class.getName()).should().beAssignableTo(Collection.class)),
-                $(noClass(List.class.getName()).should(ArchConditions.notBeAssignableTo(Collection.class)),
+                arguments(noClass(List.class.getName()).should(ArchConditions.notBeAssignableTo(Collection.class)),
                         noClass(List.class.getName()).should(ArchConditions.beAssignableTo(Collection.class)))
         );
     }
@@ -1083,13 +1083,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_beAssignableFrom_rules() {
         return Stream.of(
-                $(theClass(Collection.class).should().beAssignableFrom(List.class),
+                arguments(theClass(Collection.class).should().beAssignableFrom(List.class),
                         theClass(Collection.class).should().notBeAssignableFrom(List.class)),
-                $(theClass(Collection.class).should(ArchConditions.beAssignableFrom(List.class)),
+                arguments(theClass(Collection.class).should(ArchConditions.beAssignableFrom(List.class)),
                         theClass(Collection.class).should(ArchConditions.notBeAssignableFrom(List.class))),
-                $(theClass(Collection.class.getName()).should().beAssignableFrom(List.class),
+                arguments(theClass(Collection.class.getName()).should().beAssignableFrom(List.class),
                         theClass(Collection.class.getName()).should().notBeAssignableFrom(List.class)),
-                $(theClass(Collection.class.getName()).should(ArchConditions.beAssignableFrom(List.class)),
+                arguments(theClass(Collection.class.getName()).should(ArchConditions.beAssignableFrom(List.class)),
                         theClass(Collection.class.getName()).should(ArchConditions.notBeAssignableFrom(List.class)))
         );
     }
@@ -1111,13 +1111,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_beAssignableFrom_rules() {
         return Stream.of(
-                $(noClass(Collection.class).should().notBeAssignableFrom(List.class),
+                arguments(noClass(Collection.class).should().notBeAssignableFrom(List.class),
                         noClass(Collection.class).should().beAssignableFrom(List.class)),
-                $(noClass(Collection.class).should(ArchConditions.notBeAssignableFrom(List.class)),
+                arguments(noClass(Collection.class).should(ArchConditions.notBeAssignableFrom(List.class)),
                         noClass(Collection.class).should(ArchConditions.beAssignableFrom(List.class))),
-                $(noClass(Collection.class.getName()).should().notBeAssignableFrom(List.class),
+                arguments(noClass(Collection.class.getName()).should().notBeAssignableFrom(List.class),
                         noClass(Collection.class.getName()).should().beAssignableFrom(List.class)),
-                $(noClass(Collection.class.getName()).should(ArchConditions.notBeAssignableFrom(List.class)),
+                arguments(noClass(Collection.class.getName()).should(ArchConditions.notBeAssignableFrom(List.class)),
                         noClass(Collection.class.getName()).should(ArchConditions.beAssignableFrom(List.class)))
         );
     }
@@ -1139,14 +1139,14 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_getField_rules() {
         return Stream.of(
-                $(theClass(ClassAccessingField.class).should().getField(ClassWithField.class, "field"),
-                        theClass(ClassAccessingWrongField.class).should().getField(ClassWithField.class, "field")),
-                $(theClass(ClassAccessingField.class).should(ArchConditions.getField(ClassWithField.class, "field")),
-                        theClass(ClassAccessingWrongField.class).should(ArchConditions.getField(ClassWithField.class, "field"))),
-                $(theClass(ClassAccessingField.class.getName()).should().getField(ClassWithField.class, "field"),
-                        theClass(ClassAccessingWrongField.class.getName()).should().getField(ClassWithField.class, "field")),
-                $(theClass(ClassAccessingField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")),
-                        theClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")))
+                arguments(theClass(ClassAccessingField.class).should().getField(ClassWithField.class, "field"), theClass(ClassAccessingWrongField.class).should().getField(ClassWithField.class,
+                        "field")),
+                arguments(theClass(ClassAccessingField.class).should(ArchConditions.getField(ClassWithField.class, "field")), theClass(ClassAccessingWrongField.class).should(ArchConditions.getField(ClassWithField.class,
+                        "field"))),
+                arguments(theClass(ClassAccessingField.class.getName()).should().getField(ClassWithField.class, "field"), theClass(ClassAccessingWrongField.class.getName()).should().getField(ClassWithField.class,
+                        "field")),
+                arguments(theClass(ClassAccessingField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")), theClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getField(ClassWithField.class,
+                        "field")))
         );
     }
 
@@ -1166,14 +1166,10 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_getField_rules() {
         return Stream.of(
-                $(noClass(ClassAccessingWrongField.class).should().getField(ClassWithField.class, "field"),
-                        noClass(ClassAccessingField.class).should().getField(ClassWithField.class, "field")),
-                $(noClass(ClassAccessingWrongField.class).should(ArchConditions.getField(ClassWithField.class, "field")),
-                        noClass(ClassAccessingField.class).should(ArchConditions.getField(ClassWithField.class, "field"))),
-                $(noClass(ClassAccessingWrongField.class.getName()).should().getField(ClassWithField.class, "field"),
-                        noClass(ClassAccessingField.class.getName()).should().getField(ClassWithField.class, "field")),
-                $(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")),
-                        noClass(ClassAccessingField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")))
+                arguments(noClass(ClassAccessingWrongField.class).should().getField(ClassWithField.class, "field"), noClass(ClassAccessingField.class).should().getField(ClassWithField.class, "field")),
+                arguments(noClass(ClassAccessingWrongField.class).should(ArchConditions.getField(ClassWithField.class, "field")), noClass(ClassAccessingField.class).should(ArchConditions.getField(ClassWithField.class, "field"))),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should().getField(ClassWithField.class, "field"), noClass(ClassAccessingField.class.getName()).should().getField(ClassWithField.class, "field")),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")), noClass(ClassAccessingField.class.getName()).should(ArchConditions.getField(ClassWithField.class, "field")))
         );
     }
 
@@ -1193,13 +1189,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_accessField_rules() {
         return Stream.of(
-                $(theClass(ClassAccessingField.class).should().accessField(ClassWithField.class, "field"),
+                arguments(theClass(ClassAccessingField.class).should().accessField(ClassWithField.class, "field"),
                         theClass(ClassAccessingWrongField.class).should().accessField(ClassWithField.class, "field")),
-                $(theClass(ClassAccessingField.class).should(ArchConditions.accessField(ClassWithField.class, "field")),
+                arguments(theClass(ClassAccessingField.class).should(ArchConditions.accessField(ClassWithField.class, "field")),
                         theClass(ClassAccessingWrongField.class).should(ArchConditions.accessField(ClassWithField.class, "field"))),
-                $(theClass(ClassAccessingField.class.getName()).should().accessField(ClassWithField.class, "field"),
+                arguments(theClass(ClassAccessingField.class.getName()).should().accessField(ClassWithField.class, "field"),
                         theClass(ClassAccessingWrongField.class.getName()).should().accessField(ClassWithField.class, "field")),
-                $(theClass(ClassAccessingField.class.getName()).should(ArchConditions.accessField(ClassWithField.class, "field")),
+                arguments(theClass(ClassAccessingField.class.getName()).should(ArchConditions.accessField(ClassWithField.class, "field")),
                         theClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.accessField(ClassWithField.class, "field")))
         );
     }
@@ -1220,13 +1216,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_accessField_rules() {
         return Stream.of(
-                $(noClass(ClassAccessingWrongField.class).should().accessField(ClassWithField.class, "field"),
+                arguments(noClass(ClassAccessingWrongField.class).should().accessField(ClassWithField.class, "field"),
                         noClass(ClassAccessingField.class).should().accessField(ClassWithField.class, "field")),
-                $(noClass(ClassAccessingWrongField.class).should(ArchConditions.accessField(ClassWithField.class, "field")),
+                arguments(noClass(ClassAccessingWrongField.class).should(ArchConditions.accessField(ClassWithField.class, "field")),
                         noClass(ClassAccessingField.class).should(ArchConditions.accessField(ClassWithField.class, "field"))),
-                $(noClass(ClassAccessingWrongField.class.getName()).should().accessField(ClassWithField.class, "field"),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should().accessField(ClassWithField.class, "field"),
                         noClass(ClassAccessingField.class.getName()).should().accessField(ClassWithField.class, "field")),
-                $(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.accessField(ClassWithField.class, "field")),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.accessField(ClassWithField.class, "field")),
                         noClass(ClassAccessingField.class.getName()).should(ArchConditions.accessField(ClassWithField.class, "field")))
         );
     }
@@ -1247,13 +1243,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_getFieldWhere_rules() {
         return Stream.of(
-                $(theClass(ClassAccessingField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(theClass(ClassAccessingField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
                         theClass(ClassAccessingWrongField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(theClass(ClassAccessingField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(theClass(ClassAccessingField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
                         theClass(ClassAccessingWrongField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class)))),
-                $(theClass(ClassAccessingField.class.getName()).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(theClass(ClassAccessingField.class.getName()).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
                         theClass(ClassAccessingWrongField.class.getName()).should().getFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(theClass(ClassAccessingField.class.getName()).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(theClass(ClassAccessingField.class.getName()).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
                         theClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))))
         );
     }
@@ -1274,13 +1270,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_getFieldWhere_rules() {
         return Stream.of(
-                $(noClass(ClassAccessingWrongField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(noClass(ClassAccessingWrongField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
                         noClass(ClassAccessingField.class).should().getFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(noClass(ClassAccessingWrongField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(noClass(ClassAccessingWrongField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
                         noClass(ClassAccessingField.class).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class)))),
-                $(noClass(ClassAccessingWrongField.class.getName()).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should().getFieldWhere(accessTargetIs(ClassWithField.class)),
                         noClass(ClassAccessingField.class.getName()).should().getFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))),
                         noClass(ClassAccessingField.class.getName()).should(ArchConditions.getFieldWhere(accessTargetIs(ClassWithField.class))))
         );
     }
@@ -1301,13 +1297,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> theClass_should_accessFieldWhere_rules() {
         return Stream.of(
-                $(theClass(ClassAccessingField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(theClass(ClassAccessingField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
                         theClass(ClassAccessingWrongField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(theClass(ClassAccessingField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(theClass(ClassAccessingField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
                         theClass(ClassAccessingWrongField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class)))),
-                $(theClass(ClassAccessingField.class.getName()).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(theClass(ClassAccessingField.class.getName()).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
                         theClass(ClassAccessingWrongField.class.getName()).should().accessFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(theClass(ClassAccessingField.class.getName()).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(theClass(ClassAccessingField.class.getName()).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
                         theClass(ClassAccessingWrongField.class.getName())
                                 .should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))))
         );
@@ -1329,13 +1325,13 @@ public class GivenClassShouldTest {
 
     static Stream<Arguments> noClass_should_accessFieldWhere_rules() {
         return Stream.of(
-                $(noClass(ClassAccessingWrongField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(noClass(ClassAccessingWrongField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
                         noClass(ClassAccessingField.class).should().accessFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(noClass(ClassAccessingWrongField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(noClass(ClassAccessingWrongField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
                         noClass(ClassAccessingField.class).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class)))),
-                $(noClass(ClassAccessingWrongField.class.getName()).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should().accessFieldWhere(accessTargetIs(ClassWithField.class)),
                         noClass(ClassAccessingField.class.getName()).should().accessFieldWhere(accessTargetIs(ClassWithField.class))),
-                $(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
+                arguments(noClass(ClassAccessingWrongField.class.getName()).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))),
                         noClass(ClassAccessingField.class.getName()).should(ArchConditions.accessFieldWhere(accessTargetIs(ClassWithField.class))))
         );
     }

@@ -16,22 +16,22 @@ import static com.tngtech.archunit.library.ProxyRules.directly_call_other_method
 import static com.tngtech.archunit.library.ProxyRules.no_classes_should_directly_call_other_methods_declared_in_the_same_class_that;
 import static com.tngtech.archunit.library.ProxyRules.no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ProxyRulesTest {
 
     static Stream<Arguments> call_own_method_with_specific_annotation_rules() {
         return Stream.of(
-                $(no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(ProxyAnnotation.class), String.format(
+                arguments(no_classes_should_directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(ProxyAnnotation.class), String.format(
                         "no classes should directly call other methods declared in the same class that are annotated with @%s, because it bypasses the proxy mechanism",
                         ProxyAnnotation.class.getSimpleName())),
-                $(noClasses().should(directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(ProxyAnnotation.class)), String.format(
+                arguments(noClasses().should(directly_call_other_methods_declared_in_the_same_class_that_are_annotated_with(ProxyAnnotation.class)), String.format(
                         "no classes should directly call other methods declared in the same class that are annotated with @%s",
                         ProxyAnnotation.class.getSimpleName())),
-                $(no_classes_should_directly_call_other_methods_declared_in_the_same_class_that(have(name("selfProxied"))),
+                arguments(no_classes_should_directly_call_other_methods_declared_in_the_same_class_that(have(name("selfProxied"))),
                         "no classes should directly call other methods declared in the same class that have name 'selfProxied', because it bypasses the proxy mechanism"),
-                $(noClasses().should(directly_call_other_methods_declared_in_the_same_class_that(have(name("selfProxied")))),
+                arguments(noClasses().should(directly_call_other_methods_declared_in_the_same_class_that(have(name("selfProxied")))),
                         "no classes should directly call other methods declared in the same class that have name 'selfProxied'")
         );
     }

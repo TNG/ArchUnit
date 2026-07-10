@@ -29,10 +29,10 @@ import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TEST_FIXTURES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.ONLY_INCLUDE_TESTS;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ImportOptionsTest {
     @TempDir
@@ -95,8 +95,8 @@ public class ImportOptionsTest {
         List<Arguments> includeMainFolderInput = new ArrayList<>();
         List<Arguments> includeTestFolderInput = new ArrayList<>();
         for (FolderPattern folderPattern : getFolderPatterns()) {
-            includeMainFolderInput.add($(folderPattern.folders, folderPattern.isMainFolder));
-            includeTestFolderInput.add($(folderPattern.folders, !folderPattern.isMainFolder));
+            includeMainFolderInput.add(arguments(folderPattern.folders, folderPattern.isMainFolder));
+            includeTestFolderInput.add(arguments(folderPattern.folders, !folderPattern.isMainFolder));
         }
 
         Stream<Arguments> doNotIncludeTestsDataPoints = crossProduct(do_not_include_tests(), includeMainFolderInput);

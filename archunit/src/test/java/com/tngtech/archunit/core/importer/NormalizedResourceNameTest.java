@@ -6,23 +6,23 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class NormalizedResourceNameTest {
     static Stream<Arguments> resource_name_starts_with_cases() {
         return Stream.of(
-                $("com", "com", true),
-                $("com/foo", "com", true),
-                $("/com/", "/com", true),
-                $("\\com\\foo", "/com/foo", true),
-                $("com", "bar", false),
-                $("com", "co", false),
-                $("co/m", "co", true),
-                $("co/m", "co/m", true),
-                $("some/longer/path/more", "some/longer/path", true),
-                $("some/longer/path/more", "some/longer", true),
-                $("some/longer/path/more", "some/longer/p", false)
+                arguments("com", "com", true),
+                arguments("com/foo", "com", true),
+                arguments("/com/", "/com", true),
+                arguments("\\com\\foo", "/com/foo", true),
+                arguments("com", "bar", false),
+                arguments("com", "co", false),
+                arguments("co/m", "co", true),
+                arguments("co/m", "co/m", true),
+                arguments("some/longer/path/more", "some/longer/path", true),
+                arguments("some/longer/path/more", "some/longer", true),
+                arguments("some/longer/path/more", "some/longer/p", false)
         );
     }
 
@@ -38,11 +38,11 @@ public class NormalizedResourceNameTest {
 
     static Stream<Arguments> names_to_absolute_names() {
         return Stream.of(
-                $("", "/"),
-                $("com", "/com/"),
-                $("com/foo", "/com/foo/"),
-                $("Some.class", "/Some.class"),
-                $("com/Some.class", "/com/Some.class")
+                arguments("", "/"),
+                arguments("com", "/com/"),
+                arguments("com/foo", "/com/foo/"),
+                arguments("Some.class", "/Some.class"),
+                arguments("com/Some.class", "/com/Some.class")
         );
     }
 
@@ -56,11 +56,11 @@ public class NormalizedResourceNameTest {
 
     static Stream<Arguments> names_to_entry_names() {
         return Stream.of(
-                $("", ""),
-                $("/com", "com/"),
-                $("/com/foo", "com/foo/"),
-                $("Some.class", "Some.class"),
-                $("/com/Some.class", "com/Some.class")
+                arguments("", ""),
+                arguments("/com", "com/"),
+                arguments("/com/foo", "com/foo/"),
+                arguments("Some.class", "Some.class"),
+                arguments("/com/Some.class", "com/Some.class")
         );
     }
 

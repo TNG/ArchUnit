@@ -12,8 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class JavaParameterizedTypeTest {
 
@@ -52,7 +52,7 @@ public class JavaParameterizedTypeTest {
                 .map(v -> v.getBounds().get(0))
                 .findFirst().get();
 
-        return $(javaType, reflectionType);
+        return arguments(javaType, reflectionType);
     }
 
     @ParameterizedTest

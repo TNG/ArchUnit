@@ -26,7 +26,6 @@ import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigura
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.genericArray;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.parameterizedTypeArrayName;
@@ -35,6 +34,7 @@ import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.Expec
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
@@ -56,8 +56,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
                 NoGenericSignatureOnMethod.class
         ).collect(toList());
         return Stream.of(
-                $(testCases.get(0), NonGenericParameterType.class),
-                $(testCases.get(1), NonGenericParameterType.class)
+                arguments(testCases.get(0), NonGenericParameterType.class),
+                arguments(testCases.get(1), NonGenericParameterType.class)
         );
     }
 

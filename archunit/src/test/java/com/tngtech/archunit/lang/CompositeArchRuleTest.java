@@ -19,9 +19,9 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class CompositeArchRuleTest {
     private static final boolean SATISFIED = true;
@@ -32,10 +32,10 @@ public class CompositeArchRuleTest {
 
     static Stream<Arguments> rules_to_AND() {
         return Stream.of(
-                $(archRuleThatSucceeds(), archRuleThatSucceeds(), SATISFIED),
-                $(archRuleThatSucceeds(), archRuleThatFails(), UNSATISFIED),
-                $(archRuleThatFails(), archRuleThatSucceeds(), UNSATISFIED),
-                $(archRuleThatFails(), archRuleThatFails(), UNSATISFIED)
+                arguments(archRuleThatSucceeds(), archRuleThatSucceeds(), SATISFIED),
+                arguments(archRuleThatSucceeds(), archRuleThatFails(), UNSATISFIED),
+                arguments(archRuleThatFails(), archRuleThatSucceeds(), UNSATISFIED),
+                arguments(archRuleThatFails(), archRuleThatFails(), UNSATISFIED)
         );
     }
 

@@ -41,8 +41,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class DependencyTest {
 
@@ -131,8 +131,8 @@ public class DependencyTest {
 
     static Stream<Arguments> method_calls_to_array_types() {
         return Stream.of(
-                $(ClassWithArrayDependencies.class, "oneDimArray", String[].class, 6),
-                $(ClassWithArrayDependencies.class, "multiDimArray", String[][].class, 10)
+                arguments(ClassWithArrayDependencies.class, "oneDimArray", String[].class, 6),
+                arguments(ClassWithArrayDependencies.class, "multiDimArray", String[][].class, 10)
         );
     }
 
@@ -199,9 +199,9 @@ public class DependencyTest {
                 .get(ClassWithDependencyOnInstanceofCheck.class);
 
         return Stream.of(
-                $(javaClass.getStaticInitializer().get(), 6),
-                $(javaClass.getConstructor(Object.class), 9),
-                $(javaClass.getMethod("method", Object.class), 13));
+                arguments(javaClass.getStaticInitializer().get(), 6),
+                arguments(javaClass.getConstructor(Object.class), 9),
+                arguments(javaClass.getMethod("method", Object.class), 13));
     }
 
     @ParameterizedTest
@@ -494,8 +494,8 @@ public class DependencyTest {
                 .get(GenericTypeOnMethod.class).getMethod("genericTypeOnMethod", SomeGenericType.class);
         String expectedGenericParameterTypeName = SomeGenericType.class.getName() + "<" + String.class.getName() + ">";
         return Stream.of(
-                $(constructor, expectedGenericParameterTypeName),
-                $(method, expectedGenericParameterTypeName));
+                arguments(constructor, expectedGenericParameterTypeName),
+                arguments(method, expectedGenericParameterTypeName));
     }
 
     @ParameterizedTest

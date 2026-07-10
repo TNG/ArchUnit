@@ -22,8 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -61,8 +61,8 @@ class ClassResolverFromClassPathTest {
 
     static Stream<Arguments> urls_with_spaces() throws MalformedURLException, URISyntaxException {
         return Stream.of(
-                $(new URL("file:/C:/Some Windows/URL with spaces 123/any.jar"), new URI("file:/C:/Some%20Windows/URL%20with%20spaces%20123/any.jar")),
-                $(new URL("file:/Some Unix/URL with spaces 123/any.jar"), new URI("file:/Some%20Unix/URL%20with%20spaces%20123/any.jar"))
+                arguments(new URL("file:/C:/Some Windows/URL with spaces 123/any.jar"), new URI("file:/C:/Some%20Windows/URL%20with%20spaces%20123/any.jar")),
+                arguments(new URL("file:/Some Unix/URL with spaces 123/any.jar"), new URI("file:/Some%20Unix/URL%20with%20spaces%20123/any.jar"))
         );
     }
 

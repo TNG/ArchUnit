@@ -22,10 +22,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.library.dependencies.GivenSlicesTest.TEST_CLASSES_PACKAGE;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
-import static com.tngtech.archunit.testutil.DataProviders.$;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class SlicesShouldTest {
     static Stream<SliceRule> rules() {
@@ -76,9 +76,9 @@ public class SlicesShouldTest {
 
     static Stream<Arguments> rules_with_expected_base_description() {
         return Stream.of(
-                $(slices().matching("foo.(*)..").should().notDependOnEachOther(),
+                arguments(slices().matching("foo.(*)..").should().notDependOnEachOther(),
                         "slices matching 'foo.(*)..' should not depend on each other"),
-                $(slices().matching("foo.(*)..").should().beFreeOfCycles(),
+                arguments(slices().matching("foo.(*)..").should().beFreeOfCycles(),
                         "slices matching 'foo.(*)..' should be free of cycles"));
     }
 
