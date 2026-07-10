@@ -9,9 +9,7 @@ import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassWithOnlyGenericTypeResolution;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
@@ -25,7 +23,6 @@ import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.Expec
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericSuperclassTest {
 
     @Test

@@ -3,6 +3,7 @@ package com.tngtech.archunit.junit.internal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -12,24 +13,22 @@ import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.LocationProvider;
 import com.tngtech.archunit.junit.internal.ClassCache.CacheClassFileImporter;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
 import org.assertj.core.api.Condition;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyCollection;
@@ -39,15 +38,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-@RunWith(DataProviderRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ClassCacheTest {
 
-    @Rule
-    public final MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule()
-            .resolveAdditionalDependenciesFromClassPath(false);
+    @RegisterExtension
+    public final ArchConfigurationExtension archConfigurationRule = new ArchConfigurationExtension().resolveAdditionalDependenciesFromClassPath(false);
 
     @Spy
     private CacheClassFileImporter cacheClassFileImporter;
@@ -186,15 +181,14 @@ public class ClassCacheTest {
         verifyNumberOfImports(1);
     }
 
-    @DataProvider
-    public static Object[][] test_classes_without_any_imported_classes() {
-        return testForEach(
+    static Stream<TestAnalysisRequest> test_classes_without_any_imported_classes() {
+        return Stream.of(
                 new TestAnalysisRequest().withPackages("does.not.exist"),
                 new TestAnalysisRequest().withLocationProviders(EmptyLocations.class));
     }
 
-    @Test
-    @UseDataProvider("test_classes_without_any_imported_classes")
+    @ParameterizedTest
+    @MethodSource("test_classes_without_any_imported_classes")
     public void when_there_are_only_nonexisting_sources_nothing_is_imported(TestAnalysisRequest analysisRequest) {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analysisRequest);
 

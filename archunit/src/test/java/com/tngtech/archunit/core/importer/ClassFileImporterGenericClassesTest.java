@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassWithOnlyGenericTypeResolution;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
@@ -29,10 +29,8 @@ import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.Expec
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericClassesTest {
 
     @Test
@@ -215,8 +213,7 @@ public class ClassFileImporterGenericClassesTest {
                 .hasTypeParameter("T").withBoundsMatching(parameterizedType(List.class).withWildcardTypeParameter());
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_upper_bound_wildcard() {
+    static Stream<Arguments> imports_single_type_bound_with_upper_bound_wildcard() {
         @SuppressWarnings("unused")
         class ClassWithSingleTypeParameterBoundByTypeWithWildcardWithUpperClassBound<T extends List<? extends String>> {
         }
@@ -224,23 +221,22 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterBoundByTypeWithWildcardWithUpperInterfaceBound<T extends List<? extends Serializable>> {
         }
 
-        return $$(
-                $(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithUpperClassBound.class, String.class),
-                $(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithUpperInterfaceBound.class, Serializable.class)
+        return Stream.of(
+                arguments(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithUpperClassBound.class, String.class),
+                arguments(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithUpperInterfaceBound.class, Serializable.class)
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_upper_bound_wildcard(Class<?> classWithWildcard, Class<?> expectedUpperBound) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_upper_bound_wildcard(Class<?> classWithWildcard, Class<?> expectedUpperBound) {
         JavaClass javaClass = importClassWithOnlyGenericTypeResolution(classWithWildcard);
 
         assertThatType(javaClass)
                 .hasTypeParameter("T").withBoundsMatching(parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(expectedUpperBound));
     }
 
-    @DataProvider
-    public static Object[][] data_imports_single_type_bound_with_lower_bound_wildcard() {
+    static Stream<Arguments> imports_single_type_bound_with_lower_bound_wildcard() {
         @SuppressWarnings("unused")
         class ClassWithSingleTypeParameterBoundByTypeWithWildcardWithLowerClassBound<T extends List<? super String>> {
         }
@@ -248,15 +244,15 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterBoundByTypeWithWildcardWithLowerInterfaceBound<T extends List<? super Serializable>> {
         }
 
-        return $$(
-                $(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithLowerClassBound.class, String.class),
-                $(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithLowerInterfaceBound.class, Serializable.class)
+        return Stream.of(
+                arguments(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithLowerClassBound.class, String.class),
+                arguments(ClassWithSingleTypeParameterBoundByTypeWithWildcardWithLowerInterfaceBound.class, Serializable.class)
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_imports_single_type_bound_with_lower_bound_wildcard(Class<?> classWithWildcard, Class<?> expectedLowerBound) {
+    @ParameterizedTest
+    @MethodSource
+    void imports_single_type_bound_with_lower_bound_wildcard(Class<?> classWithWildcard, Class<?> expectedLowerBound) {
         JavaClass javaClass = importClassWithOnlyGenericTypeResolution(classWithWildcard);
 
         assertThatType(javaClass)

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedFunction;
 import com.tngtech.archunit.core.domain.Dependency;
@@ -19,11 +20,9 @@ import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.one
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.one.one.ClassOneOne;
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.two.ClassTwo;
 import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.two.one.ClassTwoOne;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
@@ -32,9 +31,7 @@ import static com.tngtech.archunit.library.modules.syntax.ModuleDependencyScope.
 import static com.tngtech.archunit.library.modules.syntax.ModuleRuleDefinition.modules;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class ModuleRuleTest {
 
     @Test
@@ -136,16 +133,15 @@ public class ModuleRuleTest {
                 .hasNoViolation();
     }
 
-    @DataProvider
-    public static Object[][] rules() {
-        return testForEach(
+    static Stream<ModulesRule<?>> rules() {
+        return Stream.of(
                 modules().definedByPackages("..test_modules.(*).(*)..").should().respectTheirAllowedDependencies(alwaysFalse(), consideringOnlyDependenciesBetweenModules()),
                 modules().definedByPackages("..test_modules.(*).(*)..").should().beFreeOfCycles());
     }
 
-    @Test
-    @UseDataProvider("rules")
-    public void handles_violations_as_dependencies(ModulesRule<?> rule) {
+    @ParameterizedTest
+    @MethodSource("rules")
+    void handles_violations_as_dependencies(ModulesRule<?> rule) {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(ClassOne.class, ClassTwo.class);
 
         Set<Dependency> reportedDependencies = new HashSet<>();

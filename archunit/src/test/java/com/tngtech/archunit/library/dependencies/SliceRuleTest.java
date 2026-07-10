@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
@@ -20,15 +21,14 @@ import com.tngtech.archunit.library.testclasses.second.any.pkg.SecondAnyClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.math.IntMath.factorial;
 import static com.tngtech.archunit.library.cycle_detection.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
@@ -36,26 +36,22 @@ import static com.tngtech.archunit.library.cycle_detection.rules.CycleRuleTestCo
 import static com.tngtech.archunit.library.dependencies.GivenSlicesTest.TEST_CLASSES_PACKAGE;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(DataProviderRunner.class)
 public class SliceRuleTest {
 
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
 
-    @DataProvider
-    public static Object[][] cycle_limits() {
+    static Stream<Arguments> cycle_limits() {
         int totalNumberOfCycles = getNumberOfCyclesInCompleteGraph(7);
         int halfOfTotal = totalNumberOfCycles / 2;
-        return $$(
-                $(new Runnable() {
+        return Stream.of(
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME,
@@ -67,7 +63,7 @@ public class SliceRuleTest {
                         return "limited number of cycles to half of existing number of cycles should report half the cycles";
                     }
                 }, halfOfTotal),
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         // keep default
@@ -78,7 +74,7 @@ public class SliceRuleTest {
                         return "if no limit of cycles is configured should report max. 100 cycles";
                     }
                 }, 100),
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME,
@@ -90,7 +86,7 @@ public class SliceRuleTest {
                         return "if the exact amount of existing cycles is configured as limit should report all cycles";
                     }
                 }, totalNumberOfCycles),
-                $(new Runnable() {
+                arguments(new Runnable() {
                     @Override
                     public void run() {
                         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME,
@@ -105,9 +101,9 @@ public class SliceRuleTest {
         );
     }
 
-    @Test
-    @UseDataProvider("cycle_limits")
-    public void limits_number_of_cycles_to_configured_limit(Runnable configureLimit, int expectedNumberOfReportedCycles) {
+    @ParameterizedTest
+    @MethodSource("cycle_limits")
+    void limits_number_of_cycles_to_configured_limit(Runnable configureLimit, int expectedNumberOfReportedCycles) {
         configureLimit.run();
         String violations = getFailureReportForCyclesInRootPackageOf(CompleteSevenNodesGraphRoot.class);
 
@@ -175,28 +171,27 @@ public class SliceRuleTest {
 
     @Test
     public void should_allow_empty_should_if_configured() {
-        configurationRule.setFailOnEmptyShould(false);
+        archConfiguration.setFailOnEmptyShould(false);
 
         ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
     }
 
     @Test
     public void allows_empty_should_if_overridden() {
-        configurationRule.setFailOnEmptyShould(true);
+        archConfiguration.setFailOnEmptyShould(true);
 
         ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
     }
 
-    @DataProvider
-    public static Object[][] rules() {
-        return testForEach(
+    static Stream<SliceRule> rules() {
+        return Stream.of(
                 slices().matching(TEST_CLASSES_PACKAGE + ".(*)..").should().notDependOnEachOther(),
                 slices().matching(TEST_CLASSES_PACKAGE + ".(*)..").should().beFreeOfCycles());
     }
 
-    @Test
-    @UseDataProvider("rules")
-    public void handles_violations_as_dependencies(SliceRule rule) {
+    @ParameterizedTest
+    @MethodSource("rules")
+    void handles_violations_as_dependencies(SliceRule rule) {
         JavaClasses classes = new ClassFileImporter().importPackages(TEST_CLASSES_PACKAGE);
 
         Set<Dependency> reportedDependencies = new HashSet<>();

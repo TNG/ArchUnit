@@ -6,25 +6,19 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.importer.JavaFieldAccessTestBuilder;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
-import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.accessType;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.target;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 
-@RunWith(DataProviderRunner.class)
 public class JavaFieldAccessTest {
     @Test
     public void equals_of_JavaAccess_should_be_identity_equals() throws Exception {
@@ -52,14 +46,9 @@ public class JavaFieldAccessTest {
         assertThat(access.getName()).isEqualTo(access.getTarget().getName());
     }
 
-    @DataProvider
-    public static Object[][] accessTypes() {
-        return $$($(GET), $(SET));
-    }
-
-    @Test
-    @UseDataProvider("accessTypes")
-    public void predicate_access_type(AccessType accessType) {
+    @ParameterizedTest
+    @EnumSource(AccessType.class)
+    void predicate_access_type(AccessType accessType) {
         assertThat(accessType(accessType))
                 .accepts(stringFieldAccess(accessType))
                 .rejects(stringFieldAccess(not(accessType)))

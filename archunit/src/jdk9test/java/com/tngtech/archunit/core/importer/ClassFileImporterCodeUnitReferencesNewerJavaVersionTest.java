@@ -3,13 +3,10 @@ package com.tngtech.archunit.core.importer;
 import java.util.function.Supplier;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterCodeUnitReferencesNewerJavaVersionTest {
     /**
      * A local class constructor obtains extra parameters from the outer scope that the compiler transparently adds

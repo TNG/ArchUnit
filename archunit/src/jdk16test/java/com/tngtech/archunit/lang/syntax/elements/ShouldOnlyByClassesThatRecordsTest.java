@@ -1,20 +1,17 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static java.util.regex.Pattern.quote;
 
-@RunWith(DataProviderRunner.class)
 public class ShouldOnlyByClassesThatRecordsTest {
 
-    @Test
-    @UseDataProvider(location = ShouldOnlyByClassesThatTest.class, value = "should_only_be_by_rule_starts")
-    public void areRecords_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+    @ParameterizedTest
+    @MethodSource("com.tngtech.archunit.lang.syntax.elements.ShouldOnlyByClassesThatTest#should_only_be_by_rule_starts")
+    void areRecords_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         record SomeRecord(String param) {
         }
         record RecordAccessingRecord(String param) {
@@ -36,9 +33,9 @@ public class ShouldOnlyByClassesThatRecordsTest {
                 .hasNoViolationMatching(".*" + quote(RecordAccessingRecord.class.getName()) + ".*" + quote(SomeRecord.class.getName()) + ".*");
     }
 
-    @Test
-    @UseDataProvider(location = ShouldOnlyByClassesThatTest.class, value = "should_only_be_by_rule_starts")
-    public void areNotRecords_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+    @ParameterizedTest
+    @MethodSource("com.tngtech.archunit.lang.syntax.elements.ShouldOnlyByClassesThatTest#should_only_be_by_rule_starts")
+    void areNotRecords_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         record SomeRecord(String param) {
         }
         record RecordAccessingRecord(String param) {

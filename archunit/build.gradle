@@ -13,8 +13,8 @@ dependencies {
     testImplementation libs.log4j.api
     testImplementation libs.log4j.core
     testImplementation libs.junit4
-    testImplementation libs.junitDataprovider
     testImplementation libs.mockito
+    testImplementation libs.mockito.junit5
     testImplementation libs.assertj
     testImplementation(libs.assertj.guava) {
         exclude module: 'assertj-core'

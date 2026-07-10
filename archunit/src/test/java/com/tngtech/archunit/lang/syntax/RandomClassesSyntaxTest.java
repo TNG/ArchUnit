@@ -1,15 +1,14 @@
 package com.tngtech.archunit.lang.syntax;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxSeed;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxTestBase;
-import com.tngtech.java.junit.dataprovider.DataProvider;
+import org.junit.jupiter.params.provider.Arguments;
 
 public class RandomClassesSyntaxTest extends RandomSyntaxTestBase {
-    @DataProvider
-    public static List<List<?>> random_rules() {
+    static Stream<Arguments> random_rules() {
         return RandomSyntaxTestBase.createRandomRules(givenClassesSeed(),
                 new SingleStringReplacement("meta annotated", "meta-annotated"));
     }

@@ -1,42 +1,38 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.Collection;
-import java.util.Set;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(DataProviderRunner.class)
 public class MethodsShouldTest {
 
-    @DataProvider
-    public static Object[][] restricted_property_rule_ends() {
-        return $$(
-                $(methods().should().beFinal(), ImmutableSet.of(METHOD_C, METHOD_D)),
-                $(methods().should().notBeFinal(), ImmutableSet.of(METHOD_A, METHOD_B)),
-                $(methods().should().beStatic(), ImmutableSet.of(METHOD_A, METHOD_C)),
-                $(methods().should().notBeStatic(), ImmutableSet.of(METHOD_B, METHOD_D)),
-                $(methods().should().notBeFinal().andShould().notBeStatic(), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D)),
-                $(methods().should().notBeFinal().orShould().notBeStatic(), ImmutableSet.of(METHOD_B))
+    static Stream<Arguments> restricted_property_rule_ends() {
+        return Stream.of(
+                arguments(methods().should().beFinal(), ImmutableSet.of(METHOD_C, METHOD_D)),
+                arguments(methods().should().notBeFinal(), ImmutableSet.of(METHOD_A, METHOD_B)),
+                arguments(methods().should().beStatic(), ImmutableSet.of(METHOD_A, METHOD_C)),
+                arguments(methods().should().notBeStatic(), ImmutableSet.of(METHOD_B, METHOD_D)),
+                arguments(methods().should().notBeFinal().andShould().notBeStatic(), ImmutableSet.of(METHOD_A, METHOD_B, METHOD_D)),
+                arguments(methods().should().notBeFinal().orShould().notBeStatic(), ImmutableSet.of(METHOD_B))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_property_rule_ends")
-    public void property_predicates(ArchRule ruleStart, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_property_rule_ends")
+    void property_predicates(ArchRule ruleStart, Collection<String> expectedMembers) {
         EvaluationResult result = ruleStart.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMethods = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());

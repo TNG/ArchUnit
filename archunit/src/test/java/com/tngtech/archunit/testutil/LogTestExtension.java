@@ -6,9 +6,10 @@ import java.util.stream.Stream;
 import com.tngtech.archunit.testutil.TestLogRecorder.RecordedLogEvent;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class LogTestRule extends ExternalResource {
+public class LogTestExtension implements AfterEachCallback {
     private final TestLogRecorder testLogRecorder = new TestLogRecorder();
 
     public void watch(Class<?> loggerClass, Level level) {
@@ -16,7 +17,7 @@ public class LogTestRule extends ExternalResource {
     }
 
     @Override
-    protected void after() {
+    public void afterEach(ExtensionContext context) throws Exception {
         testLogRecorder.reset();
     }
 

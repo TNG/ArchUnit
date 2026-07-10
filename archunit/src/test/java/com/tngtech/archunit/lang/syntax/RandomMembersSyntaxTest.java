@@ -1,8 +1,7 @@
 package com.tngtech.archunit.lang.syntax;
 
-import java.util.List;
+import java.util.stream.Stream;
 
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnits;
 import com.tngtech.archunit.lang.syntax.elements.GivenConstructors;
 import com.tngtech.archunit.lang.syntax.elements.GivenFields;
@@ -10,21 +9,22 @@ import com.tngtech.archunit.lang.syntax.elements.GivenMembers;
 import com.tngtech.archunit.lang.syntax.elements.GivenMethods;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxSeed;
 import com.tngtech.archunit.testutil.syntax.RandomSyntaxTestBase;
-import com.tngtech.java.junit.dataprovider.DataProvider;
+import org.junit.jupiter.params.provider.Arguments;
+
+import static java.util.function.Function.identity;
 
 public class RandomMembersSyntaxTest extends RandomSyntaxTestBase {
-    @DataProvider
-    public static List<List<?>> random_rules() {
-        return FluentIterable
-                .from(createRandomMemberRules(givenMembersSeed()))
-                .append(createRandomMemberRules(givenFieldsSeed()))
-                .append(createRandomMemberRules(givenCodeUnitsSeed()))
-                .append(createRandomMemberRules(givenMethodsSeed()))
-                .append(createRandomMemberRules(givenConstructorsSeed()))
-                .toList();
+    static Stream<Arguments> random_rules() {
+        return Stream.of(
+                createRandomMemberRules(givenMembersSeed()),
+                createRandomMemberRules(givenFieldsSeed()),
+                createRandomMemberRules(givenCodeUnitsSeed()),
+                createRandomMemberRules(givenMethodsSeed()),
+                createRandomMemberRules(givenConstructorsSeed())
+        ).flatMap(identity());
     }
 
-    private static List<List<?>> createRandomMemberRules(RandomSyntaxSeed<?> givenMembersSeed) {
+    private static Stream<Arguments> createRandomMemberRules(RandomSyntaxSeed<?> givenMembersSeed) {
         return createRandomRules(givenMembersSeed,
                 new SingleStringReplacement("meta annotated", "meta-annotated"));
     }

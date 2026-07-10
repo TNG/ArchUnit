@@ -1,20 +1,17 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static java.util.regex.Pattern.quote;
 
-@RunWith(DataProviderRunner.class)
 public class ShouldClassesThatRecordsTest {
 
-    @Test
-    @UseDataProvider(location = ShouldClassesThatTest.class, value = "no_classes_should_that_rule_starts")
-    public void areRecords_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+    @ParameterizedTest
+    @MethodSource("com.tngtech.archunit.lang.syntax.elements.ShouldClassesThatTest#no_classes_should_that_rule_starts")
+    void areRecords_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         record SomeRecord(String param) {
         }
         @SuppressWarnings("unused")
@@ -36,9 +33,9 @@ public class ShouldClassesThatRecordsTest {
                 .hasNoViolationMatching(".*" + quote(ClassNotAccessingRecord.class.getName()) + ".*" + quote(ClassAccessingRecord.class.getName()) + ".*");
     }
 
-    @Test
-    @UseDataProvider(location = ShouldClassesThatTest.class, value = "no_classes_should_that_rule_starts")
-    public void areNotRecords_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+    @ParameterizedTest
+    @MethodSource("com.tngtech.archunit.lang.syntax.elements.ShouldClassesThatTest#no_classes_should_that_rule_starts")
+    void areNotRecords_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         record SomeRecord(String param) {
         }
         @SuppressWarnings("unused")

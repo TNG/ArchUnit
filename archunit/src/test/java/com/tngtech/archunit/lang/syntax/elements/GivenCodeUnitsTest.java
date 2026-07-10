@@ -3,6 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -17,13 +18,12 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
@@ -39,16 +39,14 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertV
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(DataProviderRunner.class)
 public class GivenCodeUnitsTest {
 
-    @Rule
-    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
 
     @Test
     public void complex_code_unit_syntax() {
@@ -123,98 +121,96 @@ public class GivenCodeUnitsTest {
         assertThat(Joiner.on(" ").join(result.getFailureReport().getDetails())).contains("expected violation");
     }
 
-    @DataProvider
-    public static Object[][] restricted_parameter_types_rule_starts() {
-        return $$(
-                $(described(codeUnits().that().haveRawParameterTypes(String.class)),
+    static Stream<Arguments> restricted_parameter_types_rule_starts() {
+        return Stream.of(
+                arguments(described(codeUnits().that().haveRawParameterTypes(String.class)),
                         ImmutableSet.of(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
-                $(described(codeUnits().that().haveRawParameterTypes(String.class.getName())),
+                arguments(described(codeUnits().that().haveRawParameterTypes(String.class.getName())),
                         ImmutableSet.of(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
-                $(described(codeUnits().that().haveRawParameterTypes(oneParameterOfType(String.class))),
+                arguments(described(codeUnits().that().haveRawParameterTypes(oneParameterOfType(String.class))),
                         ImmutableSet.of(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
 
-                $(described(codeUnits().that().doNotHaveRawParameterTypes(String.class)),
+                arguments(described(codeUnits().that().doNotHaveRawParameterTypes(String.class)),
                         allCodeUnitsExcept(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
-                $(described(codeUnits().that().doNotHaveRawParameterTypes(String.class.getName())),
+                arguments(described(codeUnits().that().doNotHaveRawParameterTypes(String.class.getName())),
                         allCodeUnitsExcept(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
-                $(described(codeUnits().that().doNotHaveRawParameterTypes(oneParameterOfType(String.class))),
+                arguments(described(codeUnits().that().doNotHaveRawParameterTypes(oneParameterOfType(String.class))),
                         allCodeUnitsExcept(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
 
-                $(described(methods().that().haveRawParameterTypes(String.class)),
+                arguments(described(methods().that().haveRawParameterTypes(String.class)),
                         ImmutableSet.of(METHOD_ONE_ARG)),
-                $(described(methods().that().haveRawParameterTypes(String.class.getName())),
+                arguments(described(methods().that().haveRawParameterTypes(String.class.getName())),
                         ImmutableSet.of(METHOD_ONE_ARG)),
-                $(described(methods().that().haveRawParameterTypes(oneParameterOfType(String.class))),
+                arguments(described(methods().that().haveRawParameterTypes(oneParameterOfType(String.class))),
                         ImmutableSet.of(METHOD_ONE_ARG)),
 
-                $(described(methods().that().doNotHaveRawParameterTypes(String.class)),
+                arguments(described(methods().that().doNotHaveRawParameterTypes(String.class)),
                         allMethodsExcept(METHOD_ONE_ARG)),
-                $(described(methods().that().doNotHaveRawParameterTypes(String.class.getName())),
+                arguments(described(methods().that().doNotHaveRawParameterTypes(String.class.getName())),
                         allMethodsExcept(METHOD_ONE_ARG)),
-                $(described(methods().that().doNotHaveRawParameterTypes(oneParameterOfType(String.class))),
+                arguments(described(methods().that().doNotHaveRawParameterTypes(oneParameterOfType(String.class))),
                         allMethodsExcept(METHOD_ONE_ARG)),
 
-                $(described(constructors().that().haveRawParameterTypes(String.class)),
+                arguments(described(constructors().that().haveRawParameterTypes(String.class)),
                         ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
-                $(described(constructors().that().haveRawParameterTypes(String.class.getName())),
+                arguments(described(constructors().that().haveRawParameterTypes(String.class.getName())),
                         ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
-                $(described(constructors().that().haveRawParameterTypes(oneParameterOfType(String.class))),
+                arguments(described(constructors().that().haveRawParameterTypes(oneParameterOfType(String.class))),
                         ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
 
-                $(described(constructors().that().doNotHaveRawParameterTypes(String.class)),
+                arguments(described(constructors().that().doNotHaveRawParameterTypes(String.class)),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
-                $(described(constructors().that().doNotHaveRawParameterTypes(String.class.getName())),
+                arguments(described(constructors().that().doNotHaveRawParameterTypes(String.class.getName())),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
-                $(described(constructors().that().doNotHaveRawParameterTypes(oneParameterOfType(String.class))),
+                arguments(described(constructors().that().doNotHaveRawParameterTypes(oneParameterOfType(String.class))),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_parameter_types_rule_starts")
-    public void parameter_types_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_parameter_types_rule_starts")
+    void parameter_types_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
-    @DataProvider
-    public static Object[][] restricted_return_type_rule_starts() {
-        return $$(
-                $(described(codeUnits().that().haveRawReturnType(String.class)), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(codeUnits().that().haveRawReturnType(String.class.getName())), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(codeUnits().that().haveRawReturnType(equivalentTo(String.class))), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+    static Stream<Arguments> restricted_return_type_rule_starts() {
+        return Stream.of(
+                arguments(described(codeUnits().that().haveRawReturnType(String.class)), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                arguments(described(codeUnits().that().haveRawReturnType(String.class.getName())), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                arguments(described(codeUnits().that().haveRawReturnType(equivalentTo(String.class))), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
-                $(described(codeUnits().that().doNotHaveRawReturnType(String.class)), allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(codeUnits().that().doNotHaveRawReturnType(String.class.getName())),
+                arguments(described(codeUnits().that().doNotHaveRawReturnType(String.class)), allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                arguments(described(codeUnits().that().doNotHaveRawReturnType(String.class.getName())),
                         allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(codeUnits().that().doNotHaveRawReturnType(equivalentTo(String.class))),
+                arguments(described(codeUnits().that().doNotHaveRawReturnType(equivalentTo(String.class))),
                         allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
-                $(described(methods().that().haveRawReturnType(String.class)), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(methods().that().haveRawReturnType(String.class.getName())), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(methods().that().haveRawReturnType(equivalentTo(String.class))), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                arguments(described(methods().that().haveRawReturnType(String.class)), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                arguments(described(methods().that().haveRawReturnType(String.class.getName())), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                arguments(described(methods().that().haveRawReturnType(equivalentTo(String.class))), ImmutableList.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
-                $(described(methods().that().doNotHaveRawReturnType(String.class)), ImmutableList.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
-                $(described(methods().that().doNotHaveRawReturnType(String.class.getName())), ImmutableList.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
-                $(described(methods().that().doNotHaveRawReturnType(equivalentTo(String.class))),
+                arguments(described(methods().that().doNotHaveRawReturnType(String.class)), ImmutableList.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
+                arguments(described(methods().that().doNotHaveRawReturnType(String.class.getName())), ImmutableList.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
+                arguments(described(methods().that().doNotHaveRawReturnType(equivalentTo(String.class))),
                         ImmutableList.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
 
-                $(described(constructors().that().haveRawReturnType(void.class)), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(described(constructors().that().haveRawReturnType(void.class.getName())), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(described(constructors().that().haveRawReturnType(equivalentTo(void.class))), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                arguments(described(constructors().that().haveRawReturnType(void.class)), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                arguments(described(constructors().that().haveRawReturnType(void.class.getName())), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                arguments(described(constructors().that().haveRawReturnType(equivalentTo(void.class))), ALL_CONSTRUCTOR_DESCRIPTIONS),
 
-                $(described(constructors().that().doNotHaveRawReturnType(void.class)), emptySet()),
-                $(described(constructors().that().doNotHaveRawReturnType(void.class.getName())), emptySet()),
-                $(described(constructors().that().doNotHaveRawReturnType(equivalentTo(void.class))), emptySet())
+                arguments(described(constructors().that().doNotHaveRawReturnType(void.class)), emptySet()),
+                arguments(described(constructors().that().doNotHaveRawReturnType(void.class.getName())), emptySet()),
+                arguments(described(constructors().that().doNotHaveRawReturnType(equivalentTo(void.class))), emptySet())
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_return_type_rule_starts")
-    public void return_type_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
-        archConfigurationRule.setFailOnEmptyShould(false);
+    @ParameterizedTest
+    @MethodSource("restricted_return_type_rule_starts")
+    void return_type_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
+        archConfiguration.setFailOnEmptyShould(false);
 
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
@@ -222,56 +218,55 @@ public class GivenCodeUnitsTest {
         assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
-    @DataProvider
-    public static Object[][] restricted_throwable_type_rule_starts() {
-        return $$(
-                $(described(codeUnits().that().declareThrowableOfType(FirstException.class)),
+    static Stream<Arguments> restricted_throwable_type_rule_starts() {
+        return Stream.of(
+                arguments(described(codeUnits().that().declareThrowableOfType(FirstException.class)),
                         ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(codeUnits().that().declareThrowableOfType(FirstException.class.getName())),
+                arguments(described(codeUnits().that().declareThrowableOfType(FirstException.class.getName())),
                         ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(codeUnits().that().declareThrowableOfType(equivalentTo(FirstException.class))),
+                arguments(described(codeUnits().that().declareThrowableOfType(equivalentTo(FirstException.class))),
                         ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
 
-                $(described(codeUnits().that().doNotDeclareThrowableOfType(FirstException.class)),
+                arguments(described(codeUnits().that().doNotDeclareThrowableOfType(FirstException.class)),
                         allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(codeUnits().that().doNotDeclareThrowableOfType(FirstException.class.getName())),
+                arguments(described(codeUnits().that().doNotDeclareThrowableOfType(FirstException.class.getName())),
                         allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(codeUnits().that().doNotDeclareThrowableOfType(equivalentTo(FirstException.class))),
+                arguments(described(codeUnits().that().doNotDeclareThrowableOfType(equivalentTo(FirstException.class))),
                         allCodeUnitsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
 
-                $(described(methods().that().declareThrowableOfType(FirstException.class)),
+                arguments(described(methods().that().declareThrowableOfType(FirstException.class)),
                         ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(methods().that().declareThrowableOfType(FirstException.class.getName())),
+                arguments(described(methods().that().declareThrowableOfType(FirstException.class.getName())),
                         ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(methods().that().declareThrowableOfType(equivalentTo(FirstException.class))),
+                arguments(described(methods().that().declareThrowableOfType(equivalentTo(FirstException.class))),
                         ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
-                $(described(methods().that().doNotDeclareThrowableOfType(FirstException.class)),
+                arguments(described(methods().that().doNotDeclareThrowableOfType(FirstException.class)),
                         allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(methods().that().doNotDeclareThrowableOfType(FirstException.class.getName())),
+                arguments(described(methods().that().doNotDeclareThrowableOfType(FirstException.class.getName())),
                         allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
-                $(described(methods().that().doNotDeclareThrowableOfType(equivalentTo(FirstException.class))),
+                arguments(described(methods().that().doNotDeclareThrowableOfType(equivalentTo(FirstException.class))),
                         allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
-                $(described(constructors().that().declareThrowableOfType(FirstException.class)),
+                arguments(described(constructors().that().declareThrowableOfType(FirstException.class)),
                         ImmutableSet.of(CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(constructors().that().declareThrowableOfType(FirstException.class.getName())),
+                arguments(described(constructors().that().declareThrowableOfType(FirstException.class.getName())),
                         ImmutableSet.of(CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(constructors().that().declareThrowableOfType(equivalentTo(FirstException.class))),
+                arguments(described(constructors().that().declareThrowableOfType(equivalentTo(FirstException.class))),
                         ImmutableSet.of(CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
 
-                $(described(constructors().that().doNotDeclareThrowableOfType(FirstException.class)),
+                arguments(described(constructors().that().doNotDeclareThrowableOfType(FirstException.class)),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(constructors().that().doNotDeclareThrowableOfType(FirstException.class.getName())),
+                arguments(described(constructors().that().doNotDeclareThrowableOfType(FirstException.class.getName())),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS)),
-                $(described(constructors().that().doNotDeclareThrowableOfType(equivalentTo(FirstException.class))),
+                arguments(described(constructors().that().doNotDeclareThrowableOfType(equivalentTo(FirstException.class))),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_throwable_type_rule_starts")
-    public void throwable_type_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_throwable_type_rule_starts")
+    void throwable_type_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 

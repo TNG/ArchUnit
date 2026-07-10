@@ -24,10 +24,8 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThatTest.Evaluator;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
@@ -46,7 +44,6 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatMembers;
 import static java.util.regex.Pattern.quote;
 
-@RunWith(DataProviderRunner.class)
 public class GivenMembersDeclaredInClassesThatTest {
 
     @Rule

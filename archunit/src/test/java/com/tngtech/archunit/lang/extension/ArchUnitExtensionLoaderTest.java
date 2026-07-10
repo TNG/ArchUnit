@@ -9,11 +9,11 @@ import com.tngtech.archunit.lang.extension.examples.TestExtensionWithIllegalIden
 import com.tngtech.archunit.lang.extension.examples.TestExtensionWithNullIdentifier;
 import com.tngtech.archunit.lang.extension.examples.TestExtensionWithSameIdentifier;
 import com.tngtech.archunit.lang.extension.examples.YetAnotherDummyTestExtension;
-import com.tngtech.archunit.testutil.LogTestRule;
+import com.tngtech.archunit.testutil.LogTestExtension;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static java.util.regex.Pattern.quote;
@@ -21,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ArchUnitExtensionLoaderTest {
-    @Rule
-    public final TestServicesFile testServicesFile = new TestServicesFile();
-    @Rule
-    public final LogTestRule logTestRule = new LogTestRule();
+    @RegisterExtension
+    final TestServicesFile testServicesFile = new TestServicesFile();
+    @RegisterExtension
+    final LogTestExtension logTest = new LogTestExtension();
 
     private final ArchUnitExtensionLoader extensionLoader = new ArchUnitExtensionLoader();
 
@@ -102,12 +102,12 @@ public class ArchUnitExtensionLoaderTest {
         testServicesFile.addService(TestExtension.class);
         testServicesFile.addService(DummyTestExtension.class);
 
-        logTestRule.watch(ArchUnitExtensionLoader.class, Level.INFO);
+        logTest.watch(ArchUnitExtensionLoader.class, Level.INFO);
 
         extensionLoader.getAll();
 
-        logTestRule.assertLogMessage(Level.INFO, expectedExtensionLoadedMessage(TestExtension.UNIQUE_IDENTIFIER));
-        logTestRule.assertLogMessage(Level.INFO, expectedExtensionLoadedMessage(DummyTestExtension.UNIQUE_IDENTIFIER));
+        logTest.assertLogMessage(Level.INFO, expectedExtensionLoadedMessage(TestExtension.UNIQUE_IDENTIFIER));
+        logTest.assertLogMessage(Level.INFO, expectedExtensionLoadedMessage(DummyTestExtension.UNIQUE_IDENTIFIER));
     }
 
     private String expectedExtensionLoadedMessage(String identifier) {
