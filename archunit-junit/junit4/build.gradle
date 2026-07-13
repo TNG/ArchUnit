@@ -46,7 +46,7 @@ shadowJar {
 
 def configureDependencies = { deps ->
     deps.children().removeIf { dep ->
-        dep.scope.text() != 'compile' || !(dep.artifactId.text() in ['archunit', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'junit'])
+        dep.scope.text() != 'compile' || !(dep.artifactId.text() in ['archunit', 'junit'])
     }
 }
 this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
