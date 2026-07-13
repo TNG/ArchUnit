@@ -285,8 +285,8 @@ where the target class's package doesn't match any declared package identifier i
 as violation.
 
 Note that the `modules()` API can be adjusted in many ways to model custom requirements.
-For further details, please take a look at the examples provided
-https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit5/src/test/java/com/tngtech/archunit/exampletest/junit5/ModulesTest.java[here].
+For further details, please take a look at the
+https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit6/src/test/java/com/tngtech/archunit/exampletest/junit6/ModulesTest.java[examples].
 
 ==== Modularization Core API
 
