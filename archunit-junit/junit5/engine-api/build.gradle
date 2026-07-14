@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-release-conventions'
+    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit5.engineapi'
@@ -7,7 +8,7 @@ ext.moduleName = 'com.tngtech.archunit.junit5.engineapi'
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
-    api libs.junitPlatformEngine
+    api libs.junit5PlatformEngine
     implementation project(path: ':archunit')
 
     testImplementation project(path: ':archunit-junit5-api')
@@ -26,7 +27,7 @@ shadowJar {
     exclude 'META-INF/maven/**'
 
     dependencies {
-        exclude(dependency { true })
+        exclude { true }
     }
 }
 

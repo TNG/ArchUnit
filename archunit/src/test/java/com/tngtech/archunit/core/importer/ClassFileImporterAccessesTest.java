@@ -88,9 +88,7 @@ import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithComplex
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithSimpleTryCatchBlocks;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithTryCatchBlockWithoutThrowables;
 import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithTryWithResources;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -104,6 +102,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.asClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.findAnyByName;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getByName;
+import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getMethodCallsFromClassWithoutAutomaticNullCheck;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
@@ -123,7 +122,6 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterAccessesTest {
 
     @Test
@@ -457,9 +455,10 @@ public class ClassFileImporterAccessesTest {
         }
 
         JavaMethodCall callFromBridgeMethodToOverriddenOne = getOnlyElement(
-                new ClassFileImporter().importClasses(Parent.class, Child.class)
-                        .get(Child.class)
-                        .getMethodCallsFromSelf());
+                getMethodCallsFromClassWithoutAutomaticNullCheck(
+                        new ClassFileImporter().importClasses(Parent.class, Child.class)
+                                .get(Child.class)
+                ));
         JavaCodeUnit bridgeMethod = callFromBridgeMethodToOverriddenOne.getOrigin();
 
         assertThat(bridgeMethod.getName()).isEqualTo("covariantlyOverriddenCausingBridgeMethod");
@@ -1146,10 +1145,11 @@ public class ClassFileImporterAccessesTest {
             }
         }
 
-        JavaMethodCall call = getOnlyElement(new ClassFileImporter()
-                .importClasses(Origin.class, Target.class)
-                .get(Origin.class)
-                .getMethodCallsFromSelf());
+        JavaMethodCall call = getOnlyElement(
+                getMethodCallsFromClassWithoutAutomaticNullCheck(
+                        new ClassFileImporter().importClasses(Origin.class, Target.class)
+                                .get(Origin.class)
+                ));
 
         assertThat(call.getTarget().getParameterTypes())
                 .isEqualTo(call.getTarget().getRawParameterTypes());
@@ -1193,10 +1193,11 @@ public class ClassFileImporterAccessesTest {
             }
         }
 
-        JavaClass origin = new ClassFileImporter().importClasses(Origin.class, Target.class).get(Origin.class);
-
-        assertThat(origin.getMethodCallsFromSelf()).hasSize(2);
-        for (JavaMethodCall call : origin.getMethodCallsFromSelf()) {
+        JavaClass origin = new ClassFileImporter().importClasses(Origin.class, Target.class)
+                .get(Origin.class);
+        Set<JavaMethodCall> methodCallsFromSelf = getMethodCallsFromClassWithoutAutomaticNullCheck(origin);
+        assertThat(methodCallsFromSelf).hasSize(2);
+        for (JavaMethodCall call : methodCallsFromSelf) {
             assertThatCall(call).isTo("callMe");
         }
     }

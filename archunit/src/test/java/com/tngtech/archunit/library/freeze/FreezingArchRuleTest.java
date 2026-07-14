@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
@@ -25,15 +26,14 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import com.tngtech.archunit.testutil.ArchConfigurationExtension;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.cartesianProduct;
@@ -48,7 +48,6 @@ import static java.nio.file.Files.exists;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class FreezingArchRuleTest {
 
     private static final String STORE_PROPERTY_NAME = "freeze.store";
@@ -57,11 +56,11 @@ public class FreezingArchRuleTest {
     private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "freeze.store.default.allowStoreUpdate";
     private static final String LINE_MATCHER_PROPERTY_NAME = "freeze.lineMatcher";
 
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
+    @RegisterExtension
+    ArchConfigurationExtension archConfiguration = new ArchConfigurationExtension();
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    File temporaryFolder;
 
     @Test
     public void delegates_description() {
@@ -252,8 +251,7 @@ public class FreezingArchRuleTest {
                 .hasAnyViolationOf("violation", "equivalent one");
     }
 
-    @DataProvider
-    public static List<List<String>> different_line_separators_to_store_and_read() {
+    static Stream<Arguments> different_line_separators_to_store_and_read() {
         String windowsLineSeparator = "\r\n";
         String unixLineSeparator = "\n";
 
@@ -263,12 +261,12 @@ public class FreezingArchRuleTest {
 
         return cartesianProduct(lineSeparators, lineSeparators).stream()
                 .filter(input -> !input.get(0).equals(input.get(1)))
-                .collect(toList());
+                .map(list -> Arguments.of(list.get(0), list.get(1)));
     }
 
-    @Test
-    @UseDataProvider("different_line_separators_to_store_and_read")
-    public void default_violation_store_works_with_multi_line_rule_texts_with_different_line_separators(
+    @ParameterizedTest
+    @MethodSource("different_line_separators_to_store_and_read")
+    void default_violation_store_works_with_multi_line_rule_texts_with_different_line_separators(
             String lineSeparatorOnFreeze, String lineSeparatorOnCheck) throws IOException {
 
         useTemporaryDefaultStorePath();
@@ -287,9 +285,9 @@ public class FreezingArchRuleTest {
                 .hasOnlyViolations("new");
     }
 
-    @Test
-    @UseDataProvider("different_line_separators_to_store_and_read")
-    public void works_with_multi_line_violations_with_different_line_separators(String lineSeparatorOnFreeze, String lineSeparatorOnCheck) {
+    @ParameterizedTest
+    @MethodSource("different_line_separators_to_store_and_read")
+    void works_with_multi_line_violations_with_different_line_separators(String lineSeparatorOnFreeze, String lineSeparatorOnCheck) {
         TestViolationStore violationStore = new TestViolationStore();
 
         RuleCreator ruleCreator = rule("some rule")
@@ -533,7 +531,7 @@ public class FreezingArchRuleTest {
     }
 
     private File useTemporaryDefaultStorePath() throws IOException {
-        File folder = temporaryFolder.newFolder();
+        File folder = temporaryFolder;
         ArchConfiguration.get().setProperty(STORE_DEFAULT_PATH_PROPERTY_NAME, folder.getAbsolutePath());
         return folder;
     }

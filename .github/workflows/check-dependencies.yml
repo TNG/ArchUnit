@@ -3,6 +3,7 @@ name: Check dependencies
 on:
   schedule:
     - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   check_asm:
@@ -10,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
       - name: Check for dependency updates
-        run: ./gradlew checkDependencyUpdates -DoutputFormatter=plain,json
+        run: ./gradlew checkDependencyUpdates -DoutputFormatter=plain,json --no-parallel
       - name: Create issue/comment if ASM is not up-to-date
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           GITHUB_SERVER_URL: ${{github.server_url}}
           GITHUB_REPOSITORY: ${{github.repository}}

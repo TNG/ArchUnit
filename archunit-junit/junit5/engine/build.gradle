@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-release-conventions'
+    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit5.engine'
@@ -43,11 +44,11 @@ shadowJar {
     exclude 'META-INF/maven/**'
 
     dependencies {
-        exclude(dependency {
+        exclude {
             def isApi = it.configuration == 'archJunitApi'
             def isUnwantedDependency = it.moduleName != 'archunit-junit'
             isUnwantedDependency || isApi
-        })
+        }
     }
 }
 

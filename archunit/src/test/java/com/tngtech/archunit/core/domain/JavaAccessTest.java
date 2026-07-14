@@ -1,13 +1,13 @@
 package com.tngtech.archunit.core.domain;
 
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
+import com.tngtech.archunit.core.domain.TestUtils.CapturingDescribedPredicate;
 import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import org.junit.Test;
 
-import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.core.domain.TestUtils.alwaysTrueCapturingPredicateWithDescription;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
@@ -49,15 +49,50 @@ public class JavaAccessTest {
 
     @Test
     public void origin_predicate() {
-        DescribedPredicate<JavaAccess<?>> predicate =
-                JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysTrue().as("some text"));
+        TestJavaAccess testedAccess = anyAccess();
+        CapturingDescribedPredicate<JavaCodeUnit> nestedPredicate = alwaysTrueCapturingPredicateWithDescription("some text");
 
-        assertThat(predicate)
+        assertThat(JavaAccess.Predicates.origin(nestedPredicate))
                 .hasDescription("origin some text")
-                .accepts(anyAccess());
+                .accepts(testedAccess);
 
-        predicate = JavaAccess.Predicates.origin(alwaysFalse());
-        assertThat(predicate).rejects(anyAccess());
+        assertThat(nestedPredicate.getCapturedValue()).isEqualTo(testedAccess.getOrigin());
+    }
+
+    @Test
+    public void originOwner_predicate() {
+        TestJavaAccess testedAccess = anyAccess();
+        CapturingDescribedPredicate<JavaClass> nestedPredicate = alwaysTrueCapturingPredicateWithDescription("some text");
+
+        assertThat(JavaAccess.Predicates.originOwner(nestedPredicate))
+                .hasDescription("origin owner some text")
+                .accepts(testedAccess);
+
+        assertThat(nestedPredicate.getCapturedValue()).isEqualTo(testedAccess.getOriginOwner());
+    }
+
+    @Test
+    public void target_predicate() {
+        TestJavaAccess testedAccess = anyAccess();
+        CapturingDescribedPredicate<AccessTarget> nestedPredicate = alwaysTrueCapturingPredicateWithDescription("some text");
+
+        assertThat(JavaAccess.Predicates.target(nestedPredicate))
+                .hasDescription("target some text")
+                .accepts(testedAccess);
+
+        assertThat(nestedPredicate.getCapturedValue()).isEqualTo(testedAccess.getTarget());
+    }
+
+    @Test
+    public void targetOwner_predicate() {
+        TestJavaAccess testedAccess = anyAccess();
+        CapturingDescribedPredicate<JavaClass> nestedPredicate = alwaysTrueCapturingPredicateWithDescription("some text");
+
+        assertThat(JavaAccess.Predicates.targetOwner(nestedPredicate))
+                .hasDescription("target owner some text")
+                .accepts(testedAccess);
+
+        assertThat(nestedPredicate.getCapturedValue()).isEqualTo(testedAccess.getTargetOwner());
     }
 
     @Test

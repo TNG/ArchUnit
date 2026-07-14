@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-conventions'
+    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.thirdpartytest'
@@ -9,7 +10,5 @@ dependencies {
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation exampleLibs.springBootLoader
     dependency.addGuava { dependencyNotation, config -> testImplementation(dependencyNotation, config) }
-    testImplementation libs.junit4
-    testImplementation libs.junitDataprovider
     testImplementation libs.assertj
 }

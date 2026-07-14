@@ -9,7 +9,7 @@ ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 dependencies {
     api project(path: ':archunit')
     api project(path: ':archunit-junit', configuration: 'archJunitApi')
-    api libs.junitPlatformCommons
+    api libs.junit5PlatformCommons
 }
 
 javadoc {
@@ -23,7 +23,7 @@ shadowJar {
     exclude 'META-INF/maven/**'
 
     dependencies {
-        exclude(dependency { !it.name.contains('archunit-junit') })
+        exclude { !it.name.contains('archunit-junit') }
     }
 }
 

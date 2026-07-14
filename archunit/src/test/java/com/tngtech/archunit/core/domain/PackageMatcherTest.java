@@ -3,22 +3,19 @@ package com.tngtech.archunit.core.domain;
 import java.util.Optional;
 
 import com.tngtech.archunit.core.domain.PackageMatcher.Result;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class PackageMatcherTest {
 
-    @Test
-    @DataProvider(value = {
+    @ParameterizedTest
+    @CsvSource(delimiter = ',', ignoreLeadingAndTrailingWhitespace = true, value = {
             "some.arbitrary.pkg , some.arbitrary.pkg             , true",
             "some.arbitrary.pkg , some.thing.different           , false",
             "some..pkg          , some.arbitrary.pkg             , true",
@@ -60,8 +57,8 @@ public class PackageMatcherTest {
                 .isEqualTo(matches);
     }
 
-    @Test
-    @DataProvider(value = {
+    @ParameterizedTest
+    @CsvSource(delimiter = ',', ignoreLeadingAndTrailingWhitespace = true, nullValues = "null", value = {
             "some.(*).pkg , some.arbitrary.pkg , arbitrary",
             "some.arb(*)ry.pkg , some.arbitrary.pkg , itra",
             "some.arb(*)ry.pkg , some.arbit.rary.pkg , null",
@@ -139,19 +136,14 @@ public class PackageMatcherTest {
                 .hasMessage("Package Identifier only supports '|' inside of '[]' or '()'");
     }
 
-    @DataProvider
-    public static Object[][] data_reject_nesting_of_groups() {
-        return testForEach(
-                "some.(pkg.(other).pkg)..",
-                "some.(pkg.[a|b].pkg)..",
-                "some.[inside.(pkg).it|other.(pkg).it].pkg",
-                "some.[inside.[a|b].it|other].pkg"
-        );
-    }
-
-    @Test
-    @UseDataProvider
-    public void test_reject_nesting_of_groups(String packageIdentifier) {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "some.(pkg.(other).pkg)..",
+            "some.(pkg.[a|b].pkg)..",
+            "some.[inside.(pkg).it|other.(pkg).it].pkg",
+            "some.[inside.[a|b].it|other].pkg"
+    })
+    void reject_nesting_of_groups(String packageIdentifier) {
         assertThatThrownBy(() -> PackageMatcher.of(packageIdentifier))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Package Identifier does not support nesting '()' or '[]' within other '()' or '[]'");

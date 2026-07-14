@@ -4,29 +4,21 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterRecordsTest {
-    @DataProvider
-    public static Object[][] imports_record() {
-        record SimpleRecord(String component1, int component2) {
-        }
-        record EmptyRecord() {
-        }
-        return testForEach(SimpleRecord.class, EmptyRecord.class);
+    record SimpleRecord(String component1, int component2) {
+    }
+    record EmptyRecord() {
     }
 
-    @Test
-    @UseDataProvider
-    public void imports_record(Class<?> recordToImport) {
+    @ParameterizedTest
+    @ValueSource(classes = {SimpleRecord.class, EmptyRecord.class})
+    void imports_record(Class<?> recordToImport) {
         JavaClass javaClass = new ClassFileImporter().importClasses(recordToImport, Record.class).get(recordToImport);
 
         assertThat(javaClass)

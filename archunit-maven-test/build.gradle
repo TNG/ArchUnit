@@ -16,8 +16,8 @@ def repositoryUrls = [
                 releases : 'https://nexus.int.tngtech.com/repository/maven-releases'
         ],
         sonatype: [
-                snapshots: 'https://oss.sonatype.org/content/repositories/snapshots',
-                releases : 'https://oss.sonatype.org/content/repositories/releases'
+                snapshots: 'https://central.sonatype.com/repository/maven-snapshots',
+                releases : 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
         ]
 ]
 def createRepositoriesTag = { repoUrls ->

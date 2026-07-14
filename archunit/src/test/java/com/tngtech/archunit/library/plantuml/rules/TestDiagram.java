@@ -16,9 +16,9 @@ import static java.util.stream.Collectors.joining;
 
 class TestDiagram {
     private final List<String> lines = new ArrayList<>();
-    private final TemporaryFolder temporaryFolder;
+    private final File temporaryFolder;
 
-    private TestDiagram(TemporaryFolder temporaryFolder) {
+    private TestDiagram(File temporaryFolder) {
         this.temporaryFolder = temporaryFolder;
     }
 
@@ -69,14 +69,18 @@ class TestDiagram {
     }
 
     private File createTempFile() {
+        return new File(temporaryFolder, "plantuml_diagram_" + UUID.randomUUID() + ".puml");
+    }
+
+    static TestDiagram in(TemporaryFolder temporaryFolder) {
         try {
-            return temporaryFolder.newFile("plantuml_diagram_" + UUID.randomUUID() + ".puml");
+            return new TestDiagram(temporaryFolder.newFolder());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static TestDiagram in(TemporaryFolder temporaryFolder) {
+    static TestDiagram in(File temporaryFolder) {
         return new TestDiagram(temporaryFolder);
     }
 

@@ -6,33 +6,28 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RunWith(DataProviderRunner.class)
 public class PlantUmlParserTest {
     private static final PlantUmlParser parser = new PlantUmlParser();
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    public File temporaryFolder;
 
     @Test
     public void parses_correct_number_of_components() {
@@ -68,9 +63,8 @@ public class PlantUmlParserTest {
                 .isEqualTo(new Stereotype("..origin.."));
     }
 
-    @DataProvider
-    public static Object[][] simple_diagrams() {
-        return testForEach(
+    static Stream<Function<TestDiagram, TestDiagram>> simple_diagrams() {
+        return Stream.of(
                 new Function<TestDiagram, TestDiagram>() {
                     @Override
                     public TestDiagram apply(TestDiagram diagram) {
@@ -96,9 +90,9 @@ public class PlantUmlParserTest {
         );
     }
 
-    @Test
-    @UseDataProvider("simple_diagrams")
-    public void parses_dependency_of_simple_component_diagram(Function<TestDiagram, TestDiagram> testCase) {
+    @ParameterizedTest
+    @MethodSource("simple_diagrams")
+    void parses_dependency_of_simple_component_diagram(Function<TestDiagram, TestDiagram> testCase) {
         TestDiagram initialDiagram = TestDiagram.in(temporaryFolder)
                 .component("SomeOrigin").withStereoTypes("..origin..")
                 .component("SomeTarget").withStereoTypes("..target..");
@@ -114,8 +108,7 @@ public class PlantUmlParserTest {
         assertThat(target.getAlias()).as("dependency component's alias is present").isEmpty();
     }
 
-    @DataProvider
-    public static Object[][] dependency_arrow_testcases() {
+    static List<String> dependency_arrow_testcases() {
         List<String> arrowCenters = rangeClosed(1, 10)
                 .mapToObj(i -> repeat("-", i))
                 .collect(toList());
@@ -129,12 +122,12 @@ public class PlantUmlParserTest {
             testCase.add("[SomeOrigin] " + arrowCenter + "> [SomeTarget]");
             testCase.add("[SomeTarget] <" + arrowCenter + " [SomeOrigin]");
         }
-        return testForEach(testCase);
+        return testCase;
     }
 
-    @Test
-    @UseDataProvider("dependency_arrow_testcases")
-    public void parses_various_types_of_dependency_arrows(String dependency) {
+    @ParameterizedTest
+    @MethodSource("dependency_arrow_testcases")
+    void parses_various_types_of_dependency_arrows(String dependency) {
         PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
                 .component("SomeOrigin").withStereoTypes("..origin..")
                 .component("SomeTarget").withStereoTypes("..target..")
@@ -148,25 +141,20 @@ public class PlantUmlParserTest {
                 .isEqualTo(new ComponentName("SomeTarget"));
     }
 
-    @DataProvider
-    public static Object[][] color_testcases() {
-        return $$(
-                $("Chartreuse"),
-                $("dodgerblue"),
-                $("483D8b"),
-                $("F0808080"),
-                $("123"),
-                $("transparent"),
-                $("red|green"),
-                $("red/green"),
-                $("red\\green"),
-                $("red-green")
-        );
-    }
-
-    @Test
-    @UseDataProvider("color_testcases")
-    public void parses_various_colored_components(String color) {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "Chartreuse",
+            "dodgerblue",
+            "483D8b",
+            "F0808080",
+            "123",
+            "transparent",
+            "red|green",
+            "red/green",
+            "red\\green",
+            "red-green"
+    })
+    void parses_various_colored_components(String color) {
         File diagramFile = TestDiagram.in(temporaryFolder)
                 .component("SomeComponent").withColor(color).withStereoTypes("..stereotype..")
                 .write();

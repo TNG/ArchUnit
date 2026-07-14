@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 TNG Technology Consulting GmbH
+ * Copyright 2014-2026 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,6 +311,14 @@ public final class ArchConditions {
         return new AnyDependencyCondition(
                 "depend on classes that " + predicate.getDescription(),
                 GET_TARGET_CLASS.is(predicate),
+                GET_DIRECT_DEPENDENCIES_FROM_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveAnyDependenciesThat(DescribedPredicate<? super Dependency> predicate) {
+        return new AnyDependencyCondition(
+                "have any dependencies that " + predicate.getDescription(),
+                predicate,
                 GET_DIRECT_DEPENDENCIES_FROM_SELF);
     }
 

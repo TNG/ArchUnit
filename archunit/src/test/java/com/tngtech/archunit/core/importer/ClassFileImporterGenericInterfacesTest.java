@@ -13,11 +13,9 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.ClassFileImporterGenericInterfacesTest.Outer.SomeNestedInterface;
 import com.tngtech.archunit.core.importer.ClassFileImporterGenericInterfacesTest.Outer.SomeNestedInterface.SomeDeeplyNestedInterface;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassWithOnlyGenericTypeResolution;
@@ -32,9 +30,7 @@ import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.Expec
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericInterfacesTest {
 
     @Test
@@ -394,17 +390,12 @@ public class ClassFileImporterGenericInterfacesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions() {
-        return testForEach(
-                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions.ClassChild.class,
-                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions.InterfaceChild.class
-        );
-    }
-
-    @Test
-    @UseDataProvider
-    public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions(Class<?> testInput) {
+    @ParameterizedTest
+    @ValueSource(classes = {
+            Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions.ClassChild.class,
+            Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions.InterfaceChild.class
+    })
+    void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(importClassWithOnlyGenericTypeResolution(testInput).getInterfaces());
 
         // @formatter:off
@@ -456,17 +447,12 @@ public class ClassFileImporterGenericInterfacesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds() {
-        return testForEach(
-                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.ClassChild.class,
-                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.InterfaceChild.class
-        );
-    }
-
-    @Test
-    @UseDataProvider
-    public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds(Class<?> testInput) {
+    @ParameterizedTest
+    @ValueSource(classes = {
+            Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.ClassChild.class,
+            Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.InterfaceChild.class
+    })
+    void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(importClassWithOnlyGenericTypeResolution(testInput).getInterfaces());
 
         assertThatType(genericInterface).hasActualTypeArguments(
@@ -489,17 +475,12 @@ public class ClassFileImporterGenericInterfacesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_type_of_generic_interface_with_parameterized_array_bounds() {
-        return testForEach(
-                Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.ClassChild.class,
-                Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.InterfaceChild.class
-        );
-    }
-
-    @Test
-    @UseDataProvider
-    public void test_imports_type_of_generic_interface_with_parameterized_array_bounds(Class<?> testInput) {
+    @ParameterizedTest
+    @ValueSource(classes = {
+            Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.ClassChild.class,
+            Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.InterfaceChild.class
+    })
+    void imports_type_of_generic_interface_with_parameterized_array_bounds(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(importClassWithOnlyGenericTypeResolution(testInput).getInterfaces());
 
         assertThatType(genericInterface).hasActualTypeArguments(
@@ -528,17 +509,12 @@ public class ClassFileImporterGenericInterfacesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds() {
-        return testForEach(
-                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.ClassChild.class,
-                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.InterfaceChild.class
-        );
-    }
-
-    @Test
-    @UseDataProvider
-    public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds(Class<?> testInput) {
+    @ParameterizedTest
+    @ValueSource(classes = {
+            Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.ClassChild.class,
+            Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.InterfaceChild.class
+    })
+    void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(importClassWithOnlyGenericTypeResolution(testInput).getInterfaces());
 
         assertThatType(genericInterface).hasActualTypeArguments(
@@ -582,16 +558,12 @@ public class ClassFileImporterGenericInterfacesTest {
         }
     }
 
-    @DataProvider
-    public static Object[][] data_imports_multiple_generic_interfaces() {
-        return testForEach(
-                Data_of_imports_multiple_generic_interfaces.ClassChild.class,
-                Data_of_imports_multiple_generic_interfaces.InterfaceChild.class);
-    }
-
-    @Test
-    @UseDataProvider
-    public void test_imports_multiple_generic_interfaces(Class<?> testInput) {
+    @ParameterizedTest
+    @ValueSource(classes = {
+            Data_of_imports_multiple_generic_interfaces.ClassChild.class,
+            Data_of_imports_multiple_generic_interfaces.InterfaceChild.class
+    })
+    void imports_multiple_generic_interfaces(Class<?> testInput) {
         JavaClass child = importClassWithOnlyGenericTypeResolution(testInput);
 
         assertThatType(getGenericInterface(child, InterfaceWithOneTypeParameter.class)).as("generic interface")

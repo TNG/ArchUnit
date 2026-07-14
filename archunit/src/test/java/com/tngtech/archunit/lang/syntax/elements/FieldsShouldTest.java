@@ -4,16 +4,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -26,13 +26,10 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFi
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(DataProviderRunner.class)
 public class FieldsShouldTest {
 
     @Test
@@ -52,25 +49,24 @@ public class FieldsShouldTest {
                 .containsPattern(String.format("%s.* is not annotated with @%s", FIELD_A, A.class.getSimpleName()));
     }
 
-    @DataProvider
-    public static Object[][] restricted_property_rule_ends() {
-        return $$(
-                $(fields().should().haveRawType(String.class), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
-                $(fields().should().haveRawType(String.class.getName()), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
-                $(fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
-                $(fields().should().notHaveRawType(String.class), ImmutableList.of(FIELD_A)),
-                $(fields().should().notHaveRawType(String.class.getName()), ImmutableList.of(FIELD_A)),
-                $(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)),
-                $(fields().should().beFinal(), ImmutableList.of(FIELD_C, FIELD_D)),
-                $(fields().should().notBeFinal(), ImmutableList.of(FIELD_A, FIELD_B)),
-                $(fields().should().beStatic(), ImmutableList.of(FIELD_A, FIELD_C)),
-                $(fields().should().notBeStatic(), ImmutableList.of(FIELD_B, FIELD_D))
+    static Stream<Arguments> restricted_property_rule_ends() {
+        return Stream.of(
+                arguments(fields().should().haveRawType(String.class), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                arguments(fields().should().haveRawType(String.class.getName()), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                arguments(fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                arguments(fields().should().notHaveRawType(String.class), ImmutableList.of(FIELD_A)),
+                arguments(fields().should().notHaveRawType(String.class.getName()), ImmutableList.of(FIELD_A)),
+                arguments(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)),
+                arguments(fields().should().beFinal(), ImmutableList.of(FIELD_C, FIELD_D)),
+                arguments(fields().should().notBeFinal(), ImmutableList.of(FIELD_A, FIELD_B)),
+                arguments(fields().should().beStatic(), ImmutableList.of(FIELD_A, FIELD_C)),
+                arguments(fields().should().notBeStatic(), ImmutableList.of(FIELD_B, FIELD_D))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_property_rule_ends")
-    public void property_predicates(ArchRule rule, Collection<String> expectedViolatingFields) {
+    @ParameterizedTest
+    @MethodSource("restricted_property_rule_ends")
+    void property_predicates(ArchRule rule, Collection<String> expectedViolatingFields) {
         EvaluationResult result = rule
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
@@ -78,17 +74,16 @@ public class FieldsShouldTest {
         assertThat(actualFields).hasSameElementsAs(expectedViolatingFields);
     }
 
-    @DataProvider
-    public static Object[][] data_be_accessed_by_methods() {
-        return testForEach(
+    static Stream<ArchRule> be_accessed_by_methods() {
+        return Stream.of(
                 fields().should().notBeAccessedByMethodsThat(have(name("toFind"))),
                 noFields().should().beAccessedByMethodsThat(have(name("toFind")))
         );
     }
 
-    @Test
-    @UseDataProvider
-    public void test_be_accessed_by_methods(ArchRule ruleCheckingAccessToMethod) {
+    @ParameterizedTest
+    @MethodSource
+    void be_accessed_by_methods(ArchRule ruleCheckingAccessToMethod) {
         class ClassWithAccessedField {
             String field;
         }

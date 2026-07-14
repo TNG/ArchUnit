@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-release-conventions'
+    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit'
@@ -12,8 +13,8 @@ dependencies {
     testImplementation libs.log4j.api
     testImplementation libs.log4j.core
     testImplementation libs.junit4
-    testImplementation libs.junitDataprovider
     testImplementation libs.mockito
+    testImplementation libs.mockito.junit5
     testImplementation libs.assertj
     testImplementation(libs.assertj.guava) {
         exclude module: 'assertj-core'
@@ -92,7 +93,7 @@ compileJdk9mainJava {
     dependsOn(compileJava)
     ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 
-    destinationDir = compileJava.destinationDir
+    destinationDirectory.set(compileJava.destinationDirectory.get())
 }
 javadoc.dependsOn(compileJdk9mainJava)
 spotbugsMain.dependsOn(compileJdk9mainJava)

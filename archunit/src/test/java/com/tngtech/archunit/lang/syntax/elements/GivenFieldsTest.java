@@ -4,15 +4,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.google.common.collect.Sets.difference;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -24,11 +24,9 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertV
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(DataProviderRunner.class)
 public class GivenFieldsTest {
 
     @Test
@@ -46,29 +44,28 @@ public class GivenFieldsTest {
                 String.format("Member '%s' is not annotated with @A", FIELD_C));
     }
 
-    @DataProvider
-    public static Object[][] restricted_property_rule_starts() {
-        return $$(
-                $(described(fields().that().haveRawType(String.class)), ImmutableSet.of(FIELD_A)),
-                $(described(fields().that().haveRawType(String.class.getName())), ImmutableSet.of(FIELD_A)),
-                $(described(fields().that().haveRawType(equivalentTo(String.class))), ImmutableSet.of(FIELD_A)),
+    static Stream<Arguments> restricted_property_rule_starts() {
+        return Stream.of(
+                arguments(described(fields().that().haveRawType(String.class)), ImmutableSet.of(FIELD_A)),
+                arguments(described(fields().that().haveRawType(String.class.getName())), ImmutableSet.of(FIELD_A)),
+                arguments(described(fields().that().haveRawType(equivalentTo(String.class))), ImmutableSet.of(FIELD_A)),
 
-                $(described(fields().that().doNotHaveRawType(String.class)), allFieldsExcept(FIELD_A)),
-                $(described(fields().that().doNotHaveRawType(String.class.getName())), allFieldsExcept(FIELD_A)),
-                $(described(fields().that().doNotHaveRawType(equivalentTo(String.class))), allFieldsExcept(FIELD_A)),
+                arguments(described(fields().that().doNotHaveRawType(String.class)), allFieldsExcept(FIELD_A)),
+                arguments(described(fields().that().doNotHaveRawType(String.class.getName())), allFieldsExcept(FIELD_A)),
+                arguments(described(fields().that().doNotHaveRawType(equivalentTo(String.class))), allFieldsExcept(FIELD_A)),
 
-                $(described(fields().that().areFinal()), ImmutableSet.of(FIELD_A, FIELD_B)),
-                $(described(fields().that().areNotFinal()), ImmutableSet.of(FIELD_C, FIELD_D)),
-                $(described(fields().that().areStatic()), ImmutableSet.of(FIELD_B, FIELD_D)),
-                $(described(fields().that().areNotStatic()), ImmutableSet.of(FIELD_A, FIELD_C)),
+                arguments(described(fields().that().areFinal()), ImmutableSet.of(FIELD_A, FIELD_B)),
+                arguments(described(fields().that().areNotFinal()), ImmutableSet.of(FIELD_C, FIELD_D)),
+                arguments(described(fields().that().areStatic()), ImmutableSet.of(FIELD_B, FIELD_D)),
+                arguments(described(fields().that().areNotStatic()), ImmutableSet.of(FIELD_A, FIELD_C)),
 
-                $(described(fields().that().areStatic().and().areFinal()), ImmutableSet.of(FIELD_B))
+                arguments(described(fields().that().areStatic().and().areFinal()), ImmutableSet.of(FIELD_B))
         );
     }
 
-    @Test
-    @UseDataProvider("restricted_property_rule_starts")
-    public void property_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
+    @ParameterizedTest
+    @MethodSource("restricted_property_rule_starts")
+    void property_predicates(DescribedRuleStart ruleStart, Collection<String> expectedMembers) {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 

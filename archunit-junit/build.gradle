@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-production-conventions'
+    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit'
@@ -38,8 +39,8 @@ dependencies {
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
 
     testImplementation libs.junit4
-    testImplementation libs.junitDataprovider
     testImplementation libs.mockito
+    testImplementation libs.mockito.junit5
     testImplementation libs.assertj
     testImplementation project(path: ':archunit', configuration: 'tests')
 
@@ -53,6 +54,8 @@ shadowJar {
 
     dependencies {
         exclude(project(':archunit'))
+        exclude(dependency("${libs.guava.get()}"))
+        exclude(dependency("com.google.guava:failureaccess:.*"))
     }
 }
 
@@ -63,6 +66,7 @@ def addCleanThirdPartyTask = {
 
         File tempPath = tempJar(jar.archiveFile.get().getAsFile())
         File jarPath = shadowJar.archiveFile.get().getAsFile()
+        inputs.file(jarPath)
         from zipTree(jarPath)
         archiveFileName = tempPath.name
 

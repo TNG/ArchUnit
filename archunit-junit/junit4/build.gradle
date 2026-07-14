@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-release-conventions'
+    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit4'
@@ -37,6 +38,8 @@ shadowJar {
         exclude(project(':archunit'))
         exclude(dependency("${libs.junit4.get()}"))
         exclude(dependency("${libs.hamcrest.get()}")) // Shadow doesn't respect transitive excludes :-(
+        exclude(dependency("${libs.guava.get()}"))
+        exclude(dependency("com.google.guava:failureaccess:.*"))
     }
 }
 

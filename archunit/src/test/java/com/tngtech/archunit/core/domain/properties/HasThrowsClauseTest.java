@@ -1,14 +1,13 @@
 package com.tngtech.archunit.core.domain.properties;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.ThrowsClause;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
@@ -16,9 +15,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.TestUtils.throwsClause;
 import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
-@RunWith(DataProviderRunner.class)
 public class HasThrowsClauseTest {
     @Test
     public void predicate_throwsClauseWithTypes_by_type() {
@@ -44,18 +41,17 @@ public class HasThrowsClauseTest {
         assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(Object.class.getName())).rejects(hasThrowsClause);
     }
 
-    @DataProvider
-    public static Object[][] containing_type_cases() {
-        return testForEach(
+    static Stream<DescribedPredicate<?>> containing_type_cases() {
+        return Stream.of(
                 throwsClauseContainingType(FirstException.class),
                 throwsClauseContainingType(FirstException.class.getName()),
                 throwsClauseContainingType(equivalentTo(FirstException.class).as(FirstException.class.getName()))
         );
     }
 
-    @Test
-    @UseDataProvider("containing_type_cases")
-    public void predicate_containing_type(DescribedPredicate<HasThrowsClause<?>> predicate) {
+    @ParameterizedTest
+    @MethodSource("containing_type_cases")
+    void predicate_containing_type(DescribedPredicate<HasThrowsClause<?>> predicate) {
         assertThat(predicate)
                 .accepts(newHasThrowsClause(FirstException.class, SecondException.class))
                 .rejects(newHasThrowsClause(IOException.class, SecondException.class))

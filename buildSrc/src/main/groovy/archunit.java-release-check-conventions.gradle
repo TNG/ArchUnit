@@ -38,23 +38,25 @@ ext.getExpectedPomFileContent = {
 
 task checkUploadedArtifacts {
     doLast {
-        def tngRepoId = project.findProperty('tngRepoId') ?: rootProject.closeSonatypeStagingRepository.stagingRepositoryId.get()
-        def rootUrl = "https://oss.sonatype.org/service/local/repositories/${tngRepoId}/content/com/tngtech/archunit"
-
-        def createArtifactUrl = { String artifactId ->
-            "${rootUrl}/${artifactId}/${version}/${artifactId}-${version}"
+        def getArtifact = { String artifactId, String fullEnding ->
+            def repositoryUrl = 'https://central.sonatype.com/api/v1/publisher/deployments/download'
+            def artifactUrl = "$repositoryUrl/com/tngtech/archunit/$artifactId/$version/$artifactId-$version$fullEnding"
+            def connection = new URL(artifactUrl).openConnection()
+            def token = (project.getProperty('sonatypeUsername') + ':' + project.getProperty('sonatypePassword')).bytes.encodeBase64()
+            connection.setRequestProperty("Authorization", "Bearer $token")
+            return connection.inputStream
         }
 
         def getUploadedFile = { String artifactId, String ending, String suffix ->
             def fullEnding = (!suffix.isEmpty() ? "-${suffix}" : '') + ".${ending}"
             def tempDir = Files.createTempDirectory('release-check').toFile()
             File result = new File(tempDir, "${artifactId}${fullEnding}")
-            result.bytes = new URL("${createArtifactUrl(artifactId)}${fullEnding}").bytes
+            result.bytes = getArtifact(artifactId, fullEnding).bytes
             result
         }
 
         def getUploadedPomFileContent = {
-            new URL("${createArtifactUrl(project.name)}.pom").text.stripIndent()
+            getArtifact(project.name, ".pom").text.stripIndent()
         }
 
         def checkPom = {

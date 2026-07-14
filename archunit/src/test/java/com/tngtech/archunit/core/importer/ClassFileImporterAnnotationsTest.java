@@ -31,9 +31,7 @@ import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.Me
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
@@ -48,7 +46,6 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotations;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static java.util.Collections.emptySet;
 
-@RunWith(DataProviderRunner.class)
 public class ClassFileImporterAnnotationsTest {
 
     @Test
