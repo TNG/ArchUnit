@@ -47,7 +47,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>{@link #locations()} - specify custom locations via {@link LocationProvider}</li>
  *     <li>{@link #wholeClasspath()} - import all classes on the classpath</li>
  * </ul>
- * These options can be combined. If no option is specified, the package of the annotated test class will be imported.
+ * These options can be combined, whereby the final result is the union of all classes derived from each option,
+ * i.e. each option just adds more classes to be analyzed. If no option is specified, the package of the annotated
+ * test class will be imported.
  *
  * @see ArchUnitRunner
  * @see ClassFileImporter

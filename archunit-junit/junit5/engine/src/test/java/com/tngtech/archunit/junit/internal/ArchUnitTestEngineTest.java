@@ -1108,7 +1108,7 @@ class ArchUnitTestEngineTest {
         }
 
         @Test
-        void passes_AnalyzeClasses_with_new_classes_property_to_cache() {
+        void passes_AnalyzeClasses_with_classes_property_to_cache() {
             execute(createEngineId(), AnalyzeClassesWithClassesProperty.class);
 
             verify(classCache).getClassesToAnalyzeFor(eq(AnalyzeClassesWithClassesProperty.class), classAnalysisRequestCaptor.capture());
@@ -1116,9 +1116,9 @@ class ArchUnitTestEngineTest {
             AnalyzeClasses expected = AnalyzeClassesWithClassesProperty.class.getAnnotation(AnalyzeClasses.class);
             assertThat(request.getClassesToAnalyze()).isEqualTo(expected.classes());
             assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
-            assertThat(request.getPackageNames()).isEmpty();
-            assertThat(request.getPackageRoots()).isEmpty();
-            assertThat(request.getLocationProviders()).isEmpty();
+            assertThat(request.getPackageNames()).isEqualTo(expected.packages());
+            assertThat(request.getPackageRoots()).isEqualTo(expected.packagesOf());
+            assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
             assertThat(request.scanWholeClasspath()).as("scan whole classpath").isFalse();
         }
     }

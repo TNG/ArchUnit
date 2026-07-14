@@ -113,6 +113,25 @@ public class ClassCacheTest {
     }
 
     @Test
+    public void combines_locations_from_all_sources_into_union() {
+        doReturn(new ClassFileImporter().importClasses())
+                .when(cacheClassFileImporter).importClasses(anySet(), anyCollection());
+
+        cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
+                .withPackages("com.tngtech.archunit.junit.internal")
+                .withPackagesRoots(Rule.class)
+                .withLocationProviders(TestLocationProviderOfClass_String.class)
+                .withClassesToAnalyze(getClass()));
+
+        verify(cacheClassFileImporter).importClasses(anySet(), locationCaptor.capture());
+        assertThat(locationCaptor.getValue())
+                .has(locationContaining("archunit/junit/internal"))
+                .has(locationContaining("org/junit"))
+                .has(locationContaining("java/lang/String"))
+                .has(locationContaining("ClassCacheTest"));
+    }
+
+    @Test
     public void get_all_classes_by_LocationProvider() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
                 .withPackagesRoots(ClassCacheTest.class)
