@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FilterInputStream;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
@@ -99,6 +100,7 @@ import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
+import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
@@ -859,6 +861,38 @@ public class JavaClassTest {
                 .areAtLeastOne(annotationMemberOfTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(B.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_type_annotation() {
+        JavaClass javaClass = importClasses(ClassWithTypeAnnotationDependencies.class)
+                .get(ClassWithTypeAnnotationDependencies.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithTypeAnnotationDependencies.class)
+                        .to(TypeUseAnnotationOnField.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithTypeAnnotationDependencies.class)
+                        .to(TypeUseAnnotationOnTypeArgument.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithTypeAnnotationDependencies.class)
+                        .to(TypeUseAnnotationOnReturnType.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithTypeAnnotationDependencies.class)
+                        .to(TypeUseAnnotationOnParameterType.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithTypeAnnotationDependencies.class)
+                        .to(TypeUseAnnotationWithMember.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithTypeAnnotationDependencies.class)
+                        .to(TypeAnnotationMemberType.class)
                         .inLineNumber(0));
     }
 
@@ -2509,6 +2543,55 @@ public class JavaClassTest {
 
         void method(@OnMethodParam String param) {
         }
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithTypeAnnotationDependencies {
+        @TypeUseAnnotationOnField
+        List<@TypeUseAnnotationOnTypeArgument TypeAnnotatedType> field;
+
+        @TypeUseAnnotationOnReturnType
+        TypeAnnotatedType method() {
+            return null;
+        }
+
+        void method(@TypeUseAnnotationOnParameterType TypeAnnotatedType param) {
+        }
+
+        void methodWithAnnotationMember(@TypeUseAnnotationWithMember(TypeAnnotationMemberType.class) TypeAnnotatedType param) {
+        }
+    }
+
+    @Retention(RUNTIME)
+    @Target(TYPE_USE)
+    private @interface TypeUseAnnotationOnField {
+    }
+
+    @Retention(RUNTIME)
+    @Target(TYPE_USE)
+    private @interface TypeUseAnnotationOnTypeArgument {
+    }
+
+    @Retention(RUNTIME)
+    @Target(TYPE_USE)
+    private @interface TypeUseAnnotationOnReturnType {
+    }
+
+    @Retention(RUNTIME)
+    @Target(TYPE_USE)
+    private @interface TypeUseAnnotationOnParameterType {
+    }
+
+    @Retention(RUNTIME)
+    @Target(TYPE_USE)
+    private @interface TypeUseAnnotationWithMember {
+        Class<?> value();
+    }
+
+    private static class TypeAnnotatedType {
+    }
+
+    private static class TypeAnnotationMemberType {
     }
 
     private @interface OnClass {

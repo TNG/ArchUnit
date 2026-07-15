@@ -75,6 +75,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaAnnotationBuilder> typeAnnotationsByOwner = HashMultimap.create();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
 
@@ -140,6 +141,10 @@ class ClassFileImportRecord {
         this.annotationsByOwner.putAll(getMemberKey(declaringClassName, memberName, descriptor), annotations);
     }
 
+    void addTypeAnnotations(String ownerName, Set<JavaAnnotationBuilder> annotations) {
+        this.typeAnnotationsByOwner.putAll(ownerName, annotations);
+    }
+
     void addAnnotationDefaultValue(String declaringClassName, String methodName, String descriptor, JavaAnnotationBuilder.ValueBuilder valueBuilder) {
         annotationDefaultValuesByOwner.put(getMemberKey(declaringClassName, methodName, descriptor), valueBuilder);
     }
@@ -201,6 +206,10 @@ class ClassFileImportRecord {
 
     Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
         return annotationsByOwner.get(getMemberKey(owner));
+    }
+
+    Set<JavaAnnotationBuilder> getTypeAnnotationsFor(JavaClass owner) {
+        return typeAnnotationsByOwner.get(owner.getName());
     }
 
     Optional<JavaAnnotationBuilder.ValueBuilder> getAnnotationDefaultValueBuilderFor(JavaMethod method) {

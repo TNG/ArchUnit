@@ -392,6 +392,11 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Set<JavaAnnotation<JavaClass>> createTypeAnnotations(JavaClass owner) {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
             return Optional.empty();
         }

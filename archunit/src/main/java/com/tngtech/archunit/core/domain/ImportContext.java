@@ -47,6 +47,8 @@ public interface ImportContext {
 
     Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner);
 
+    Set<JavaAnnotation<JavaClass>> createTypeAnnotations(JavaClass owner);
+
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
     Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner);

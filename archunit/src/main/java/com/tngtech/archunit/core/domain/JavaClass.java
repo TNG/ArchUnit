@@ -68,6 +68,7 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 @PublicAPI(usage = ACCESS)
@@ -126,6 +127,7 @@ public final class JavaClass
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
     private Optional<JavaClass> componentType = Optional.empty();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
+    private Set<JavaAnnotation<JavaClass>> typeAnnotations = emptySet();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
     private final CompletionProcess completionProcess;
@@ -1480,8 +1482,18 @@ public final class JavaClass
 
     void completeAnnotations(ImportContext context) {
         annotations = context.createAnnotations(this);
+        typeAnnotations = context.createTypeAnnotations(this);
         members.completeAnnotations(context);
         completionProcess.markAnnotationsComplete();
+    }
+
+    /**
+     * TYPE_USE annotations (JVMS §4.7.20) attributed to this class. Unlike {@link #getAnnotations() declaration
+     * annotations} these are not positioned within the annotated type; they are captured only so that the
+     * referenced annotation type surfaces as a {@link Dependency dependency} of this class.
+     */
+    Set<JavaAnnotation<JavaClass>> getTypeAnnotations() {
+        return typeAnnotations;
     }
 
     JavaClassDependencies completeFrom(ImportContext context) {
