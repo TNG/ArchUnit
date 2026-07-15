@@ -97,19 +97,19 @@ public class ClassCacheTest {
 
     @Test
     public void gets_all_classes_relative_to_class() {
-        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analyzePackagesOf(getClass()));
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, analyzePackagesOf(this.getClass()));
 
         assertThat(classes).isNotEmpty();
-        assertThat(classes.contain(getClass())).as("root class is contained itself").isTrue();
+        assertThat(classes.contain(this.getClass())).as("root class is contained itself").isTrue();
     }
 
     @Test
     public void gets_all_classes_specified() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, new TestAnalysisRequest()
-                .withClassesToAnalyze(getClass()));
+                .withClassesToAnalyze(this.getClass()));
 
         assertThat(classes).hasSize(1);
-        assertThat(classes.contain(getClass())).as("root class is contained itself").isTrue();
+        assertThat(classes.contain(this.getClass())).as("root class is contained itself").isTrue();
     }
 
     @Test
@@ -121,7 +121,7 @@ public class ClassCacheTest {
                 .withPackages("com.tngtech.archunit.junit.internal")
                 .withPackagesRoots(Rule.class)
                 .withLocationProviders(TestLocationProviderOfClass_String.class)
-                .withClassesToAnalyze(getClass()));
+                .withClassesToAnalyze(this.getClass()));
 
         verify(cacheClassFileImporter).importClasses(anySet(), locationCaptor.capture());
         assertThat(locationCaptor.getValue())
@@ -137,13 +137,13 @@ public class ClassCacheTest {
                 .withPackagesRoots(ClassCacheTest.class)
                 .withLocationProviders(TestLocationProviderOfClass_String.class, TestLocationProviderOfClass_Rule.class));
 
-        assertThatTypes(classes).contain(String.class, Rule.class, getClass());
+        assertThatTypes(classes).contain(String.class, Rule.class, this.getClass());
 
         classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviderUsingTestClass.class,
                 analyzeLocation(LocationOfClass.Provider.class));
 
         assertThatTypes(classes).contain(String.class);
-        assertThatTypes(classes).doNotContain(getClass());
+        assertThatTypes(classes).doNotContain(this.getClass());
     }
 
     @Test
@@ -163,14 +163,14 @@ public class ClassCacheTest {
 
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, defaultOptions);
 
-        assertThatTypes(classes).contain(getClass(), TestAnalysisRequest.class);
+        assertThatTypes(classes).contain(this.getClass(), TestAnalysisRequest.class);
         assertThatTypes(classes).doNotContain(ClassFileImporter.class);
     }
 
     @Test
     public void if_whole_classpath_is_set_true_then_the_whole_classpath_is_imported() {
         TestAnalysisRequest defaultOptions = new TestAnalysisRequest().withWholeClasspath(true);
-        Class<?>[] expectedImportResult = new Class[]{getClass()};
+        Class<?>[] expectedImportResult = new Class[]{this.getClass()};
         doReturn(new ClassFileImporter().importClasses(expectedImportResult))
                 .when(cacheClassFileImporter).importClasses(anySet(), anyCollection());
 
