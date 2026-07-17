@@ -9,7 +9,6 @@ import com.tngtech.archunit.library.modules.syntax.testexamples.test_modules.two
 import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatConversionOf;
-import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModuleDependencyTest {
