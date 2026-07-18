@@ -299,6 +299,21 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Optional<Set<JavaClass>> createPermittedSubclasses(JavaClass owner) {
+        // We'd ideally want to distinguish absent PermittedSubclasses from empty PermittedSubclasses,
+        // but cannot from ASM ClassReader's result (as ClassVisitor#visitPermittedSubclass is only invoked for every permitted subclass).
+        List<String> permittedSubclassNames = importRecord.getPermittedSubclassNamesFor(owner.getName());
+        if (permittedSubclassNames.isEmpty()) {
+            return Optional.empty();
+        }
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (String permittedSubclassName : permittedSubclassNames) {
+            result.add(classes.getOrResolve(permittedSubclassName));
+        }
+        return Optional.of(result.build());
+    }
+
+    @Override
     public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
         JavaClassTypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
         return typeParametersBuilder.build(owner, classes);

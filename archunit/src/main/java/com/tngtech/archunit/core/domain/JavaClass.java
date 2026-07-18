@@ -115,6 +115,7 @@ public final class JavaClass
         return result.build();
     });
     private final Set<JavaClass> subclasses = new HashSet<>();
+    private Optional<Set<JavaClass>> permittedSubclasses = Optional.empty();
     private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(() -> {
         Set<JavaClass> result = new HashSet<>();
         for (JavaClass subclass : subclasses) {
@@ -692,6 +693,27 @@ public final class JavaClass
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getSubclasses() {
         return subclasses;
+    }
+
+    /**
+     * @return The classes that this sealed class/interface directly permits to extend/implement
+     * (i.e. not including transitively permitted subclasses or other subtypes that are not explicitly permitted)
+     * – or {@link Optional#empty()} for non-sealed classes (including regular classes
+     * and {@code non-sealed} subclasses that explicitly opt out of a sealed hierarchy).
+     * @see #isSealed()
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<Set<JavaClass>> getPermittedSubclasses() {
+        return permittedSubclasses;
+    }
+
+    /**
+     * @return whether this class is sealed, i.e. whether it has permitted subclasses.
+     * @see #getPermittedSubclasses()
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isSealed() {
+        return permittedSubclasses.isPresent();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1426,6 +1448,7 @@ public final class JavaClass
     void completeClassHierarchyFrom(ImportContext context) {
         completeSuperclassFrom(context);
         completeInterfacesFrom(context);
+        completePermittedSubclassesFrom(context);
         completionProcess.markClassHierarchyComplete();
     }
 
@@ -1443,6 +1466,10 @@ public final class JavaClass
             i.subclasses.add(this);
         }
         this.interfaces = this.interfaces.withRawTypes(rawInterfaces);
+    }
+
+    private void completePermittedSubclassesFrom(ImportContext context) {
+        permittedSubclasses = context.createPermittedSubclasses(this);
     }
 
     void completeEnclosingDeclarationFrom(ImportContext context) {

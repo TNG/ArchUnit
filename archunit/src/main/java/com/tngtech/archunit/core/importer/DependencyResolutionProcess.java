@@ -49,6 +49,11 @@ class DependencyResolutionProcess {
     private final int maxRunsForSupertypes = getConfiguredIterations(
             MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_SUPERTYPES_DEFAULT_VALUE);
 
+    static final String MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_PROPERTY_NAME = "maxIterationsForPermittedSubclasses";
+    static final int MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_DEFAULT_VALUE = -1;
+    private final int maxRunsForPermittedSubclasses = getConfiguredIterations(
+            MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_PROPERTY_NAME, MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_DEFAULT_VALUE);
+
     static final String MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME = "maxIterationsForEnclosingTypes";
     static final int MAX_ITERATIONS_FOR_ENCLOSING_TYPES_DEFAULT_VALUE = -1;
     private final int maxRunsForEnclosingTypes = getConfiguredIterations(
@@ -98,6 +103,18 @@ class DependencyResolutionProcess {
         }
     }
 
+    void registerPermittedSubclass(String typeName) {
+        if (runNumberHasNotExceeded(maxRunsForPermittedSubclasses)) {
+            currentTypeNames.add(typeName);
+        }
+    }
+
+    void registerPermittedSubclasses(Collection<String> typeNames) {
+        for (String typeName : typeNames) {
+            registerPermittedSubclass(typeName);
+        }
+    }
+
     void registerEnclosingType(String typeName) {
         if (runNumberHasNotExceeded(maxRunsForEnclosingTypes)) {
             currentTypeNames.add(typeName);
@@ -124,10 +141,11 @@ class DependencyResolutionProcess {
     }
 
     private void logConfiguration() {
-        log.trace("Automatically resolving transitive class dependencies with the following configuration:{}{}{}{}{}{}",
+        log.trace("Automatically resolving transitive class dependencies with the following configuration:{}{}{}{}{}{}{}",
                 formatConfigProperty(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME, maxRunsForMemberTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME, maxRunsForAccessesToTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME, maxRunsForSupertypes),
+                formatConfigProperty(MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_PROPERTY_NAME, maxRunsForPermittedSubclasses),
                 formatConfigProperty(MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME, maxRunsForEnclosingTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME, maxRunsForAnnotationTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, maxRunsForGenericSignatureTypes));

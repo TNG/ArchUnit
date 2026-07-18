@@ -67,6 +67,7 @@ class ClassFileImportRecord {
 
     private final Map<String, String> superclassNamesByOwner = new HashMap<>();
     private final ListMultimap<String, String> interfaceNamesByOwner = ArrayListMultimap.create();
+    private final ListMultimap<String, String> permittedSubclassNamesByOwner = ArrayListMultimap.create();
     private final Map<String, JavaClassTypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final Map<String, List<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
@@ -99,6 +100,10 @@ class ClassFileImportRecord {
 
     void addInterfaces(String ownerName, List<String> interfaceNames) {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
+    }
+
+    void addPermittedSubclasses(String ownerName, List<String> permittedSubclassNames) {
+        permittedSubclassNamesByOwner.putAll(ownerName, permittedSubclassNames);
     }
 
     void addTypeParameters(String ownerName, JavaClassTypeParametersBuilder builder) {
@@ -162,6 +167,10 @@ class ClassFileImportRecord {
 
     List<String> getInterfaceNamesFor(String ownerName) {
         return interfaceNamesByOwner.get(ownerName);
+    }
+
+    List<String> getPermittedSubclassNamesFor(String ownerName) {
+        return permittedSubclassNamesByOwner.get(ownerName);
     }
 
     JavaClassTypeParametersBuilder getTypeParameterBuildersFor(String ownerName) {
