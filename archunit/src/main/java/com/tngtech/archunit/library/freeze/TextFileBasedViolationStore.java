@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Splitter;
@@ -32,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -74,6 +74,8 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "default.allowStoreUpdate";
     private static final String ALLOW_STORE_UPDATE_DEFAULT = "true";
 
+    private static final ConcurrentHashMap<String, FileSyncedProperties> STORED_RULES_BY_PATH = new ConcurrentHashMap<>();
+
     private final RuleViolationFileNameStrategy ruleViolationFileNameStrategy;
 
     private boolean storeCreationAllowed;
@@ -105,11 +107,18 @@ public final class TextFileBasedViolationStore implements ViolationStore {
         storeUpdateAllowed = Boolean.parseBoolean(properties.getProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, ALLOW_STORE_UPDATE_DEFAULT));
         String path = properties.getProperty(STORE_PATH_PROPERTY_NAME, STORE_PATH_DEFAULT);
         storeFolder = new File(path);
-        ensureExistence(storeFolder);
         File storedRulesFile = getStoredRulesFile();
         log.trace("Initializing {} at {}", TextFileBasedViolationStore.class.getSimpleName(), storedRulesFile.getAbsolutePath());
-        storedRules = new FileSyncedProperties(storedRulesFile);
+        storedRules = getOrCreateStoredRules(storedRulesFile);
         checkInitialization(storedRules.initializationSuccessful(), "Cannot create rule store at %s", storedRulesFile.getAbsolutePath());
+    }
+
+    private FileSyncedProperties getOrCreateStoredRules(File storedRulesFile) {
+        try {
+            return STORED_RULES_BY_PATH.computeIfAbsent(storedRulesFile.getCanonicalPath(), path -> new FileSyncedProperties(storedRulesFile));
+        } catch (IOException e) {
+            throw new StoreInitializationFailedException(e);
+        }
     }
 
     private File getStoredRulesFile() {
@@ -120,10 +129,6 @@ public final class TextFileBasedViolationStore implements ViolationStore {
                     ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME, ALLOW_STORE_CREATION_PROPERTY_NAME));
         }
         return rulesFile;
-    }
-
-    private void ensureExistence(File folder) {
-        checkState(folder.exists() && folder.isDirectory() || folder.mkdirs(), "Cannot create folder %s", folder.getAbsolutePath());
     }
 
     private void checkInitialization(boolean initializationSuccessful, String message, Object... args) {
@@ -171,17 +176,14 @@ public final class TextFileBasedViolationStore implements ViolationStore {
 
     private String ensureRuleFileName(ArchRule rule) {
         String ruleDescription = rule.getDescription();
-
-        String ruleFileName;
-        if (storedRules.containsKey(ruleDescription)) {
-            ruleFileName = storedRules.getProperty(ruleDescription);
-            log.trace("Rule '{}' is already stored in file {}", ruleDescription, ruleFileName);
-        } else {
-            ruleFileName = ruleViolationFileNameStrategy.createRuleFileName(ruleDescription);
-            log.trace("Assigning new file {} to rule '{}'", ruleFileName, ruleDescription);
-            storedRules.setProperty(ruleDescription, ruleFileName);
+        String candidateFileName = ruleViolationFileNameStrategy.createRuleFileName(ruleDescription);
+        String existingFileName = storedRules.putIfAbsent(ruleDescription, candidateFileName);
+        if (existingFileName == null) {
+            log.trace("Assigning new file {} to rule '{}'", candidateFileName, ruleDescription);
+            return candidateFileName;
         }
-        return ruleFileName;
+        log.trace("Rule '{}' is already stored in file {}", ruleDescription, existingFileName);
+        return existingFileName;
     }
 
     @Override
@@ -223,13 +225,23 @@ public final class TextFileBasedViolationStore implements ViolationStore {
         }
 
         private File initializePropertiesFile(File file) {
-            boolean fileAvailable;
             try {
-                fileAvailable = file.exists() || file.createNewFile();
+                File directory = file.getParentFile();
+
+                // mkdirs() returns false both on failure and if another process concurrently
+                // created the directory, so isDirectory() distinguishes the two
+                if (!directory.mkdirs() && !directory.isDirectory()) {
+                    return null;
+                }
+
+                if (!file.exists() && !file.createNewFile()) {
+                    return null;
+                }
+
+                return file;
             } catch (IOException e) {
-                fileAvailable = false;
+                return null;
             }
-            return fileAvailable ? file : null;
         }
 
         private Properties loadRulesFrom(File file) {
@@ -250,9 +262,15 @@ public final class TextFileBasedViolationStore implements ViolationStore {
             return loadedProperties.getProperty(ensureUnixLineBreaks(propertyName));
         }
 
-        void setProperty(String propertyName, String value) {
-            loadedProperties.setProperty(ensureUnixLineBreaks(propertyName), ensureUnixLineBreaks(value));
+        synchronized String putIfAbsent(String key, String value) {
+            String normalizedKey = ensureUnixLineBreaks(key);
+            String existing = loadedProperties.getProperty(normalizedKey);
+            if (existing != null) {
+                return existing;
+            }
+            loadedProperties.setProperty(normalizedKey, ensureUnixLineBreaks(value));
             syncFileSystem();
+            return null;
         }
 
         private void syncFileSystem() {
