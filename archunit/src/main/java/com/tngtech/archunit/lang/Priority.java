@@ -16,9 +16,17 @@
 package com.tngtech.archunit.lang;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Classifies the importance of an {@link EvaluationResult}, which is the result of {@link ArchRule#evaluate(JavaClasses)}.
+ * <p>
+ * {@link ArchRuleDefinition#priority(Priority)} can be used to create {@link ArchRule} implementations with a given priority.
+ * </p>
+ */
 @PublicAPI(usage = ACCESS)
 public enum Priority {
     @PublicAPI(usage = ACCESS)
