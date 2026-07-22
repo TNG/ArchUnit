@@ -330,6 +330,21 @@ classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMet
     .as("Payload may only be accessed in a secure way");
 ----
 
+=== Priority
+
+Most entrypoints in `ArchRuleDefinition` create `ArchRule`s that evaluate to `EvaluationResult`s with `Priority.MEDIUM`; `ArchRuleDefinition.priority` allows to create rules with other `Priority`, e.g.:
+
+[source,java,options="nowrap"]
+----
+ArchRule rule = ArchRuleDefinition.priority(Priority.LOW).noClasses() // ...
+----
+
+The resulting error messages show the priority accordingly:
+
+[source,bash]
+----
+java.lang.AssertionError: Architecture Violation [Priority: LOW] - Rule 'no classes // ...
+----
 === Ignoring Violations
 
 In legacy projects there might be too many violations to fix at once. Nevertheless, that code
