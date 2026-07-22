@@ -23,8 +23,7 @@ class ImporterRules {
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =
             noClasses().that().resideInAPackage("..core.domain..")
-                    .should().dependOnClassesThat(belong_to_the_import_context())
-                    .allowEmptyShould(true);
+                    .should().dependOnClassesThat(belong_to_the_import_context());
 
     @ArchTest
     public static final ArchRule asm_is_only_used_in_importer_or_JavaClassDescriptor =

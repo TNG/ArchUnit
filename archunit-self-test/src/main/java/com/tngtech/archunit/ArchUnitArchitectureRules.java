@@ -53,8 +53,7 @@ public class ArchUnitArchitectureRules {
             // ClassResolver would need to be moved to `importer` making it harder to use,
             // or we would need to remove the bound from Class<? extends ClassResolver>, which also makes the
             // API harder to use
-            .ignoreDependency(ArchConfiguration.class, ClassResolver.class)
-            .allowEmptyShould(true);
+            .ignoreDependency(ArchConfiguration.class, ClassResolver.class);
 
     @ArchTest
     public static final ArchTests importer_rules = ArchTests.in(ImporterRules.class);
