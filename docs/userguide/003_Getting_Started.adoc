@@ -50,8 +50,9 @@ ArchRule myRule = classes()
     .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
 ----
 
-The two dots represent any number of packages (compare AspectJ Pointcuts). The returned
-object of type `ArchRule` can now be evaluated against a set of imported classes:
+The two dots represent any number of packages (compare AspectJ Pointcuts); for details on
+the supported package pattern syntax see <<Package Identifiers>>. The returned object of
+type `ArchRule` can now be evaluated against a set of imported classes:
 
 [source,java,options="nowrap"]
 ----

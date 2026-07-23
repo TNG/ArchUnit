@@ -431,3 +431,10 @@ h4 {
     margin-top: 1.2em !important;
     margin-bottom: 0.55em !important;
 }
+/* Restore code box for single inline-code inside table cells */
+p.tableblock > code:only-child {
+    background-color: #f7f7f8 !important;
+    padding: .1em .5ex !important;
+    border-radius: 4px !important;
+    border: 1px solid #e0e0e0;   /* makes a lone dot's box clearly visible */
+}
