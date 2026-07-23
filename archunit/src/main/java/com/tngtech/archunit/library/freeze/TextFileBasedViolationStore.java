@@ -20,11 +20,16 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.lang.ArchRule;
@@ -110,6 +115,8 @@ public final class TextFileBasedViolationStore implements ViolationStore {
         log.trace("Initializing {} at {}", TextFileBasedViolationStore.class.getSimpleName(), storedRulesFile.getAbsolutePath());
         storedRules = new FileSyncedProperties(storedRulesFile);
         checkInitialization(storedRules.initializationSuccessful(), "Cannot create rule store at %s", storedRulesFile.getAbsolutePath());
+        removeObsoleteRules();
+        removeObsoleteRuleFiles();
     }
 
     private File getStoredRulesFile() {
@@ -129,6 +136,45 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     private void checkInitialization(boolean initializationSuccessful, String message, Object... args) {
         if (!initializationSuccessful) {
             throw new StoreInitializationFailedException(String.format(message, args));
+        }
+    }
+
+    private void removeObsoleteRules() {
+        Set<String> obsoleteStoredRules = storedRules.keySet().stream()
+                .filter(ruleDescription -> !new File(storeFolder, storedRules.getProperty(ruleDescription)).exists())
+                .collect(Collectors.toSet());
+        if (!obsoleteStoredRules.isEmpty() && !storeUpdateAllowed) {
+            throw new StoreUpdateFailedException(String.format(
+                    "Failed to remove %d obsolete stored rule(s). Updating frozen violations is disabled (enable by configuration %s.%s=true)",
+                    obsoleteStoredRules.size(), ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME, ALLOW_STORE_UPDATE_PROPERTY_NAME));
+        }
+        obsoleteStoredRules.forEach(storedRules::removeProperty);
+    }
+
+    private void removeObsoleteRuleFiles() {
+        Set<String> ruleFiles = storedRules.keySet().stream()
+                .map(storedRules::getProperty)
+                .collect(Collectors.toSet());
+
+        List<String> danglingFiles = Arrays.stream(storeFolder.list())
+                .filter(name -> !name.equals(STORED_RULES_FILE_NAME))
+                .filter(Predicates.not(ruleFiles::contains))
+                .collect(toList());
+
+        if (!danglingFiles.isEmpty() && !storeUpdateAllowed) {
+            throw new StoreUpdateFailedException(String.format(
+                    "Failed to remove %d unreferenced rule files. Updating frozen store is disabled (enable by configuration %s.%s=true)",
+                    danglingFiles.size(), ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME, ALLOW_STORE_UPDATE_PROPERTY_NAME));
+
+        }
+
+        for (String fileName : danglingFiles) {
+            Path path = new File(storeFolder, fileName).toPath();
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                throw new StoreInitializationFailedException("Cannot delete unreferenced rule file: " + fileName, e);
+            }
         }
     }
 
@@ -253,6 +299,15 @@ public final class TextFileBasedViolationStore implements ViolationStore {
         void setProperty(String propertyName, String value) {
             loadedProperties.setProperty(ensureUnixLineBreaks(propertyName), ensureUnixLineBreaks(value));
             syncFileSystem();
+        }
+
+        void removeProperty(String propertyName) {
+            loadedProperties.remove(ensureUnixLineBreaks(propertyName));
+            syncFileSystem();
+        }
+
+        Set<String> keySet() {
+            return loadedProperties.stringPropertyNames();
         }
 
         private void syncFileSystem() {
