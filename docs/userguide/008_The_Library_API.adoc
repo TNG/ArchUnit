@@ -130,7 +130,10 @@ com.tngtech.archunit.library.dependencies.SlicesRuleDefinition
 ----
 
 The API is based on the idea to sort classes into slices according to one or several package
-infixes, and then write assertions against those slices. At the moment this is for example:
+infixes, and then write assertions against those slices. The `matching(..)` argument follows
+the package pattern syntax described in <<Package Identifiers>>, where the parentheses
+`(*)` / `(**)` mark the captured segment(s) that are used as slice identifiers.
+At the moment this is for example:
 
 [source,java,options="nowrap"]
 ----

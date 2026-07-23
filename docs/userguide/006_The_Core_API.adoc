@@ -396,3 +396,114 @@ ArchUnit's own rule APIs (compare <<The Lang API>>) never rely on the
 classpath though. Thus the evaluation of default rules and syntax combinations, described in the
 next section, does not depend on whether the classes were imported from the classpath or
 some JAR / folder.
+
+=== Package Identifiers
+
+Several ArchUnit methods accept a `String` package identifier to describe a set of packages,
+for example `resideInAPackage(..)` and `resideInAnyPackage(..)` (and their negated variants)
+in the Lang API, `slices().matching(..)` and `modules().definedByPackages(..)` in the Library
+API, or the component stereotypes of a PlantUML component diagram. All of them delegate to
+the same underlying `PackageMatcher`, whose syntax is inspired by AspectJ type patterns and
+extended with capturing groups.
+
+==== Wildcards
+
+The syntax is built from the following elements:
+
+[cols="1,4"]
+|===
+| Pattern | Meaning
+
+| `*`
+| Matches any sequence of characters **not containing** the dot `.`,
+i.e. exactly one package segment.
+
+| `..`
+| Matches any sequence of characters that **may contain** the dot `.`,
+i.e. any number of package segments (including zero).
+
+| `(*)`
+| Like `*`, but additionally _captures_ the matched segment,
+so it can be referenced later (e.g. as a slice identifier).
+
+| `(**)`
+| Like `..`, but additionally _captures_ the matched segments.
+
+| `[a\|b]`
+| Alternation: matches either `a` or `b`. Alternations are only allowed inside brackets
+`[...]` or inside capturing groups `(...)`.
+|===
+
+Note that `(..)` is not a valid capturing group — use `(**)` instead. `()` and `[]` cannot
+be nested inside each other.
+
+==== Worked Example
+
+Consider the following five classes and the packages they reside in:
+
+[cols="2,2"]
+|===
+| Class | Package
+
+| `com.myapp.controller.SomeController`     | `com.myapp.controller`
+| `com.myapp.service.SomeService`           | `com.myapp.service`
+| `com.myapp.service.impl.SomeServiceImpl`  | `com.myapp.service.impl`
+| `com.myapp.persistence.dao.SomeDao`       | `com.myapp.persistence.dao`
+| `com.myapp.persistence.dao.jpa.SomeJpa`   | `com.myapp.persistence.dao.jpa`
+|===
+
+The following table shows a range of package identifiers and which of the five packages
+above each of them matches:
+
+[cols="2,3"]
+|===
+| Package Identifier | Matches
+
+| `com.myapp.service`
+| `com.myapp.service` only (exact match).
+
+| `com.myapp.*`
+| `com.myapp.controller` and `com.myapp.service`
+(exactly one more segment after `com.myapp`).
+
+| `com.myapp..`
+| All five packages (any number of segments under `com.myapp`, including zero).
+
+| `..service`
+| `com.myapp.service` only (segment `service` at the end).
+
+| `..service..`
+| `com.myapp.service` and `com.myapp.service.impl`
+(any package containing a segment `service`).
+
+| `..dao..`
+| `com.myapp.persistence.dao` and `com.myapp.persistence.dao.jpa`.
+
+| `..impl`
+| `com.myapp.service.impl` only.
+
+| `com.myapp.(*)`
+| `com.myapp.controller` (group 1 = `controller`) and
+`com.myapp.service` (group 1 = `service`).
+The deeper packages do not match because `(*)` allows only a single segment.
+
+| `com.myapp.(*)..`
+| All five packages; group 1 captures the first sub-package below `com.myapp`
+(`controller`, `service`, `service`, `persistence`, `persistence` respectively).
+This is the typical pattern used by `slices().matching(..)`.
+
+| `..[service\|controller]..`
+| `com.myapp.controller`, `com.myapp.service` and `com.myapp.service.impl`.
+|===
+
+==== What is Matched Against the Pattern
+
+An important detail is that the package identifier is matched against the
+**package name of a class**, not against the fully qualified class name.
+So for `com.myapp.service.SomeService` the string that is checked against
+the pattern is `com.myapp.service`, not `com.myapp.service.SomeService`.
+
+This means that a pattern like `..SomeService` will _not_ match a class named `SomeService`,
+because `SomeService` is the simple class name, not a package segment. To match by class
+name use a name-based predicate such as
+`haveSimpleName("SomeService")` or `haveNameMatching(".*SomeService")` instead.
