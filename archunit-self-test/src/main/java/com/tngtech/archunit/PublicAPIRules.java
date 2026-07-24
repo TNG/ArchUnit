@@ -72,7 +72,6 @@ class PublicAPIRules {
                     .and().resideOutsideOfPackage(THIRDPARTY_PACKAGE_IDENTIFIER)
 
                     .should().notBePublic()
-                    .allowEmptyShould(true) // does not apply to some archunit-junit* packages
 
                     .as("classes that are not explicitly designed as API should not be public")
                     .because("we risk extensibility and maintainability of ArchUnit, if internal classes leak to users");
@@ -83,8 +82,7 @@ class PublicAPIRules {
                     .that(haveMemberThatBelongsToPublicApi())
                     .should(beAnnotatedWith(PublicAPI.class).<JavaClass>forSubtype()
                             .or(beAnnotatedWith(Internal.class))
-                            .or(have(supertype(annotatedWith(PublicAPI.class)).and(not(modifier(PUBLIC))))))
-                    .allowEmptyShould(true); // does not apply to some archunit-junit* packages
+                            .or(have(supertype(annotatedWith(PublicAPI.class)).and(not(modifier(PUBLIC))))));
 
     @ArchTest
     public static final ArchRule only_members_that_are_public_API_or_explicitly_marked_as_internal_are_accessible =
@@ -94,7 +92,6 @@ class PublicAPIRules {
                     .and(are(relevantArchUnitMembers()))
 
                     .should().notBePublic()
-                    .allowEmptyShould(true) // does not apply to some archunit-junit* packages
 
                     .because("users of ArchUnit should only access intended members, to preserve maintainability");
 
@@ -103,8 +100,7 @@ class PublicAPIRules {
             members()
                     .that().areAnnotatedWith(PublicAPI.class)
                     .and().doNotHaveModifier(SYNTHETIC)
-                    .should(bePubliclyAccessible())
-                    .allowEmptyShould(true); // does not apply to some archunit-junit* packages
+                    .should(bePubliclyAccessible());
 
     @ArchTest
     public static final ArchRule all_public_classes_that_are_not_meant_for_inheritance_or_internal_are_final =
@@ -119,7 +115,6 @@ class PublicAPIRules {
                     .should(bePublicAPIForInheritance())
                     .orShould(beInterfaces())
                     .orShould().haveModifier(FINAL)
-                    .allowEmptyShould(true) // does not apply to some archunit-junit* packages
 
                     .as("all public classes not meant for inheritance should be final")
                     .because("users of ArchUnit should only inherit from intended classes, to preserve maintainability");
@@ -133,7 +128,6 @@ class PublicAPIRules {
                     .and().areNotAnnotatedWith(Internal.class)
                     .and(are(not(onlyUsedAsPublicApiParameter())))
                     .should().notBePublic()
-                    .allowEmptyShould(true) // does not apply to some archunit-junit* packages
                     .as("Only RuleDefinitions and interfaces within the ArchUnit syntax (..syntax..) should be public");
 
     private static DescribedPredicate<JavaClass> onlyUsedAsPublicApiParameter() {
@@ -166,8 +160,7 @@ class PublicAPIRules {
                     .and().areDeclaredInClassesThat().areNotAnnotatedWith(Internal.class)
                     .and().arePublic()
                     .and().doNotHaveName("adhereToPlantUmlDiagram")
-                    .should().haveRawParameterTypes(thatArePublic())
-                    .allowEmptyShould(true); // does not apply to some archunit-junit* packages
+                    .should().haveRawParameterTypes(thatArePublic());
 
     @ArchTest
     public static final ArchRule predicate_parameters_of_public_API_code_units_should_be_contravariant =
@@ -177,7 +170,6 @@ class PublicAPIRules {
                     .and(are(not(declaredIn(annotatedWith(Internal.class)))))
                     .and(ArchPredicates.have(modifier(PUBLIC)))
                     .should(haveContravariantPredicateParameterTypes())
-                    .allowEmptyShould(true) // does not apply to some archunit-junit* packages
                     .as(String.format(
                             "Public API methods that take a %s<PARAM> should declare the type parameter contravariantly (i.e. %s<? super PARAM>)",
                             DescribedPredicate.class.getSimpleName(), DescribedPredicate.class.getSimpleName()))

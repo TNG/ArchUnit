@@ -54,7 +54,8 @@ public class ArchUnitArchitectureRules {
             // or we would need to remove the bound from Class<? extends ClassResolver>, which also makes the
             // API harder to use
             .ignoreDependency(ArchConfiguration.class, ClassResolver.class)
-            .allowEmptyShould(true);
+            // Not all layers are present on all archunit-junit* packages
+            .withOptionalLayers(true);
 
     @ArchTest
     public static final ArchTests importer_rules = ArchTests.in(ImporterRules.class);

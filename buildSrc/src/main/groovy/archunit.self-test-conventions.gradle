@@ -1,7 +1,6 @@
 sourceSets {
     archTest {
         java.srcDir 'src/archTest/java'
-        resources.srcDir 'src/archTest/resources'
         compileClasspath += sourceSets.main.output
         // Allow main and test classes to be self-tested
         runtimeClasspath += output + sourceSets.main.output
