@@ -99,7 +99,7 @@ public interface ImportOption {
         };
 
         static final PatternPredicate MAVEN_TEST_PATTERN = new PatternPredicate(".*/target/test-classes/.*");
-        static final PatternPredicate GRADLE_TEST_PATTERN = new PatternPredicate(".*/build/classes/([^/]+/)?test/.*");
+        static final PatternPredicate GRADLE_TEST_PATTERN = new PatternPredicate(".*/build/classes/([^/]+/)?(test|[^/]+Test)s?/.*");
         static final PatternPredicate INTELLIJ_TEST_PATTERN = new PatternPredicate(".*/out/test/.*");
         static final Predicate<Location> TEST_LOCATION = MAVEN_TEST_PATTERN.or(GRADLE_TEST_PATTERN).or(INTELLIJ_TEST_PATTERN);
         static final Predicate<Location> NO_TEST_LOCATION = TEST_LOCATION.negate();
@@ -122,6 +122,8 @@ public interface ImportOption {
      * Best effort {@link ImportOption} to check rules only on main classes.<br>
      * NOTE: This excludes all class files residing in some directory
      * ../target/test-classes/.., ../build/classes/test/.. or ../build/classes/someLang/test/.. (Maven/Gradle standard).
+     * This also covers custom Gradle test source sets that follow the {@code ...Test} naming convention,
+     * e.g. ../build/classes/someLang/integrationTest/...
      * Thus it is just a best guess, how tests can be identified,
      * in other environments, it might be necessary, to implement the correct {@link ImportOption} yourself.
      */
