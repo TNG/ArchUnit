@@ -1,0 +1,25 @@
+plugins {
+    id 'archunit.java-examples-conventions'
+    id 'archunit.self-test-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.example.junit6'
+ext.minimumJavaVersion = JavaVersion.VERSION_17
+
+dependencies {
+    testImplementation project(path: ':archunit-junit6')
+    testImplementation project(path: ':archunit-example:example-plain')
+
+    archTestImplementation project(path: ':archunit-junit6')
+    archTestRuntimeOnly libs.junit6PlatformLauncher
+    // We want to run the architecture self-tests on the `test` sourceSet of this subproject
+    archTestRuntimeOnly sourceSets.test.output
+}
+
+test {
+    useJUnitPlatform {
+        if (!project.hasProperty('example')) {
+            excludeTags 'example'
+        }
+    }
+}

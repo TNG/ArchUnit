@@ -1,6 +1,5 @@
 plugins {
     id 'archunit.java-conventions'
-    id 'archunit.java-junit-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.archunit-self-test'
@@ -9,14 +8,6 @@ description = "ArchUnit tests for ArchUnit and ArchUnit-Examples themselves"
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
-    implementation project(path: ':archunit')
-    implementation project(path: ':archunit-junit4')
-    implementation project(path: ':archunit-junit5')
-    implementation project(path: ':archunit-junit5-engine')
-    implementation project(path: ':archunit-example:example-plain')
-    implementation project(path: ':archunit-example:example-plain', configuration: 'tests')
-    implementation project(path: ':archunit-example:example-junit4', configuration: 'tests')
-    implementation project(path: ':archunit-example:example-junit5', configuration: 'tests')
-
-    testImplementation project(path: ':archunit-junit5')
+    compileOnly project(path: ':archunit')
+    compileOnly project(path: ':archunit-junit5-api')
 }

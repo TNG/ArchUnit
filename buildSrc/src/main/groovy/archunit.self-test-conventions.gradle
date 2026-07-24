@@ -1,0 +1,27 @@
+sourceSets {
+    archTest {
+        java.srcDir 'src/archTest/java'
+        compileClasspath += sourceSets.main.output
+        // Allow main and test classes to be self-tested
+        runtimeClasspath += output + sourceSets.main.output
+    }
+}
+
+dependencies {
+    archTestImplementation project(path: ':archunit-self-test')
+    // Do not add any dependencies that specify a version of JUnit.
+    // The archunit-junit* packages need to be tested with the matching JUnit version.
+}
+
+def architectureTest = tasks.register("architectureTest", Test) {
+    description = 'Runs the shared architecture tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.archTest.output.classesDirs
+    classpath = sourceSets.archTest.runtimeClasspath
+
+    useJUnitPlatform {
+        includeEngines 'archunit'
+    }
+}
+
+check.dependsOn architectureTest

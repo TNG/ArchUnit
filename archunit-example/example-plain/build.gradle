@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-examples-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.example.plain'
@@ -10,6 +11,12 @@ dependencies {
     // we still use JUnit 4 as the test runner, but we don't use JUnit 4 support within this project
     // so tests could well be run using TestNG, etc.
     testImplementation libs.junit4
+
+    // We run the ArchUnit self-tests on JUnit5 because of the Java 8 support.
+    archTestImplementation project(path: ':archunit-junit5')
+    archTestRuntimeOnly libs.junit5PlatformLauncher
+    // We want to run the architecture self-tests on the `test` sourceSet of this subproject
+    archTestRuntimeOnly sourceSets.test.output
 }
 
 test {

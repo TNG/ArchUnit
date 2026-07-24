@@ -1,6 +1,6 @@
 == JUnit Support
 
-At the moment ArchUnit offers extended support for writing tests with JUnit 4 and JUnit 5.
+At the moment, ArchUnit offers extended support for writing tests with JUnit 4, JUnit 5, and JUnit 6.
 This mainly tackles the problem of caching classes between test runs and to remove some boilerplate.
 
 Consider a straight forward approach to write tests:
@@ -27,23 +27,23 @@ public void rule2() {
 ----
 
 For bigger projects, this will have a significant performance impact, since the import can take
-a noticeable amount of time. Also rules will always be checked against the imported classes, thus
-the explicit call of `check(importedClasses)` is bloat and error prone (i.e. it can be forgotten).
+a noticeable amount of time. Furthermore, rules will always be checked against the imported classes, thus
+the explicit call of `check(importedClasses)` is bloat and error-prone (i.e. it can be forgotten).
 
-=== JUnit 4 & 5 Support
+=== JUnit Integration
 
 Make sure you follow the installation instructions at <<Installation>>, in particular to include
 the correct dependency for the respective JUnit support.
 
 ==== Writing tests
 
-Tests look and behave very similar between JUnit 4 and 5. The only difference is, that with JUnit 4
-it is necessary to add a specific `Runner` to take care of caching and checking rules, while JUnit 5
-picks up the respective `TestEngine` transparently. A test typically looks the following way:
+Tests look and behave very similar between JUnit 4 and JUnit 5 & 6. The only difference is that with JUnit 4
+it is necessary to add a specific `Runner` to take care of caching and checking rules, while JUnit 5 & 6
+pick up the respective `TestEngine` transparently. A test typically looks the following way:
 
 [source,java,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses(packages = "com.myapp")
 public class ArchitectureTest {
 
@@ -104,9 +104,9 @@ public class MyLocationProvider implements LocationProvider {
 @AnalyzeClasses(locations = MyLocationProvider.class)
 ----
 
-Furthermore, to choose specific classes beneath those locations, `ImportOption`﻿s can be
-specified (compare <<The Core API>>). For example, to import the classpath, but only consider
-production code, and only consider code that is directly supplied and does not come from JARs:
+Furthermore, in order to choose specific classes beneath those locations, `ImportOption`﻿s can be
+specified (compare <<The Core API>>). The following example imports the classpath, but only considers
+production code and only considers code that is directly supplied and does not come from JARs:
 
 [source,java,options="nowrap"]
 ----
@@ -182,12 +182,12 @@ public class ArchitectureTest {
 }
 ----
 
-Note for users of JUnit 5: the annotation `@Disabled` has no effect here.
+Note for users of JUnit 5 & 6: the annotation `@Disabled` has no effect here.
 Instead, `@ArchIgnore` should be used.
 
 ==== Grouping Rules
 
-Often a project might end up with different categories of rules, for example "service rules"
+Often, a project might end up with different categories of rules, for example "service rules"
 and "persistence rules". It is possible to write one class for each set of rules, and then
 refer to those sets from another test:
 
@@ -207,7 +207,7 @@ public class PersistenceRules {
     // further rules
 }
 
-@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses
 public class ArchitectureTest {
 
@@ -272,4 +272,4 @@ display name generation in ArchUnit with a configuration property (see <<Advance
 junit.displayName.replaceUnderscoresBySpaces=true
 ----
 
-If you omit the property (or set it to `false`) the original rule names are used as display names.
+If you omit the property (or set it to `false`, the original rule names are used as display names.

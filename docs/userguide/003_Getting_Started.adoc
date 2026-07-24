@@ -6,8 +6,8 @@ Java unit testing framework. To really understand the ideas behind ArchUnit, one
 
 === Importing Classes
 
-At its core ArchUnit provides infrastructure to import Java bytecode into Java code structures.
-This can be done using the `ClassFileImporter`
+At its core, ArchUnit provides infrastructure to import Java bytecode into Java code structures.
+This can be done using the `ClassFileImporter`:
 
 [source,java,options="nowrap"]
 ----
@@ -74,10 +74,10 @@ public void Services_should_only_be_accessed_by_Controllers() {
 }
 ----
 
-=== Using JUnit 4 or JUnit 5
+=== Using JUnit
 
 While ArchUnit can be used with any unit testing framework, it provides extended support
-for writing tests with JUnit 4 and JUnit 5. The main advantage is automatic caching of imported
+for writing tests with JUnit. The main advantage is automatic caching of imported
 classes between tests (of the same imported classes), as well as reduction of boilerplate code.
 
 To use the JUnit support, declare ArchUnit's `ArchUnitRunner` (only JUnit 4), declare the classes
@@ -85,7 +85,7 @@ to import via `@AnalyzeClasses` and add the respective rules as fields:
 
 [source,java,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -108,7 +108,7 @@ Using the JUnit support with Kotlin is quite similar to Java:
 
 [source,kotlin,options="nowrap"]
 ----
-@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
+// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses(packagesOf = [MyArchitectureTest::class])
 class MyArchitectureTest {
     @ArchTest
