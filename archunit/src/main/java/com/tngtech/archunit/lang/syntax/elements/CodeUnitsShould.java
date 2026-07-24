@@ -314,6 +314,18 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawReturnType(DescribedPredicate<? super JavaClass> predicate);
 
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dependOnArgumentsThat(DescribedPredicate<? super JavaClass> predicate);
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dependOnReturnTypesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION accessClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
     /**
      * Asserts that {@link JavaCodeUnit JavaCodeUnits} declare a {@link Throwable} of the specified type in their throws clause.
      * <br><br>
