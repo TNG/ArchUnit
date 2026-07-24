@@ -31,8 +31,6 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
  * Structural rules that the ArchUnit Core must fulfill.
  */
 public class ArchUnitArchitectureRules {
-    private ArchUnitArchitectureRules() {
-    }
 
     static final String THIRDPARTY_PACKAGE_IDENTIFIER = "..thirdparty..";
 

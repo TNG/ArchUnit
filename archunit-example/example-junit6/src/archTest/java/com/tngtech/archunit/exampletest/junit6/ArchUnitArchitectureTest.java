@@ -6,10 +6,8 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTests;
 
 @AnalyzeClasses(packages = "com.tngtech.archunit.exampletest.junit6")
-public class ArchUnitArchitectureTest {
-    private ArchUnitArchitectureTest() {
-    }
+class ArchUnitArchitectureTest {
 
     @ArchTest
-    public static final ArchTests example_rules = ArchTests.in(ArchUnitExampleArchitectureRules.class);
+    static final ArchTests example_rules = ArchTests.in(ArchUnitExampleArchitectureRules.class);
 }

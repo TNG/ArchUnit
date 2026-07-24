@@ -61,8 +61,6 @@ import static java.util.stream.Collectors.toSet;
  * Rules that all production code must fulfill.
  */
 public class PublicAPIRules {
-    private PublicAPIRules() {
-    }
 
     @ArchTest
     public static final ArchRule only_public_API_classes_or_classes_explicitly_marked_as_internal_are_accessible =
@@ -268,11 +266,9 @@ public class PublicAPIRules {
 
             private Stream<JavaClass> getAllEnclosingClasses(JavaMember member) {
                 List<JavaClass> enclosingClasses = new ArrayList<>();
-                Optional<JavaClass> last = Optional.of(member.getOwner());
-                do {
-                    enclosingClasses.add(last.get());
-                    last = last.get().getEnclosingClass();
-                } while (last.isPresent());
+                for (JavaClass current = member.getOwner(); current != null; current = current.getEnclosingClass().orElse(null)) {
+                    enclosingClasses.add(current);
+                }
                 return enclosingClasses.stream();
             }
         };

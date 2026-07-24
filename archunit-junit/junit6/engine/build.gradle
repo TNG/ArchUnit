@@ -41,6 +41,7 @@ test {
         excludeEngines 'archunit'
     }
 }
+
 shadowJar {
     exclude 'META-INF/maven/**'
 

@@ -10,15 +10,11 @@ import com.tngtech.archunit.junit.ArchTests;
 import static com.tngtech.archunit.ArchitectureTestImportOptions.DoNotIncludeSelfTests;
 import static com.tngtech.archunit.ArchitectureTestImportOptions.sourceRootOf;
 
-@AnalyzeClasses(
-        packages = "com.tngtech.archunit",
-        importOptions = {DoNotIncludeTests.class, DoNotIncludeSelfTests.class, ArchUnitArchitectureTest.DoNotIncludeTestResources.class})
-public class ArchUnitArchitectureTest {
-    private ArchUnitArchitectureTest() {
-    }
+@AnalyzeClasses(packages = "com.tngtech.archunit", importOptions = {DoNotIncludeTests.class, DoNotIncludeSelfTests.class, ArchUnitArchitectureTest.DoNotIncludeTestResources.class})
+class ArchUnitArchitectureTest {
 
     @ArchTest
-    public static final ArchTests architecture_rules = ArchTests.in(ArchUnitArchitectureRules.class);
+    static final ArchTests architecture_rules = ArchTests.in(ArchUnitArchitectureRules.class);
 
     public static final class DoNotIncludeTestResources implements ImportOption {
         private static final String TEST_RESOURCES_ROOT = sourceRootOf(ArchUnitArchitectureTest.class)

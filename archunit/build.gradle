@@ -21,7 +21,6 @@ dependencies {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
-    testImplementation project(path: ':archunit-junit5')
 }
 
 shadowJar {

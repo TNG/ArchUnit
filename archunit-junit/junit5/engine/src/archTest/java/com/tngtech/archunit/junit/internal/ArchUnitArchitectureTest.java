@@ -8,10 +8,8 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTests;
 
 @AnalyzeClasses(packages = "com.tngtech.archunit.junit.internal", importOptions = {DoNotIncludeTests.class, DoNotIncludeSelfTests.class})
-public class ArchUnitArchitectureTest {
-    private ArchUnitArchitectureTest() {
-    }
+class ArchUnitArchitectureTest {
 
     @ArchTest
-    public static final ArchTests public_api_rules = ArchTests.in(PublicAPIRules.class);
+    static final ArchTests public_api_rules = ArchTests.in(PublicAPIRules.class);
 }

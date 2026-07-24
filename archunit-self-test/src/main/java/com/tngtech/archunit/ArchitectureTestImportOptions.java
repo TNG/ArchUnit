@@ -6,8 +6,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
 
 public final class ArchitectureTestImportOptions {
-    private ArchitectureTestImportOptions() {
-    }
 
     public static String sourceRootOf(Class<?> marker) {
         String classFile = "/" + marker.getName().replace('.', '/') + ".class";
