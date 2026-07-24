@@ -3,6 +3,7 @@ package com.tngtech.archunit.library.freeze;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -10,10 +11,9 @@ import java.util.Properties;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -23,19 +23,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class TextFileBasedViolationStoreTest {
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    Path temporaryFolder;
 
     private final ViolationStore store = new TextFileBasedViolationStore();
     private File configuredFolder;
 
-    @Before
-    public void setUp() throws Exception {
-        configuredFolder = new File(temporaryFolder.newFolder(), "notyetthere");
+    @BeforeEach
+    public void setUp() {
+        configuredFolder = new File(temporaryFolder.toFile(), "notyetthere");
 
-        store.initialize(propertiesOf(
-                "default.path", configuredFolder.getAbsolutePath(),
-                "default.allowStoreCreation", String.valueOf(true)));
+        store.initialize(defaultStoreProperties());
     }
 
     @Test
@@ -124,6 +122,12 @@ public class TextFileBasedViolationStoreTest {
             properties.load(inputStream);
         }
         return properties;
+    }
+
+    private Properties defaultStoreProperties() {
+        return propertiesOf(
+                "default.path", configuredFolder.getAbsolutePath(),
+                "default.allowStoreCreation", String.valueOf(true));
     }
 
     private Properties propertiesOf(String... keyValuePairs) {
