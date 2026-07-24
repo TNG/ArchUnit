@@ -19,6 +19,5 @@ dependencies {
     testImplementation project(path: ':archunit-example:example-junit6', configuration: 'tests')
 
     testRuntimeOnly project(path: ':archunit-junit6-engine')
-    // TODO still up-to-date?
     testRuntimeOnly libs.junit6VintageEngine // needed because `archunit-example:example-plain` uses JUnit 4 annotations
 }
