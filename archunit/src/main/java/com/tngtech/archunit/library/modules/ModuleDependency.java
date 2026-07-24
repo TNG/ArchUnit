@@ -84,6 +84,7 @@ public final class ModuleDependency<DESCRIPTOR extends ArchModule.Descriptor> im
     @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public String getDescription() {
         String classDependencyDescriptions = classDependencies.stream()
+                .sorted()
                 .map(HasDescription::getDescription)
                 .collect(joining(lineSeparator()));
         return String.format("Module Dependency [%s -> %s]:%n%s", origin.getName(), target.getName(), classDependencyDescriptions);
