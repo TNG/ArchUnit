@@ -359,6 +359,17 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Set<JavaAnnotation<JavaClass>> createTypeAnnotations(JavaClass owner) {
+        // Unlike declaration annotations, several type-use annotations of the same type can be attributed to a
+        // single class (e.g. two @Nullable fields), so we collect them into a Set instead of a Map keyed by type.
+        ImmutableSet.Builder<JavaAnnotation<JavaClass>> result = ImmutableSet.builder();
+        for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : importRecord.getTypeAnnotationsFor(owner)) {
+            result.add(annotationBuilder.build(owner, classes));
+        }
+        return result.build();
+    }
+
+    @Override
     public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
         Optional<String> enclosingClassName = importRecord.getEnclosingClassFor(owner.getName());
         return enclosingClassName.map(classes::getOrResolve);
