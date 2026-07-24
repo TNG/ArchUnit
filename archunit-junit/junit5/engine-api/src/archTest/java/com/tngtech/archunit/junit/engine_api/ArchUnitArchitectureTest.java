@@ -1,6 +1,6 @@
 package com.tngtech.archunit.junit.engine_api;
 
-import com.tngtech.archunit.PublicAPIRules;
+import com.tngtech.archunit.ArchUnitArchitectureRules;
 import com.tngtech.archunit.ArchitectureTestImportOptions.DoNotIncludeSelfTests;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -11,5 +11,5 @@ import com.tngtech.archunit.junit.ArchTests;
 class ArchUnitArchitectureTest {
 
     @ArchTest
-    static final ArchTests public_api_rules = ArchTests.in(PublicAPIRules.class);
+    static final ArchTests architecture_rules = ArchTests.in(ArchUnitArchitectureRules.class);
 }

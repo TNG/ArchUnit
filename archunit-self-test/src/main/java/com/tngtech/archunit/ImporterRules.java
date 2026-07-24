@@ -18,12 +18,13 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 /**
  * Import rules that the ArchUnit Core must fulfill.
  */
-public class ImporterRules {
+class ImporterRules {
 
     @ArchTest
     public static final ArchRule domain_does_not_access_importer =
             noClasses().that().resideInAPackage("..core.domain..")
-                    .should().dependOnClassesThat(belong_to_the_import_context());
+                    .should().dependOnClassesThat(belong_to_the_import_context())
+                    .allowEmptyShould(true);
 
     @ArchTest
     public static final ArchRule asm_is_only_used_in_importer_or_JavaClassDescriptor =

@@ -60,7 +60,7 @@ import static java.util.stream.Collectors.toSet;
 /**
  * Rules that all production code must fulfill.
  */
-public class PublicAPIRules {
+class PublicAPIRules {
 
     @ArchTest
     public static final ArchRule only_public_API_classes_or_classes_explicitly_marked_as_internal_are_accessible =
