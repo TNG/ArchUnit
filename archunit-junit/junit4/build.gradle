@@ -21,6 +21,14 @@ dependencies {
     // This is a hack for running tests with IntelliJ instead of delegating to Gradle,
     // because for some reason this dependency cannot be resolved otherwise :-(
     testRuntimeOnly libs.asm
+
+    // This package is an exception to the rule that the ArchUnit self-tests should be run on the matching JUnit version.
+    // We can do this for JUnit4 because its classes do not collide with JUnit5 or JUnit6.
+    // It is not worth investing the time to make the self-tests run correctly on JUnit4.
+    archTestImplementation project(path: ':archunit-junit5')
+    archTestImplementation libs.junit5Platform
+    archTestRuntimeOnly libs.junit5PlatformLauncher
+
 }
 
 javadoc {

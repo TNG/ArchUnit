@@ -8,6 +8,15 @@ ext.moduleName = 'com.tngtech.archunit.example.junit4'
 dependencies {
     testImplementation project(path: ':archunit-junit4')
     testImplementation project(path: ':archunit-example:example-plain')
+
+    // The ArchUnit self-tests use JUnit5 features, so we self-test this example subproject using JUnit5.
+    // The JUnit versions only need to match for the archunit-junit* subprojects.
+    archTestImplementation project(path: ':archunit-junit4')
+    archTestImplementation project(path: ':archunit-junit5')
+    archTestImplementation libs.junit5Platform
+    archTestRuntimeOnly libs.junit5PlatformLauncher
+    // We want to run the architecture self-tests on the `test` sourceSet of this subproject
+    archTestRuntimeOnly sourceSets.test.output
 }
 
 test {

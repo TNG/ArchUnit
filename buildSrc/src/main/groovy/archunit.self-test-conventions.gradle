@@ -2,16 +2,16 @@ sourceSets {
     archTest {
         java.srcDir 'src/archTest/java'
         resources.srcDir 'src/archTest/resources'
-        compileClasspath += sourceSets.main.output + configurations.testCompileClasspath
-        runtimeClasspath += output + sourceSets.main.output + configurations.testRuntimeClasspath
+        compileClasspath += sourceSets.main.output
+        // Allow main and test classes to be self-tested
+        runtimeClasspath += output + sourceSets.main.output
     }
 }
 
 dependencies {
     archTestImplementation project(path: ':archunit-self-test')
-    // We stay on JUnit5 for the self-tests because of Java 8 compatibility.
-    archTestImplementation project(path: ':archunit-junit5')
-    archTestRuntimeOnly libs.junit5PlatformLauncher
+    // Do not add any dependencies that specify a version of JUnit.
+    // The archunit-junit* packages need to be tested with the matching JUnit version.
 }
 
 def architectureTest = tasks.register("architectureTest", Test) {

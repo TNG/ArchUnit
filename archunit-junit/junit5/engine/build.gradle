@@ -21,6 +21,10 @@ dependencies {
     testImplementation libs.mockito
     testImplementation libs.mockito.junit5
     testImplementation libs.log4j.core
+
+    // Important: Use the version of archunit-junit* that matches this package.
+    archTestImplementation project(path: ':archunit-junit5')
+    archTestRuntimeOnly libs.junit5PlatformLauncher
 }
 
 gradle.projectsEvaluated {
