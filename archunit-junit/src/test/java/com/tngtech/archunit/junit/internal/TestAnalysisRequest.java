@@ -12,6 +12,7 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
     private boolean wholeClasspath = false;
     private Class<? extends ImportOption>[] importOptions = new Class[0];
     private CacheMode cacheMode = CacheMode.FOREVER;
+    private Class<?>[] classesToAnalyze = new Class[0];
 
     @Override
     public String[] getPackageNames() {
@@ -32,6 +33,9 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
     public boolean scanWholeClasspath() {
         return wholeClasspath;
     }
+
+    @Override
+    public Class<?>[] getClassesToAnalyze() { return classesToAnalyze; }
 
     @Override
     public Class<? extends ImportOption>[] getImportOptions() {
@@ -72,6 +76,11 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
 
     TestAnalysisRequest withCacheMode(CacheMode cacheMode) {
         this.cacheMode = cacheMode;
+        return this;
+    }
+
+    TestAnalysisRequest withClassesToAnalyze(Class<?>... classesToAnalyze) {
+        this.classesToAnalyze = classesToAnalyze;
         return this;
     }
 }

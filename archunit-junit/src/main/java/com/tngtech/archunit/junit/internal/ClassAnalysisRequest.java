@@ -19,4 +19,6 @@ interface ClassAnalysisRequest {
     CacheMode getCacheMode();
 
     boolean scanWholeClasspath();
+
+    Class<?>[] getClassesToAnalyze();
 }

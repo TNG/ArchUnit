@@ -324,6 +324,11 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         public boolean scanWholeClasspath() {
             return analyzeClasses.wholeClasspath();
         }
+
+        @Override
+        public Class<?>[] getClassesToAnalyze() {
+            return analyzeClasses.classes();
+        }
     }
 
     private static class TestMember<MEMBER extends AccessibleObject & Member> {
