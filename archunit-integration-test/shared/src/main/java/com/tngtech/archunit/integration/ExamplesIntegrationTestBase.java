@@ -616,7 +616,15 @@ abstract class ExamplesIntegrationTestBase<T> {
 
     abstract Stream<T> FrozenRulesTest();
 
-    Stream<T> FrozenRulesTest(Class<?> frozenRulesTestClass, Consumer<Runnable> withTemporaryViolationStore) {
+    Stream<T> FrozenRulesTest(Class<?> frozenRulesTestClass) {
+        return frozenRulesExpectedTestFailures(frozenRulesTestClass).toDynamicTests();
+    }
+
+    Stream<T> FrozenRulesTest(Class<?> frozenRulesTestClass, Consumer<Runnable> aroundTestInvoke) {
+        return frozenRulesExpectedTestFailures(frozenRulesTestClass).toDynamicTests(aroundTestInvoke);
+    }
+
+    private ExpectedTestFailures<T> frozenRulesExpectedTestFailures(Class<?> frozenRulesTestClass) {
         return createExpectedTestFailures(com.tngtech.archunit.exampletest.FrozenRulesTest.class, frozenRulesTestClass)
 
                 .ofRule("no classes should depend on classes that reside in a package '..service..'")
@@ -639,9 +647,7 @@ abstract class ExamplesIntegrationTestBase<T> {
                         .inLine(26))
                 .by(callFromMethod(ServiceViolatingDaoRules.class, "illegallyUseEntityManager").
                         toMethod(ServiceViolatingDaoRules.MyEntityManager.class, "persist", Object.class)
-                        .inLine(27))
-
-                .toDynamicTests(withTemporaryViolationStore);
+                        .inLine(27));
     }
 
     abstract Stream<T> InterfaceRulesTest();

@@ -1,0 +1,13 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
+ext.moduleName = 'com.tngtech.archunit.archunit-self-test-library'
+description = "ArchUnit tests for ArchUnit and ArchUnit-Examples themselves"
+
+ext.minimumJavaVersion = JavaVersion.VERSION_1_8
+
+dependencies {
+    compileOnly project(path: ':archunit')
+    compileOnly project(path: ':archunit-junit5-api')
+}

@@ -131,9 +131,14 @@ public class TestResultTest {
 
             Set<SingleTest> result = new HashSet<>();
             for (int i = 0; i < classNames.size(); i++) {
-                result.add(new SingleTest(classNames.get(i), testNames.get(i)));
+                result.add(new SingleTest(toSimpleClassName(classNames.get(i)), testNames.get(i)));
             }
             return result;
+        }
+
+        private static String toSimpleClassName(String className) {
+            int packageSeparatorIndex = className.lastIndexOf('.');
+            return packageSeparatorIndex >= 0 ? className.substring(packageSeparatorIndex + 1) : className;
         }
 
         private void validateAllArchitectureFailures(Match testCaseTags) {
@@ -250,7 +255,7 @@ public class TestResultTest {
             Set<SingleTest> result = new HashSet<>();
             for (Method method : clazz.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(Test.class)) {
-                    result.add(new SingleTest(method.getDeclaringClass().getName(), method.getName()));
+                    result.add(new SingleTest(method.getDeclaringClass().getSimpleName(), method.getName()));
                 }
             }
             return result;
@@ -296,7 +301,7 @@ public class TestResultTest {
                     testClassPath.stream().skip(1).map(Class::getSimpleName),
                     Stream.of(memberName)
             ).collect(joining(" > "));
-            return new SingleTest(testClassPath.get(0).getName(), testName);
+            return new SingleTest(testClassPath.get(0).getSimpleName(), testName);
         }
 
         @Override

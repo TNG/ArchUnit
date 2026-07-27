@@ -70,6 +70,7 @@ String archUnitExamplesRootPomFileContent = """\
     <modules>
         <module>example-junit4</module>
         <module>example-junit5</module>
+        <module>example-junit6</module>
         <module>example-plain</module>
     </modules>
 </project>
@@ -98,7 +99,7 @@ private void updateArchUnitExampleDependencies(File targetArchUnitExampleDir) {
 }
 
 private List updateArchUnitExampleJavaSources(File targetArchUnitExampleDir) {
-    ['example-plain', 'example-junit4', 'example-junit5'].each { exampleFolder ->
+    ['example-plain', 'example-junit4', 'example-junit5', 'example-junit6'].each { exampleFolder ->
         def targetSource = new File(new File(targetArchUnitExampleDir, exampleFolder), 'src')
         targetSource.deleteDir()
         copy {

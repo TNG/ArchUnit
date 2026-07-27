@@ -1,5 +1,6 @@
 plugins {
     id 'archunit.java-examples-conventions'
+    id 'archunit.self-test-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.example.junit5'
@@ -8,6 +9,11 @@ ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 dependencies {
     testImplementation project(path: ':archunit-junit5')
     testImplementation project(path: ':archunit-example:example-plain')
+
+    archTestImplementation project(path: ':archunit-junit5')
+    archTestRuntimeOnly libs.junit5PlatformLauncher
+    // We want to run the architecture self-tests on the `test` sourceSet of this subproject
+    archTestRuntimeOnly sourceSets.test.output
 }
 
 test {

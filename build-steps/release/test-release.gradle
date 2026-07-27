@@ -59,6 +59,7 @@ task testRelease() {
         testExampleProject('example-plain')
         testExampleProject('example-junit4')
         testExampleProject('example-junit5')
+        testExampleProject('example-junit6')
     }
 }
 closeSonatypeStagingRepository.finalizedBy(testRelease)
