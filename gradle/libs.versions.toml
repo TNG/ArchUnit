@@ -24,7 +24,6 @@ junit6VintageEngine = { group = "org.junit.vintage", name = "junit-vintage-engin
 junit6PlatformCommons = { group = "org.junit.platform", name = "junit-platform-commons", version.ref = "junit6" }
 junit6PlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junit6" }
 junit6PlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit6" }
-hamcrest = { group = "org.hamcrest", name = "hamcrest-core", version = "1.3" }
 mockito = { group = "org.mockito", name = "mockito-core", version = "4.11.0" } # mockito 5 requires Java 11
 mockito_junit5 = { group = "org.mockito", name = "mockito-junit-jupiter", version = "4.11.0" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
