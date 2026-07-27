@@ -1,0 +1,88 @@
+/**
+ * Temporary publication to formally deprecate `archunit-junit`, which has been moved to `archunit-junit4`.
+ * Will be removed again after this is published (probably with the release of ArchUnit 1.6.0).
+ * The removal of this subproject is tracked in https://github.com/TNG/ArchUnit/issues/1674.
+ */
+
+plugins {
+    id 'maven-publish'
+    id 'signing'
+}
+
+group = getProperty('archunit.group')
+version = '0.9.0'
+description = "Deprecated 'archunit-junit' module, use 'archunit-junit4' instead"
+
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
+publishing {
+    publications {
+        relocation(MavenPublication) {
+            artifactId = 'archunit-junit'
+
+            pom {
+                name = app.name
+                packaging = 'pom' // pom.xml only without jar or war
+                description = project.description
+                url = app.urls.entry
+
+                licenses {
+                    license {
+                        name = app.license.name
+                        url = app.license.url
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'codecholeric'
+                        name = 'Peter Gafert'
+                        email = 'peter.gafert@archunit.org'
+                    }
+                    developer {
+                        id = 'rweisleder'
+                        name = 'Roland Weisleder'
+                        email = 'roland.weisleder@googlemail.com'
+                    }
+                    developer {
+                        id = 'hankem'
+                        name = 'Manfred Hanke'
+                        email = 'manfred.hanke@tngtech.com'
+                    }
+                }
+
+                organization {
+                    name = company.name
+                    url = company.url
+                }
+
+                scm {
+                    url = app.urls.source
+                    connection = "scm:${app.gitRepo}"
+                    developerConnection = "scm:${app.gitRepo}"
+                }
+
+                withXml {
+                    def relocation = asNode()
+                            .appendNode('distributionManagement')
+                            .appendNode('relocation')
+                    relocation.appendNode('artifactId', 'archunit-junit4')
+                    relocation.appendNode('message', 'The artifact archunit-junit has been renamed to archunit-junit4.')
+                }
+            }
+        }
+    }
+}
+
+def publishArchUnit = rootProject.tasks.getByName('publishArchUnit')
+
+signing {
+    required {
+        gradle.taskGraph.hasTask(publishArchUnit)
+    }
+    useInMemoryPgpKeys(findProperty('signingKey'), findProperty('signingPassword'))
+    sign publishing.publications.relocation
+}
