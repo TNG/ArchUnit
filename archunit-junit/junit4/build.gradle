@@ -46,7 +46,7 @@ shadowJar {
     dependencies {
         exclude(project(':archunit'))
         exclude(dependency("${libs.junit4.get()}"))
-        exclude(dependency("${libs.hamcrest.get()}")) // Shadow doesn't respect transitive excludes :-(
+        exclude(dependency('org.hamcrest:hamcrest-core:.*')) // pulled in transitively by JUnit 4; Shadow doesn't respect transitive excludes :-(
         exclude(dependency("${libs.guava.get()}"))
         exclude(dependency("com.google.guava:failureaccess:.*"))
     }
