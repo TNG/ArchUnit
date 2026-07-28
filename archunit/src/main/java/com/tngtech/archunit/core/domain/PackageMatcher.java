@@ -32,34 +32,49 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of
- * characters but not the dot '.', while '..' stands for any sequence of packages, including zero packages.<br>
+ * Matches packages with a syntax similar to AspectJ. In particular
+ * <ul>
+ *     <li><b>{@code *}</b> stands for any non-empty sequence of characters but not the dot '.', while</li>
+ *     <li><b>{@code ..}</b> stands for any sequence of packages, including zero packages.</li>
+ * </ul>
  * For example
  * <ul>
- * <li><b>{@code '..pack..'}</b> matches <b>{@code 'a.pack'}</b>, <b>{@code 'a.pack.b'}</b> or <b>{@code 'a.b.pack.c.d'}</b>,
- * but not <b>{@code 'a.packa.b'}</b></li>
- * <li><b>{@code '*.pack.*'}</b> matches <b>{@code 'a.pack.b'}</b>, but not <b>{@code 'a.b.pack.c'}</b></li>
- * <li><b>{@code '..*pack*..'}</b> matches <b>{@code 'a.prepackfix.b'}</b></li>
- * <li><b>{@code '*.*.pack*..'}</b> matches <b>{@code 'a.b.packfix.c.d'}</b>,
- * but neither <b>{@code 'a.packfix.b'}</b> nor <b>{@code 'a.b.prepack.d'}</b></li>
- * </ul>
- * You can also use alternations with the '|' operator within brackets. For example
- * <ul>
- * <li><b>{@code 'pack.[a.c|b*].d'}</b> matches <b>{@code 'pack.a.c.d'} or <b>{@code 'pack.bar.d'}</b>, but neither
- * <b>{@code 'pack.a.d'}</b> nor <b>{@code 'pack.b.c.d'}</b></li>
+ *    <li>{@code "..pack.."} matches {@code a.pack}, {@code a.pack.b} or {@code a.b.pack.c.d},
+ *        but not {@code a.packa.b}</li>
+ *    <li>{@code "*.pack.*"} matches {@code a.pack.b},
+ *        but not {@code a.b.pack.c}</li>
+ *    <li>{@code "..*pack*.."} matches {@code a.prepackfix.b},
+ *        but not {@code a.prepack.b}</li>
+ *    <li>{@code "*.*.pack*.."} matches {@code a.b.packfix.c.d},
+ *        but neither {@code a.packfix.b} nor {@code a.b.prepack.d}</li>
  * </ul>
  * <p>
- * Furthermore, the use of capturing groups is supported. In this case '(*)' matches any sequence of characters,
- * but not the dot '.', while '(**)' matches any sequence including the dot. <br>
+ * You can also use alternations with the <b>{@code |}</b> operator within brackets. For example
+ * <ul>
+ *    <li>{@code "pack.[a.c|b*].d"} matches {@code pack.a.c.d} or {@code pack.bar.d},
+ *        but neither {@code pack.a.d} nor {@code pack.b.c.d}</li>
+ * </ul>
+ * <p>
+ * Furthermore, the use of capturing groups is supported:
+ * <ul>
+ *     <li><b>{@code (*)}</b> matches any sequence of characters, * but not the dot '.', while</li>
+ *     <li><b>{@code (**)}</b> matches any sequence including the dot.</li>
+ * </ul>
  * For example
  * <ul>
- * <li><b>{@code '..service.(*)..'}</b> matches <b>{@code 'a.service.hello.b'}</b> and group 1 would be <b>{@code 'hello'}</b></li>
- * <li><b>{@code '..service.(**)'}</b> matches <b>{@code 'a.service.hello.more'}</b> and group 1 would be <b>{@code 'hello.more'}</b></li>
- * <li><b>{@code 'my.(*)..service.(**)'}</b> matches <b>{@code 'my.company.some.service.hello.more'}</b>
- * and group 1 would be <b>{@code 'company'}</b>, while group 2 would be <b>{@code 'hello.more'}</b></li>
- * <li><b>{@code '..service.(a|b*)..'}</b> matches <b>{@code 'a.service.bar.more'}</b> and group 1 would be <b>{@code 'bar'}</b></li>
+ *     <li>{@code "..service.(*).."} matches {@code a.service.hello.b},
+ *         and group 1 would be {@code "hello"}</li>
+ *     <li>{@code "..service.(**)"} matches {@code a.service.hello.more},
+ *         and group 1 would be {@code "hello.more"}</li>
+ *     <li>{@code "my.(*)..service.(**)"} matches {@code my.company.some.service.hello.more},
+ *         group 1 would be {@code "company"}, and group 2 would be {@code "hello.more"}</li>
+ *     <li>{@code "..service.(a|b*).."} matches {@code a.service.bar.more},
+ *         and group 1 would be {@code "bar"}</li>
  * </ul>
- * Create via {@link PackageMatcher#of(String) PackageMatcher.of(packageIdentifier)}
+ *The segments matched by capturing groups can be retrieved from the result of {@link #match(String)}
+ * via {@link Result#getGroup(int)}.
+ *
+ * @see PackageMatcher#of(String) PackageMatcher.of(packageIdentifier)
  */
 @PublicAPI(usage = ACCESS)
 public final class PackageMatcher {
@@ -204,6 +219,11 @@ public final class PackageMatcher {
             return matcher.groupCount();
         }
 
+        /**
+         * @param number 1-based number of the capturing group
+         * @return The subsequence captured by the given group during the previous match operation.
+         * @throws IndexOutOfBoundsException if there is no capturing group in the pattern with the given number.
+         */
         @PublicAPI(usage = ACCESS)
         public String getGroup(int number) {
             return matcher.group(number);
