@@ -89,16 +89,23 @@ public class PackageMatcherTest {
             "..[application|domain.*|infrastructure].(*).. , com.example.infrastructure.a.file , a"
     })
     public void capture_groups(String matcher, String target, String groupString) {
-        assertThat(PackageMatcher.of(matcher).match(target).isPresent())
+        Optional<Result> match = PackageMatcher.of(matcher).match(target);
+        assertThat(match.isPresent())
                 .as("'%s' matching '%s'", matcher, target)
                 .isEqualTo(groupString != null);
 
-        String[] groups = groupString != null ? groupString.split(":") : new String[0];
-        for (int i = 0; i < groups.length; i++) {
-            assertThat(PackageMatcher.of(matcher).match(target).get().getGroup(i + 1))
-                    .as("group number %d matches when matching '%s' against '%s'", i + 1, matcher, target)
-                    .isEqualTo(groups[i]);
-        }
+        match.ifPresent(result -> {
+            String[] groups = groupString.split(":");
+            for (int i = 0; i < groups.length; i++) {
+                assertThat(result.getGroup(i + 1))
+                        .as("group number %d matches when matching '%s' against '%s'", i + 1, matcher, target)
+                        .isEqualTo(groups[i]);
+            }
+            assertThatThrownBy(() -> result.getGroup(-1))
+                    .isInstanceOf(IndexOutOfBoundsException.class);
+            assertThatThrownBy(() -> result.getGroup(groups.length + 1))
+                    .isInstanceOf(IndexOutOfBoundsException.class);
+        });
     }
 
     @Test

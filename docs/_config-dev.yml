@@ -7,7 +7,7 @@ title                    : "ArchUnit"
 title_separator          : "-"
 name                     : "Peter Gafert"
 description              : "A Java architecture test library, to specify and assert architecture rules in plain Java"
-url                      : "http://localhost"
+url                      : "http://localhost:4000"
 baseurl                  : ""
 repository               : "codecholeric/archunit"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
@@ -33,6 +33,8 @@ include:
   - .htaccess
   - _pages
 exclude:
+  - _site
+  - .sass-cache
   - vendor
   - assets/js/plugins
   - assets/js/_main.js
@@ -54,7 +56,7 @@ markdown: kramdown
 highlighter: rouge
 lsi: false
 excerpt_separator: "\n\n"
-incremental: false
+incremental: true
 
 
 # Markdown Processing
