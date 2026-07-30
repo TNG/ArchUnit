@@ -209,5 +209,10 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         public boolean scanWholeClasspath() {
             return analyzeClasses.wholeClasspath();
         }
+
+        @Override
+        public Class<?>[] getClassesToAnalyze() {
+            return analyzeClasses.classes();
+        }
     }
 }

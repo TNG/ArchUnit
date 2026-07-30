@@ -89,7 +89,18 @@ packages these classes reside in will be imported:
 @AnalyzeClasses(packagesOf = {SubOneConfiguration.class, SubTwoConfiguration.class})
 ----
 
-As a third option, locations can be specified freely by implementing a `LocationProvider`:
+As an alternative to specifying packages, you can directly specify individual classes to be analyzed:
+
+[source,java,options="nowrap"]
+----
+@AnalyzeClasses(classes = {String.class, Integer.class})
+----
+
+This allows for more fine-grained control over which classes are imported for testing.
+You can combine the `classes` property with other properties like `packages`, `packagesOf`, etc.
+In this case, all specified classes and packages will be imported for analysis.
+
+As another option, locations can be specified freely by implementing a `LocationProvider`:
 
 [source,java,options="nowrap"]
 ----
