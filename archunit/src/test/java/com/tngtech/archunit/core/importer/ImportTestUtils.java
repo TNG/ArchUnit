@@ -357,6 +357,11 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Optional<Set<JavaClass>> createPermittedSubclasses(JavaClass owner) {
+            return Optional.empty();
+        }
+
+        @Override
         public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
             return Collections.emptyList();
         }

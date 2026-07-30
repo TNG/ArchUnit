@@ -17,6 +17,7 @@ import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static java.util.Collections.singleton;
@@ -66,6 +67,7 @@ public class DependencyResolutionProcessTestUtils {
                     MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME,
                     MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME,
                     MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME,
+                    MAX_ITERATIONS_FOR_PERMITTED_SUBCLASSES_PROPERTY_NAME,
                     MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME,
                     MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME,
                     MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME

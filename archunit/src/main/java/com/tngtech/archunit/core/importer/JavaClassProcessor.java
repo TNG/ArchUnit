@@ -205,6 +205,17 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
+    @Override
+    public void visitPermittedSubclass(String permittedSubclass) {
+        if (importAborted()) {
+            return;
+        }
+
+        String permittedSubclassName = createTypeName(permittedSubclass);
+        LOG.trace("Found permitted subclass {} on class '{}'", permittedSubclassName, className);
+        declarationHandler.onDeclaredPermittedSubclasses(Collections.singletonList(permittedSubclassName));
+    }
+
     private List<String> createInterfaceNames(String[] interfaces) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
         for (String i : interfaces) {

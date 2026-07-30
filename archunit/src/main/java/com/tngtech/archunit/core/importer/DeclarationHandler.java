@@ -27,6 +27,8 @@ interface DeclarationHandler {
 
     void onNewClass(String className, Optional<String> superclassName, List<String> interfaceNames);
 
+    void onDeclaredPermittedSubclasses(List<String> permittedSubclassNames);
+
     void onDeclaredTypeParameters(DomainBuilders.JavaClassTypeParametersBuilder typeParametersBuilder);
 
     void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder);

@@ -83,11 +83,12 @@ For further details, compare the sources of `SelectedClassResolverFromClasspath`
 
 It is also possible to apply a more fine-grained configuration to the import dependency resolution behavior.
 
-In particular, the ArchUnit importer distinguishes 6 types of import dependencies:
+In particular, the ArchUnit importer distinguishes the following types of import dependencies:
 
 - member types (e.g. the type of a field of a class, type of a method parameter, etc.)
 - accesses to types (e.g. a method calls another method of a different class)
 - supertypes (i.e. superclasses that are extended and interfaces that are implemented)
+- permitted subclasses (i.e. classes that are permitted to extend or implement a sealed class or interface)
 - enclosing types (i.e. outer classes of nested classes)
 - annotation types, including parameters of annotations
 - generic signature types (i.e. types that comprise a parameterized type, like `List` and `String` for `List<String>`)
@@ -105,6 +106,7 @@ The configuration parameters with their defaults are the following:
 import.dependencyResolutionProcess.maxIterationsForMemberTypes = 1
 import.dependencyResolutionProcess.maxIterationsForAccessesToTypes = 1
 import.dependencyResolutionProcess.maxIterationsForSupertypes = -1
+import.dependencyResolutionProcess.maxIterationsForPermittedSubclasses = -1
 import.dependencyResolutionProcess.maxIterationsForEnclosingTypes = -1
 import.dependencyResolutionProcess.maxIterationsForAnnotationTypes = -1
 import.dependencyResolutionProcess.maxIterationsForGenericSignatureTypes = -1

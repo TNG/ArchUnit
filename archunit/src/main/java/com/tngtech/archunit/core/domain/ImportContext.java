@@ -33,6 +33,8 @@ public interface ImportContext {
 
     List<JavaClass> createInterfaces(JavaClass owner);
 
+    Optional<Set<JavaClass>> createPermittedSubclasses(JavaClass owner);
+
     List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner);
 
     Set<JavaField> createFields(JavaClass owner);
