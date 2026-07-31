@@ -8,6 +8,7 @@ include 'archunit',
         'archunit-integration-test:shared', 'archunit-integration-test:junit4', 'archunit-integration-test:junit5', 'archunit-integration-test:junit6',
         'archunit-java-modules-test', 'archunit-3rd-party-test',
         'archunit-junit',
+        'archunit-junit-relocation',
         'archunit-junit4',
         'archunit-junit5-api', 'archunit-junit5-engine-api', 'archunit-junit5-engine', 'archunit-junit5',
         'archunit-junit6-api', 'archunit-junit6-engine-api', 'archunit-junit6-engine', 'archunit-junit6',
@@ -17,6 +18,7 @@ include 'archunit',
         'docs'
 
 project(':archunit-junit4').projectDir = file('archunit-junit/junit4')
+project(':archunit-junit-relocation').projectDir = file('archunit-junit/relocation')
 project(':archunit-junit5-api').projectDir = file('archunit-junit/junit5/api')
 project(':archunit-junit5-engine-api').projectDir = file('archunit-junit/junit5/engine-api')
 project(':archunit-junit5-engine').projectDir = file('archunit-junit/junit5/engine')
