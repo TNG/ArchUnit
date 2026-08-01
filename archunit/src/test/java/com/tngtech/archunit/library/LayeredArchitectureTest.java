@@ -113,6 +113,23 @@ public class LayeredArchitectureTest {
     }
 
     @Test
+    public void layered_architecture_because_clause_is_included_in_failure_report() {
+        ArchRule architecture = layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Origin").definedBy(absolute("mayonlyaccesslayers.origin.."))
+                .layer("Forbidden").definedBy(absolute("mayonlyaccesslayers.forbidden.."))
+                .whereLayer("Origin").mayNotAccessAnyLayer()
+                .as("overridden")
+                .because("some reason");
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
+
+        assertThatThrownBy(() -> architecture.check(classes))
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("overridden, because some reason");
+    }
+
+    @Test
     public void layered_architecture_defining_constraint_on_non_existing_target_layer_is_rejected() {
         assertThatThrownBy(() -> layeredArchitecture()
                 .consideringAllDependencies()

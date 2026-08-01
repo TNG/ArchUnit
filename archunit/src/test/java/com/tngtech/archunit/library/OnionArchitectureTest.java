@@ -41,6 +41,7 @@ import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class OnionArchitectureTest {
 
@@ -111,6 +112,19 @@ public class OnionArchitectureTest {
                 .because("some reason");
 
         assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
+    }
+
+    @Test
+    public void onion_architecture_because_clause_is_included_in_failure_report() {
+        ArchRule architecture = getTestOnionArchitecture()
+                .as("overridden")
+                .because("some reason");
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        assertThatThrownBy(() -> architecture.check(classes))
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("overridden, because some reason");
     }
 
     static Stream<OnionArchitecture> onion_architecture_gathers_all_violations() {
