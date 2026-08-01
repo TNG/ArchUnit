@@ -52,6 +52,21 @@ publishing {
                         name = 'Manfred Hanke'
                         email = 'manfred.hanke@tngtech.com'
                     }
+                    developer {
+                        id = 'schulzjo-tng'
+                        name = 'Jonathan Schulz'
+                        email = 'jonathan.schulz@tngtech.com'
+                    }
+                    developer {
+                        id = 'StefanGraeber'
+                        name = 'Stefan Gräber'
+                        email = 'stefan.graeber@tngtech.com'
+                    }
+                    developer {
+                        id = 'TheManWhoStaresAtCode'
+                        name = 'Andreas Zöller'
+                        email = 'andreas.zoeller@tngtech.com'
+                    }
                 }
 
                 organization {

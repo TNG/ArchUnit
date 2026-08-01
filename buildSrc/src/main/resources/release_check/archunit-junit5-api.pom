@@ -35,6 +35,21 @@
             <name>Manfred Hanke</name>
             <email>manfred.hanke@tngtech.com</email>
         </developer>
+        <developer>
+            <id>schulzjo-tng</id>
+            <name>Jonathan Schulz</name>
+            <email>jonathan.schulz@tngtech.com</email>
+        </developer>
+        <developer>
+            <id>StefanGraeber</id>
+            <name>Stefan Gräber</name>
+            <email>stefan.graeber@tngtech.com</email>
+        </developer>
+        <developer>
+            <id>TheManWhoStaresAtCode</id>
+            <name>Andreas Zöller</name>
+            <email>andreas.zoeller@tngtech.com</email>
+        </developer>
     </developers>
     <scm>
         <connection>scm:git@github.com:TNG/ArchUnit.git</connection>
