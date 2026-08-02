@@ -47,6 +47,7 @@ class JavaClassDependencies {
                         returnTypeDependenciesFromSelf(),
                         codeUnitParameterDependenciesFromSelf(),
                         throwsDeclarationDependenciesFromSelf(),
+                        tryCatchBlockDependenciesFromSelf(),
                         annotationDependenciesFromSelf(),
                         instanceofCheckDependenciesFromSelf(),
                         referencedClassObjectDependenciesFromSelf(),
@@ -164,6 +165,11 @@ class JavaClassDependencies {
     private Stream<Dependency> throwsDeclarationDependenciesFromSelf() {
         return javaClass.getThrowsDeclarations().stream()
                 .flatMap(throwsDeclaration -> Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration).stream());
+    }
+
+    private Stream<Dependency> tryCatchBlockDependenciesFromSelf() {
+        return javaClass.getTryCatchBlocks().stream()
+                .flatMap(tryCatchBlock -> Dependency.tryCreateFromTryCatchBlock(tryCatchBlock).stream());
     }
 
     private Stream<Dependency> annotationDependenciesFromSelf() {

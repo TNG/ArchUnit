@@ -191,6 +191,14 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<TryCatchBlock> getTryCatchBlocks() {
+        ImmutableSet.Builder<TryCatchBlock> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getTryCatchBlocks());
+        }
+        return result.build();
+    }
+
     Set<ReferencedClassObject> getReferencedClassObjects() {
         ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {

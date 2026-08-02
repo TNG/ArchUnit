@@ -15,7 +15,7 @@ public class ClassWithComplexTryCatchBlocks {
             someOtherObject.toString();
             try {
                 instanceOne.doSomething();
-            } catch (IllegalArgumentException | UnsupportedOperationException e) {
+            } catch (IllegalArgumentException | UnsupportedOperationException | CatchClauseTargetException e) {
             }
         } catch (Exception e) {
         } finally {

@@ -15,6 +15,8 @@ public class ClassWithSimpleTryCatchBlocks {
             System.out.println("Error1");
         } catch (IllegalArgumentException e) {
             System.out.println("Error2");
+        } catch (CatchClauseTargetException e) {
+            System.out.println("Error3");
         } finally {
             System.out.println("finally");
         }
