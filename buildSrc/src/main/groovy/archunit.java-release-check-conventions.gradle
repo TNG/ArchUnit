@@ -1,5 +1,3 @@
-import groovy.xml.XmlSlurper
-
 import java.nio.file.Files
 import java.util.jar.JarFile
 
@@ -7,33 +5,34 @@ plugins {
     id 'archunit.java-artifact-check-conventions'
 }
 
-task ensureReleaseCheckUpToDate {
-    doFirst {
-        def mavenProject = new XmlSlurper().parseText(getExpectedPomFileContent())
-        def releaseCheckDependencies = mavenProject.dependencies.dependency
-                .findAll { it.groupId != 'com.tngtech.archunit' }
-                .collect {
-                    [groupId: it.groupId.toString(), artifactId: it.artifactId.toString(), version: it.version.toString()]
-                }
-
-        releaseCheckDependencies.each { releaseCheckDependency ->
-            VersionCatalog versionCatalog = versionCatalogs.named("libs")
-            def dependencies = versionCatalog.libraryAliases.collect { versionCatalog.findLibrary(it).get().get() }
-            def matchingProjectDependency = dependencies.find {
-                it.group == releaseCheckDependency.groupId &&
-                it.name == releaseCheckDependency.artifactId &&
-                it.version == releaseCheckDependency.version
-            }
-            assert matchingProjectDependency != null:
-                    "No project dependency was found for expected release dependency ${releaseCheckDependency}"
-        }
-    }
-}
-check.dependsOn(ensureReleaseCheckUpToDate)
-
 ext.getExpectedPomFileContent = {
     getClass().getResourceAsStream("release_check/${project.name}.pom").text.replace('${archunit.version}', version).stripIndent()
 }
+
+ext.comparePom = { String actual ->
+    println "Verifying correct POM of ${project.name}"
+
+    String expected = getExpectedPomFileContent()
+    if (actual.replaceAll("\\s", "") != expected.replaceAll("\\s", "")) {
+        throw new AssertionError("""POM of artifact '${project.name}' does not match:
+--------
+Actual: 
+${actual}
+--------
+Expected:
+${expected}
+--------
+""")
+    }
+}
+
+task checkPom {
+    dependsOn 'generatePomFileForMavenJavaPublication'
+    doLast {
+        comparePom(new File(buildDir, 'publications/mavenJava/pom-default.xml').text)
+    }
+}
+check.dependsOn(checkPom)
 
 task checkUploadedArtifacts {
     doLast {
@@ -58,24 +57,6 @@ task checkUploadedArtifacts {
             getArtifact(project.name, ".pom").text.stripIndent()
         }
 
-        def checkPom = {
-            println "Verifying correct POM of ${project.name}"
-
-            String actual = getUploadedPomFileContent()
-            String expected = getExpectedPomFileContent()
-            if (actual.replaceAll("\\s", "") != expected.replaceAll("\\s", "")) {
-                throw new AssertionError("""POM of artifact '${project.name}' does not match:
---------
-Actual: 
-${actual}
---------
-Expected:
-${expected}
---------
-""")
-            }
-        }
-
         def checkSourcesExist = {
             assert getUploadedFile(project.name, 'jar', 'sources') != null
         }
@@ -84,7 +65,7 @@ ${expected}
             assert getUploadedFile(project.name, 'jar', 'javadoc') != null
         }
 
-        checkPom()
+        comparePom(getUploadedPomFileContent())
         checkSourcesExist()
         checkJavadocExists()
 
