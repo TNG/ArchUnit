@@ -10,9 +10,22 @@ Install [Docker](https://docs.docker.com/engine/installation/) and [Docker Compo
 then execute
 
 ```
-docker-compose up
+docker compose up
 ```
-The site will be served on [localhost:4000](http://localhost:4000)
+
+The site will be served on [localhost:4000](http://localhost:4000).
+
+### Rebuilding the User Guide
+
+Jekyll does not render the AsciiDoc user guide (`userguide/*.adoc`) — Gradle does.
+After editing any `.adoc` file, run from the repository root:
+
+```
+./gradlew :docs:renderUserGuide
+```
+
+This regenerates `userguide/html/` and `_pages/use-cases.md`, which the
+running Jekyll container will pick up on the next browser refresh.
 
 
 ## Credits

@@ -130,7 +130,10 @@ com.tngtech.archunit.library.dependencies.SlicesRuleDefinition
 ----
 
 The API is based on the idea to sort classes into slices according to one or several package
-infixes, and then write assertions against those slices. At the moment this is for example:
+infixes, and then write assertions against those slices. The `matching(..)` argument follows
+the package pattern syntax described in <<Package Identifiers>>, where the parentheses
+`+++(*)+++` / `+++(**)+++` mark the captured segment(s) that are used as slice identifiers.
+At the moment this is for example:
 
 [source,java,options="nowrap"]
 ----
@@ -245,7 +248,7 @@ ModuleRuleDefinition.modules().definedByPackages("..example.(*)..").should().beF
 ----
 
 As the example shows, it shares some concepts with the <<Slices>> API. For example `definedByPackages(..)`
-follows the same semantics as `slices().matching(..)`.
+follows the same semantics as `slices().matching(..)`, using <<Package Identifiers>>.
 Also, the configuration options for cycle detection mentioned in the last section are shared by these APIs.
 But, it also offers several powerful concepts beyond that API to express many different modularization scenarios.
 
@@ -285,8 +288,8 @@ where the target class's package doesn't match any declared package identifier i
 as violation.
 
 Note that the `modules()` API can be adjusted in many ways to model custom requirements.
-For further details, please take a look at the examples provided
-https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit5/src/test/java/com/tngtech/archunit/exampletest/junit5/ModulesTest.java[here].
+For further details, please take a look at the
+https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit6/src/test/java/com/tngtech/archunit/exampletest/junit6/ModulesTest.java[examples].
 
 ==== Modularization Core API
 
@@ -417,8 +420,8 @@ A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
 
 1. Components must be declared in the bracket notation (i.e. `[Some Component]`)
 2. Components must have at least one (possible multiple) stereotype(s). Each stereotype in the diagram
-must be unique and represent a valid package identifier (e.g. `\<<..example..>>` where `..` represents
-an arbitrary number of packages; compare the core API)
+must be unique and represent a valid <<Package Identifiers,package identifier>>
+(e.g. `\<<..example..>>` where `..` represents an arbitrary number of packages; compare the core API)
 3. Components may have an optional alias (e.g. `[Some Component] \<<..example..>> as myalias`). The alias must be alphanumeric and must not be quoted.
 4. Components may have an optional color (e.g. `[Some Component] \<<..example..>> #OrangeRed`)
 5. Dependencies must use arrows only consisting of dashes (e.g. `-\->`)
