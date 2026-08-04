@@ -442,6 +442,13 @@ h4 {
     margin-top: 1.2em !important;
     margin-bottom: 0.55em !important;
 }
+/* Restore code box for single inline-code inside table cells */
+p.tableblock > code:only-child {
+    background-color: #f7f7f8 !important;
+    padding: .1em .5ex !important;
+    border-radius: 4px !important;
+    border: 1px solid #e0e0e0;   /* makes a lone dot's box clearly visible */
+}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/mono-blue.min.css">
@@ -450,7 +457,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 1.4.2</span>
+<span id="revnumber">version 1.5.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -462,8 +469,8 @@ h4 {
 </li>
 <li><a href="#_installation">2. Installation</a>
 <ul class="sectlevel2">
-<li><a href="#_junit_4">2.1. JUnit 4</a></li>
-<li><a href="#_junit_5">2.2. JUnit 5</a></li>
+<li><a href="#_junit_5_6">2.1. JUnit 5 &amp; 6</a></li>
+<li><a href="#_junit_4">2.2. JUnit 4</a></li>
 <li><a href="#_other_test_frameworks">2.3. Other Test Frameworks</a></li>
 <li><a href="#_maven_plugin">2.4. Maven Plugin</a></li>
 </ul>
@@ -472,7 +479,7 @@ h4 {
 <ul class="sectlevel2">
 <li><a href="#_importing_classes">3.1. Importing Classes</a></li>
 <li><a href="#_asserting_architectural_constraints">3.2. Asserting (Architectural) Constraints</a></li>
-<li><a href="#_using_junit_4_or_junit_5">3.3. Using JUnit 4 or JUnit 5</a></li>
+<li><a href="#_using_junit">3.3. Using JUnit</a></li>
 <li><a href="#_using_junit_support_with_kotlin">3.4. Using JUnit support with Kotlin</a></li>
 </ul>
 </li>
@@ -508,7 +515,8 @@ h4 {
 <li><a href="#_predefined_predicates_and_conditions">7.4. Predefined Predicates and Conditions</a></li>
 <li><a href="#_rules_with_custom_concepts">7.5. Rules with Custom Concepts</a></li>
 <li><a href="#_controlling_the_rule_text">7.6. Controlling the Rule Text</a></li>
-<li><a href="#_ignoring_violations">7.7. Ignoring Violations</a></li>
+<li><a href="#_priority">7.7. Priority</a></li>
+<li><a href="#_ignoring_violations">7.8. Ignoring Violations</a></li>
 </ul>
 </li>
 <li><a href="#_the_library_api">8. The Library API</a>
@@ -524,7 +532,7 @@ h4 {
 </li>
 <li><a href="#_junit_support">9. JUnit Support</a>
 <ul class="sectlevel2">
-<li><a href="#_junit_4_5_support">9.1. JUnit 4 &amp; 5 Support</a></li>
+<li><a href="#_junit_integration">9.1. JUnit Integration</a></li>
 </ul>
 </li>
 <li><a href="#_advanced_configuration">10. Advanced Configuration</a>
@@ -555,9 +563,26 @@ using any plain Java unit testing framework.</p>
 <div class="sect2">
 <h3 id="_module_overview"><a class="anchor" href="#_module_overview"></a>1.1. Module Overview</h3>
 <div class="paragraph">
-<p>ArchUnit consists of the following production modules: <code>archunit</code>, <code>archunit-junit4</code> as well
-as <code>archunit-junit5-api</code>, <code>archunit-junit5-engine</code> and <code>archunit-junit5-engine-api</code>.
-Also relevant for end users is the <code>archunit-example</code> module.</p>
+<p>ArchUnit consists of the following production modules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>archunit</code></p>
+</li>
+<li>
+<p><code>archunit-junit4</code></p>
+</li>
+<li>
+<p><code>archunit-junit5-api</code>, <code>archunit-junit5-engine</code>, <code>archunit-junit5-engine-api</code></p>
+</li>
+<li>
+<p><code>archunit-junit6-api</code>, <code>archunit-junit6-engine</code>, <code>archunit-junit6-engine-api</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>archunit-example</code> is also relevant to end users.</p>
 </div>
 <div class="sect3">
 <h4 id="_module_archunit"><a class="anchor" href="#_module_archunit"></a>1.1.1. Module archunit</h4>
@@ -575,15 +600,15 @@ the <code>ArchUnitRunner</code> to cache imported classes.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_modules_archunit_junit5"><a class="anchor" href="#_modules_archunit_junit5"></a>1.1.3. Modules archunit-junit5-*</h4>
+<h4 id="_modules_archunit_junit"><a class="anchor" href="#_modules_archunit_junit"></a>1.1.3. Modules archunit-junit*-*</h4>
 <div class="paragraph">
-<p>These modules contain the infrastructure to integrate with JUnit 5 and contain the respective
+<p>These modules contain the infrastructure to integrate with JUnit 5 &amp; 6 and contain the respective
 infrastructure to cache imported classes between test runs.
-<code>archunit-junit5-api</code> contains the user API to write tests with ArchUnit&#8217;s JUnit 5 support,
-<code>archunit-junit5-engine</code> contains the runtime engine to run those tests.
-<code>archunit-junit5-engine-api</code> contains API code for tools that want more detailed control
-over running ArchUnit JUnit 5 tests, in particular a <code>FieldSelector</code> which can be used to
-instruct the <code>ArchUnitTestEngine</code> to run a specific rule field (compare <a href="#_junit_4_5_support">JUnit 4 &amp; 5 Support</a>).</p>
+<code>archunit-junit*-api</code> contains the user API to write tests with ArchUnit&#8217;s JUnit support.
+<code>archunit-junit*-engine</code> contains the runtime engine to run those tests.
+<code>archunit-junit*-engine-api</code> contains API code for tools that want more detailed control
+over running ArchUnit JUnit tests, in particular a <code>FieldSelector</code> which can be used to
+instruct the <code>ArchUnitTestEngine</code> to run a specific rule field (compare <a href="#_junit_integration">JUnit Integration</a>).</p>
 </div>
 </div>
 <div class="sect3">
@@ -603,15 +628,55 @@ Look here to get inspiration on how to set up rules for your project, or at
 <div class="paragraph">
 <p>To use ArchUnit, it is sufficient to include the respective JAR files in the classpath.
 Most commonly, this is done by adding the dependency to your dependency management tool,
-which is illustrated for Maven and Gradle below. Alternatively you
+which is illustrated for Maven and Gradle below. Alternatively, you
 can obtain the necessary JAR files directly from
 <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.tngtech.archunit%22">Maven Central</a>.</p>
 </div>
 <div class="sect2">
-<h3 id="_junit_4"><a class="anchor" href="#_junit_4"></a>2.1. JUnit 4</h3>
+<h3 id="_junit_5_6"><a class="anchor" href="#_junit_5_6"></a>2.1. JUnit 5 &amp; 6</h3>
+<div class="paragraph">
+<p>ArchUnit&#8217;s JUnit 5 &amp; 6 artifacts follow the pattern of JUnit Jupiter. There is one artifact containing
+the API, i.e. the compile time dependencies to write tests. Then there is another artifact containing
+the actual <code>TestEngine</code> used at runtime. Just like JUnit Jupiter, ArchUnit offers one convenience
+artifact transitively including both API and engine with the correct scope, which in turn can be added
+as a test compile dependency. Thus, to include ArchUnit&#8217;s JUnit 5 &amp; 6 support, simply add the following dependency
+from Maven Central:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    // testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.0' // for JUnit 5
+    testImplementation 'com.tngtech.archunit:archunit-junit6:1.5.0'
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
+    &lt;!-- &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt; --&gt; &lt;!-- for JUnit 5 --&gt;
+    &lt;artifactId&gt;archunit-junit6&lt;/artifactId&gt;
+    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_junit_4"><a class="anchor" href="#_junit_4"></a>2.2. JUnit 4</h3>
 <div class="paragraph">
 <p>To use ArchUnit in combination with JUnit 4, include the following dependency from
 Maven Central:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    testImplementation 'com.tngtech.archunit:archunit-junit4:1.5.0'
+}</code></pre>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">pom.xml</div>
@@ -619,47 +684,9 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;1.4.2&lt;/version&gt;
+    &lt;version&gt;1.5.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:1.4.2'
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_junit_5"><a class="anchor" href="#_junit_5"></a>2.2. JUnit 5</h3>
-<div class="paragraph">
-<p>ArchUnit&#8217;s JUnit 5 artifacts follow the pattern of JUnit Jupiter. There is one artifact containing
-the API, i.e. the compile time dependencies to write tests. Then there is another artifact containing
-the actual <code>TestEngine</code> used at runtime. Just like JUnit Jupiter ArchUnit offers one convenience
-artifact transitively including both API and engine with the correct scope, which in turn can be added
-as a test compile dependency. Thus to include ArchUnit&#8217;s JUnit 5 support, simply add the following dependency
-from Maven Central:</p>
-</div>
-<div class="listingblock">
-<div class="title">pom.xml</div>
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
-    &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
-    &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;1.4.2&lt;/version&gt;
-    &lt;scope&gt;test&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
-}</code></pre>
 </div>
 </div>
 </div>
@@ -670,22 +697,22 @@ from Maven Central:</p>
 context, include the core ArchUnit dependency from Maven Central:</p>
 </div>
 <div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+   testImplementation 'com.tngtech.archunit:archunit:1.5.0'
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;1.4.2&lt;/version&gt;
+    &lt;version&gt;1.5.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:1.4.2'
-}</code></pre>
 </div>
 </div>
 </div>
@@ -709,8 +736,8 @@ Java unit testing framework. To really understand the ideas behind ArchUnit, one
 <div class="sect2">
 <h3 id="_importing_classes"><a class="anchor" href="#_importing_classes"></a>3.1. Importing Classes</h3>
 <div class="paragraph">
-<p>At its core ArchUnit provides infrastructure to import Java bytecode into Java code structures.
-This can be done using the <code>ClassFileImporter</code></p>
+<p>At its core, ArchUnit provides infrastructure to import Java bytecode into Java code structures.
+This can be done using the <code>ClassFileImporter</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -758,8 +785,9 @@ ArchRule myRule = classes()
 </div>
 </div>
 <div class="paragraph">
-<p>The two dots represent any number of packages (compare AspectJ Pointcuts). The returned
-object of type <code>ArchRule</code> can now be evaluated against a set of imported classes:</p>
+<p>The two dots represent any number of packages (compare AspectJ Pointcuts); for details on
+the supported package pattern syntax see <a href="#_package_identifiers">Package Identifiers</a>. The returned object of
+type <code>ArchRule</code> can now be evaluated against a set of imported classes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -785,10 +813,10 @@ public void Services_should_only_be_accessed_by_Controllers() {
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_junit_4_or_junit_5"><a class="anchor" href="#_using_junit_4_or_junit_5"></a>3.3. Using JUnit 4 or JUnit 5</h3>
+<h3 id="_using_junit"><a class="anchor" href="#_using_junit"></a>3.3. Using JUnit</h3>
 <div class="paragraph">
 <p>While ArchUnit can be used with any unit testing framework, it provides extended support
-for writing tests with JUnit 4 and JUnit 5. The main advantage is automatic caching of imported
+for writing tests with JUnit. The main advantage is automatic caching of imported
 classes between tests (of the same imported classes), as well as reduction of boilerplate code.</p>
 </div>
 <div class="paragraph">
@@ -797,7 +825,7 @@ to import via <code>@AnalyzeClasses</code> and add the respective rules as field
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -824,7 +852,7 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
+<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">// @RunWith(ArchUnitRunner::class) // Enable this line for JUnit 4
 @AnalyzeClasses(packagesOf = [MyArchitectureTest::class])
 class MyArchitectureTest {
     @ArchTest
@@ -1315,6 +1343,187 @@ next section, does not depend on whether the classes were imported from the clas
 some JAR / folder.</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_package_identifiers"><a class="anchor" href="#_package_identifiers"></a>6.2.2. Package Identifiers</h4>
+<div class="paragraph">
+<p>Several ArchUnit methods accept a <code>String</code> package identifier to describe a set of packages,
+for example <code>resideInAPackage(..)</code> and <code>resideInAnyPackage(..)</code> (and their negated variants)
+in the Lang API, <code>slices().matching(..)</code> and <code>modules().definedByPackages(..)</code> in the Library
+API, or the component stereotypes of a PlantUML component diagram. All of them delegate to
+the same underlying <a href="https://javadoc.io/doc/com.tngtech.archunit/archunit/latest/com/tngtech/archunit/core/domain/PackageMatcher.html"><code>PackageMatcher</code></a>, whose syntax is inspired by AspectJ type patterns and
+extended with capturing groups.</p>
+</div>
+<div class="sect4">
+<h5 id="_wildcards"><a class="anchor" href="#_wildcards"></a>Wildcards</h5>
+<div class="paragraph">
+<p>The syntax is built from the following elements:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Pattern</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="literal"><pre>*</pre></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Matches any non-empty sequence of characters not containing the dot <code>.</code>, i.e. exactly one package segment.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="literal"><pre>..</pre></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Matches any (possibly empty) sequence of characters that may contain the dot <code>.</code>, i.e. any number of package segments (including zero).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="literal"><pre>(*)</pre></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Like <code>*</code>, but additionally <em>captures</em> the matched segment, so it can be referenced later (e.g. as a slice identifier, see <a href="#_slices">Slices</a>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="literal"><pre>(**)</pre></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Like <code>..</code>, but additionally <em>captures</em> the matched segments.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="literal"><pre>[a|b]</pre></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alternation: matches either <code>a</code> or <code>b</code>. Alternations are only allowed inside brackets <code>[...]</code> or inside capturing groups <code>(...)</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Note that <code>(..)</code> is not a valid capturing group — use <code>(**)</code> instead. <code>()</code> and <code>[]</code> cannot
+be nested inside each other.</p>
+</div>
+<div class="paragraph">
+<p>The segments matched by capturing groups can be retrieved from the result of
+<a href="https://javadoc.io/doc/com.tngtech.archunit/archunit/latest/com/tngtech/archunit/core/domain/PackageMatcher.html#match(java.lang.String)"><code>PackageMatcher#match(String)</code></a>
+via
+<a href="https://javadoc.io/doc/com.tngtech.archunit/archunit/latest/com/tngtech/archunit/core/domain/PackageMatcher.Result.html#getGroup(int)"><code>PackageMatcher.Result#getGroup(int)</code></a>
+(groups are 1-based, in the order the capturing groups appear in the pattern).</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_worked_example"><a class="anchor" href="#_worked_example"></a>Worked Example</h5>
+<div class="paragraph">
+<p>Consider the following five classes and the packages they reside in:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Class</th>
+<th class="tableblock halign-left valign-top">Package</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.controller.SomeController</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.controller</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service.SomeService</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service.impl.SomeServiceImpl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service.impl</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.persistence.dao.SomeDao</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.persistence.dao</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.persistence.dao.jpa.SomeJpa</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.persistence.dao.jpa</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following table shows a range of package identifiers and which of the five packages
+above each of them matches:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Package Identifier</th>
+<th class="tableblock halign-left valign-top">Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service</code> only (exact match).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.*</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.controller</code> and <code>com.myapp.service</code>
+(exactly one more segment after <code>com.myapp</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp..</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All five packages — <code>com.myapp..</code> matches <code>com.myapp</code> itself and every subpackage of it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>..service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service</code> only (segment <code>service</code> at the end).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>..service..</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service</code> and <code>com.myapp.service.impl</code>
+(any package containing a segment <code>service</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>..dao..</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.persistence.dao</code> and <code>com.myapp.persistence.dao.jpa</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>..impl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.service.impl</code> only.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.(*)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.controller</code> (group 1 = <code>controller</code>) and
+<code>com.myapp.service</code> (group 1 = <code>service</code>).
+The deeper packages do not match because <code>(*)</code> allows only a single segment.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.(*)..</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All five packages; group 1 captures the first sub-package below <code>com.myapp</code>
+(<code>controller</code>, <code>service</code>, <code>service</code>, <code>persistence</code>, <code>persistence</code> respectively).
+This is the typical pattern used by <code>slices().matching(..)</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>..[service|controller]..</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.myapp.controller</code>, <code>com.myapp.service</code> and <code>com.myapp.service.impl</code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_what_is_matched_against_the_pattern"><a class="anchor" href="#_what_is_matched_against_the_pattern"></a>What is Matched Against the Pattern</h5>
+<div class="paragraph">
+<p>An important detail is that the package identifier is matched against the
+<strong>package name of a class</strong>, not against the fully qualified class name.
+So for <code>com.myapp.service.SomeService</code> the string that is checked against
+the pattern is <code>com.myapp.service</code>, not <code>com.myapp.service.SomeService</code>.</p>
+</div>
+<div class="paragraph">
+<p>This means that a pattern like <code>..SomeService</code> will <em>not</em> match a class named <code>SomeService</code>,
+because <code>SomeService</code> is the simple class name, not a package segment. To match by class
+name use a name-based predicate such as
+<code>haveSimpleName("SomeService")</code> or <code>haveNameMatching(".*SomeService")</code> instead.</p>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1666,7 +1875,26 @@ It is possible to completely overwrite the rule description in those cases:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_ignoring_violations"><a class="anchor" href="#_ignoring_violations"></a>7.7. Ignoring Violations</h3>
+<h3 id="_priority"><a class="anchor" href="#_priority"></a>7.7. Priority</h3>
+<div class="paragraph">
+<p>Most entrypoints in <code>ArchRuleDefinition</code> create <code>ArchRule</code>s that evaluate to <code>EvaluationResult</code>s with <code>Priority.MEDIUM</code>; <code>ArchRuleDefinition.priority</code> allows to create rules with other <code>Priority</code>, e.g.:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = ArchRuleDefinition.priority(Priority.LOW).noClasses() // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The resulting error messages show the priority accordingly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-bash hljs" data-lang="bash">java.lang.AssertionError: Architecture Violation [Priority: LOW] - Rule 'no classes // ...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignoring_violations"><a class="anchor" href="#_ignoring_violations"></a>7.8. Ignoring Violations</h3>
 <div class="paragraph">
 <p>In legacy projects there might be too many violations to fix at once. Nevertheless, that code
 should be covered completely by architecture tests to ensure that no further violations will
@@ -1804,7 +2032,10 @@ that slice the code by packages, and contain assertions on those slices. The ent
 </div>
 <div class="paragraph">
 <p>The API is based on the idea to sort classes into slices according to one or several package
-infixes, and then write assertions against those slices. At the moment this is for example:</p>
+infixes, and then write assertions against those slices. The <code>matching(..)</code> argument follows
+the package pattern syntax described in <a href="#_package_identifiers">Package Identifiers</a>, where the parentheses
+<code>(*)</code> / <code>(**)</code> mark the captured segment(s) that are used as slice identifiers.
+At the moment this is for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1937,7 +2168,7 @@ the API is <code>ModuleRuleDefinition</code>, e.g.</p>
 </div>
 <div class="paragraph">
 <p>As the example shows, it shares some concepts with the <a href="#_slices">Slices</a> API. For example <code>definedByPackages(..)</code>
-follows the same semantics as <code>slices().matching(..)</code>.
+follows the same semantics as <code>slices().matching(..)</code>, using <a href="#_package_identifiers">Package Identifiers</a>.
 Also, the configuration options for cycle detection mentioned in the last section are shared by these APIs.
 But, it also offers several powerful concepts beyond that API to express many different modularization scenarios.</p>
 </div>
@@ -1981,8 +2212,8 @@ as violation.</p>
 </div>
 <div class="paragraph">
 <p>Note that the <code>modules()</code> API can be adjusted in many ways to model custom requirements.
-For further details, please take a look at the examples provided
-<a href="https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit5/src/test/java/com/tngtech/archunit/exampletest/junit5/ModulesTest.java">here</a>.</p>
+For further details, please take a look at the
+<a href="https://github.com/TNG/ArchUnit-Examples/blob/main/example-junit6/src/test/java/com/tngtech/archunit/exampletest/junit6/ModulesTest.java">examples</a>.</p>
 </div>
 <div class="sect3">
 <h4 id="_modularization_core_api"><a class="anchor" href="#_modularization_core_api"></a>8.3.1. Modularization Core API</h4>
@@ -2155,8 +2386,8 @@ classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate
 </li>
 <li>
 <p>Components must have at least one (possible multiple) stereotype(s). Each stereotype in the diagram
-must be unique and represent a valid package identifier (e.g. <code>&lt;&lt;..example..&gt;&gt;</code> where <code>..</code> represents
-an arbitrary number of packages; compare the core API)</p>
+must be unique and represent a valid <a href="#_package_identifiers">package identifier</a>
+(e.g. <code>&lt;&lt;..example..&gt;&gt;</code> where <code>..</code> represents an arbitrary number of packages; compare the core API)</p>
 </li>
 <li>
 <p>Components may have an optional alias (e.g. <code>[Some Component] &lt;&lt;..example..&gt;&gt; as myalias</code>). The alias must be alphanumeric and must not be quoted.</p>
@@ -2578,7 +2809,7 @@ System.out.println("GRV: " + metrics.getGlobalRelativeVisibility());</code></pre
 <h2 id="_junit_support"><a class="anchor" href="#_junit_support"></a>9. JUnit Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>At the moment ArchUnit offers extended support for writing tests with JUnit 4 and JUnit 5.
+<p>At the moment, ArchUnit offers extended support for writing tests with JUnit 4, JUnit 5, and JUnit 6.
 This mainly tackles the problem of caching classes between test runs and to remove some boilerplate.</p>
 </div>
 <div class="paragraph">
@@ -2607,11 +2838,11 @@ public void rule2() {
 </div>
 <div class="paragraph">
 <p>For bigger projects, this will have a significant performance impact, since the import can take
-a noticeable amount of time. Also rules will always be checked against the imported classes, thus
-the explicit call of <code>check(importedClasses)</code> is bloat and error prone (i.e. it can be forgotten).</p>
+a noticeable amount of time. Furthermore, rules will always be checked against the imported classes, thus
+the explicit call of <code>check(importedClasses)</code> is bloat and error-prone (i.e. it can be forgotten).</p>
 </div>
 <div class="sect2">
-<h3 id="_junit_4_5_support"><a class="anchor" href="#_junit_4_5_support"></a>9.1. JUnit 4 &amp; 5 Support</h3>
+<h3 id="_junit_integration"><a class="anchor" href="#_junit_integration"></a>9.1. JUnit Integration</h3>
 <div class="paragraph">
 <p>Make sure you follow the installation instructions at <a href="#_installation">Installation</a>, in particular to include
 the correct dependency for the respective JUnit support.</p>
@@ -2619,13 +2850,13 @@ the correct dependency for the respective JUnit support.</p>
 <div class="sect3">
 <h4 id="_writing_tests"><a class="anchor" href="#_writing_tests"></a>9.1.1. Writing tests</h4>
 <div class="paragraph">
-<p>Tests look and behave very similar between JUnit 4 and 5. The only difference is, that with JUnit 4
-it is necessary to add a specific <code>Runner</code> to take care of caching and checking rules, while JUnit 5
-picks up the respective <code>TestEngine</code> transparently. A test typically looks the following way:</p>
+<p>Tests look and behave very similar between JUnit 4 and JUnit 5 &amp; 6. The only difference is that with JUnit 4
+it is necessary to add a specific <code>Runner</code> to take care of caching and checking rules, while JUnit 5 &amp; 6
+pick up the respective <code>TestEngine</code> transparently. A test typically looks the following way:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses(packages = "com.myapp")
 public class ArchitectureTest {
 
@@ -2676,7 +2907,20 @@ packages these classes reside in will be imported:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>As a third option, locations can be specified freely by implementing a <code>LocationProvider</code>:</p>
+<p>As an alternative to specifying packages, you can directly specify individual classes to be analyzed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(classes = {String.class, Integer.class})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This allows for more fine-grained control over which classes are imported for testing.
+You can combine the <code>classes</code> property with other properties like <code>packages</code>, <code>packagesOf</code>, etc.
+In this case, all specified classes and packages will be imported for analysis.</p>
+</div>
+<div class="paragraph">
+<p>As another option, locations can be specified freely by implementing a <code>LocationProvider</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2692,9 +2936,9 @@ packages these classes reside in will be imported:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Furthermore, to choose specific classes beneath those locations, <code>ImportOption</code>﻿s can be
-specified (compare <a href="#_the_core_api">The Core API</a>). For example, to import the classpath, but only consider
-production code, and only consider code that is directly supplied and does not come from JARs:</p>
+<p>Furthermore, in order to choose specific classes beneath those locations, <code>ImportOption</code>﻿s can be
+specified (compare <a href="#_the_core_api">The Core API</a>). The following example imports the classpath, but only considers
+production code and only considers code that is directly supplied and does not come from JARs:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2782,14 +3026,14 @@ the imported Java classes will simply be dropped.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Note for users of JUnit 5: the annotation <code>@Disabled</code> has no effect here.
+<p>Note for users of JUnit 5 &amp; 6: the annotation <code>@Disabled</code> has no effect here.
 Instead, <code>@ArchIgnore</code> should be used.</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_grouping_rules"><a class="anchor" href="#_grouping_rules"></a>9.1.5. Grouping Rules</h4>
 <div class="paragraph">
-<p>Often a project might end up with different categories of rules, for example "service rules"
+<p>Often, a project might end up with different categories of rules, for example "service rules"
 and "persistence rules". It is possible to write one class for each set of rules, and then
 refer to those sets from another test:</p>
 </div>
@@ -2809,7 +3053,7 @@ public class PersistenceRules {
     // further rules
 }
 
-@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+// @RunWith(ArchUnitRunner.class) // Enable this line for JUnit 4
 @AnalyzeClasses
 public class ArchitectureTest {
 
@@ -2884,7 +3128,7 @@ display name generation in ArchUnit with a configuration property (see <a href="
 </div>
 </div>
 <div class="paragraph">
-<p>If you omit the property (or set it to <code>false</code>) the original rule names are used as display names.</p>
+<p>If you omit the property (or set it to <code>false</code>), the original rule names are used as display names.</p>
 </div>
 </div>
 </div>
@@ -2991,7 +3235,7 @@ argument, and supply the concrete arguments as</p>
 <p>It is also possible to apply a more fine-grained configuration to the import dependency resolution behavior.</p>
 </div>
 <div class="paragraph">
-<p>In particular, the ArchUnit importer distinguishes 6 types of import dependencies:</p>
+<p>In particular, the ArchUnit importer distinguishes the following types of import dependencies:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -3003,6 +3247,9 @@ argument, and supply the concrete arguments as</p>
 </li>
 <li>
 <p>supertypes (i.e. superclasses that are extended and interfaces that are implemented)</p>
+</li>
+<li>
+<p>permitted subclasses (i.e. classes that are permitted to extend or implement a sealed class or interface)</p>
 </li>
 <li>
 <p>enclosing types (i.e. outer classes of nested classes)</p>
@@ -3030,6 +3277,7 @@ On the second run we would then also resolve <code>C</code> as a member type dep
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">import.dependencyResolutionProcess.maxIterationsForMemberTypes = 1
 import.dependencyResolutionProcess.maxIterationsForAccessesToTypes = 1
 import.dependencyResolutionProcess.maxIterationsForSupertypes = -1
+import.dependencyResolutionProcess.maxIterationsForPermittedSubclasses = -1
 import.dependencyResolutionProcess.maxIterationsForEnclosingTypes = -1
 import.dependencyResolutionProcess.maxIterationsForAnnotationTypes = -1
 import.dependencyResolutionProcess.maxIterationsForGenericSignatureTypes = -1</code></pre>
