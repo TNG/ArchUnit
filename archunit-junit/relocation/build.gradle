@@ -78,6 +78,7 @@ publishing {
 }
 
 def publishArchUnit = rootProject.tasks.getByName('publishArchUnit')
+publishArchUnit.dependsOn(publishToSonatype)
 
 signing {
     required {
