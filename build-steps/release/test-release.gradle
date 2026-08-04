@@ -4,6 +4,8 @@ apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
 task testRelease() {
     File testReleaseDir = new File(project.buildDir, 'test-release')
 
+    // FIXME: for local validation, revert before merging
+    /*
     def configureStagingRepository = {
         new File(testReleaseDir, 'build.gradle').with {
             text = text.replace('mavenCentral()', '''
@@ -20,6 +22,14 @@ task testRelease() {
             }''')
         }
     }
+    */
+    def configureLocalRepository = {
+        new File(testReleaseDir, 'build.gradle').with {
+            text = text.replace('mavenCentral()', '''
+            mavenLocal()
+            mavenCentral()''')
+        }
+    }
 
     def configureHttpSocketTimeout = {
         new File(testReleaseDir, 'gradle.properties') << 'systemProp.org.gradle.internal.http.socketTimeout=600000\n'
@@ -33,7 +43,8 @@ task testRelease() {
         def outputStream = new ByteArrayOutputStream()
         project.services.get(ExecOperations).exec {
             workingDir testReleaseDir
-            commandLine './gradlew', ":${exampleProjectName}:build", '-P', "sonatypeUsername=${project.getProperty('sonatypeUsername')}", '-P', "sonatypePassword=${project.getProperty('sonatypePassword')}"
+            // FIXME: revert before merging
+            commandLine './gradlew', ":${exampleProjectName}:build"//, '-P', "sonatypeUsername=${project.getProperty('sonatypeUsername')}", '-P', "sonatypePassword=${project.getProperty('sonatypePassword')}"
             ignoreExitValue true
             standardOutput = outputStream
         }
@@ -53,7 +64,10 @@ task testRelease() {
 
         updateArchUnitExampleVersion(testReleaseDir)
 
-        configureStagingRepository()
+
+        // FIXME: for local validation, revert before merging
+        // configureStagingRepository()
+        configureLocalRepository()
         configureHttpSocketTimeout()
 
         testExampleProject('example-plain')
