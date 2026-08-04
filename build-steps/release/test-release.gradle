@@ -1,7 +1,7 @@
 apply from: scriptRelativePath(this, 'vcs-utils.gradle')
 apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
 
-task testRelease() {
+tasks.register('testRelease') {
     File testReleaseDir = new File(project.buildDir, 'test-release')
 
     def configureStagingRepository = {
@@ -31,7 +31,7 @@ task testRelease() {
         }.getFiles().collect { it.name.replaceAll(/\.java$/, '') }
 
         def outputStream = new ByteArrayOutputStream()
-        exec {
+        project.services.get(org.gradle.process.ExecOperations).exec {
             workingDir testReleaseDir
             commandLine './gradlew', ":${exampleProjectName}:build", '-P', "sonatypeUsername=${project.getProperty('sonatypeUsername')}", '-P', "sonatypePassword=${project.getProperty('sonatypePassword')}"
             ignoreExitValue true
