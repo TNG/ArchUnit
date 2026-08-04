@@ -31,7 +31,7 @@ tasks.register('testRelease') {
         }.getFiles().collect { it.name.replaceAll(/\.java$/, '') }
 
         def outputStream = new ByteArrayOutputStream()
-        project.services.get(org.gradle.process.ExecOperations).exec {
+        project.services.get(ExecOperations).exec {
             workingDir testReleaseDir
             commandLine './gradlew', ":${exampleProjectName}:build", '-P', "sonatypeUsername=${project.getProperty('sonatypeUsername')}", '-P', "sonatypePassword=${project.getProperty('sonatypePassword')}"
             ignoreExitValue true
