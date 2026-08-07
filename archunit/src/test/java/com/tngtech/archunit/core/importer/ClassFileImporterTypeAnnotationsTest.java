@@ -6,6 +6,8 @@ import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.AnnotatedWildcardType;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -20,10 +22,14 @@ import com.tngtech.archunit.core.importer.testexamples.typeannotations.ClassWith
 import com.tngtech.archunit.core.importer.testexamples.typeannotations.RuntimeRetainedFieldAndTypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.typeannotations.RuntimeRetainedTypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.typeannotations.SecondRuntimeRetainedTypeUseAnnotation;
+import org.assertj.core.api.AbstractCollectionAssert;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Tests for the JSR 308 annotation targets {@link java.lang.annotation.ElementType#TYPE_USE}
@@ -51,15 +57,71 @@ public class ClassFileImporterTypeAnnotationsTest {
     public void imports_runtime_retained_type_use_annotation_on_field_type() {
         String fieldName = "fieldWithRuntimeRetainedTypeUseAnnotationOnType";
 
-        AnnotatedType reflectedFieldType = reflect(fieldName).getAnnotatedType();
-        assertThat(reflectedFieldType.isAnnotationPresent(RuntimeRetainedTypeUseAnnotation.class))
-                .as("Java reflection reports @RuntimeRetainedTypeUseAnnotation on field type")
-                .isTrue();
-
+        Field reflectedField = reflect(fieldName);
         JavaField field = importField(fieldName);
+        // field itself
         assertThat(field.isAnnotatedWith(RuntimeRetainedTypeUseAnnotation.class))
-                .as("ArchUnit agrees on @RuntimeRetainedTypeUseAnnotation on field type")
-                .isTrue();
+                .as("@RuntimeRetainedTypeUseAnnotation is on (annotated) field type instead of field")
+                .isFalse()
+                .as("agrees with Java reflection")
+                .isEqualTo(reflectedField.isAnnotationPresent(RuntimeRetainedTypeUseAnnotation.class));
+        assertThat(field.isAnnotatedWith(SecondRuntimeRetainedTypeUseAnnotation.class))
+                .as("@SecondRuntimeRetainedTypeUseAnnotation is on raw field type instead of field")
+                .isFalse()
+                .as("agrees with Java reflection")
+                .isEqualTo(reflectedField.isAnnotationPresent(SecondRuntimeRetainedTypeUseAnnotation.class));
+        // raw type of field. field.getRawType() == field.getType().toErasure()
+        assertThat(field.getRawType().isAnnotatedWith(RuntimeRetainedTypeUseAnnotation.class))
+                .as("@RuntimeRetainedTypeUseAnnotation is on field type instead of field")
+                .isFalse()
+                .as("agrees with Java reflection")
+                .isEqualTo(reflectedField.getType().isAnnotationPresent(RuntimeRetainedTypeUseAnnotation.class));
+        assertThat(field.getRawType().isAnnotatedWith(SecondRuntimeRetainedTypeUseAnnotation.class))
+                .as("@SecondRuntimeRetainedTypeUseAnnotation is on raw field type instead of field")
+                .isTrue()
+                .as("agrees with Java reflection")
+                .isEqualTo(reflectedField.getType().isAnnotationPresent(SecondRuntimeRetainedTypeUseAnnotation.class));
+        // annotated type of field
+        assertThat(field.getAnnotatedType().isAnnotatedWith(RuntimeRetainedTypeUseAnnotation.class))
+                .as("@RuntimeRetainedTypeUseAnnotation is on field type instead of field")
+                .isTrue()
+                .as("agrees with Java reflection")
+                .isEqualTo(reflectedField.getAnnotatedType().isAnnotationPresent(RuntimeRetainedTypeUseAnnotation.class));
+        assertThat(field.getAnnotatedType().isAnnotatedWith(SecondRuntimeRetainedTypeUseAnnotation.class))
+                .as("@SecondRuntimeRetainedTypeUseAnnotation is on raw field type instead of field")
+                .isFalse()
+                .as("agrees with Java reflection")
+                .isEqualTo(reflectedField.getAnnotatedType().isAnnotationPresent(SecondRuntimeRetainedTypeUseAnnotation.class));
+
+        // alternative shorter syntax:
+        assertThatClassesOf(field.getAnnotations())
+                .as("field itself is not annotated")
+                .containsExactlyInAnyOrder()
+                .as("agrees with reflection")
+                .containsExactlyInAnyOrderElementsOf(classesOf(reflectedField.getAnnotations()));
+        assertThatClassesOf(field.getRawType().getAnnotations())
+                .as("raw type of field is annotated with SecondRuntimeRetainedTypeUseAnnotation")
+                .containsExactlyInAnyOrder(SecondRuntimeRetainedTypeUseAnnotation.class)
+                .as("agrees with reflection")
+                .containsExactlyInAnyOrderElementsOf(classesOf(reflectedField.getType().getAnnotations()));
+        assertThatClassesOf(field.getAnnotatedType().getAnnotations())
+                .as("type of field is annotated with RuntimeRetainedTypeUseAnnotation")
+                .containsExactlyInAnyOrder(RuntimeRetainedTypeUseAnnotation.class)
+                .as("agrees with reflection")
+                .containsExactlyInAnyOrderElementsOf(classesOf(reflectedField.getType().getAnnotations()));
+    }
+
+    private static Set<? extends Class<? extends Annotation>> classesOf(Annotation... annotations) {
+        return Arrays.stream(annotations).map(Annotation::annotationType).collect(toSet());
+    }
+
+    private static AbstractCollectionAssert<?, Collection<? extends Class<? extends Annotation>>, Class<? extends Annotation>, ObjectAssert<Class<? extends Annotation>>> assertThatClassesOf(Set<? extends JavaAnnotation<?>> annotations) {
+        @SuppressWarnings("unchecked")
+        Class<Class<? extends Annotation>> elementType = (Class<Class<? extends Annotation>>) (Class<?>) Annotation.class;
+        return assertThat(annotations)
+                .map(JavaAnnotation::getRawType)
+                .map(JavaClass::reflect)
+                .asInstanceOf(InstanceOfAssertFactories.set(elementType));
     }
 
     @Test

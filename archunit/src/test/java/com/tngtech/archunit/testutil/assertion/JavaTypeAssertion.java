@@ -96,7 +96,7 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         assertThat(actual).isInstanceOf(JavaParameterizedType.class);
         JavaParameterizedType parameterizedType = (JavaParameterizedType) this.actual;
 
-        List<JavaType> actualTypeArguments = parameterizedType.getActualTypeArguments();
+        List<? extends JavaType> actualTypeArguments = parameterizedType.getActualTypeArguments();
         DescriptionContext context = new DescriptionContext(actual.getName()).describeTypeParameters().step("actual type arguments");
         assertThat(actualTypeArguments).as(context.toString()).hasSameSizeAs(typeArguments);
         for (int i = 0; i < actualTypeArguments.size(); i++) {

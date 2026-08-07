@@ -50,6 +50,12 @@ public final class JavaField extends JavaMember implements HasType {
         return getOwner().getName() + "." + getName();
     }
 
+    //    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaAnnotatedType<?> getAnnotatedType() {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getType() {

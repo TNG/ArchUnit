@@ -159,6 +159,7 @@ public abstract class JavaCodeUnit
         return getThrowsClause().getTypes();
     }
 
+    // TODO getAnnotatedReturnType()
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getReturnType() {

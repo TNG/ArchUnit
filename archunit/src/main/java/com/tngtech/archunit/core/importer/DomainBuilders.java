@@ -1196,10 +1196,10 @@ public final class DomainBuilders {
     }
 
     private static class ImportedParameterizedType implements JavaParameterizedType {
-        private final JavaType type;
+        private final JavaClass type;
         private final List<JavaType> typeArguments;
 
-        ImportedParameterizedType(JavaType type, List<JavaType> typeArguments) {
+        ImportedParameterizedType(JavaClass type, List<JavaType> typeArguments) {
             checkArgument(typeArguments.size() > 0,
                     "Parameterized type cannot be created without type arguments. This is likely a bug.");
 

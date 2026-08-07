@@ -6,7 +6,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class ClassWithTypeUseAnnotatedFields {
 
-    public @RuntimeRetainedTypeUseAnnotation String fieldWithRuntimeRetainedTypeUseAnnotationOnType;
+    public @RuntimeRetainedTypeUseAnnotation ClassWithAnnotation fieldWithRuntimeRetainedTypeUseAnnotationOnType;
 
     public @ClassRetainedTypeUseAnnotation String fieldWithClassRetainedTypeUseAnnotationOnType;
 

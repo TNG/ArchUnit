@@ -30,13 +30,16 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 @PublicAPI(usage = ACCESS)
 public interface HasType {
 
+    // TODO check if this is the right place. corresponds to reflection getAnnotatedType
+    //    JavaAnnotatedType<?> getAnnotatedType();
+
     /**
      * @return The (possibly generic) {@link JavaType} of this object. Refer to the documentation of {@link JavaType}
      *         for further information.
      * @see #getRawType()
      */
     @PublicAPI(usage = ACCESS)
-    JavaType getType();
+    JavaType getType(); // TODO what is the future of this if we add getAnnotatedType? seems to correspond to reflection .getGenericType()
 
     /**
      * @return The raw type of this object. This is effectively the same as calling
@@ -46,7 +49,7 @@ public interface HasType {
      * @see #getType()
      */
     @PublicAPI(usage = ACCESS)
-    JavaClass getRawType();
+    JavaClass getRawType();// TODO seems  to correspond to reflection getType()
 
     /**
      * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasType}

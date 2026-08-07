@@ -109,7 +109,7 @@ public final class JavaTypeVariable<OWNER extends HasDescription> implements Jav
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public List<JavaType> getUpperBounds() {
+    public List<JavaType> getUpperBounds() { // TODO what about annotations in here?
         return upperBounds;
     }
 

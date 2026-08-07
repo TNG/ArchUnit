@@ -108,7 +108,7 @@ public interface ExpectedConcreteType {
                 Assert.fail(String.format(
                         "%s: Actual type is not parameterized, but expected to be parameterized with type parameters %s", parameterContext, typeParameters));
             }
-            List<JavaType> actualTypeParameters = ((JavaParameterizedType) actual).getActualTypeArguments();
+            List<? extends JavaType> actualTypeParameters = ((JavaParameterizedType) actual).getActualTypeArguments();
             assertThatTypes(actualTypeParameters).matchExactly(typeParameters, parameterContext);
         }
 

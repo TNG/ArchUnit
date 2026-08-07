@@ -34,7 +34,7 @@ public interface JavaParameterizedType extends JavaType {
      * @return The actual type arguments of this parameterized type (compare {@link JavaParameterizedType}).
      */
     @PublicAPI(usage = ACCESS)
-    List<JavaType> getActualTypeArguments();
+    List<? extends JavaType> getActualTypeArguments();
 
     @Override
     default void traverseSignature(SignatureVisitor visitor) {

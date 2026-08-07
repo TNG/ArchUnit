@@ -216,7 +216,7 @@ class JavaClassDependencies {
                 .flatMap(typeParameterDependency -> Dependency.tryCreateFromTypeParameter(typeVariable, typeParameterDependency).stream());
     }
 
-    private Stream<JavaClass> dependenciesOfTypes(Collection<JavaType> types) {
+    private Stream<JavaClass> dependenciesOfTypes(Collection<? extends JavaType> types) {
         return types.stream().flatMap(JavaClassDependencies::dependenciesOfType);
     }
 
