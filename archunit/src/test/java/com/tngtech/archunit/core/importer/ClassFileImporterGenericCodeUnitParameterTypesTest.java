@@ -1115,7 +1115,7 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
     @ParameterizedTest
     @MethodSource
     void imports_multiple_generic_code_unit_parameter_types(JavaCodeUnit codeUnit) {
-        List<JavaType> genericParameterTypes = codeUnit.getParameterTypes();
+        List<? extends JavaType> genericParameterTypes = codeUnit.getParameterTypes();
 
         // @formatter:off
         assertThatType(genericParameterTypes.get(0)).as("first generic parameter type").hasActualTypeArguments(

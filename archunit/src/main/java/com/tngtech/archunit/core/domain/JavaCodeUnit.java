@@ -126,7 +126,7 @@ public abstract class JavaCodeUnit
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public List<JavaType> getParameterTypes() {
+    public List<? extends JavaType> getParameterTypes() {
         return parameters.getParameterTypes();
     }
 
@@ -309,7 +309,7 @@ public abstract class JavaCodeUnit
 
     private static class Parameters extends ForwardingList<JavaParameter> {
         private final List<JavaClass> rawParameterTypes;
-        private final List<JavaType> parameterTypes;
+        private final List<? extends JavaType> parameterTypes;
         private final List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations;
         private final List<JavaParameter> parameters;
 
@@ -328,7 +328,7 @@ public abstract class JavaCodeUnit
             return result.build();
         }
 
-        private static List<JavaParameter> createParameters(JavaCodeUnit owner, JavaCodeUnitBuilder<?, ?> builder, List<JavaType> parameterTypes) {
+        private static List<JavaParameter> createParameters(JavaCodeUnit owner, JavaCodeUnitBuilder<?, ?> builder, List<? extends JavaType> parameterTypes) {
             ImmutableList.Builder<JavaParameter> result = ImmutableList.builder();
             for (int i = 0; i < parameterTypes.size(); i++) {
                 result.add(new JavaParameter(owner, builder.getParameterAnnotationsBuilder(i), i, parameterTypes.get(i)));
@@ -336,16 +336,15 @@ public abstract class JavaCodeUnit
             return result.build();
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"}) // the cast is safe because the list is immutable, thus used in a covariant way
-        private List<JavaType> getParameterTypes(List<JavaType> genericParameterTypes) {
-            return genericParameterTypes.isEmpty() ? (List) rawParameterTypes : genericParameterTypes;
+        private List<? extends JavaType> getParameterTypes(List<JavaType> genericParameterTypes) {
+            return genericParameterTypes.isEmpty() ? rawParameterTypes : genericParameterTypes;
         }
 
         List<JavaClass> getRawParameterTypes() {
             return rawParameterTypes;
         }
 
-        List<JavaType> getParameterTypes() {
+        List<? extends JavaType> getParameterTypes() {
             return parameterTypes;
         }
 

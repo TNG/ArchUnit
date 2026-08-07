@@ -44,7 +44,7 @@ public interface HasParameterTypes {
      *         Note that for non-generic cases this returns the same as {@link #getRawParameterTypes()}.
      */
     @PublicAPI(usage = ACCESS)
-    List<JavaType> getParameterTypes();
+    List<? extends JavaType> getParameterTypes();
 
     /**
      * @return the raw parameter types of this object, e.g.<br>
