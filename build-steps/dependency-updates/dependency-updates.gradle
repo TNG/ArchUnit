@@ -1,4 +1,3 @@
-task checkDependencyUpdates {
-    apply plugin: 'com.github.ben-manes.versions'
+tasks.register('checkDependencyUpdates') {
     dependsOn tasks.named('dependencyUpdates')
 }
