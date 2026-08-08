@@ -54,6 +54,12 @@ public class MyArchitectureTest {
 #### Let the API guide you
 ![ArchUnit Fluent API](ArchUnit-API.gif)
 
+## Community Examples
+
+The following projects provide additional examples and best practices for using ArchUnit in real-world applications:
+
+- [devonfw-sample/archunit](https://github.com/devonfw-sample/archunit) — A complete layered architecture demo with well-crafted ArchUnit tests and a CI workflow demonstrating violation reporting.
+
 ## Where to look next
 
 For further information, check out the user guide at [https://archunit.org](https://archunit.org) 
