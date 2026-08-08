@@ -60,6 +60,7 @@ For further information, check out the user guide at [https://archunit.org](http
 or test examples for the current release at
 [ArchUnit Examples](https://github.com/TNG/ArchUnit-Examples).
 
+
 ## License
 
 ArchUnit is published under the Apache License 2.0, see https://www.apache.org/licenses/LICENSE-2.0 for details.
