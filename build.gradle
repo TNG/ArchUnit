@@ -4,7 +4,7 @@ plugins {
     id 'com.github.spotbugs' version '6.5.9' apply false
     id "io.github.gradle-nexus.publish-plugin" version "2.0.0" apply false
     id "com.diffplug.spotless" version "8.9.0" apply false
-    id 'io.github.ben-manes.versions' version '0.59.0'
+    id 'io.github.ben-manes.versions' version '0.60.0'
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
