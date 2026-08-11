@@ -82,7 +82,8 @@ public final class GeneralCodingRules {
     }
 
     /**
-     * A condition that matches classes that access {@code System.out} or {@code System.err}.
+     * A condition that matches classes that access {@link System#out} or {@link System#err},
+     * call methods of {@link java.lang.IO} (JDK 25+), or call {@link Throwable#printStackTrace()}.
      *
      * <p>
      * Example:
@@ -92,6 +93,10 @@ public final class GeneralCodingRules {
      *
      * OutputStream out = System.out; // matches
      * out.write(bytes);
+     *
+     * IO.println("foo"); // matches (JDK 25+)
+     * IO.print("bar"); // matches (JDK 25+)
+     * IO.readln(); // matches (JDK 25+)
      *
      * try {
      *     // ...
@@ -117,13 +122,17 @@ public final class GeneralCodingRules {
                 target(name("printStackTrace"))
                         .and(target(owner(assignableTo(Throwable.class))))
                         .and(target(rawParameterTypes(new Class[0]))));
+        // Referenced by name so ArchUnit remains loadable on JDKs that do not yet provide java.lang.IO
+        ArchCondition<JavaClass> callOfJavaLangIO = callMethodWhere(target(declaredIn("java.lang.IO")));
 
-        return accessToSystemOut.or(accessToSystemErr).or(callOfPrintStackTrace).as("access standard streams");
+        return accessToSystemOut.or(accessToSystemErr).or(callOfPrintStackTrace).or(callOfJavaLangIO)
+                .as("access standard streams");
     }
 
     /**
      * A rule that checks that none of the given classes access the standard streams
-     * {@code System.out} and {@code System.err}.
+     * {@link System#out} and {@link System#err}, call methods of {@link java.lang.IO} (JDK 25+),
+     * or call {@link Throwable#printStackTrace()}.
      *
      * <p>
      * It is generally good practice to use correct logging instead of writing to the console.
@@ -141,6 +150,10 @@ public final class GeneralCodingRules {
      *
      * OutputStream out = System.out; // violation
      * out.write(bytes);
+     *
+     * IO.println("foo"); // violation (JDK 25+)
+     * IO.print("bar"); // violation (JDK 25+)
+     * IO.readln(); // violation (JDK 25+)
      *
      * try {
      *     // ...
