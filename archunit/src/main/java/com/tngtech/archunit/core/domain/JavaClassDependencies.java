@@ -49,6 +49,7 @@ class JavaClassDependencies {
                         throwsDeclarationDependenciesFromSelf(),
                         tryCatchBlockDependenciesFromSelf(),
                         annotationDependenciesFromSelf(),
+                        typeAnnotationDependenciesFromSelf(),
                         instanceofCheckDependenciesFromSelf(),
                         referencedClassObjectDependenciesFromSelf(),
                         typeParameterDependenciesFromSelf()
@@ -252,9 +253,17 @@ class JavaClassDependencies {
         return annotatedObjects.stream().flatMap(this::annotationDependencies);
     }
 
+    private Stream<Dependency> typeAnnotationDependenciesFromSelf() {
+        return dependenciesOfAnnotations(javaClass.getTypeAnnotations());
+    }
+
     private <T extends HasDescription & HasAnnotations<?>> Stream<Dependency> annotationDependencies(T annotated) {
+        return dependenciesOfAnnotations(annotated.getAnnotations());
+    }
+
+    private Stream<Dependency> dependenciesOfAnnotations(Iterable<? extends JavaAnnotation<?>> annotations) {
         Stream.Builder<Dependency> addToStream = Stream.builder();
-        for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
+        for (JavaAnnotation<?> annotation : annotations) {
             Dependency.tryCreateFromAnnotation(annotation).forEach(addToStream);
             annotation.accept(new DefaultParameterVisitor() {
                 @Override

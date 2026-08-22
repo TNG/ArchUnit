@@ -57,6 +57,7 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +80,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     private DomainBuilders.JavaClassBuilder javaClassBuilder;
     private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+    private final Set<JavaAnnotationBuilder> typeAnnotations = new HashSet<>();
     private final SourceDescriptor sourceDescriptor;
     private final DeclarationHandler declarationHandler;
     private final AccessHandler accessHandler;
@@ -311,6 +313,18 @@ class JavaClassProcessor extends ClassVisitor {
         return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
     }
 
+    // Type annotations (JVMS §4.7.20, e.g. Checker Framework's TYPE_USE @Nullable) are stored in a separate
+    // attribute from declaration annotations. We don't model their exact position within a type, but we do
+    // capture the referenced annotation type (and its members) so that it surfaces as a dependency of this class.
+    @Override
+    public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+        if (importAborted()) {
+            return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
+        }
+
+        return new AnnotationProcessor(typeAnnotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+    }
+
     @Override
     public void visitEnd() {
         if (importAborted()) {
@@ -318,6 +332,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         declarationHandler.onDeclaredClassAnnotations(annotations);
+        declarationHandler.onDeclaredTypeAnnotations(typeAnnotations);
         LOG.trace("Done analyzing {}", className);
     }
 
@@ -327,6 +342,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final Set<JavaAnnotationBuilder> typeAnnotations = new HashSet<>();
         private final SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
         private int actualLineNumber;
 
@@ -406,6 +422,13 @@ class JavaClassProcessor extends ClassVisitor {
             return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
+        // Captures TYPE_USE annotations on the method signature (return type, formal parameter types,
+        // throws types, type parameters). We attribute them to the declaring class as a dependency.
+        @Override
+        public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+            return new AnnotationProcessor(typeAnnotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        }
+
         @Override
         public AnnotationVisitor visitAnnotationDefault() {
             return new AnnotationDefaultProcessor(declaringClassName, codeUnitBuilder, declarationHandler);
@@ -432,6 +455,7 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitEnd() {
             declarationHandler.onDeclaredMemberAnnotations(codeUnitBuilder.getName(), codeUnitBuilder.getDescriptor(), annotations);
+            declarationHandler.onDeclaredTypeAnnotations(typeAnnotations);
             accessHandler.onMethodEnd();
         }
 
@@ -596,6 +620,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaFieldBuilder fieldBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final Set<JavaAnnotationBuilder> typeAnnotations = new HashSet<>();
 
         private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
@@ -609,9 +634,17 @@ class JavaClassProcessor extends ClassVisitor {
             return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
+        // Captures TYPE_USE annotations on the field type (e.g. @Nullable String field), attributed to the
+        // declaring class as a dependency.
+        @Override
+        public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+            return new AnnotationProcessor(typeAnnotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        }
+
         @Override
         public void visitEnd() {
             declarationHandler.onDeclaredMemberAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), annotations);
+            declarationHandler.onDeclaredTypeAnnotations(typeAnnotations);
         }
     }
 
