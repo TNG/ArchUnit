@@ -42,6 +42,7 @@ import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
+import com.tngtech.archunit.core.domain.JavaClassVersion;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -107,6 +108,8 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
+        JavaClassVersion classVersion = JavaClassVersion.of(version);
+
         List<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.trace("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
@@ -117,6 +120,7 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.trace("Found superclass {} on class '{}'", superclassName.orElse(null), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
+                .withVersion(classVersion)
                 .withSourceDescriptor(sourceDescriptor)
                 .withDescriptor(descriptor)
                 .withInterface(opCodeForInterfaceIsPresent)
