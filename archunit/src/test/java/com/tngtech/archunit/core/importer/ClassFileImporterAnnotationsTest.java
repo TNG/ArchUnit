@@ -450,7 +450,7 @@ public class ClassFileImporterAnnotationsTest {
         Set<JavaAnnotation<JavaParameter>> annotations = getOnlyElement(parameterAnnotations);
 
         assertThat(annotations).isEqualTo(getOnlyElement(method.getParameters()).getAnnotations());
-        assertThatAnnotations(annotations).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[0]));
+        assertThatAnnotations(annotations).match(method.reflect().getParameterAnnotations()[0]);
     }
 
     @Test
@@ -464,7 +464,7 @@ public class ClassFileImporterAnnotationsTest {
         List<JavaParameter> parameters = method.getParameters();
         for (int i = 0; i < 2; i++) {
             assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
-            assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[i]));
+            assertThatAnnotations(parameterAnnotations.get(i)).match(method.reflect().getParameterAnnotations()[i]);
         }
     }
 
@@ -484,7 +484,7 @@ public class ClassFileImporterAnnotationsTest {
         List<JavaParameter> parameters = method.getParameters();
         for (int i = 0; i < 4; i++) {
             assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
-            assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[i]));
+            assertThatAnnotations(parameterAnnotations.get(i)).match(method.reflect().getParameterAnnotations()[i]);
         }
     }
 
@@ -509,7 +509,7 @@ public class ClassFileImporterAnnotationsTest {
         List<JavaParameter> parameters = constructor.getParameters();
         for (int i = 0; i < parameterAnnotations.size(); i++) {
             assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
-            assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(constructor.reflect().getParameterAnnotations()[i]));
+            assertThatAnnotations(parameterAnnotations.get(i)).match(constructor.reflect().getParameterAnnotations()[i]);
         }
     }
 
