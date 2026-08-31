@@ -47,6 +47,7 @@ import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
+import com.tngtech.archunit.core.domain.JavaClassVersion;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
@@ -392,6 +393,7 @@ public final class DomainBuilders {
         private Optional<SourceDescriptor> sourceDescriptor = Optional.empty();
         private Optional<String> sourceFileName = Optional.empty();
         private JavaClassDescriptor descriptor;
+        private JavaClassVersion version;
         private boolean isInterface;
         private boolean isEnum;
         private boolean isAnnotation;
@@ -420,6 +422,11 @@ public final class DomainBuilders {
 
         JavaClassBuilder withDescriptor(JavaClassDescriptor descriptor) {
             this.descriptor = descriptor;
+            return this;
+        }
+
+        JavaClassBuilder withVersion(JavaClassVersion version) {
+            this.version = version;
             return this;
         }
 
@@ -473,6 +480,10 @@ public final class DomainBuilders {
 
         public JavaClassDescriptor getDescriptor() {
             return descriptor;
+        }
+
+        public JavaClassVersion getVersion() {
+            return version;
         }
 
         public boolean isInterface() {
