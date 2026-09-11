@@ -3,11 +3,14 @@ package com.tngtech.archunit.core.importer.testexamples.annotationfieldimport;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.RuntimeRetainedTypeUseAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.RuntimeRetainedTypeUseAnnotation2;
 
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
@@ -15,6 +18,12 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public class ClassWithAnnotatedFields {
+    public Map<@RuntimeRetainedTypeUseAnnotation @RuntimeRetainedTypeUseAnnotation2 Object, List<@RuntimeRetainedTypeUseAnnotation2 Object>> fieldWithGenericTypeWithRuntimeRetainedTypeUseAnnotation;
+
+    public @RuntimeRetainedTypeUseAnnotation String @RuntimeRetainedTypeUseAnnotation2 [] fieldWithArrayAnnotations;
+    public @RuntimeRetainedTypeUseAnnotation String @RuntimeRetainedTypeUseAnnotation2 [][][] @RuntimeRetainedTypeUseAnnotation2 [] fieldWithDeepArrayAnnotations;
+    public Map<String, ? extends @RuntimeRetainedTypeUseAnnotation Collection<@RuntimeRetainedTypeUseAnnotation2 Object>> fieldWithWildCardBound;
+
     @FieldAnnotationWithStringValue("something")
     public Object stringAnnotatedField;
 

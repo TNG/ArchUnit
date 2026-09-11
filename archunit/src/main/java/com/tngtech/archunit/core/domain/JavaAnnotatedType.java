@@ -63,6 +63,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 @PublicAPI(usage = ACCESS)
 public interface JavaAnnotatedType extends HasAnnotations<JavaAnnotatedType> {
+    // TODO should this interface also have an owner? for top level element, the owner is the field, method RETURN??, method throw clause??
+    //  there might be cases where we have currently no representation of the owner of the type (e.g. local variable?). so the JavaMethod might win over it's parameter? not totally clear
 
     /**
      * @return {@link JavaType} used by this {@code JavaAnnotatedType} without any type annotation information
