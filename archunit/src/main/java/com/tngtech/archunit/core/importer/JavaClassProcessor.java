@@ -57,6 +57,8 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
+import org.objectweb.asm.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -598,6 +600,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaFieldBuilder fieldBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final Set<JavaAnnotationBuilder> typeAnnotations = new HashSet<>();
 
         private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
@@ -607,13 +610,26 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(descriptor, declarationHandler));
+        }
+
+        @Override
+        public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            TypeReference typeReference = new TypeReference(typeRef);
+            // TODO preserve TypePath after mapping to some wrapper class for later construction of full annotated type. For this commit, just type annotations directly on the field type are preserved
+            //  asm.TypePath is immutable, but has no nice equals method
+            if (typeReference.getSort() == TypeReference.FIELD && (typePath == null || typePath.getLength() == 0)) {
+                // we currently drop all TYPE_USE annotations with any TypePath since they dive into generic types, Array types, etc. which want can't handle yet
+                return new AnnotationProcessor(typeAnnotations::add, declarationHandler, handleAnnotationAnnotationProperty(descriptor, declarationHandler));
+            }
+            return null;
         }
 
         @Override
         public void visitEnd() {
             declarationHandler.onDeclaredMemberAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), annotations);
+            declarationHandler.onDeclaredMemberTypeAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), typeAnnotations);
         }
     }
 

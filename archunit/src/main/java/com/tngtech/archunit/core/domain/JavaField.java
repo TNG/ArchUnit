@@ -32,12 +32,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public final class JavaField extends JavaMember implements HasType {
-    private final JavaType type;
+    private final JavaAnnotatedType annotatedType;
     private final Supplier<Field> fieldSupplier;
 
     JavaField(DomainBuilders.JavaFieldBuilder builder) {
         super(builder);
-        type = builder.getType(this);
+        annotatedType = builder.getAnnotatedType(this);
         fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());
     }
 
@@ -50,16 +50,21 @@ public final class JavaField extends JavaMember implements HasType {
         return getOwner().getName() + "." + getName();
     }
 
+    @PublicAPI(usage = ACCESS)
+    public JavaAnnotatedType getAnnotatedType() {
+        return annotatedType;
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getType() {
-        return type;
+        return annotatedType.getType();
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
-        return type.toErasure();
+        return getType().toErasure();
     }
 
     /**

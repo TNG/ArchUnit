@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,13 +24,18 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.Clas
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithAnnotationWithEmptyArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithComplexAnnotations;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithOneAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithOneTypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.SimpleAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassRetainedSimpleFieldAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.FieldAnnotationWithArrays;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.RuntimeRetainedSimpleFieldAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.MethodAnnotationWithArrays;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.ClassRetainedTypeUseAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
@@ -49,6 +55,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotations;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static java.util.Collections.emptySet;
 
+@SuppressWarnings("unused")
 public class ClassFileImporterAnnotationsTest {
 
     @Test
@@ -136,6 +143,21 @@ public class ClassFileImporterAnnotationsTest {
             assertThat(annotation.get("value").get()).isEqualTo("test");
 
             assertThatType(clazz).matches(ClassWithOneAnnotation.class);
+        }
+
+        @Test
+        void imports_class_with_TYPE_USE_annotation_like_TYPE_annotation() {
+
+            JavaClass clazz = new ClassFileImporter().importClass(ClassWithOneTypeUseAnnotation.class);
+
+            JavaAnnotation<JavaClass> annotation = clazz.getAnnotationOfType(TypeUseAnnotation.class.getName());
+            assertThatType(annotation.getRawType()).matches(TypeUseAnnotation.class);
+            assertThatType(annotation.getOwner()).isEqualTo(clazz);
+
+            JavaAnnotation<?> annotationByName = clazz.getAnnotationOfType(TypeUseAnnotation.class.getName());
+            assertThat(annotationByName).isEqualTo(annotation);
+
+            assertThatType(clazz).matches(ClassWithOneTypeUseAnnotation.class);
         }
 
         @Test
@@ -296,6 +318,163 @@ public class ClassFileImporterAnnotationsTest {
             assertThat(reflected.enums()).isEmpty();
             assertThat(reflected.classes()).isEmpty();
             assertThat(reflected.annotations()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_field() {
+            class Clazz {
+                public @RuntimeRetainedSimpleFieldAnnotation Object fieldWithRuntimeRetainedSimpleFieldAnnotation;
+            }
+
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithRuntimeRetainedSimpleFieldAnnotation");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is annotated with RuntimeRetainedSimpleFieldAnnotation")
+                    .matchClasses(RuntimeRetainedSimpleFieldAnnotation.class)
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated, just the field itself")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_type_use() {
+            class Clazz {
+                public @TypeUseAnnotation Object fieldWithRuntimeRetainedTypeUseAnnotation;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithRuntimeRetainedTypeUseAnnotation");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated, just the field type")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is annotated with RuntimeRetainedTypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_field_class_retained() {
+            class Clazz {
+                public @ClassRetainedSimpleFieldAnnotation Object fieldWithClassRetainedSimpleFieldAnnotation;
+            }
+            // CLASS retained is not available via reflection, so we don't check against reflection
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithClassRetainedSimpleFieldAnnotation");
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is annotated with ClassRetainedSimpleFieldAnnotation")
+                    .matchClasses(ClassRetainedSimpleFieldAnnotation.class);
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated, just the field itself")
+                    .matchClasses();
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_type_use_class_retained() {
+            class Clazz {
+                public @ClassRetainedTypeUseAnnotation Object fieldWithClassRetainedTypeUseAnnotation;
+            }
+            // CLASS retained is not available via reflection, so we don't check against reflection
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithClassRetainedTypeUseAnnotation");
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated, just the field type")
+                    .matchClasses();
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is annotated with ClassRetainedTypeUseAnnotation")
+                    .matchClasses(ClassRetainedTypeUseAnnotation.class);
+        }
+
+        @Test
+        void imports_fields_with_type_annotated_with_type_type() {
+            class Clazz {
+                ClassWithOneAnnotation fieldWithClassAnnotated;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithClassAnnotated");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field is annotated with SimpleAnnotation")
+                    .matchClasses(SimpleAnnotation.class)
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_type_annotated_with_type_type_use() {
+            class Clazz {
+                ClassWithOneTypeUseAnnotation fieldWithClassAnnotatedWithTypeUse;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithClassAnnotatedWithTypeUse");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field is annotated with SimpleAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_field_and_type_use() {
+            class Clazz {
+                @RuntimeRetainedSimpleFieldAnnotation
+                public @TypeUseAnnotation ClassWithOneAnnotation fieldWithSimpleAndTypeUseAnnotation;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithSimpleAndTypeUseAnnotation");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is annotated with RuntimeRetainedSimpleFieldAnnotation")
+                    .matchClasses(RuntimeRetainedSimpleFieldAnnotation.class)
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field is annotated with SimpleAnnotation via its own class declaration")
+                    .matchClasses(SimpleAnnotation.class)
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is additionally annotated with RuntimeRetainedTypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
         }
     }
 
