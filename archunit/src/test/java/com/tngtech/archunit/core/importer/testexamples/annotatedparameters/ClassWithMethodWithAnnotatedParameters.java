@@ -1,7 +1,9 @@
 package com.tngtech.archunit.core.importer.testexamples.annotatedparameters;
 
 import java.io.Serializable;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,8 +29,8 @@ public class ClassWithMethodWithAnnotatedParameters {
             @SomeParameterAnnotation(
                     value = OTHER_VALUE,
                     enumArray = {SOME_VALUE, OTHER_VALUE},
-                    subAnnotation = @SimpleAnnotation("changed"),
-                    subAnnotationArray = {@SimpleAnnotation("one"), @SimpleAnnotation("two")},
+                    subAnnotation = @SimpleParameterAnnotation("changed"),
+                    subAnnotationArray = {@SimpleParameterAnnotation("one"), @SimpleParameterAnnotation("two")},
                     clazz = Map.class,
                     classes = {Object.class, Serializable.class}
             ) String param
@@ -40,8 +42,8 @@ public class ClassWithMethodWithAnnotatedParameters {
             @SomeParameterAnnotation(
                     value = OTHER_VALUE,
                     enumArray = {SOME_VALUE, OTHER_VALUE},
-                    subAnnotation = @SimpleAnnotation("changed"),
-                    subAnnotationArray = {@SimpleAnnotation("one"), @SimpleAnnotation("two")},
+                    subAnnotation = @SimpleParameterAnnotation("changed"),
+                    subAnnotationArray = {@SimpleParameterAnnotation("one"), @SimpleParameterAnnotation("two")},
                     clazz = Map.class,
                     classes = {Object.class, Serializable.class}
             ) String param
@@ -52,8 +54,8 @@ public class ClassWithMethodWithAnnotatedParameters {
             @SomeParameterAnnotation(
                     value = OTHER_VALUE,
                     enumArray = {SOME_VALUE, OTHER_VALUE},
-                    subAnnotation = @SimpleAnnotation("first"),
-                    subAnnotationArray = {@SimpleAnnotation("first_one"), @SimpleAnnotation("first_two")},
+                    subAnnotation = @SimpleParameterAnnotation("first"),
+                    subAnnotationArray = {@SimpleParameterAnnotation("first_one"), @SimpleParameterAnnotation("first_two")},
                     clazz = String.class,
                     classes = {String.class, Serializable.class}
             ) String first,
@@ -61,8 +63,8 @@ public class ClassWithMethodWithAnnotatedParameters {
             @SomeParameterAnnotation(
                     value = SOME_VALUE,
                     enumArray = {OTHER_VALUE, SOME_VALUE},
-                    subAnnotation = @SimpleAnnotation("second"),
-                    subAnnotationArray = {@SimpleAnnotation("second_one"), @SimpleAnnotation("second_two")},
+                    subAnnotation = @SimpleParameterAnnotation("second"),
+                    subAnnotationArray = {@SimpleParameterAnnotation("second_one"), @SimpleParameterAnnotation("second_two")},
                     clazz = List.class,
                     classes = {Set.class, Map.class}
             ) int second
@@ -70,13 +72,14 @@ public class ClassWithMethodWithAnnotatedParameters {
     }
 
     <T> void methodWithAnnotatedParametersGap(
-            @SimpleAnnotation("first") String first,
+            @SimpleParameterAnnotation("first") String first,
             int second,
             T third,
-            @SimpleAnnotation("fourth") List<String> fourth
+            @SimpleParameterAnnotation("fourth") List<String> fourth
     ) {
     }
 
+    @Target(ElementType.PARAMETER)
     @Retention(RUNTIME)
     public @interface SomeParameterAnnotation {
         SomeEnum value();
@@ -87,13 +90,13 @@ public class ClassWithMethodWithAnnotatedParameters {
 
         SomeEnum[] enumArrayWithDefault() default {OTHER_VALUE};
 
-        SimpleAnnotation subAnnotation();
+        SimpleParameterAnnotation subAnnotation();
 
-        SimpleAnnotation subAnnotationWithDefault() default @SimpleAnnotation("default");
+        SimpleParameterAnnotation subAnnotationWithDefault() default @SimpleParameterAnnotation("default");
 
-        SimpleAnnotation[] subAnnotationArray();
+        SimpleParameterAnnotation[] subAnnotationArray();
 
-        SimpleAnnotation[] subAnnotationArrayWithDefault() default {@SimpleAnnotation("first"), @SimpleAnnotation("second")};
+        SimpleParameterAnnotation[] subAnnotationArrayWithDefault() default {@SimpleParameterAnnotation("first"), @SimpleParameterAnnotation("second")};
 
         Class<?> clazz();
 
@@ -104,11 +107,13 @@ public class ClassWithMethodWithAnnotatedParameters {
         Class<?>[] classesWithDefault() default {Serializable.class, List.class};
     }
 
+    @Target(ElementType.PARAMETER)
     @Retention(RUNTIME)
-    public @interface SimpleAnnotation {
+    public @interface SimpleParameterAnnotation {
         String value();
     }
 
+    @Target(ElementType.PARAMETER)
     @Retention(RUNTIME)
     public @interface OtherParameterAnnotation {
         Class<?> value();

@@ -19,9 +19,11 @@ public class JavaAnnotationsAssertion extends AbstractIterableAssert<JavaAnnotat
         super((Set) javaAnnotations, JavaAnnotationsAssertion.class);
     }
 
-    public JavaAnnotationsAssertion match(Collection<Annotation> annotations) {
-        assertThat(actual).hasSameSizeAs(annotations);
+    public JavaAnnotationsAssertion match(Annotation[] annotations) {
+        return match(ImmutableSet.copyOf(annotations));
+    }
 
+    public JavaAnnotationsAssertion match(Collection<Annotation> annotations) {
         Map<String, JavaAnnotation<?>> actualByClassName = annotationsByClassName(actual);
         Map<String, Annotation> reflectionByClassName = reflectionByClassName(annotations);
         assertThat(actualByClassName.keySet())
