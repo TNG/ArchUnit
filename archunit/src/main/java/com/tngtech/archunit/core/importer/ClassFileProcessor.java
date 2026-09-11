@@ -147,7 +147,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) {
+        public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) { // TODO only write tests, TYPE_USE annotation on class seems identical to TYPE annotation
             importRecord.addClassAnnotations(ownerName, annotationBuilders);
             registerAnnotationTypesToResolve(annotationBuilders);
         }
@@ -159,7 +159,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredMemberTypeAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> typeAnnotationBuilders) {
+        public void onDeclaredMemberTypeAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> typeAnnotationBuilders) { // TODO implement. add missing TypePath
             importRecord.addMemberTypeAnnotations(ownerName, memberName, descriptor, typeAnnotationBuilders);
             registerAnnotationTypesToResolve(typeAnnotationBuilders);
         }

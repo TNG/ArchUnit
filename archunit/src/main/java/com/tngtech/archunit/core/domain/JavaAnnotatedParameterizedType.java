@@ -16,16 +16,13 @@
 package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public interface JavaAnnotatedType extends HasAnnotations<JavaAnnotatedType> { // TODO add SubInterfaces JavaAnnotatedArrayType, JavaAnnotatedParameterizedType, JavaAnnotatedTypeVariable, JavaAnnotatedWildcardType
-    // TODO should this interface also have an owner? for top level element, the owner is the field, method RETURN??, method throw clause??
-    //  there might be cases where we have currently no representation of the owner of the type (e.g. local variable?)
+public interface JavaAnnotatedParameterizedType extends JavaAnnotatedType {
 
-    @PublicAPI(usage = ACCESS)
-    JavaType getType();
-    // TODO add Optional<JavaAnnotatedType> getAnnotatedOwnerType();
+    @Override
+    JavaParameterizedType getType();
+
 }
