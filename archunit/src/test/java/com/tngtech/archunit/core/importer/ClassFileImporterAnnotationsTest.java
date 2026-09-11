@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,10 +27,14 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.Clas
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.SimpleAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassRetainedSimpleFieldAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.FieldAnnotationWithArrays;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.RuntimeRetainedSimpleFieldAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.MethodAnnotationWithArrays;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.ClassRetainedTypeUseAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.RuntimeRetainedTypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
@@ -303,6 +308,120 @@ public class ClassFileImporterAnnotationsTest {
             assertThat(reflected.enums()).isEmpty();
             assertThat(reflected.classes()).isEmpty();
             assertThat(reflected.annotations()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_field() {
+            JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
+                    .get(ClassWithAnnotatedFields.class).getField("fieldWithRuntimeRetainedSimpleFieldAnnotation");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is annotated with RuntimeRetainedSimpleFieldAnnotation")
+                    .matchClasses(RuntimeRetainedSimpleFieldAnnotation.class)
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated, just the field itself")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_type_use() {
+            JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
+                    .get(ClassWithAnnotatedFields.class).getField("fieldWithRuntimeRetainedTypeUseAnnotation");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated, just the field type")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is annotated with RuntimeRetainedTypeUseAnnotation")
+                    .matchClasses(RuntimeRetainedTypeUseAnnotation.class)
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_field_class_retained() {
+            // CLASS retained is not available via reflection, so we don't check against that
+            JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
+                    .get(ClassWithAnnotatedFields.class).getField("fieldWithClassRetainedSimpleFieldAnnotation");
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is annotated with ClassRetainedSimpleFieldAnnotation")
+                    .matchClasses(ClassRetainedSimpleFieldAnnotation.class);
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated, just the field itself")
+                    .matchClasses();
+        }
+
+        @Test
+        void imports_fields_annotated_with_type_type_use_class_retained() {
+            // CLASS retained is not available via reflection, so we don't check against that
+            JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
+                    .get(ClassWithAnnotatedFields.class).getField("fieldWithClassRetainedTypeUseAnnotation");
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated, just the field type")
+                    .matchClasses();
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field not annotated")
+                    .matchClasses();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is annotated with ClassRetainedTypeUseAnnotation")
+                    .matchClasses(ClassRetainedTypeUseAnnotation.class);
+        }
+
+        @Test
+        void imports_fields_with_type_annotated_with_type_type() {
+            JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
+                    .get(ClassWithAnnotatedFields.class).getField("fieldWithClassAnnotated");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field is annotated with SimpleAnnotation")
+                    .matchClasses(SimpleAnnotation.class)
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_type_annotated_with_type_type_use() {
+            JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
+                    .get(ClassWithAnnotatedFields.class).getField("fieldWithClassAnnotatedWithTypeUse");
+            Field reflectedField = field.reflect();
+
+            assertThatAnnotations(field.getAnnotations())
+                    .as("field itself is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotations());
+            assertThatAnnotations(field.getRawType().getAnnotations())
+                    .as("raw type of field is annotated with SimpleAnnotation")
+                    .matchClasses(RuntimeRetainedTypeUseAnnotation.class)
+                    .match(reflectedField.getType().getAnnotations());
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
         }
     }
 

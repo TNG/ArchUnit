@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import org.assertj.core.api.AbstractIterableAssert;
+import org.assertj.core.api.InstanceOfAssertFactories;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
@@ -52,6 +53,16 @@ public class JavaAnnotationsAssertion extends AbstractIterableAssert<JavaAnnotat
             result.put(annotation.annotationType().getName(), annotation);
         }
         return result.build();
+    }
+
+    @SafeVarargs
+    public final JavaAnnotationsAssertion matchClasses(Class<? extends Annotation>... classes) {
+        @SuppressWarnings("unchecked")
+        Class<Class<? extends Annotation>> elementType = (Class<Class<? extends Annotation>>) (Class<?>) Annotation.class;
+        myself.extracting(a -> a.getRawType().reflect())
+                .asInstanceOf(InstanceOfAssertFactories.collection(elementType))
+                .containsExactlyInAnyOrder(classes);
+        return myself;
     }
 
     @Override

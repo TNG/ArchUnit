@@ -57,6 +57,7 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -596,6 +597,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaFieldBuilder fieldBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final Set<JavaAnnotationBuilder> typeAnnotations = new HashSet<>();
 
         private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
@@ -605,13 +607,25 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(descriptor, declarationHandler));
+        }
+
+        @Override
+        public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            // TypePath of different annotations at potentially the same location are immutable and can be saved, but are NOT equal to one another -> TODO add wrapper class. this will likely also help with AnnotatedType.getDescription()
+            // TODO preserve type path for later construction of full type
+            if (typePath == null || typePath.getLength() == 0) {
+                // we currently drop all TYPE_USE annotations with any TypePath since they dive into generic types, Array types, etc. which want can't handle yet
+                return new AnnotationProcessor(typeAnnotations::add, declarationHandler, handleAnnotationAnnotationProperty(descriptor, declarationHandler));
+            }
+            return null;
         }
 
         @Override
         public void visitEnd() {
             declarationHandler.onDeclaredMemberAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), annotations);
+            declarationHandler.onDeclaredMemberTypeAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), typeAnnotations);
         }
     }
 

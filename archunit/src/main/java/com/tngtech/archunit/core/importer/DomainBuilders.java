@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
@@ -44,6 +46,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAnnotatedType;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -70,12 +73,14 @@ import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.SourceCodeLocation;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.TryCatchBlock;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.union;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
@@ -85,8 +90,12 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 
 @Internal
@@ -211,6 +220,7 @@ public final class DomainBuilders {
     public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
         private Optional<JavaTypeCreationProcess<JavaField>> genericType;
         private JavaClassDescriptor rawType;
+        private Set<JavaAnnotationBuilder> typeAnnotations;
 
         JavaFieldBuilder() {
         }
@@ -221,7 +231,18 @@ public final class DomainBuilders {
             return self();
         }
 
-        public JavaType getType(JavaField field) {
+        JavaFieldBuilder withTypeAnnotations(Set<JavaAnnotationBuilder> typeAnnotations) {
+            this.typeAnnotations = typeAnnotations;
+            return self();
+        }
+
+        public JavaAnnotatedType getAnnotatedType(JavaField field) {
+            JavaAnnotatedTypeBaseImpl annotatedType = new JavaAnnotatedTypeBaseImpl(this.getType(field));
+            annotatedType.completeAnnotations(buildAnnotations(annotatedType, typeAnnotations, importedClasses));
+            return annotatedType;
+        }
+
+        private JavaType getType(JavaField field) {
             return genericType.isPresent()
                     ? genericType.get().finish(field, allTypeParametersInContextOf(field.getOwner()), importedClasses)
                     : importedClasses.getOrResolve(rawType.getFullyQualifiedClassName());
@@ -1231,6 +1252,95 @@ public final class DomainBuilders {
             return typeArguments.stream()
                     .map(typeArgument -> ensureCanonicalArrayTypeName(typeArgument.getName()))
                     .collect(joining(", ", "<", ">"));
+        }
+    }
+
+    private static class JavaAnnotatedTypeBaseImpl implements JavaAnnotatedType {
+        private final JavaType type;
+        private Map<String, JavaAnnotation<JavaAnnotatedType>> annotations = emptyMap();
+
+        public JavaAnnotatedTypeBaseImpl(JavaType type) {
+            this.type = type;
+        }
+
+        private void completeAnnotations(Map<String, JavaAnnotation<JavaAnnotatedType>> annotations) {
+            this.annotations = annotations;
+        }
+
+        @Override
+        public JavaType getType() {
+            return type;
+        }
+
+        @Override
+        public Set<? extends JavaAnnotation<? extends JavaAnnotatedType>> getAnnotations() {
+            return ImmutableSet.copyOf(annotations.values());
+        }
+
+        /**
+         * Returns the {@link Annotation} of this member of the given {@link Annotation} type.
+         *
+         * @throws IllegalArgumentException if there is no annotation of the respective reflection type
+         */
+        @Override
+        public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+            return getAnnotationOfType(type.getName()).as(type);
+        }
+
+        @Override
+        public JavaAnnotation<? extends JavaAnnotatedType> getAnnotationOfType(String typeName) {
+            Optional<? extends JavaAnnotation<? extends JavaAnnotatedType>> annotation = tryGetAnnotationOfType(typeName);
+
+            if (!annotation.isPresent()) {
+                throw new IllegalArgumentException(String.format("%s is not annotated with @%s", getDescription(), typeName));
+            }
+            return annotation.get();
+        }
+
+        @Override
+        public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+            return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+        }
+
+        @Override
+        public Optional<? extends JavaAnnotation<? extends JavaAnnotatedType>> tryGetAnnotationOfType(String typeName) {
+            return Optional.ofNullable(annotations.get(typeName));
+        }
+
+        @Override
+        public boolean isAnnotatedWith(Class<? extends Annotation> type) {
+            return isAnnotatedWith(type.getName());
+        }
+
+        @Override
+        public boolean isAnnotatedWith(String typeName) {
+            return annotations.containsKey(typeName);
+        }
+
+        @Override
+        public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+            return CanBeAnnotated.Utils.isAnnotatedWith(annotations.values(), predicate);
+        }
+
+        @Override
+        public boolean isMetaAnnotatedWith(Class<? extends Annotation> type) {
+            return isMetaAnnotatedWith(type.getName());
+        }
+
+        @Override
+        public boolean isMetaAnnotatedWith(String typeName) {
+            return isMetaAnnotatedWith(GET_RAW_TYPE.then(GET_NAME).is(equalTo(typeName)));
+        }
+
+        @Override
+        public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+            return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
+        }
+
+        @Override
+        public String getDescription() {
+            // TODO implement. we need location with owning field/method type path and if we have a TypePath sth like typePath.toString() = WILDCARD_BOUND[0]/PARAM[1]/ARRAY[0]
+            return "AnnotatedType<TODO>";
         }
     }
 }

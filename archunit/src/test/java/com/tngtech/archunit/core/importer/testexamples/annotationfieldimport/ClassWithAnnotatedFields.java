@@ -8,6 +8,10 @@ import java.util.Map;
 
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
+import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithOneAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithOneTypeUseAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.ClassRetainedTypeUseAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.RuntimeRetainedTypeUseAnnotation;
 
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
@@ -15,6 +19,23 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public class ClassWithAnnotatedFields {
+    @RuntimeRetainedSimpleFieldAnnotation
+    public Object fieldWithRuntimeRetainedSimpleFieldAnnotation;
+
+    public @RuntimeRetainedTypeUseAnnotation Object fieldWithRuntimeRetainedTypeUseAnnotation;
+
+    @ClassRetainedSimpleFieldAnnotation
+    public Object fieldWithClassRetainedSimpleFieldAnnotation;
+
+    public @ClassRetainedTypeUseAnnotation Object fieldWithClassRetainedTypeUseAnnotation;
+
+    public ClassWithOneAnnotation fieldWithClassAnnotated;
+
+    public ClassWithOneTypeUseAnnotation fieldWithClassAnnotatedWithTypeUse;
+
+    @RuntimeRetainedSimpleFieldAnnotation
+    public @RuntimeRetainedTypeUseAnnotation ClassWithOneAnnotation fieldWithSimpleAndTypeUseAnnotation;
+
     @FieldAnnotationWithStringValue("something")
     public Object stringAnnotatedField;
 
