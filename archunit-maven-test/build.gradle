@@ -207,7 +207,7 @@ def addMavenTest = { IntegrationTestConfig config ->
         }
 
         gradle.projectsEvaluated {
-            def publishTasks = allprojects
+            def publishTasks = rootProject.allprojects
                     .findAll { it.findProperty('isReleaseProject') }
                     .collectMany { [it.publish, it.publishToMavenLocal] }
             executeRules.configure { mustRunAfter(*publishTasks) }
