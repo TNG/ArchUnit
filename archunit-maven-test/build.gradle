@@ -85,7 +85,7 @@ clean {
     }
 }
 
-task initializeMavenTest {
+def initializeMavenTest = tasks.register('initializeMavenTest') {
     doLast {
         verificationResultArchivePath.with {
             deleteDir()
@@ -102,16 +102,12 @@ def mavenCommand = { String... params ->
 }
 
 def addMavenTest = { IntegrationTestConfig config ->
-    String prepareMavenTest = "prepareMavenTest${config.suffix}"
-    String executeRules = "executeRules${config.suffix}"
-    String verifyRules = "verifyRules${config.suffix}"
-    String cleanUpMavenTest = "cleanUpMavenTest${config.suffix}"
-    String runMavenTest = "runMavenTest${config.suffix}"
     def mavenSurefirePlugin = libs.mavenSurefirePlugin.get()
     def mavenCompilerPlugin = libs.mavenCompilerPlugin.get()
 
     return {
-        tasks.create(name: prepareMavenTest, dependsOn: initializeMavenTest) {
+        def prepareMavenTest = tasks.register("prepareMavenTest${config.suffix}") {
+            dependsOn initializeMavenTest
             doLast {
                 mavenPom.delete()
                 Files.copy(mavenPomTemplate.toPath(), mavenPom.toPath())
@@ -164,15 +160,21 @@ def addMavenTest = { IntegrationTestConfig config ->
             }
         }
 
-        tasks.create(name: executeRules, type: Exec, dependsOn: prepareMavenTest).configure mavenExec {
+        def executeRules = tasks.register("executeRules${config.suffix}", Exec) {
+            dependsOn prepareMavenTest
+        }
+        executeRules.configure mavenExec {
             commandLine mavenCommand('clean', 'test', '-P', 'execute-rules')
         }
 
-        tasks.create(name: verifyRules, type: Exec, dependsOn: executeRules).configure mavenExec {
+        def verifyRules = tasks.register("verifyRules${config.suffix}", Exec) {
+            dependsOn executeRules
+        }
+        verifyRules.configure mavenExec {
             commandLine mavenCommand('surefire:test', '-P', 'verify-rules')
         }
 
-        tasks.create(name: cleanUpMavenTest) {
+        def cleanUpMavenTest = tasks.register("cleanUpMavenTest${config.suffix}") {
             doFirst {
                 copy {
                     from verificationResultOriginPath
@@ -188,22 +190,27 @@ def addMavenTest = { IntegrationTestConfig config ->
         }
 
         // Run cleanUp even if task fails
-        [tasks[prepareMavenTest], tasks[verifyRules], tasks[executeRules]]*.finalizedBy tasks[cleanUpMavenTest]
+        [prepareMavenTest, verifyRules, executeRules].each { taskProvider ->
+            taskProvider.configure { finalizedBy cleanUpMavenTest }
+        }
 
-        tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
+        def runMavenTest = tasks.register("runMavenTest${config.suffix}") {
+            dependsOn prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest
+        }
 
-        [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest, runMavenTest].each { taskName ->
-            tasks[taskName].onlyIf("requires Java ${config.minimumJavaVersion} or higher") {
-                config.supports(integrationTestJavaVersion)
+        [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest, runMavenTest].each { taskProvider ->
+            taskProvider.configure {
+                onlyIf("requires Java ${config.minimumJavaVersion} or higher") {
+                    config.supports(integrationTestJavaVersion)
+                }
             }
         }
 
-        def executeRulesTask = tasks[executeRules]
         gradle.projectsEvaluated {
             def publishTasks = allprojects
                     .findAll { it.findProperty('isReleaseProject') }
                     .collectMany { [it.publish, it.publishToMavenLocal] }
-            executeRulesTask.mustRunAfter(*publishTasks)
+            executeRules.configure { mustRunAfter(*publishTasks) }
         }
     }
 }
@@ -265,14 +272,20 @@ integrationTestConfigs.each { config -> project.with(addMavenTest(config)) }
 
 def suffixes = integrationTestConfigs*.suffix.sort()
 [suffixes, suffixes.tail()].transpose().each { twoConsecutiveSuffixes ->
-    tasks["prepareMavenTest${twoConsecutiveSuffixes[1]}"].mustRunAfter(tasks["cleanUpMavenTest${twoConsecutiveSuffixes[0]}"])
+    tasks.named("prepareMavenTest${twoConsecutiveSuffixes[1]}").configure {
+        mustRunAfter tasks.named("cleanUpMavenTest${twoConsecutiveSuffixes[0]}")
+    }
 }
 
-task runMavenTest
-tasks.findAll { it.name ==~ /^runMavenTest.+/ }.each { runMavenTest.dependsOn it }
-tasks.findAll { it.name ==~ /.*MavenTest.+/ }.each {
-    it.doFirst {
-        println "Running Maven Integration Test with JDK ${integrationTestJavaVersion} located at ${jdkHome}"
+tasks.register('runMavenTest') {
+    dependsOn integrationTestConfigs.collect { tasks.named("runMavenTest${it.suffix}") }
+}
+
+tasks.configureEach {
+    if (name ==~ /.*MavenTest.+/) {
+        doFirst {
+            println "Running Maven Integration Test with JDK ${integrationTestJavaVersion} located at ${jdkHome}"
+        }
     }
 }
 
