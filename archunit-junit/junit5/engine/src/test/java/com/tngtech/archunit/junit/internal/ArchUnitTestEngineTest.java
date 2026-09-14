@@ -743,6 +743,19 @@ class ArchUnitTestEngineTest {
         }
 
         @Test
+        void filtering_class_selectors_by_class_name() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleField.class)
+                    .withClass(SimpleRuleMethod.class)
+                    .withClassNameFilter(excludeClassNamePatterns(".*Field.*"));
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(toUniqueIds(rootDescriptor)).containsOnly(
+                    engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()));
+        }
+
+        @Test
         void filtering_excluded_packages() {
             EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
                     .withPackage(SimpleRuleLibrary.class.getPackage().getName())

@@ -118,7 +118,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
 
     private Stream<Class<?>> filterCandidatesAndLoadClasses(Stream<JavaClass> classes, EngineDiscoveryRequest discoveryRequest) {
         return classes
-                .filter(isAllowedBy(discoveryRequest))
+                .filter(isAllowedBy(discoveryRequest, JavaClass::getName))
                 .filter(this::isArchUnitTestCandidate)
                 .flatMap(this::safelyReflect);
     }
@@ -126,6 +126,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     private void resolveRequestedClasses(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId, ArchUnitEngineDescriptor result) {
         discoveryRequest.getSelectorsByType(ClassSelector.class).stream()
                 .map(ClassSelector::getJavaClass)
+                .filter(isAllowedBy(discoveryRequest, Class::getName))
                 .filter(this::isArchUnitTestCandidate)
                 .forEach(clazz -> ArchUnitTestDescriptor.resolve(
                         result, ElementResolver.create(result, uniqueId, clazz), cache.get()));
@@ -170,14 +171,14 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
         });
     }
 
-    private Predicate<JavaClass> isAllowedBy(EngineDiscoveryRequest discoveryRequest) {
+    private <T> Predicate<T> isAllowedBy(EngineDiscoveryRequest discoveryRequest, Function<T, String> nameOf) {
         List<Predicate<String>> filters = Stream
                 .concat(discoveryRequest.getFiltersByType(ClassNameFilter.class).stream(),
                         discoveryRequest.getFiltersByType(PackageNameFilter.class).stream())
                 .map(Filter::toPredicate)
                 .collect(toList());
 
-        return javaClass -> filters.stream().allMatch(p -> p.test(javaClass.getName()));
+        return candidate -> filters.stream().allMatch(p -> p.test(nameOf.apply(candidate)));
     }
 
     private boolean isArchUnitTestCandidate(JavaClass javaClass) {
