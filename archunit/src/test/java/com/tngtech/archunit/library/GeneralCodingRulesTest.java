@@ -21,6 +21,7 @@ import org.junit.Test;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.library.GeneralCodingRules.ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE;
 import static com.tngtech.archunit.library.GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED;
+import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.OLD_DATE_AND_TIME_CLASSES_SHOULD_NOT_BE_USED;
 import static com.tngtech.archunit.library.GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
@@ -196,6 +197,28 @@ public class GeneralCodingRulesTest {
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
     private @interface DeprecatedAnnotation {
+    }
+
+    @Test
+    public void NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS_should_fail_on_System_out_and_err_and_printStackTrace() {
+        @SuppressWarnings("unused")
+        class AccessesStandardStreams {
+            void write() {
+                System.out.println("out");
+                System.err.println("err");
+            }
+
+            void stackTrace(Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        assertThatRule(NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS)
+                .checking(new ClassFileImporter().importClasses(AccessesStandardStreams.class))
+                .hasNumberOfViolations(3)
+                .hasViolationContaining("gets field <java.lang.System.out>")
+                .hasViolationContaining("gets field <java.lang.System.err>")
+                .hasViolationContaining("calls method <%s.printStackTrace()>", Exception.class.getName());
     }
 
     @Test
