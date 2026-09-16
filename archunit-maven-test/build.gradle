@@ -165,6 +165,21 @@ def addMavenTest = { IntegrationTestConfig config ->
         }
         executeRules.configure mavenExec {
             commandLine mavenCommand('clean', 'test', '-P', 'execute-rules')
+            def logStream
+            doFirst {
+                def logPath = new File(verificationResultArchivePath, config.identifier)
+                assert logPath.mkdir() || logPath.directory : "Couldn't create directory $logPath"
+                def logFile = new File(logPath, "${name}.log")
+                logStream = new FileOutputStream(logFile)
+                standardOutput = logStream
+                errorOutput = logStream
+                println "\$ ${commandLine.join(" ")} > ${project.relativePath(logFile)}"
+            }
+            doLast {
+                if (logStream) {
+                    logStream.close()
+                }
+            }
         }
 
         def verifyRules = tasks.register("verifyRules${config.suffix}", Exec) {
@@ -172,14 +187,19 @@ def addMavenTest = { IntegrationTestConfig config ->
         }
         verifyRules.configure mavenExec {
             commandLine mavenCommand('surefire:test', '-P', 'verify-rules')
+            doFirst {
+                println "\$ ${commandLine.join(" ")}"
+            }
         }
 
         def cleanUpMavenTest = tasks.register("cleanUpMavenTest${config.suffix}") {
             doFirst {
+                def archivePath = new File(verificationResultArchivePath, config.identifier)
+                println "Copying test results to ${project.relativePath(archivePath)}"
                 copy {
                     from verificationResultOriginPath
                     include '**/*.xml'
-                    into new File(verificationResultArchivePath, "${config.identifier}")
+                    into archivePath
                 }
             }
             doLast {
