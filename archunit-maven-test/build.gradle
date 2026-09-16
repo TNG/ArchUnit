@@ -154,13 +154,36 @@ def addMavenTest = { IntegrationTestConfig config ->
 
         def executeRules = tasks.register("executeRules${config.suffix}", Exec) {
             dependsOn prepareMavenTest
+
+            def logStream
+            doFirst {
+                def logPath = new File(verificationResultArchivePath, config.identifier)
+                assert logPath.mkdir() || logPath.directory : "Couldn't create directory $logPath"
+                def logFile = new File(logPath, "${name}.log")
+                logStream = new FileOutputStream(logFile)
+                standardOutput = logStream
+                errorOutput = logStream
+                println "\$ ${commandLine.join(" ")} > ${project.relativePath(logFile)}"
+            }
+
             workingDir projectDir
             environment JAVA_HOME: jdkHome
             commandLine mavenCommand('clean', 'test', '-P', 'execute-rules')
+
+            doLast {
+                if (logStream) {
+                    logStream.close()
+                }
+            }
         }
 
         def verifyRules = tasks.register("verifyRules${config.suffix}", Exec) {
             dependsOn executeRules
+
+            doFirst {
+                println "\$ ${commandLine.join(" ")}"
+            }
+
             workingDir projectDir
             environment JAVA_HOME: jdkHome
             commandLine mavenCommand('surefire:test', '-P', 'verify-rules')
@@ -168,10 +191,12 @@ def addMavenTest = { IntegrationTestConfig config ->
 
         def cleanUpMavenTest = tasks.register("cleanUpMavenTest${config.suffix}") {
             doFirst {
+                def archivePath = new File(verificationResultArchivePath, config.identifier)
+                println "Copying test results to ${project.relativePath(archivePath)}"
                 copy {
                     from verificationResultOriginPath
                     include '**/*.xml'
-                    into new File(verificationResultArchivePath, "${config.identifier}")
+                    into archivePath
                 }
             }
             doLast {
