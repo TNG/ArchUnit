@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.ImporterWithAdjustedResolutionRuns;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
@@ -555,6 +556,28 @@ public class ClassFileImporterAutomaticResolutionTest {
 
         assertThat(throwsDeclaration.getRawType()).isFullyImported(true);
         assertThatType(throwsDeclaration.getRawType()).matches(InterruptedException.class);
+    }
+
+    @Test
+    public void automatically_resolves_types_of_catch_clauses() {
+        @SuppressWarnings("unused")
+        class Origin {
+            void call() {
+                try {
+                    System.out.println("some code");
+                } catch (IllegalArgumentException e) {
+                    System.out.println("caught");
+                }
+            }
+        }
+
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        TryCatchBlock tryCatchBlock = getOnlyElement(javaClass.getTryCatchBlocks());
+        JavaClass caughtType = getOnlyElement(tryCatchBlock.getCaughtThrowables());
+
+        assertThat(caughtType).as("caught type").isFullyImported(true);
+        assertThatType(caughtType).matches(IllegalArgumentException.class);
     }
 
     @Test
