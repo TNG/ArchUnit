@@ -24,6 +24,7 @@ import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 
 @PublicAPI(usage = ACCESS)
 public interface HasAnnotations<SELF extends HasAnnotations<SELF>> extends CanBeAnnotated, HasDescription {
@@ -33,23 +34,31 @@ public interface HasAnnotations<SELF extends HasAnnotations<SELF>> extends CanBe
     /**
      * @param type The {@link Class} of the {@link Annotation} to retrieve.
      * @return The {@link Annotation} of the given type.
-     *         Will throw an {@link IllegalArgumentException} if no matching {@link Annotation} is present.
+     * @throws IllegalArgumentException if no matching {@link Annotation} is present.
      * @param <A> The type of the {@link Annotation} to retrieve
      * @see #tryGetAnnotationOfType(Class)
      * @see #getAnnotationOfType(String)
      */
     @PublicAPI(usage = ACCESS)
-    <A extends Annotation> A getAnnotationOfType(Class<A> type);
+    default <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+        return getAnnotationOfType(type.getName()).as(type);
+    }
 
     /**
      * @param typeName The fully qualified class name of the {@link Annotation} type to retrieve.
      * @return The {@link JavaAnnotation} matching the given type.
-     *         Will throw an {@link IllegalArgumentException} if no matching {@link Annotation} is present.
+     * @throws IllegalArgumentException if no matching {@link Annotation} is present.
      * @see #tryGetAnnotationOfType(String)
      * @see #getAnnotationOfType(Class)
      */
     @PublicAPI(usage = ACCESS)
-    JavaAnnotation<? extends SELF> getAnnotationOfType(String typeName);
+    default JavaAnnotation<? extends SELF> getAnnotationOfType(String typeName) {
+        Optional<? extends JavaAnnotation<? extends SELF>> annotation = tryGetAnnotationOfType(typeName);
+        if (!annotation.isPresent()) {
+            throw new IllegalArgumentException(String.format("%s is not annotated with @%s", getDescription(), typeName));
+        }
+        return annotation.get();
+    }
 
     /**
      * @param type The {@link Class} of the {@link Annotation} to retrieve.
@@ -60,7 +69,9 @@ public interface HasAnnotations<SELF extends HasAnnotations<SELF>> extends CanBe
      * @see #tryGetAnnotationOfType(String)
      */
     @PublicAPI(usage = ACCESS)
-    <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type);
+    default <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+    }
 
     /**
      * @param typeName The fully qualified class name of the {@link Annotation} type to retrieve.
