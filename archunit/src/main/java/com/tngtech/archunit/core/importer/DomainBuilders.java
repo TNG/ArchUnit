@@ -34,42 +34,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.*;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
-import com.tngtech.archunit.core.domain.Formatters;
-import com.tngtech.archunit.core.domain.JavaAccess;
-import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaConstructor;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaConstructorReference;
-import com.tngtech.archunit.core.domain.JavaEnumConstant;
-import com.tngtech.archunit.core.domain.JavaField;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
-import com.tngtech.archunit.core.domain.JavaMethodReference;
-import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.JavaParameter;
-import com.tngtech.archunit.core.domain.JavaParameterizedType;
-import com.tngtech.archunit.core.domain.JavaStaticInitializer;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.JavaWildcardType;
-import com.tngtech.archunit.core.domain.Source;
-import com.tngtech.archunit.core.domain.SourceCodeLocation;
-import com.tngtech.archunit.core.domain.ThrowsClause;
-import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -234,6 +206,36 @@ public final class DomainBuilders {
         @Override
         JavaField construct(JavaFieldBuilder builder, ImportedClasses importedClasses) {
             return DomainObjectCreationContext.createJavaField(builder);
+        }
+    }
+
+    @Internal
+    public static final class JavaRecordComponentBuilder extends JavaMemberBuilder<JavaRecordComponent, JavaRecordComponentBuilder> {
+        private Optional<JavaTypeCreationProcess<JavaRecordComponent>> genericType;
+        private JavaClassDescriptor rawType;
+
+        JavaRecordComponentBuilder() {
+        }
+
+        JavaRecordComponentBuilder withType(Optional<JavaTypeCreationProcess<JavaRecordComponent>> genericTypeBuilder, JavaClassDescriptor rawType) {
+            this.genericType = checkNotNull(genericTypeBuilder);
+            this.rawType = checkNotNull(rawType);
+            return self();
+        }
+
+        public JavaType getType(JavaRecordComponent field) {
+            return genericType.isPresent()
+                    ? genericType.get().finish(field, allTypeParametersInContextOf(field.getOwner()), importedClasses)
+                    : importedClasses.getOrResolve(rawType.getFullyQualifiedClassName());
+        }
+
+        private static Iterable<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaClass javaClass) {
+            return FluentIterable.from(getTypeParametersOf(javaClass)).append(allTypeParametersInEnclosingContextOf(javaClass));
+        }
+
+        @Override
+        JavaRecordComponent construct(JavaRecordComponentBuilder builder, ImportedClasses importedClasses) {
+            return DomainObjectCreationContext.createJavaRecordComponent(builder);
         }
     }
 

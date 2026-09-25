@@ -39,6 +39,8 @@ public interface ImportContext {
 
     Set<JavaField> createFields(JavaClass owner);
 
+    Set<JavaRecordComponent> createRecordComponents(JavaClass owner);
+
     Set<JavaMethod> createMethods(JavaClass owner);
 
     Set<JavaConstructor> createConstructors(JavaClass owner);

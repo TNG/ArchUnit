@@ -37,6 +37,8 @@ interface DeclarationHandler {
 
     void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder, String fieldTypeName);
 
+    void onDeclaredRecordComponent(DomainBuilders.JavaRecordComponentBuilder fieldBuilder, String fieldTypeName);
+
     void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames);
 
     void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName);

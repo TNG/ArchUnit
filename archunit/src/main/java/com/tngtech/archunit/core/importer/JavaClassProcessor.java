@@ -39,24 +39,13 @@ import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaEnumConstant;
-import com.tngtech.archunit.core.domain.JavaField;
-import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.*;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.JavaCodeUnitSignatureImporter.JavaCodeUnitSignature;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +59,7 @@ import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isA
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
 class JavaClassProcessor extends ClassVisitor {
@@ -235,7 +225,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         JavaClassDescriptor rawType = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
-        Optional<JavaTypeCreationProcess<JavaField>> genericType = JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature, declarationHandler);
+        Optional<JavaTypeCreationProcess<JavaField>> genericType = JavaMemberTypeSignatureImporter.parseAsmMemberTypeSignature(signature, declarationHandler);
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
                 .withType(genericType, rawType)
@@ -243,6 +233,23 @@ class JavaClassProcessor extends ClassVisitor {
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder, rawType.getFullyQualifiedClassName());
         return new FieldProcessor(fieldBuilder, declarationHandler);
+    }
+
+    @Override
+    public RecordComponentVisitor visitRecordComponent(String name, String descriptor, String signature) {
+        if (importAborted()) {
+            return super.visitRecordComponent(name, descriptor, signature);
+        }
+
+        JavaClassDescriptor rawType = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(descriptor);
+        Optional<JavaTypeCreationProcess<JavaRecordComponent>> genericType = JavaMemberTypeSignatureImporter.parseAsmMemberTypeSignature(signature, declarationHandler);
+        DomainBuilders.JavaRecordComponentBuilder recordComponentBuilder = new DomainBuilders.JavaRecordComponentBuilder()
+                .withName(name)
+                .withType(genericType, rawType)
+                .withModifiers(emptySet()) // as of 2026-09, no modifiers are permitted on record components
+                .withDescriptor(descriptor);
+        declarationHandler.onDeclaredRecordComponent(recordComponentBuilder, rawType.getFullyQualifiedClassName());
+        return new RecordComponentProcessor(recordComponentBuilder, declarationHandler);
     }
 
     @Override
@@ -614,6 +621,29 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitEnd() {
             declarationHandler.onDeclaredMemberAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), annotations);
+        }
+    }
+
+    private static class RecordComponentProcessor extends RecordComponentVisitor {
+        private final DomainBuilders.JavaRecordComponentBuilder recordComponentBuilder;
+        private final DeclarationHandler declarationHandler;
+        private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+
+        private RecordComponentProcessor(DomainBuilders.JavaRecordComponentBuilder recordComponentBuilder, DeclarationHandler declarationHandler) {
+            super(ASM_API_VERSION);
+
+            this.recordComponentBuilder = recordComponentBuilder;
+            this.declarationHandler = declarationHandler;
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        }
+
+        @Override
+        public void visitEnd() {
+            declarationHandler.onDeclaredMemberAnnotations(recordComponentBuilder.getName(), recordComponentBuilder.getDescriptor(), annotations);
         }
     }
 

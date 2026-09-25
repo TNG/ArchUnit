@@ -129,6 +129,12 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredRecordComponent(DomainBuilders.JavaRecordComponentBuilder fieldBuilder, String fieldTypeName) {
+            importRecord.addRecordComponent(ownerName, fieldBuilder);
+            dependencyResolutionProcess.registerMemberType(fieldTypeName);
+        }
+
+        @Override
         public void onDeclaredConstructor(JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames) {
             importRecord.addConstructor(ownerName, constructorBuilder);
             dependencyResolutionProcess.registerMemberTypes(rawParameterTypeNames);

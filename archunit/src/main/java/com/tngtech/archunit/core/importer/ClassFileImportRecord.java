@@ -35,13 +35,7 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.*;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.MemberSignature;
 import org.slf4j.Logger;
@@ -72,6 +66,7 @@ class ClassFileImportRecord {
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final Map<String, List<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaRecordComponentBuilder> recordComponentBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
@@ -120,6 +115,10 @@ class ClassFileImportRecord {
 
     void addField(String ownerName, JavaFieldBuilder fieldBuilder) {
         fieldBuildersByOwner.put(ownerName, fieldBuilder);
+    }
+
+    void addRecordComponent(String ownerName, JavaRecordComponentBuilder recordComponentBuilder) {
+        recordComponentBuildersByOwner.put(ownerName, recordComponentBuilder);
     }
 
     void addMethod(String ownerName, JavaMethodBuilder methodBuilder) {
@@ -190,6 +189,10 @@ class ClassFileImportRecord {
 
     Set<JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
         return fieldBuildersByOwner.get(ownerName);
+    }
+
+    Set<JavaRecordComponentBuilder> getRecordComponentBuildersFor(String ownerName) {
+        return recordComponentBuildersByOwner.get(ownerName);
     }
 
     Set<JavaMethodBuilder> getMethodBuildersFor(String ownerName) {
