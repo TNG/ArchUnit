@@ -1,0 +1,8 @@
+---
+layout: splash
+title:  "New release of ArchUnit (v1.5.1)"
+date:   2026-09-25 12:00:00
+categories: news release
+---
+
+A new release of ArchUnit (v1.5.1) is out. For details see [the release on GitHub](https://github.com/TNG/ArchUnit/releases/tag/v1.5.1 "ArchUnit v1.5.1 on GitHub").
