@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,6 +29,57 @@ public class PlantUmlParserTest {
 
     @TempDir
     public File temporaryFolder;
+
+    @ParameterizedTest(name = "fileName = {0}")
+    @ValueSource(strings = {"components-long-syntax.puml", "packages-long-syntax.puml"})
+    void parses_long_syntax_from_file(final String fileName) {
+        PlantUmlDiagram diagram = parseFile(fileName);
+
+        verifyComponentLayers(diagram);
+        verifyComponentAlias(diagram);
+    }
+
+    private void verifyComponentAlias(PlantUmlDiagram diagram) {
+        assertThat(diagram.getAllComponents()).hasSize(3)
+                .satisfiesExactlyInAnyOrder(
+                        c -> assertThat(c.getAlias()).contains(new Alias("web")),
+                        c -> assertThat(c.getAlias()).contains(new Alias("usecase")),
+                        c -> assertThat(c.getAlias()).contains(new Alias("persistence")));
+    }
+
+    @Test
+    public void parses_components_from_file() {
+        PlantUmlDiagram diagram = parseFile("components-short-syntax.puml");
+
+        verifyComponentLayers(diagram);
+        assertThat(diagram.getAllComponents()).hasSize(3)
+                .allSatisfy(c -> assertThat(c.getAlias()).isEmpty());
+    }
+
+    private PlantUmlDiagram parseFile(final String fileName) {
+        return parser.parse(PlantUmlParserTest.class.getResource(fileName));
+    }
+
+    private void verifyComponentLayers(PlantUmlDiagram diagram) {
+        assertThat(diagram.getAllComponents()).hasSize(3)
+                .satisfiesExactlyInAnyOrder(
+                        c -> {
+                            assertThat(c.getComponentName()).isEqualTo(new ComponentName("Web API"));
+                            assertThat(c.getDependencies()).hasSize(1);
+                            assertThat(c.getStereotypes()).contains(new Stereotype("..web"));
+                        },
+                        c -> {
+                            assertThat(c.getComponentName()).isEqualTo(new ComponentName("Use Cases"));
+                            assertThat(c.getDependencies()).hasSize(1);
+                            assertThat(c.getStereotypes()).contains(new Stereotype("..usecase"));
+                        },
+                        c -> {
+                            assertThat(c.getComponentName()).isEqualTo(new ComponentName("Persistence"));
+                            assertThat(c.getDependencies()).isEmpty();
+                            assertThat(c.getStereotypes()).contains(new Stereotype("..persistence"));
+                        }
+                );
+    }
 
     @Test
     public void parses_correct_number_of_components() {
