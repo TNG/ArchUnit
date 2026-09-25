@@ -457,7 +457,7 @@ p.tableblock > code:only-child {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 1.5.0</span>
+<span id="revnumber">version 1.5.1</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -646,8 +646,8 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-groovy hljs" data-lang="groovy">dependencies {
-    // testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.0' // for JUnit 5
-    testImplementation 'com.tngtech.archunit:archunit-junit6:1.5.0'
+    // testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.1' // for JUnit 5
+    testImplementation 'com.tngtech.archunit:archunit-junit6:1.5.1'
 }</code></pre>
 </div>
 </div>
@@ -658,7 +658,7 @@ from Maven Central:</p>
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;!-- &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt; --&gt; &lt;!-- for JUnit 5 --&gt;
     &lt;artifactId&gt;archunit-junit6&lt;/artifactId&gt;
-    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;version&gt;1.5.1&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -674,7 +674,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-groovy hljs" data-lang="groovy">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:1.5.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:1.5.1'
 }</code></pre>
 </div>
 </div>
@@ -684,7 +684,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;version&gt;1.5.1&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -700,7 +700,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-groovy hljs" data-lang="groovy">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:1.5.0'
+   testImplementation 'com.tngtech.archunit:archunit:1.5.1'
 }</code></pre>
 </div>
 </div>
@@ -710,7 +710,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;version&gt;1.5.1&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -3243,7 +3243,7 @@ argument, and supply the concrete arguments as</p>
 <p>member types (e.g. the type of a field of a class, type of a method parameter, etc.)</p>
 </li>
 <li>
-<p>accesses to types (e.g. a method calls another method of a different class)</p>
+<p>accesses to types (e.g. a method calls another method of a different class, or catches an exception of it)</p>
 </li>
 <li>
 <p>supertypes (i.e. superclasses that are extended and interfaces that are implemented)</p>
