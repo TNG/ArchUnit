@@ -15,10 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
@@ -28,31 +25,11 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.*;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
-import com.tngtech.archunit.core.domain.ImportContext;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
-import com.tngtech.archunit.core.domain.JavaAccess;
-import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaConstructor;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaConstructorReference;
-import com.tngtech.archunit.core.domain.JavaField;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
-import com.tngtech.archunit.core.domain.JavaMethodReference;
-import com.tngtech.archunit.core.domain.JavaStaticInitializer;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
@@ -325,6 +302,11 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Set<JavaRecordComponent> createRecordComponents(JavaClass owner) {
+        return build(importRecord.getRecordComponentBuildersFor(owner.getName()), owner, classes);
+    }
+
+    @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
         Stream<JavaMethodBuilder> methodBuilders = getNonSyntheticMethodBuildersFor(owner);
         if (owner.isAnnotation()) {
@@ -365,7 +347,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+    public Map<String, JavaAnnotation<JavaBaseMember>> createAnnotations(JavaBaseMember owner) {
         return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
     }
 

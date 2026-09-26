@@ -12,30 +12,8 @@ import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.*;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
-import com.tngtech.archunit.core.domain.ImportContext;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
-import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaConstructor;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaConstructorReference;
-import com.tngtech.archunit.core.domain.JavaEnumConstant;
-import com.tngtech.archunit.core.domain.JavaField;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
-import com.tngtech.archunit.core.domain.JavaMethodReference;
-import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.JavaStaticInitializer;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
@@ -372,6 +350,9 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Set<JavaRecordComponent> createRecordComponents(JavaClass owner) { return Collections.emptySet(); }
+
+        @Override
         public Set<JavaMethod> createMethods(JavaClass owner) {
             return Collections.emptySet();
         }
@@ -392,7 +373,7 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+        public Map<String, JavaAnnotation<JavaBaseMember>> createAnnotations(JavaBaseMember owner) {
             return emptyMap();
         }
 

@@ -45,6 +45,7 @@ class JavaClassMembers {
     private final Set<JavaMethod> methods;
     private final Set<JavaMember> members;
     private final Set<JavaConstructor> constructors;
+    private final Set<JavaRecordComponent> recordComponents;
     private final Optional<JavaStaticInitializer> staticInitializer;
     private final Supplier<Set<JavaMethod>> allMethods;
     private final Supplier<Set<JavaConstructor>> allConstructors;
@@ -55,9 +56,10 @@ class JavaClassMembers {
             .addAll(getAllConstructors())
             .build());
 
-    JavaClassMembers(JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
+    JavaClassMembers(JavaClass owner, Set<JavaField> fields, Set<JavaRecordComponent> recordComponents, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
         this.owner = owner;
         this.fields = fields;
+        this.recordComponents = recordComponents;
         this.methods = methods;
         this.constructors = constructors;
         this.staticInitializer = staticInitializer;
@@ -124,6 +126,8 @@ class JavaClassMembers {
         }
         return Optional.empty();
     }
+
+    Set<JavaRecordComponent> getRecordComponents() { return recordComponents; }
 
     Set<JavaCodeUnit> getCodeUnits() {
         return codeUnits;
@@ -350,6 +354,7 @@ class JavaClassMembers {
                 emptySet(),
                 emptySet(),
                 emptySet(),
+                emptySet(),
                 Optional.empty());
     }
 
@@ -357,6 +362,7 @@ class JavaClassMembers {
         return new JavaClassMembers(
                 owner,
                 context.createFields(owner),
+                context.createRecordComponents(owner),
                 context.createMethods(owner),
                 context.createConstructors(owner),
                 context.createStaticInitializer(owner));

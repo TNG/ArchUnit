@@ -39,6 +39,8 @@ public interface ImportContext {
 
     Set<JavaField> createFields(JavaClass owner);
 
+    Set<JavaRecordComponent> createRecordComponents(JavaClass owner);
+
     Set<JavaMethod> createMethods(JavaClass owner);
 
     Set<JavaConstructor> createConstructors(JavaClass owner);
@@ -47,7 +49,7 @@ public interface ImportContext {
 
     Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner);
 
-    Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner);
+    Map<String, JavaAnnotation<JavaBaseMember>> createAnnotations(JavaBaseMember owner);
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
