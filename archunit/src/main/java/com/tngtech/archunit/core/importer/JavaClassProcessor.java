@@ -59,7 +59,6 @@ import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isA
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
 class JavaClassProcessor extends ClassVisitor {
@@ -246,7 +245,6 @@ class JavaClassProcessor extends ClassVisitor {
         DomainBuilders.JavaRecordComponentBuilder recordComponentBuilder = new DomainBuilders.JavaRecordComponentBuilder()
                 .withName(name)
                 .withType(genericType, rawType)
-                .withModifiers(emptySet()) // as of 2026-09, no modifiers are permitted on record components
                 .withDescriptor(descriptor);
         declarationHandler.onDeclaredRecordComponent(recordComponentBuilder, rawType.getFullyQualifiedClassName());
         return new RecordComponentProcessor(recordComponentBuilder, declarationHandler);
