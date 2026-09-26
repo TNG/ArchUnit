@@ -108,17 +108,16 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public abstract static class JavaMemberBuilder<OUTPUT, SELF extends JavaMemberBuilder<OUTPUT, SELF>>
+    public abstract static class JavaBaseMemberBuilder<OUTPUT, SELF extends JavaBaseMemberBuilder<OUTPUT, SELF>>
             implements BuilderWithBuildParameter<JavaClass, OUTPUT> {
 
         private String name;
         private String descriptor;
-        private Set<JavaModifier> modifiers;
         private JavaClass owner;
         ImportedClasses importedClasses;
         private int firstLineNumber;
 
-        private JavaMemberBuilder() {
+        private JavaBaseMemberBuilder() {
         }
 
         SELF withName(String name) {
@@ -128,11 +127,6 @@ public final class DomainBuilders {
 
         SELF withDescriptor(String descriptor) {
             this.descriptor = descriptor;
-            return self();
-        }
-
-        SELF withModifiers(Set<JavaModifier> modifiers) {
-            this.modifiers = modifiers;
             return self();
         }
 
@@ -159,10 +153,6 @@ public final class DomainBuilders {
             return descriptor;
         }
 
-        public Set<JavaModifier> getModifiers() {
-            return modifiers;
-        }
-
         public JavaClass getOwner() {
             return owner;
         }
@@ -176,6 +166,23 @@ public final class DomainBuilders {
             this.owner = owner;
             this.importedClasses = importedClasses;
             return construct(self(), importedClasses);
+        }
+    }
+
+    @Internal
+    public abstract static class JavaMemberBuilder<OUTPUT, SELF extends JavaMemberBuilder<OUTPUT, SELF>>
+            extends JavaBaseMemberBuilder<OUTPUT, SELF> {
+        private Set<JavaModifier> modifiers;
+        private JavaMemberBuilder() {
+        }
+
+        SELF withModifiers(Set<JavaModifier> modifiers) {
+            this.modifiers = modifiers;
+            return self();
+        }
+
+        public Set<JavaModifier> getModifiers() {
+            return modifiers;
         }
     }
 
@@ -210,7 +217,7 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public static final class JavaRecordComponentBuilder extends JavaMemberBuilder<JavaRecordComponent, JavaRecordComponentBuilder> {
+    public static final class JavaRecordComponentBuilder extends JavaBaseMemberBuilder<JavaRecordComponent, JavaRecordComponentBuilder> {
         private Optional<JavaTypeCreationProcess<JavaRecordComponent>> genericType;
         private JavaClassDescriptor rawType;
 

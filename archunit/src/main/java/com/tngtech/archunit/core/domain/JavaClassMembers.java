@@ -35,7 +35,6 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 

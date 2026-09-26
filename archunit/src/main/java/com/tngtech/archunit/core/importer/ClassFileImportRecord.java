@@ -32,8 +32,8 @@ import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
+import com.tngtech.archunit.core.domain.JavaBaseMember;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.*;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -211,7 +211,7 @@ class ClassFileImportRecord {
         return annotationsByOwner.get(owner.getName());
     }
 
-    Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
+    Set<JavaAnnotationBuilder> getAnnotationsFor(JavaBaseMember owner) {
         return annotationsByOwner.get(getMemberKey(owner));
     }
 
@@ -375,7 +375,7 @@ class ClassFileImportRecord {
         return getMemberKey(member.getDeclaringClassName(), member.getName(), member.getDescriptor());
     }
 
-    private static String getMemberKey(JavaMember member) {
+    private static String getMemberKey(JavaBaseMember member) {
         return getMemberKey(member.getOwner().getName(), member.getName(), member.getDescriptor());
     }
 

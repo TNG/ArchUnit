@@ -16,30 +16,26 @@
 package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
-import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.ResolvesTypesViaReflection;
-import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
+import java.lang.reflect.RecordComponent;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Note: Does not extend {@link com.tngtech.archunit.core.domain.JavaMember}
+ * because {@link java.lang.reflect.RecordComponent} does not implement {@link java.lang.reflect.Member}.
+ */
 @PublicAPI(usage = ACCESS)
-public final class JavaRecordComponent extends JavaMember implements HasType {
+public final class JavaRecordComponent extends JavaBaseMember implements HasType {
     private final JavaType type;
-    private final Supplier<Field> fieldSupplier;
 
     JavaRecordComponent(DomainBuilders.JavaRecordComponentBuilder builder) {
         super(builder);
         type = builder.getType(this);
-        fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());
     }
 
     /**
@@ -75,9 +71,8 @@ public final class JavaRecordComponent extends JavaMember implements HasType {
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getAccessesToSelf() {
-        // FIXME implement, consider base type
-//        return getReverseDependencies().getAccessesTo(this);
-        return Collections.emptySet();
+        // We delegate to the accesses of the field underlying this record component. The names are identical.
+        return getOwner().getField(getName()).getAccessesToSelf();
     }
 
     @Override
@@ -100,30 +95,16 @@ public final class JavaRecordComponent extends JavaMember implements HasType {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
-    public Field reflect() {
-        return fieldSupplier.get();
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
     public String getDescription() {
-        return "Field <" + getFullName() + ">";
+        return "RecordComponent <" + getFullName() + ">";
     }
 
-    @ResolvesTypesViaReflection
-    @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
-    private class ReflectFieldSupplier implements Supplier<Field> {
-        @Override
-        public Field get() {
-            Class<?> reflectedOwner = getOwner().reflect();
-            try {
-                return reflectedOwner.getDeclaredField(getName());
-            } catch (NoSuchFieldException e) {
-                throw new InconsistentClassPathException(
-                        String.format("Can't resolve field %s.%s", reflectedOwner.getName(), getName()), e);
-            }
-        }
+    /**
+     * Mirrors {@link RecordComponent#getAccessor()}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaMethod getAccessor() {
+        // The accessor is an automatically generated getter with the same name as the record component.
+        return getOwner().getMethod(getName());
     }
 }

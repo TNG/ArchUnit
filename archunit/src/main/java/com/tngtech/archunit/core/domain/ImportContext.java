@@ -49,7 +49,7 @@ public interface ImportContext {
 
     Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner);
 
-    Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner);
+    Map<String, JavaAnnotation<JavaBaseMember>> createAnnotations(JavaBaseMember owner);
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
