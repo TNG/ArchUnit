@@ -39,7 +39,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
@@ -76,33 +75,6 @@ public abstract class JavaMember implements
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<? extends JavaMember>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
-    }
-
-    /**
-     * Returns the {@link Annotation} of this member of the given {@link Annotation} type.
-     *
-     * @throws IllegalArgumentException if there is no annotation of the respective reflection type
-     */
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
-        return getAnnotationOfType(type.getName()).as(type);
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public JavaAnnotation<? extends JavaMember> getAnnotationOfType(String typeName) {
-        Optional<? extends JavaAnnotation<? extends JavaMember>> annotation = tryGetAnnotationOfType(typeName);
-        if (!annotation.isPresent()) {
-            throw new IllegalArgumentException(String.format("Member %s is not annotated with @%s", getFullName(), typeName));
-        }
-        return annotation.get();
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
     }
 
     @Override

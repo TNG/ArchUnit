@@ -34,7 +34,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
-import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
@@ -124,22 +123,9 @@ public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, Has
     }
 
     @Override
-    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
-        return getAnnotationOfType(type.getName()).as(type);
-    }
-
-    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' element is this parameter
     public JavaAnnotation<JavaParameter> getAnnotationOfType(String typeName) {
-        Optional<JavaAnnotation<JavaParameter>> annotation = tryGetAnnotationOfType(typeName);
-        if (!annotation.isPresent()) {
-            throw new IllegalArgumentException(String.format("%s is not annotated with @%s", getDescription(), typeName));
-        }
-        return annotation.get();
-    }
-
-    @Override
-    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+        return (JavaAnnotation<JavaParameter>) HasAnnotations.super.getAnnotationOfType(typeName);
     }
 
     @Override

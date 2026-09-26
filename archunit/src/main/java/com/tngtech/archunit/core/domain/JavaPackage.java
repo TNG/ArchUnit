@@ -167,7 +167,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
-        return getAnnotationOfType(type.getName()).as(type);
+        return HasAnnotations.super.getAnnotationOfType(type);
     }
 
     /**
@@ -180,12 +180,9 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @Override
     @PublicAPI(usage = ACCESS)
+    @SuppressWarnings("unchecked") // we know the 'owning' element is this package
     public JavaAnnotation<JavaPackage> getAnnotationOfType(String typeName) {
-        Optional<JavaAnnotation<JavaPackage>> annotation = tryGetAnnotationOfType(typeName);
-        if (!annotation.isPresent()) {
-            throw new IllegalArgumentException(String.format("%s is not annotated with @%s", getDescription(), typeName));
-        }
-        return annotation.get();
+        return (JavaAnnotation<JavaPackage>) HasAnnotations.super.getAnnotationOfType(typeName);
     }
 
     /**

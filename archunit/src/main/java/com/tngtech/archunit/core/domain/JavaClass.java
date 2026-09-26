@@ -62,7 +62,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NA
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_STATIC_INITIALIZER;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
-import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.Arrays.stream;
@@ -585,46 +584,17 @@ public final class JavaClass
         return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
     }
 
-    /**
-     * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
-     * @return An {@link Annotation} of the given annotation type
-     * @throws IllegalArgumentException if the class is not annotated with the given type
-     * @see #isAnnotatedWith(Class)
-     * @see #tryGetAnnotationOfType(Class)
-     */
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
-        return getAnnotationOfType(type.getName()).as(type);
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public JavaAnnotation<JavaClass> getAnnotationOfType(String typeName) {
-        Optional<JavaAnnotation<JavaClass>> annotation = tryGetAnnotationOfType(typeName);
-        if (!annotation.isPresent()) {
-            throw new IllegalArgumentException(String.format("Type %s is not annotated with @%s", getSimpleName(), typeName));
-        }
-        return annotation.get();
-    }
-
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation<JavaClass>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
     }
 
-    /**
-     * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
-     * @return An {@link Optional} containing an {@link Annotation} of the given annotation type,
-     * if this class is annotated with the given type, otherwise Optional.absent()
-     * @see #isAnnotatedWith(Class)
-     * @see #getAnnotationOfType(Class)
-     */
     @Override
     @PublicAPI(usage = ACCESS)
-    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+    @SuppressWarnings("unchecked") // we know the 'owning' element is this class
+    public JavaAnnotation<JavaClass> getAnnotationOfType(String typeName) {
+        return (JavaAnnotation<JavaClass>) HasAnnotations.super.getAnnotationOfType(typeName);
     }
 
     /**
