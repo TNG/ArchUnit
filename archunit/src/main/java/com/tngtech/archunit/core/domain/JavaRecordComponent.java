@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.RecordComponent;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -176,7 +175,7 @@ public final class JavaRecordComponent extends JavaBaseMember implements HasType
     }
 
     /**
-     * Mirrors {@link RecordComponent#getAccessor()}.
+     * Mirrors {@link java.lang.reflect.RecordComponent#getAccessor()}.
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getAccessor() {
