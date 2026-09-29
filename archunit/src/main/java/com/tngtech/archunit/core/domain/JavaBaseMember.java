@@ -17,7 +17,10 @@ package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.properties.*;
+import com.tngtech.archunit.core.domain.properties.HasDescriptor;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaBaseMemberBuilder;
 
 import java.util.Set;
