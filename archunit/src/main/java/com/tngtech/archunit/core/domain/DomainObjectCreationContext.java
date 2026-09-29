@@ -29,7 +29,23 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders;
-import com.tngtech.archunit.core.importer.DomainBuilders.*;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitAccessTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorReferenceBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaEnumConstantBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaRecordComponentBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

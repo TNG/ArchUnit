@@ -641,7 +641,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            declarationHandler.onDeclaredMemberAnnotations(recordComponentBuilder.getName(), recordComponentBuilder.getDescriptor(), annotations);
+            declarationHandler.onDeclaredRecordComponentAnnotations(recordComponentBuilder.getName(), recordComponentBuilder.getDescriptor(), annotations);
         }
     }
 

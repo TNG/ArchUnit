@@ -34,7 +34,9 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaBaseMember;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaRecordComponent;
 import com.tngtech.archunit.core.importer.DomainBuilders.*;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.MemberSignature;
@@ -71,6 +73,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaAnnotationBuilder> recordComponentAnnotationsByOwner = HashMultimap.create();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
 
@@ -144,6 +147,10 @@ class ClassFileImportRecord {
         this.annotationsByOwner.putAll(getMemberKey(declaringClassName, memberName, descriptor), annotations);
     }
 
+    void addRecordComponentAnnotations(String declaringClassName, String componentName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
+        this.recordComponentAnnotationsByOwner.putAll(getMemberKey(declaringClassName, componentName, descriptor), annotations);
+    }
+
     void addAnnotationDefaultValue(String declaringClassName, String methodName, String descriptor, JavaAnnotationBuilder.ValueBuilder valueBuilder) {
         annotationDefaultValuesByOwner.put(getMemberKey(declaringClassName, methodName, descriptor), valueBuilder);
     }
@@ -211,8 +218,12 @@ class ClassFileImportRecord {
         return annotationsByOwner.get(owner.getName());
     }
 
-    Set<JavaAnnotationBuilder> getAnnotationsFor(JavaBaseMember owner) {
+    Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
         return annotationsByOwner.get(getMemberKey(owner));
+    }
+
+    Set<JavaAnnotationBuilder> getRecordComponentAnnotationsFor(JavaRecordComponent owner) {
+        return recordComponentAnnotationsByOwner.get(getMemberKey(owner));
     }
 
     Optional<JavaAnnotationBuilder.ValueBuilder> getAnnotationDefaultValueBuilderFor(JavaMethod method) {

@@ -328,6 +328,9 @@ class JavaClassMembers {
         for (JavaMember member : members) {
             member.completeAnnotations(context);
         }
+        for (JavaRecordComponent recordComponent : recordComponents) {
+            recordComponent.completeAnnotations(context);
+        }
     }
 
     void completeFrom(ImportContext context) {

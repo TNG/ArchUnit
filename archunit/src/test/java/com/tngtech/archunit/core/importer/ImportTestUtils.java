@@ -373,7 +373,12 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Map<String, JavaAnnotation<JavaBaseMember>> createAnnotations(JavaBaseMember owner) {
+        public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+            return emptyMap();
+        }
+
+        @Override
+        public Map<String, JavaAnnotation<JavaRecordComponent>> createAnnotations(JavaRecordComponent owner) {
             return emptyMap();
         }
 

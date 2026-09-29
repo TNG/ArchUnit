@@ -164,6 +164,12 @@ class ClassFileProcessor {
             registerAnnotationTypesToResolve(annotationBuilders);
         }
 
+        @Override
+        public void onDeclaredRecordComponentAnnotations(String componentName, String descriptor, Set<JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addRecordComponentAnnotations(ownerName, componentName, descriptor, annotationBuilders);
+            registerAnnotationTypesToResolve(annotationBuilders);
+        }
+
         private void registerAnnotationTypesToResolve(Set<JavaAnnotationBuilder> annotationBuilders) {
             for (JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
                 dependencyResolutionProcess.registerAnnotationType(annotationBuilder.getFullyQualifiedClassName());

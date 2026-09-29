@@ -15,12 +15,18 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -30,24 +36,106 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 /**
  * Mirrors {@link java.lang.reflect.Member}.
  */
 @PublicAPI(usage = ACCESS)
-public abstract class JavaMember extends JavaBaseMember implements HasModifiers {
+public abstract class JavaMember extends JavaBaseMember implements HasModifiers, HasAnnotations<JavaMember> {
     private final Set<JavaModifier> modifiers;
+    private Map<String, JavaAnnotation<JavaMember>> annotations = Collections.emptyMap();
 
     JavaMember(JavaMemberBuilder<?, ?> builder) {
         super(builder);
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 
+    void completeAnnotations(ImportContext context) {
+        annotations = context.createAnnotations(this);
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaModifier> getModifiers() {
         return modifiers;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Set<? extends JavaAnnotation<? extends JavaMember>> getAnnotations() {
+        return ImmutableSet.copyOf(annotations.values());
+    }
+
+    /**
+     * Returns the {@link Annotation} of this member of the given {@link Annotation} type.
+     *
+     * @throws IllegalArgumentException if there is no annotation of the respective reflection type
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+        return getAnnotationOfType(type.getName()).as(type);
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaAnnotation<? extends JavaMember> getAnnotationOfType(String typeName) {
+        Optional<? extends JavaAnnotation<? extends JavaMember>> annotation = tryGetAnnotationOfType(typeName);
+        if (!annotation.isPresent()) {
+            throw new IllegalArgumentException(String.format("Member %s is not annotated with @%s", getFullName(), typeName));
+        }
+        return annotation.get();
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Optional<? extends JavaAnnotation<? extends JavaMember>> tryGetAnnotationOfType(String typeName) {
+        return Optional.ofNullable(annotations.get(typeName));
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotatedWith(Class<? extends Annotation> type) {
+        return isAnnotatedWith(type.getName());
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotatedWith(String typeName) {
+        return annotations.containsKey(typeName);
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.values(), predicate);
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMetaAnnotatedWith(Class<? extends Annotation> type) {
+        return isMetaAnnotatedWith(type.getName());
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMetaAnnotatedWith(String typeName) {
+        return isMetaAnnotatedWith(GET_RAW_TYPE.then(GET_NAME).is(equalTo(typeName)));
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
     }
 
     /**

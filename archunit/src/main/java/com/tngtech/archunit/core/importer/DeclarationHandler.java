@@ -49,6 +49,8 @@ interface DeclarationHandler {
 
     void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
 
+    void onDeclaredRecordComponentAnnotations(String componentName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
+
     void onDeclaredAnnotationValueType(String valueTypeName);
 
     void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder);

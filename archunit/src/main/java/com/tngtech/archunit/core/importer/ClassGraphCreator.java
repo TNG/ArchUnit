@@ -347,8 +347,13 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Map<String, JavaAnnotation<JavaBaseMember>> createAnnotations(JavaBaseMember owner) {
+    public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
         return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
+    }
+
+    @Override
+    public Map<String, JavaAnnotation<JavaRecordComponent>> createAnnotations(JavaRecordComponent owner) {
+        return createAnnotations(owner, importRecord.getRecordComponentAnnotationsFor(owner));
     }
 
     private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
