@@ -68,8 +68,6 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static java.util.stream.Collectors.toSet;
 
 @PublicAPI(usage = ACCESS)
@@ -117,7 +115,7 @@ public final class JavaClass
         return result.build();
     });
     private final Set<JavaClass> subclasses = new HashSet<>();
-    private Optional<Set<JavaClass>> permittedSubclasses = empty();
+    private Optional<Set<JavaClass>> permittedSubclasses = Optional.empty();
     private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(() -> {
         Set<JavaClass> result = new HashSet<>();
         for (JavaClass subclass : subclasses) {
@@ -127,7 +125,7 @@ public final class JavaClass
         return ImmutableSet.copyOf(result);
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
-    private Optional<JavaClass> componentType = empty();
+    private Optional<JavaClass> componentType = Optional.empty();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
@@ -244,9 +242,9 @@ public final class JavaClass
     public Optional<JavaEnumConstant> tryGetEnumConstant(String name) {
         Optional<JavaField> field = tryGetField(name);
         if (!field.isPresent() || !field.get().getModifiers().contains(ENUM)) {
-            return empty();
+            return Optional.empty();
         }
-        return of(new JavaEnumConstant(this, field.get().getName()));
+        return Optional.of(new JavaEnumConstant(this, field.get().getName()));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -852,7 +850,7 @@ public final class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<Set<JavaRecordComponent>> getRecordComponents() {
-        return isRecord ? of(members.getRecordComponents()) : empty();
+        return isRecord ? Optional.of(members.getRecordComponents()) : Optional.empty();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1546,7 +1544,7 @@ public final class JavaClass
         JavaClass current = this;
         while (current.isArray() && !current.componentType.isPresent()) {
             JavaClass componentType = context.resolveClass(current.descriptor.tryGetComponentType().get().getFullyQualifiedClassName());
-            current.componentType = of(componentType);
+            current.componentType = Optional.of(componentType);
             current = componentType;
         }
     }
@@ -1576,13 +1574,13 @@ public final class JavaClass
     }
 
     private static class Superclass {
-        private static final Superclass ABSENT = new Superclass(empty());
+        private static final Superclass ABSENT = new Superclass(Optional.empty());
 
         private final Optional<JavaClass> rawType;
         private final Optional<JavaType> type;
 
         private Superclass(JavaType type) {
-            this(of(type));
+            this(Optional.of(type));
         }
 
         private Superclass(Optional<JavaType> type) {
@@ -1645,7 +1643,7 @@ public final class JavaClass
     }
 
     private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(empty(), empty());
+        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.empty(), Optional.empty());
 
         private final Optional<JavaCodeUnit> enclosingCodeUnit;
         private final Optional<JavaClass> enclosingClass;
@@ -1668,11 +1666,11 @@ public final class JavaClass
         }
 
         static EnclosingDeclaration ofCodeUnit(JavaCodeUnit codeUnit) {
-            return new EnclosingDeclaration(of(codeUnit), of(codeUnit.getOwner()));
+            return new EnclosingDeclaration(Optional.of(codeUnit), Optional.of(codeUnit.getOwner()));
         }
 
         static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(empty(), clazz);
+            return new EnclosingDeclaration(Optional.empty(), clazz);
         }
     }
 

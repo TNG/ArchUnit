@@ -37,7 +37,7 @@ public class ClassFileImporterRecordsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {SimpleRecord.class/*, EmptyRecord.class*/})
+    @ValueSource(classes = {SimpleRecord.class, EmptyRecord.class})
     void imports_record(Class<?> recordToImport) {
         JavaClass javaClass = new ClassFileImporter().importClasses(recordToImport, Record.class).get(recordToImport);
 
