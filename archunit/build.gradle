@@ -100,15 +100,29 @@ dependencies {
     jdk16testImplementation sourceSets.test.compileClasspath
     jdk25testImplementation sourceSets.test.output
     jdk25testImplementation sourceSets.test.compileClasspath
+    // the architecture self-tests import the jdk9main classes as well, and since those
+    // live in their own output directory, they need to be added to the self-test classpath
+    archTestImplementation sourceSets.jdk9main.output
 
-    runtimeOnly sourceSets.jdk9main.output
+    // the jdk9main classes must be on the test runtime classpath, so the tests can load the
+    // Java 9+ plugins at runtime. Note that this must not be `runtimeOnly`, because that way the
+    // jdk9main classes would leak into the runtime classpath of consumers and thus into their
+    // shadow JARs (e.g. the junit support JARs, where they would fail the single package export check)
+    testRuntimeOnly sourceSets.jdk9main.output
 }
 
 compileJdk9mainJava {
     dependsOn(compileJava)
     ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 
-    destinationDirectory.set(compileJava.destinationDirectory.get())
+    // Note: keep the jdk9main classes in their own output directory (the source set default) instead of
+    // redirecting them to the `main` output directory. Two JavaCompile tasks writing to the same directory
+    // corrupt each other's incremental compilation state, leading to non-deterministic compile errors of the
+    // type "cannot access X / class file for X not found" that persist until `clean`. The jdk9main classes
+    // still end up in the published JAR via `shadowJar { from sourceSets.jdk9main.output }` below.
+}
+shadowJar {
+    from sourceSets.jdk9main.output
 }
 javadoc.dependsOn(compileJdk9mainJava)
 spotbugsMain.dependsOn(compileJdk9mainJava)
