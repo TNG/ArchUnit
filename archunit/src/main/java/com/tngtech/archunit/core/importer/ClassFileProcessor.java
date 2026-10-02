@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -159,12 +160,12 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredMemberTypeAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> typeAnnotationBuilders) {
+        public void onDeclaredMemberTypeAnnotations(String memberName, String descriptor, SetMultimap<DomainBuilders.TypePath, JavaAnnotationBuilder> typeAnnotationBuilders) {
             importRecord.addMemberTypeAnnotations(ownerName, memberName, descriptor, typeAnnotationBuilders);
-            registerAnnotationTypesToResolve(typeAnnotationBuilders);
+            registerAnnotationTypesToResolve(typeAnnotationBuilders.values());
         }
 
-        private void registerAnnotationTypesToResolve(Set<JavaAnnotationBuilder> annotationBuilders) {
+        private void registerAnnotationTypesToResolve(Collection<JavaAnnotationBuilder> annotationBuilders) {
             for (JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
                 dependencyResolutionProcess.registerAnnotationType(annotationBuilder.getFullyQualifiedClassName());
             }

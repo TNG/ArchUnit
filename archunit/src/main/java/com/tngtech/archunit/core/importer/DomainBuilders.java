@@ -22,10 +22,13 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.google.common.collect.FluentIterable;
@@ -46,7 +49,11 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAnnotatedArrayType;
+import com.tngtech.archunit.core.domain.JavaAnnotatedParameterizedType;
 import com.tngtech.archunit.core.domain.JavaAnnotatedType;
+import com.tngtech.archunit.core.domain.JavaAnnotatedTypeVariable;
+import com.tngtech.archunit.core.domain.JavaAnnotatedWildcardType;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -58,6 +65,7 @@ import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
@@ -96,7 +104,10 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @Internal
 @SuppressWarnings("UnusedReturnValue")
@@ -220,7 +231,7 @@ public final class DomainBuilders {
     public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
         private Optional<JavaTypeCreationProcess<JavaField>> genericType;
         private JavaClassDescriptor rawType;
-        private Set<JavaAnnotationBuilder> typeAnnotations;
+        private Map<DomainBuilders.TypePath, Set<JavaAnnotationBuilder>> typeAnnotations;
 
         JavaFieldBuilder() {
         }
@@ -231,13 +242,13 @@ public final class DomainBuilders {
             return self();
         }
 
-        JavaFieldBuilder withTypeAnnotations(Set<JavaAnnotationBuilder> typeAnnotations) {
+        JavaFieldBuilder withTypeAnnotations(Map<DomainBuilders.TypePath, Set<JavaAnnotationBuilder>> typeAnnotations) {
             this.typeAnnotations = typeAnnotations;
             return self();
         }
 
         public JavaAnnotatedType getAnnotatedType(JavaField field) {
-            return new JavaAnnotatedTypeBaseImpl(this.getType(field), annotatedType -> buildAnnotations(annotatedType, typeAnnotations, importedClasses));
+            return annotatedType(this.getType(field), TypePath.EMPTY, typeAnnotations, importedClasses);
         }
 
         private JavaType getType(JavaField field) {
@@ -1263,18 +1274,173 @@ public final class DomainBuilders {
         }
     }
 
-    private static class JavaAnnotatedTypeBaseImpl implements JavaAnnotatedType {
-        private final JavaType type;
-        private Map<String, JavaAnnotation<JavaAnnotatedType>> annotations = emptyMap();
+    static final class TypePath {
+        public static final TypePath EMPTY = new TypePath(emptyList());
+        private final List<TypePathStep> elements;
 
-        public JavaAnnotatedTypeBaseImpl(JavaType type, Function<JavaAnnotatedType, Map<String, JavaAnnotation<JavaAnnotatedType>>> annotationFactory) {
-            this.type = type;
-            this.annotations = annotationFactory.apply(this);
+        public TypePath(List<TypePathStep> elements) {
+            this.elements = elements;
+        }
+
+        public TypePath(org.objectweb.asm.TypePath asmTypePath) {
+            this.elements = constructTypePathElements(asmTypePath);
+        }
+
+        private List<TypePathStep> constructTypePathElements(org.objectweb.asm.TypePath asmTypePath) {
+            if (asmTypePath == null) {
+                return emptyList();
+            }
+            return unmodifiableList(IntStream.range(0, asmTypePath.getLength()).mapToObj(i -> {
+                TypePathStep.TypePathStepType stepType = TypePathStep.TypePathStepType.from(asmTypePath.getStep(i))
+                        .orElseThrow(() -> new AssertionError("unknown ASM TypePath step value " + asmTypePath.getStep(i) + " in TypePath " + asmTypePath));
+                return new TypePathStep(stepType, asmTypePath.getStepArgument(i));
+            }).collect(toList()));
         }
 
         @Override
-        public JavaType getType() {
+        public boolean equals(Object o) {
+            if (!(o instanceof TypePath)) {
+                return false;
+            }
+            TypePath other = (TypePath) o;
+            return Objects.equals(this.elements, other.elements);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(elements);
+        }
+
+        public TypePath append(TypePathStep nextStep) {
+            return new TypePath(unmodifiableList(Stream.concat(this.elements.stream(), Stream.of(nextStep)).collect(toList())));
+        }
+    }
+
+    static final class TypePathStep {
+        enum TypePathStepType {
+            ARRAY_ELEMENT, INNER_TYPE, WILDCARD_BOUND, TYPE_ARGUMENT;
+
+            public static Optional<TypePathStepType> from(int step) {
+                switch (step) {
+                case org.objectweb.asm.TypePath.ARRAY_ELEMENT:
+                    return Optional.of(ARRAY_ELEMENT);
+                case org.objectweb.asm.TypePath.INNER_TYPE:
+                    return Optional.of(INNER_TYPE);
+                case org.objectweb.asm.TypePath.WILDCARD_BOUND:
+                    return Optional.of(WILDCARD_BOUND);
+                case org.objectweb.asm.TypePath.TYPE_ARGUMENT:
+                    return Optional.of(TYPE_ARGUMENT);
+                default:
+                    return Optional.empty();
+                }
+
+            }
+        }
+
+        public static final TypePathStep ARRAY_ELEMENT = new TypePathStep(TypePathStep.TypePathStepType.ARRAY_ELEMENT, 0);
+        public static final TypePathStep INNER_TYPE = new TypePathStep(TypePathStep.TypePathStepType.INNER_TYPE, 0);
+        public static final TypePathStep WILDCARD_BOUND = new TypePathStep(TypePathStep.TypePathStepType.WILDCARD_BOUND, 0);
+
+        private static final TypePathStep TYPE_ARGUMENT_0 = new TypePathStep(TypePathStep.TypePathStepType.TYPE_ARGUMENT, 0);
+        private static final TypePathStep TYPE_ARGUMENT_1 = new TypePathStep(TypePathStep.TypePathStepType.TYPE_ARGUMENT, 1);
+        private static final TypePathStep TYPE_ARGUMENT_2 = new TypePathStep(TypePathStep.TypePathStepType.TYPE_ARGUMENT, 2);
+
+        public static TypePathStep typeArgument(int argument) {
+            switch (argument) {
+            case 0:
+                return TYPE_ARGUMENT_0;
+            case 1:
+                return TYPE_ARGUMENT_1;
+            case 2:
+                return TYPE_ARGUMENT_2;
+            default:
+                return new TypePathStep(TypePathStepType.TYPE_ARGUMENT, argument);
+            }
+        }
+
+        private final TypePathStepType stepType;
+        private final int argument;
+
+        public TypePathStep(TypePathStepType stepType, int argument) {
+            this.stepType = stepType;
+            this.argument = argument;
+        }
+
+        public TypePathStepType getStepType() {
+            return stepType;
+        }
+
+        /**
+         *
+         * @return argument of this type path step. The value has only a meaning if {@link #getStepType()} returns {@link TypePathStepType#TYPE_ARGUMENT}
+         */
+        public int getArgument() {
+            return argument;
+        }
+
+        @Override
+        public String toString() {
+            if (stepType == TypePathStepType.TYPE_ARGUMENT) {
+                return String.format("%s[%d]", stepType.name(), argument);
+            }
+            return stepType.name();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof TypePathStep)) {
+                return false;
+            }
+            TypePathStep other = (TypePathStep) o;
+            return this.stepType == other.stepType && (this.stepType != TypePathStepType.TYPE_ARGUMENT || this.argument == other.argument);
+        }
+
+        @Override
+        public int hashCode() {
+            if (stepType == TypePathStepType.TYPE_ARGUMENT) {
+                return Objects.hash(stepType, argument);
+            } else {
+                return stepType.hashCode();
+            }
+        }
+    }
+
+    private static JavaAnnotatedType annotatedType(JavaType type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+        if (type instanceof JavaGenericArrayType) {
+            return new JavaAnnotatedArrayTypeImpl((JavaGenericArrayType) type, currentTypePath, typeAnnotations, importedClasses);
+        } else if (type instanceof JavaClass && ((JavaClass) type).isArray()) {
+            return new JavaAnnotatedArrayTypeImpl((JavaClass) type, currentTypePath, typeAnnotations, importedClasses);
+        } else if (type instanceof JavaParameterizedType) {
+            return new JavaAnnotatedParameterizedTypeImpl((JavaParameterizedType) type, currentTypePath, typeAnnotations, importedClasses);
+        } else if (type instanceof JavaTypeVariable) {
+            return new JavaAnnotatedTypeVariableImpl((JavaTypeVariable<?>) type, currentTypePath, typeAnnotations, importedClasses);
+        } else if (type instanceof JavaWildcardType) {
+            return new JavaAnnotatedWildCardTypeImpl((JavaWildcardType) type, currentTypePath, typeAnnotations, importedClasses);
+        } else if (type instanceof JavaClass) {
+            return new JavaAnnotatedTypeBaseImpl<>(type, currentTypePath, typeAnnotations, importedClasses);
+        } else {
+            throw new AssertionError("unknown subclass of JavaType: " + type.getClass());
+        }
+    }
+
+    private static class JavaAnnotatedTypeBaseImpl<T extends JavaType> implements JavaAnnotatedType {
+        private final T type;
+        private Map<String, JavaAnnotation<JavaAnnotatedType>> annotations = emptyMap();
+
+        public JavaAnnotatedTypeBaseImpl(T type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+            this.type = type;
+            this.annotations = buildAnnotations(this, typeAnnotations.getOrDefault(currentTypePath, emptySet()), importedClasses);
+            // TODO handle INNER_TYPE to correctly place annotations on nested types
+        }
+
+        @Override
+        public T getType() {
             return type;
+        }
+
+        @Override
+        public Optional<JavaAnnotatedType> getAnnotatedEnclosingType() {
+            throw new UnsupportedOperationException("not implemented yet");
         }
 
         @Override
@@ -1346,6 +1512,89 @@ public final class DomainBuilders {
         public String getDescription() {
             // TODO implement. we need location with owning field/method type path and if we have a TypePath sth like typePath.toString() = WILDCARD_BOUND[0]/PARAM[1]/ARRAY[0]
             return "AnnotatedType<TODO>";
+        }
+    }
+
+    private static class JavaAnnotatedArrayTypeImpl extends JavaAnnotatedTypeBaseImpl<JavaType> implements JavaAnnotatedArrayType {
+
+        private final JavaAnnotatedType componentType;
+
+        public JavaAnnotatedArrayTypeImpl(JavaGenericArrayType type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+            super(type, currentTypePath, typeAnnotations, importedClasses);
+            this.componentType = annotatedType(type.getComponentType(), currentTypePath.append(TypePathStep.ARRAY_ELEMENT), typeAnnotations, importedClasses);
+        }
+
+        /**
+         * @throws IllegalStateException if {@code type} is not an array. also see {@link JavaClass#getComponentType()}
+         */
+        public JavaAnnotatedArrayTypeImpl(JavaClass type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+            super(type, currentTypePath, typeAnnotations, importedClasses);
+            this.componentType = annotatedType(type.getComponentType(), currentTypePath.append(TypePathStep.ARRAY_ELEMENT), typeAnnotations, importedClasses);
+        }
+
+        @Override
+        public JavaType getType() {
+            return super.getType();
+        }
+
+        @Override
+        public JavaAnnotatedType getAnnotatedComponentType() {
+            return componentType;
+        }
+    }
+
+    private static class JavaAnnotatedParameterizedTypeImpl extends JavaAnnotatedTypeBaseImpl<JavaParameterizedType> implements JavaAnnotatedParameterizedType {
+
+        private final List<JavaAnnotatedType> annotatedTypeArguments;
+
+        public JavaAnnotatedParameterizedTypeImpl(JavaParameterizedType type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+            super(type, currentTypePath, typeAnnotations, importedClasses);
+            List<JavaAnnotatedType> annotatedTypeArguments = new ArrayList<>();
+            for (int i = 0; i < type.getActualTypeArguments().size(); i++) {
+                annotatedTypeArguments.add(annotatedType(type.getActualTypeArguments().get(i), currentTypePath.append(TypePathStep.typeArgument(i)), typeAnnotations, importedClasses));
+            }
+            this.annotatedTypeArguments = unmodifiableList(annotatedTypeArguments);
+        }
+
+        @Override
+        public List<JavaAnnotatedType> getAnnotatedActualTypeArguments() {
+            return annotatedTypeArguments;
+        }
+    }
+
+    private static class JavaAnnotatedWildCardTypeImpl extends JavaAnnotatedTypeBaseImpl<JavaWildcardType> implements JavaAnnotatedWildcardType {
+
+        private final List<JavaAnnotatedType> annotatedUpperBounds;
+        private final List<JavaAnnotatedType> annotatedLowerBounds;
+
+        public JavaAnnotatedWildCardTypeImpl(JavaWildcardType type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+            super(type, currentTypePath, typeAnnotations, importedClasses);
+            TypePath typePathWildCardBound = currentTypePath.append(TypePathStep.WILDCARD_BOUND);
+            // there can actually be just a single wildcard bound (upper or lower combined), so whichever is present, must carry the typeAnnotation (if any is present)
+            // TODO verify whether explicit lower bound also carries an Object upper bound
+            annotatedUpperBounds = unmodifiableList(type.getUpperBounds().stream().map(bound -> annotatedType(bound, typePathWildCardBound, typeAnnotations, importedClasses)).collect(Collectors.toList()));
+            annotatedLowerBounds = unmodifiableList(type.getLowerBounds().stream().map(bound -> annotatedType(bound, typePathWildCardBound, typeAnnotations, importedClasses)).collect(Collectors.toList()));
+        }
+
+        @Override
+        public List<JavaAnnotatedType> getAnnotatedUpperBounds() {
+            return annotatedUpperBounds;
+        }
+
+        @Override
+        public List<JavaAnnotatedType> getAnnotatedLowerBounds() {
+            return annotatedLowerBounds;
+        }
+    }
+
+    private static class JavaAnnotatedTypeVariableImpl extends JavaAnnotatedTypeBaseImpl<JavaTypeVariable<?>> implements JavaAnnotatedTypeVariable {
+        public JavaAnnotatedTypeVariableImpl(JavaTypeVariable<?> type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
+            super(type, currentTypePath, typeAnnotations, importedClasses);
+        }
+
+        @Override
+        public JavaTypeVariable<?> getType() {
+            return super.getType();
         }
     }
 }

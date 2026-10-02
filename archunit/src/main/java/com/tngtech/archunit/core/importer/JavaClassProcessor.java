@@ -600,7 +600,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaFieldBuilder fieldBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
-        private final Set<JavaAnnotationBuilder> typeAnnotations = new HashSet<>();
+        private final SetMultimap<DomainBuilders.TypePath, JavaAnnotationBuilder> typeAnnotations = HashMultimap.create();
 
         private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
@@ -617,11 +617,8 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
             TypeReference typeReference = new TypeReference(typeRef);
-            // TODO preserve TypePath after mapping to some wrapper class for later construction of full annotated type. For this commit, just type annotations directly on the field type are preserved
-            //  asm.TypePath is immutable, but has no nice equals method
-            if (typeReference.getSort() == TypeReference.FIELD && (typePath == null || typePath.getLength() == 0)) {
-                // we currently drop all TYPE_USE annotations with any TypePath since they dive into generic types, Array types, etc. which want can't handle yet
-                return new AnnotationProcessor(typeAnnotations::add, declarationHandler, handleAnnotationAnnotationProperty(descriptor, declarationHandler));
+            if (typeReference.getSort() == TypeReference.FIELD) {
+                return new AnnotationProcessor(annotation -> typeAnnotations.put(new DomainBuilders.TypePath(typePath), annotation), declarationHandler, handleAnnotationAnnotationProperty(descriptor, declarationHandler));
             }
             return null;
         }

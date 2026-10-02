@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.TypeVariable;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
@@ -113,10 +114,37 @@ public final class JavaTypeVariable<OWNER extends HasDescription> implements Jav
         return upperBounds;
     }
 
+    /**
+     * This method is simply an alias for {@link #getAnnotatedUpperBounds()} that is more familiar to users
+     * of the Java Reflection API.
+     *
+     * @see TypeVariable#getAnnotatedBounds()
+     */
+    // @PublicAPI(usage = ACCESS)
+    @Deprecated
+    // not implemented yet
+    List<JavaAnnotatedType> getAnnotatedBounds() {
+        return getAnnotatedUpperBounds();
+    }
+
+    // @PublicAPI(usage = ACCESS)
+    @Deprecated
+    // not implemented yet
+    List<JavaAnnotatedType> getAnnotatedUpperBounds() {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass toErasure() {
         return erasure;
+    }
+
+    // @PublicAPI(usage=ACCESS)
+    @Deprecated
+    // not implemented yet
+    Set<JavaAnnotation<?>> getAnnotations() {
+        throw new UnsupportedOperationException("not implemented yet");
     }
 
     @Override

@@ -25,7 +25,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -77,7 +76,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
-    private final SetMultimap<String, JavaAnnotationBuilder> typeAnnotationsByOwner = HashMultimap.create(); // TODO include TypePath in some way
+    private final Map<String, SetMultimap<DomainBuilders.TypePath, JavaAnnotationBuilder>> typeAnnotationsByOwner = new HashMap<>();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
 
@@ -147,8 +146,12 @@ class ClassFileImportRecord {
         this.annotationsByOwner.putAll(getMemberKey(declaringClassName, memberName, descriptor), annotations);
     }
 
-    void addMemberTypeAnnotations(String declaringClassName, String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
-        this.typeAnnotationsByOwner.putAll(getMemberKey(declaringClassName, memberName, descriptor), annotations);
+    void addMemberTypeAnnotations(String declaringClassName, String memberName, String descriptor, SetMultimap<DomainBuilders.TypePath, JavaAnnotationBuilder> annotations) {
+        this.typeAnnotationsByOwner.compute(getMemberKey(declaringClassName, memberName, descriptor), (key, value) -> {
+            SetMultimap<DomainBuilders.TypePath, JavaAnnotationBuilder> newValue = Optional.ofNullable(value).orElseGet(HashMultimap::create);
+            newValue.putAll(annotations);
+            return newValue;
+        });
     }
 
     void addAnnotationDefaultValue(String declaringClassName, String methodName, String descriptor, JavaAnnotationBuilder.ValueBuilder valueBuilder) {
@@ -196,8 +199,13 @@ class ClassFileImportRecord {
 
     Set<JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
         return fieldBuildersByOwner.get(ownerName).stream()
-                .map(fieldBuilder -> fieldBuilder.withTypeAnnotations(typeAnnotationsByOwner.get(getMemberKey(ownerName, fieldBuilder.getName(), fieldBuilder.getDescriptor())))) // TODO respect TypePath
-                .collect(Collectors.toSet());
+                .map(fieldBuilder -> {
+                    SetMultimap<DomainBuilders.TypePath, JavaAnnotationBuilder> typeAnnotations = typeAnnotationsByOwner.get(getMemberKey(ownerName, fieldBuilder.getName(), fieldBuilder.getDescriptor()));
+                    @SuppressWarnings("unchecked")
+                    Map<DomainBuilders.TypePath, Set<JavaAnnotationBuilder>> typeAnnotationsAsMap = (Map<DomainBuilders.TypePath, Set<JavaAnnotationBuilder>>) (Map<DomainBuilders.TypePath, ?>) typeAnnotations.asMap();
+                    return fieldBuilder.withTypeAnnotations(typeAnnotationsAsMap);
+                })
+                .collect(toSet());
     }
 
     Set<JavaMethodBuilder> getMethodBuildersFor(String ownerName) {

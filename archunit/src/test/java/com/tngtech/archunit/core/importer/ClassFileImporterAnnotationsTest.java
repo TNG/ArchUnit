@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
+import java.lang.reflect.AnnotatedArrayType;
+import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedTypeVariable;
+import java.lang.reflect.AnnotatedWildcardType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -12,6 +16,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaAnnotatedArrayType;
+import com.tngtech.archunit.core.domain.JavaAnnotatedParameterizedType;
+import com.tngtech.archunit.core.domain.JavaAnnotatedType;
+import com.tngtech.archunit.core.domain.JavaAnnotatedTypeVariable;
+import com.tngtech.archunit.core.domain.JavaAnnotatedWildcardType;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -36,6 +45,8 @@ import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.Cl
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.MethodAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.ClassRetainedTypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation2;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation3;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
@@ -347,10 +358,10 @@ public class ClassFileImporterAnnotationsTest {
         @Test
         void imports_fields_annotated_with_type_type_use() {
             class Clazz {
-                public @TypeUseAnnotation Object fieldWithRuntimeRetainedTypeUseAnnotation;
+                public @TypeUseAnnotation Object fieldWithTypeUseAnnotation;
             }
             JavaField field = new ClassFileImporter().importClass(Clazz.class)
-                    .getField("fieldWithRuntimeRetainedTypeUseAnnotation");
+                    .getField("fieldWithTypeUseAnnotation");
             Field reflectedField = field.reflect();
 
             assertThatAnnotations(field.getAnnotations())
@@ -362,7 +373,7 @@ public class ClassFileImporterAnnotationsTest {
                     .matchClasses()
                     .match(reflectedField.getType().getAnnotations());
             assertThatAnnotations(field.getAnnotatedType().getAnnotations())
-                    .as("type of field is annotated with RuntimeRetainedTypeUseAnnotation")
+                    .as("type of field is annotated with TypeUseAnnotation")
                     .matchClasses(TypeUseAnnotation.class)
                     .match(reflectedField.getAnnotatedType().getAnnotations());
         }
@@ -472,9 +483,243 @@ public class ClassFileImporterAnnotationsTest {
                     .matchClasses(SimpleAnnotation.class)
                     .match(reflectedField.getType().getAnnotations());
             assertThatAnnotations(field.getAnnotatedType().getAnnotations())
-                    .as("type of field is additionally annotated with RuntimeRetainedTypeUseAnnotation")
+                    .as("type of field is additionally annotated with TypeUseAnnotation")
                     .matchClasses(TypeUseAnnotation.class)
                     .match(reflectedField.getAnnotatedType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_annotated_array_type() {
+            class Clazz {
+                public @TypeUseAnnotation String @TypeUseAnnotation2 [] fieldWithAnnotatedArrayType;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedArrayType");
+            Field reflectedField = field.reflect();
+            AnnotatedArrayType reflectedAnnotatedArrayType = (AnnotatedArrayType) reflectedField.getAnnotatedType();
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedArrayType.class);
+            JavaAnnotatedArrayType annotatedType = (JavaAnnotatedArrayType) field.getAnnotatedType();
+            assertThatAnnotations(annotatedType.getAnnotations())
+                    .as("array type itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedArrayType.getAnnotations());
+
+            assertThatAnnotations(annotatedType.getAnnotatedComponentType().getAnnotations())
+                    .as("component type is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedAnnotatedArrayType.getAnnotatedGenericComponentType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_annotated_generic_array_type() {
+            class Clazz {
+                public @TypeUseAnnotation List<String> @TypeUseAnnotation2 [] fieldWithAnnotatedGenericArrayType;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedGenericArrayType");
+            Field reflectedField = field.reflect();
+            AnnotatedArrayType reflectedAnnotatedArrayType = (AnnotatedArrayType) reflectedField.getAnnotatedType();
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedArrayType.class);
+            JavaAnnotatedArrayType annotatedType = (JavaAnnotatedArrayType) field.getAnnotatedType();
+            assertThatAnnotations(annotatedType.getAnnotations())
+                    .as("array type itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedArrayType.getAnnotations());
+
+            assertThatAnnotations(annotatedType.getAnnotatedComponentType().getAnnotations())
+                    .as("component type is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedAnnotatedArrayType.getAnnotatedGenericComponentType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_annotated_parameterized_type_argument() {
+            class Clazz {
+                public @TypeUseAnnotation2 List<@TypeUseAnnotation Object> fieldWithAnnotatedTypeArgument;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedTypeArgument");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedParameterizedType = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedType = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+
+            assertThatAnnotations(annotatedType.getAnnotations())
+                    .as("parameterized type itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedParameterizedType.getAnnotations());
+
+            JavaAnnotatedType annotatedTypeArgument = getOnlyElement(annotatedType.getAnnotatedActualTypeArguments());
+            assertThatAnnotations(annotatedTypeArgument.getAnnotations())
+                    .as("type argument is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedAnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0].getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_annotated_type_variable() {
+            class Clazz<@TypeUseAnnotation2 T extends @TypeUseAnnotation3 Serializable> {
+                @TypeUseAnnotation
+                T fieldWithTypeVariableType;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithTypeVariableType");
+            Field reflectedField = field.reflect();
+            AnnotatedTypeVariable reflectedAnnotatedTypeVariable = (AnnotatedTypeVariable) reflectedField.getAnnotatedType();
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedTypeVariable.class);
+            JavaAnnotatedTypeVariable annotatedType = (JavaAnnotatedTypeVariable) field.getAnnotatedType();
+            assertThatAnnotations(annotatedType.getAnnotations())
+                    .as("type of field is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedAnnotatedTypeVariable.getAnnotations());
+
+            // TODO activate this assertion as soon as #1726 is resolved and JavaTypeVariable implements HasAnnotations
+            // assertThatAnnotations(annotatedType.getType().getAnnotations())
+            //         .as("type variable itself is annotated with @TypeUseAnnotation2, but NOT the type usage on the field")
+            //                 .matchClasses(TypeUseAnnotation2.class)
+            //         .match(((TypeVariable<?>) reflectedAnnotatedTypeVariable.getType()).getAnnotations());
+
+            // TODO annotation on type variable bounds require TypeReference handling
+            // assertThat(annotatedType)
+            //         .extracting(JavaAnnotatedTypeVariable::getAnnotatedBounds).asInstanceOf(list(JavaAnnotatedType.class))
+            //         .singleElement()
+            //         .satisfies(upperBound -> {
+            //             assertThatAnnotations(upperBound.getAnnotations())
+            //                     .as("upper bound is annotated with TypeUseAnnotation3")
+            //                     .matchClasses(TypeUseAnnotation3.class)
+            //                     .match(reflectedAnnotatedTypeVariable.getAnnotatedBounds()[0].getAnnotations());
+            //         });
+        }
+
+        @Test
+        void imports_fields_with_annotated_wildcard_type() {
+            class Clazz {
+                public @TypeUseAnnotation2 List<@TypeUseAnnotation ?> fieldWithAnnotatedWildCardArgument;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedWildCardArgument");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedParameterizedType = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            AnnotatedWildcardType reflectedAnnotatedWildcardType = (AnnotatedWildcardType) reflectedAnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0];
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedType = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+            assertThatAnnotations(annotatedType.getAnnotations())
+                    .as("parameterized type itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedParameterizedType.getAnnotations());
+
+            assertThat(annotatedType.getAnnotatedActualTypeArguments()).singleElement().isInstanceOf(JavaAnnotatedWildcardType.class);
+            JavaAnnotatedWildcardType annotatedWildCard = (JavaAnnotatedWildcardType) annotatedType.getAnnotatedActualTypeArguments().get(0);
+            assertThatAnnotations(annotatedWildCard.getAnnotations())
+                    .as("unbounded wildcard type argument itself is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class)
+                    .match(reflectedAnnotatedWildcardType.getAnnotations());
+            assertThat(annotatedWildCard.getAnnotatedLowerBounds()).isEmpty();
+            assertThat(annotatedWildCard.getAnnotatedUpperBounds()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_wildcard_type_with_annotated_upper_bound() {
+            class Clazz {
+                public List<@TypeUseAnnotation2 ? extends @TypeUseAnnotation Serializable> fieldWithAnnotatedWildCardUpperBoundArgument;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedWildCardUpperBoundArgument");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedParameterizedType = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            AnnotatedWildcardType reflectedAnnotatedWildcardType = (AnnotatedWildcardType) reflectedAnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0];
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedType = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+
+            assertThat(annotatedType.getAnnotatedActualTypeArguments()).singleElement().isInstanceOf(JavaAnnotatedWildcardType.class);
+            JavaAnnotatedWildcardType annotatedWildCard = (JavaAnnotatedWildcardType) annotatedType.getAnnotatedActualTypeArguments().get(0);
+
+            assertThatAnnotations(annotatedWildCard.getAnnotations())
+                    .as("wildcard type argument itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedWildcardType.getAnnotations());
+            assertThat(annotatedWildCard.getAnnotatedLowerBounds()).isEmpty();
+            assertThat(annotatedWildCard.getAnnotatedUpperBounds()).singleElement().satisfies(upperBound ->
+                    assertThatAnnotations(upperBound.getAnnotations())
+                            .as("upper bound is annotated with TypeUseAnnotation")
+                            .matchClasses(TypeUseAnnotation.class)
+                            .match(reflectedAnnotatedWildcardType.getAnnotatedUpperBounds()[0].getAnnotations()));
+        }
+
+        @Test
+        void imports_fields_with_wildcard_type_with_annotated_upper_bound_object() {
+            class Clazz {
+                public List<@TypeUseAnnotation2 ? extends @TypeUseAnnotation Object> fieldWithAnnotatedWildCardUpperObjectBound;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedWildCardUpperObjectBound");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedParameterizedType = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            AnnotatedWildcardType reflectedAnnotatedWildcardType = (AnnotatedWildcardType) reflectedAnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0];
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedType = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+
+            assertThat(annotatedType.getAnnotatedActualTypeArguments()).singleElement().isInstanceOf(JavaAnnotatedWildcardType.class);
+            JavaAnnotatedWildcardType annotatedWildCard = (JavaAnnotatedWildcardType) annotatedType.getAnnotatedActualTypeArguments().get(0);
+
+            assertThatAnnotations(annotatedWildCard.getAnnotations())
+                    .as("wildcard type argument itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedWildcardType.getAnnotations());
+            assertThat(annotatedWildCard.getAnnotatedLowerBounds()).isEmpty();
+            assertThat(annotatedWildCard.getAnnotatedUpperBounds()).singleElement().satisfies(upperBound ->
+                    assertThatAnnotations(upperBound.getAnnotations())
+                            .as("upper bound is annotated with TypeUseAnnotation")
+                            .matchClasses(TypeUseAnnotation.class)
+                            .match(reflectedAnnotatedWildcardType.getAnnotatedUpperBounds()[0].getAnnotations()));
+        }
+
+        @Test
+        void imports_fields_with_wildcard_type_with_annotated_lower_bound() {
+            class Clazz {
+                public List<@TypeUseAnnotation2 ? super @TypeUseAnnotation String> fieldWithAnnotatedWildCardLowerBoundArgument;
+            }
+            JavaField field = new ClassFileImporter().importClass(Clazz.class)
+                    .getField("fieldWithAnnotatedWildCardLowerBoundArgument");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedParameterizedType = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            AnnotatedWildcardType reflectedAnnotatedWildcardType = (AnnotatedWildcardType) reflectedAnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0];
+
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedType = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+            assertThatAnnotations(field.getAnnotatedType().getAnnotations())
+                    .as("type of field is not annotated")
+                    .matchClasses()
+                    .match(reflectedField.getAnnotatedType().getAnnotations());
+
+            assertThat(annotatedType.getAnnotatedActualTypeArguments()).singleElement().isInstanceOf(JavaAnnotatedWildcardType.class);
+            JavaAnnotatedWildcardType annotatedWildCard = (JavaAnnotatedWildcardType) annotatedType.getAnnotatedActualTypeArguments().get(0);
+
+            assertThatAnnotations(annotatedWildCard.getAnnotations())
+                    .as("wildcard type argument itself is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedWildcardType.getAnnotations());
+            assertThat(annotatedWildCard.getAnnotatedLowerBounds()).singleElement().satisfies(lowerBound ->
+                    assertThatAnnotations(lowerBound.getAnnotations())
+                            .as("lower bound is annotated with TypeUseAnnotation")
+                            .matchClasses(TypeUseAnnotation.class)
+                            .match(reflectedAnnotatedWildcardType.getAnnotatedLowerBounds()[0].getAnnotations()));
+            assertThat(annotatedWildCard.getAnnotatedUpperBounds()).isEmpty();
         }
     }
 

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 interface DeclarationHandler {
@@ -47,7 +48,7 @@ interface DeclarationHandler {
 
     void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
 
-    void onDeclaredMemberTypeAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
+    void onDeclaredMemberTypeAnnotations(String memberName, String descriptor, SetMultimap<DomainBuilders.TypePath, DomainBuilders.JavaAnnotationBuilder> annotations);
 
     void onDeclaredAnnotationValueType(String valueTypeName);
 
