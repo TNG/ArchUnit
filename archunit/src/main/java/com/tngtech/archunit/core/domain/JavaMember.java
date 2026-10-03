@@ -23,17 +23,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
-import com.tngtech.archunit.core.domain.properties.HasDescriptor;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
-import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -42,34 +39,28 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
+/**
+ * Mirrors {@link java.lang.reflect.Member}.
+ */
 @PublicAPI(usage = ACCESS)
-public abstract class JavaMember implements
-        HasName.AndFullName, HasDescriptor, HasAnnotations<JavaMember>, HasModifiers, HasOwner<JavaClass>, HasSourceCodeLocation {
-
-    private final String name;
-    private final String descriptor;
-    private Map<String, JavaAnnotation<JavaMember>> annotations = Collections.emptyMap();
-    private final JavaClass owner;
-    private final SourceCodeLocation sourceCodeLocation;
+public abstract class JavaMember extends JavaBaseMember implements HasModifiers, HasAnnotations<JavaMember> {
     private final Set<JavaModifier> modifiers;
-    private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;
+    private Map<String, JavaAnnotation<JavaMember>> annotations = Collections.emptyMap();
 
     JavaMember(JavaMemberBuilder<?, ?> builder) {
-        this.name = checkNotNull(builder.getName());
-        this.descriptor = checkNotNull(builder.getDescriptor());
-        this.owner = checkNotNull(builder.getOwner());
-        this.sourceCodeLocation = SourceCodeLocation.of(owner, builder.getFirstLineNumber());
+        super(builder);
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 
-    /**
-     * Similar to {@link JavaType#getAllInvolvedRawTypes()}, this method returns all raw types involved in this {@link JavaMember member's} signature.
-     * For more concrete details refer to {@link JavaField#getAllInvolvedRawTypes()} and {@link JavaCodeUnit#getAllInvolvedRawTypes()}.
-     *
-     * @return All raw types involved in the signature of this member
-     */
+    void completeAnnotations(ImportContext context) {
+        annotations = context.createAnnotations(this);
+    }
+
+    @Override
     @PublicAPI(usage = ACCESS)
-    public abstract Set<JavaClass> getAllInvolvedRawTypes();
+    public Set<JavaModifier> getModifiers() {
+        return modifiers;
+    }
 
     @Override
     @PublicAPI(usage = ACCESS)
@@ -119,39 +110,6 @@ public abstract class JavaMember implements
         return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
     }
 
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public JavaClass getOwner() {
-        return owner;
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public SourceCodeLocation getSourceCodeLocation() {
-        return sourceCodeLocation;
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public Set<JavaModifier> getModifiers() {
-        return modifiers;
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    @Internal
-    public String getDescriptor() {
-        return descriptor;
-    }
-
-    @PublicAPI(usage = ACCESS)
-    public abstract Set<? extends JavaAccess<?>> getAccessesToSelf();
-
     /**
      * Resolves the respective {@link Member} from the classpath.<br>
      * NOTE: This method will throw an exception, if the owning {@link Class} or any of its dependencies
@@ -162,26 +120,9 @@ public abstract class JavaMember implements
     @PublicAPI(usage = ACCESS)
     public abstract Member reflect();
 
-    void completeAnnotations(ImportContext context) {
-        annotations = context.createAnnotations(this);
-    }
-
-    protected ReverseDependencies getReverseDependencies() {
-        return reverseDependencies;
-    }
-
-    void setReverseDependencies(ReverseDependencies reverseDependencies) {
-        this.reverseDependencies = reverseDependencies;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + '{' + getFullName() + '}';
-    }
-
     /**
      * Predefined {@link DescribedPredicate predicates} targeting {@link JavaMember}.
-     * Note that due to inheritance further predicates for {@link JavaMember} can be found in the following locations:
+     * Note that due to inheritance, further predicates for {@link JavaMember} can be found in the following locations:
      * <ul>
      *     <li>{@link HasName.Predicates}</li>
      *     <li>{@link HasName.AndFullName.Predicates}</li>
