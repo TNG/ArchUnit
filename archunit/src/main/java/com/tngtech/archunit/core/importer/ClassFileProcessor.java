@@ -196,6 +196,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredCaughtThrowable(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
+
+        @Override
         public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
             dependencyResolutionProcess.registerMemberTypes(exceptionTypeNames);
         }

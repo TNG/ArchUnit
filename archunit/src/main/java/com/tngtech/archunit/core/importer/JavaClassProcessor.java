@@ -376,7 +376,9 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
             if (type != null) {
-                accessHandler.handleTryCatchBlock(start, end, handler, JavaClassDescriptorImporter.createFromAsmObjectTypeName(type));
+                JavaClassDescriptor throwableType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
+                accessHandler.handleTryCatchBlock(start, end, handler, throwableType);
+                declarationHandler.onDeclaredCaughtThrowable(throwableType.getFullyQualifiedClassName());
             } else {
                 accessHandler.handleTryFinallyBlock(start, end, handler);
             }
