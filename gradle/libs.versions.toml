@@ -7,7 +7,7 @@ assertj = "3.27.7"
 
 [libraries]
 asm = { group = "org.ow2.asm", name = "asm", version = "9.10.1" }
-guava = { group = "com.google.guava", name = "guava", version = "33.7.1-jre" }
+guava = { group = "com.google.guava", name = "guava", version = "33.7.2-jre" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version = "2.0.20" } # in sync with buildSrc/src/main/resources/release_check/archunit.pom
 log4j_api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j_core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
@@ -28,5 +28,5 @@ mockito = { group = "org.mockito", name = "mockito-core", version = "4.11.0" } #
 mockito_junit5 = { group = "org.mockito", name = "mockito-junit-jupiter", version = "4.11.0" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 assertj_guava = { group = "org.assertj", name = "assertj-guava", version.ref = "assertj" }
-mavenSurefirePlugin = { group = "org.apache.maven.plugins", name = "maven-surefire-plugin", version = "3.5.6" }
+mavenSurefirePlugin = { group = "org.apache.maven.plugins", name = "maven-surefire-plugin", version = "3.6.0" }
 mavenCompilerPlugin = { group = "org.apache.maven.plugins", name = "maven-compiler-plugin", version = "3.16.0" }
