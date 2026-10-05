@@ -6,6 +6,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.AnnotatedTypeVariable;
 import java.lang.reflect.AnnotatedWildcardType;
 import java.lang.reflect.Array;
@@ -39,6 +40,12 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.Type
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassRetainedSimpleFieldAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithFieldOfDepthTwoNestedTypeWithAnnotations;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithFieldWithAnnotatedArrayTypeInner;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithFieldWithAnnotatedLowerWildCardBoundInner;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithFieldWithAnnotatedTypeParamInner;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithFieldWithAnnotatedTypeParamOnOuterType;
+import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithFieldWithAnnotatedUpperWildCardBoundInner;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.FieldAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.RuntimeRetainedSimpleFieldAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
@@ -47,6 +54,7 @@ import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.ClassRe
 import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation2;
 import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation3;
+import com.tngtech.archunit.core.importer.testexamples.annotationtypeuse.TypeUseAnnotation4;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
@@ -532,6 +540,270 @@ public class ClassFileImporterAnnotationsTest {
                     .as("component type is annotated with TypeUseAnnotation")
                     .matchClasses(TypeUseAnnotation.class)
                     .match(reflectedAnnotatedArrayType.getAnnotatedGenericComponentType().getAnnotations());
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_plain_multi_level() {
+            JavaField field = new ClassFileImporter().importClasses(
+                            ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.class,
+                            ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.class,
+                            ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.Inner.class)
+                    .get(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.class)
+                    .getField("fieldWithAnnotatedInnerType");
+            Field reflectedField = field.reflect();
+
+            AnnotatedType reflectedAnnotatedTypeInner = reflectedField.getAnnotatedType();
+            JavaAnnotatedType annotatedTypeInner = field.getAnnotatedType();
+            assertThatType(annotatedTypeInner.getType().toErasure()).matches(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.Inner.class);
+            assertThatAnnotations(annotatedTypeInner.getAnnotations())
+                    .as("Inner class is annotated with TypeUseAnnotation3")
+                    .matchClasses(TypeUseAnnotation3.class)
+                    .match(reflectedAnnotatedTypeInner.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeMiddle = reflectedAnnotatedTypeInner.getAnnotatedOwnerType();
+            Optional<JavaAnnotatedType> annotatedTypeMiddleOptional = annotatedTypeInner.getAnnotatedEnclosingType();
+            assertThat(annotatedTypeMiddleOptional).isPresent();
+            JavaAnnotatedType annotatedTypeMiddle = annotatedTypeMiddleOptional.get();
+            assertThatType(annotatedTypeMiddle.getType().toErasure()).matches(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.class);
+            assertThatAnnotations(annotatedTypeMiddle.getAnnotations())
+                    .as("Middle class is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class);
+            // java 9+:         .match(reflectedAnnotatedTypeMiddle.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeOuter = reflectedAnnotatedTypeMiddle.getAnnotatedOwnerType();
+            Optional<JavaAnnotatedType> annotatedTypeOuterOptional = annotatedTypeMiddle.getAnnotatedEnclosingType();
+            assertThat(annotatedTypeOuterOptional).isPresent();
+            JavaAnnotatedType annotatedTypeOuter = annotatedTypeOuterOptional.get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class);
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_plain_multi_level_implicit_outer() {
+            JavaField field = new ClassFileImporter().importClasses(
+                            ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.class,
+                            ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.class,
+                            ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.Inner.class)
+                    .get(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.class)
+                    .getField("fieldWithAnnotatedInnerType_unqualified");
+            Field reflectedField = field.reflect();
+
+            AnnotatedType reflectedAnnotatedTypeInner = reflectedField.getAnnotatedType();
+            JavaAnnotatedType annotatedTypeInner = field.getAnnotatedType();
+            assertThatType(annotatedTypeInner.getType().toErasure()).matches(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.Inner.class);
+            assertThatAnnotations(annotatedTypeInner.getAnnotations())
+                    .as("Inner class is annotated with TypeUseAnnotation3")
+                    .matchClasses(TypeUseAnnotation3.class)
+                    .match(reflectedAnnotatedTypeInner.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeMiddle = reflectedAnnotatedTypeInner.getAnnotatedOwnerType();
+            Optional<JavaAnnotatedType> annotatedTypeMiddleOptional = annotatedTypeInner.getAnnotatedEnclosingType();
+            assertThat(annotatedTypeMiddleOptional).isPresent();
+            JavaAnnotatedType annotatedTypeMiddle = annotatedTypeMiddleOptional.get();
+            assertThatType(annotatedTypeMiddle.getType().toErasure()).matches(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.Middle.class);
+            assertThatAnnotations(annotatedTypeMiddle.getAnnotations())
+                    .as("Middle class is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class);
+            // java 9+:         .match(reflectedAnnotatedTypeMiddle.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeOuter = reflectedAnnotatedTypeMiddle.getAnnotatedOwnerType();
+            Optional<JavaAnnotatedType> annotatedTypeOuterOptional = annotatedTypeMiddle.getAnnotatedEnclosingType();
+            assertThat(annotatedTypeOuterOptional).isPresent();
+            JavaAnnotatedType annotatedTypeOuter = annotatedTypeOuterOptional.get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldOfDepthTwoNestedTypeWithAnnotations.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class is not annotated (because it's implicit")
+                    .matchClasses();
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_array() {
+            JavaField field = new ClassFileImporter().importClass(ClassWithFieldWithAnnotatedArrayTypeInner.class)
+                    .getField("fieldWithAnnotatedArrayTypeInner");
+            Field reflectedField = field.reflect();
+            AnnotatedArrayType reflectedAnnotatedTypeInnerArray = (AnnotatedArrayType) reflectedField.getAnnotatedType();
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedArrayType.class);
+            JavaAnnotatedArrayType annotatedTypeInnerArray = (JavaAnnotatedArrayType) field.getAnnotatedType();
+
+            assertThatAnnotations(annotatedTypeInnerArray.getAnnotations())
+                    .as("Array of Inner class is annotated with TypeUseAnnotation3")
+                    .matchClasses(TypeUseAnnotation3.class)
+                    .match(reflectedAnnotatedTypeInnerArray.getAnnotations());
+
+            AnnotatedType reflectedAnnotatedTypeInner = reflectedAnnotatedTypeInnerArray.getAnnotatedGenericComponentType();
+            JavaAnnotatedType annotatedTypeInner = annotatedTypeInnerArray.getAnnotatedComponentType();
+            assertThatType(annotatedTypeInner.getType().toErasure()).matches(ClassWithFieldWithAnnotatedArrayTypeInner.Inner.class);
+            assertThatAnnotations(annotatedTypeInner.getAnnotations())
+                    .as("Inner class is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedTypeInner.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeOuter = reflectedAnnotatedTypeInner.getAnnotatedOwnerType();
+            Optional<JavaAnnotatedType> annotatedTypeOuterOptional = annotatedTypeInner.getAnnotatedEnclosingType();
+            assertThat(annotatedTypeOuterOptional).isPresent();
+            JavaAnnotatedType annotatedTypeOuter = annotatedTypeOuterOptional.get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldWithAnnotatedArrayTypeInner.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class);
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_generic_outer() {
+            JavaField field = new ClassFileImporter().importClass(ClassWithFieldWithAnnotatedTypeParamOnOuterType.class)
+                    .getField("fieldWithAnnotatedTypeParamOnOuterType");
+            Field reflectedField = field.reflect();
+
+            AnnotatedType reflectedAnnotatedTypeInner = reflectedField.getAnnotatedType();
+            JavaAnnotatedType annotatedTypeInner = field.getAnnotatedType();
+            assertThatType(annotatedTypeInner.getType().toErasure()).matches(ClassWithFieldWithAnnotatedTypeParamOnOuterType.Inner.class);
+            assertThatAnnotations(annotatedTypeInner.getAnnotations())
+                    .as("Inner class is annotated with TypeUseAnnotation3")
+                    .matchClasses(TypeUseAnnotation3.class)
+                    .match(reflectedAnnotatedTypeInner.getAnnotations());
+
+            // java 9+: AnnotatedParameterizedType reflectedAnnotatedTypeOuter = (AnnotatedParameterizedType) reflectedAnnotatedTypeInner.getAnnotatedOwnerType();
+            Optional<JavaAnnotatedType> annotatedTypeOuterOptional = annotatedTypeInner.getAnnotatedEnclosingType();
+            assertThat(annotatedTypeOuterOptional).containsInstanceOf(JavaAnnotatedParameterizedType.class); // FIXME I get erasure at the moment... how to get outer with params?
+            JavaAnnotatedParameterizedType annotatedTypeOuter = (JavaAnnotatedParameterizedType) annotatedTypeOuterOptional.get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldWithAnnotatedTypeParamOnOuterType.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class);
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+            assertThat(annotatedTypeOuter.getAnnotatedActualTypeArguments()).singleElement().satisfies(annotatedTypeVariable -> {
+                assertThatAnnotations(annotatedTypeVariable.getAnnotations())
+                        .as("Inner class is annotated with TypeUseAnnotation3")
+                        .matchClasses(TypeUseAnnotation3.class);
+                // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotatedActualTypeArguments()[0].getAnnotations());
+            });
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_generic_argument() {
+            JavaField field = new ClassFileImporter().importClass(ClassWithFieldWithAnnotatedTypeParamInner.class)
+                    .getField("fieldWithAnnotatedTypeParamInner");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedTypeInner1 = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedTypeInner1 = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+
+            assertThatType(annotatedTypeInner1.getType().toErasure()).matches(ClassWithFieldWithAnnotatedTypeParamInner.Inner1.class);
+            assertThatAnnotations(annotatedTypeInner1.getAnnotations())
+                    .as("Inner1 class is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation2.class)
+                    .match(reflectedAnnotatedTypeInner1.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeInner = reflectedAnnotatedTypeInner1.getAnnotatedOwnerType();
+            assertThat(annotatedTypeInner1.getAnnotatedEnclosingType()).isPresent();
+            JavaAnnotatedType annotatedTypeOuter = annotatedTypeInner1.getAnnotatedEnclosingType().get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldWithAnnotatedTypeParamInner.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class of outer type is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation.class);
+            // java 9+:        .match(reflectedAnnotatedTypeInner.getAnnotations());
+
+            // type argument of Inner1
+            AnnotatedType reflectedAnnotatedTypeArgumentInner2 = reflectedAnnotatedTypeInner1.getAnnotatedActualTypeArguments()[0];
+            assertThat(annotatedTypeInner1.getAnnotatedActualTypeArguments()).hasSize(1);
+            JavaAnnotatedType annotatedTypeArgumentInner2 = annotatedTypeInner1.getAnnotatedActualTypeArguments().getFirst();
+            assertThatType(annotatedTypeArgumentInner2.getType().toErasure()).matches(ClassWithFieldWithAnnotatedTypeParamInner.Inner2.class);
+            assertThatAnnotations(annotatedTypeArgumentInner2.getAnnotations())
+                    .as("Inner class is annotated with TypeUseAnnotation4")
+                    .matchClasses(TypeUseAnnotation4.class)
+                    .match(reflectedAnnotatedTypeArgumentInner2.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeOuter = reflectedAnnotatedTypeArgumentInner2.getAnnotatedOwnerType();
+            assertThat(annotatedTypeArgumentInner2.getAnnotatedEnclosingType()).isPresent();
+            JavaAnnotatedType annotatedTypeArgumentOuter = annotatedTypeArgumentInner2.getAnnotatedEnclosingType().get();
+            assertThatType(annotatedTypeArgumentOuter.getType().toErasure()).matches(ClassWithFieldWithAnnotatedTypeParamInner.class);
+            assertThatAnnotations(annotatedTypeArgumentOuter.getAnnotations())
+                    .as("Outer class of type argument is annotated with TypeUseAnnotation3")
+                    .matchClasses(TypeUseAnnotation3.class);
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_wildcard_bound_upper() {
+            JavaField field = new ClassFileImporter().importClass(ClassWithFieldWithAnnotatedUpperWildCardBoundInner.class)
+                    .getField("fieldWithAnnotatedUpperWildCardBoundInner");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedTypeList = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedTypeList = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+
+            AnnotatedWildcardType reflectedAnnotatedTypeWildCard = (AnnotatedWildcardType) reflectedAnnotatedTypeList.getAnnotatedActualTypeArguments()[0];
+            JavaAnnotatedWildcardType annotatedTypeWildCard = (JavaAnnotatedWildcardType) annotatedTypeList.getAnnotatedActualTypeArguments().getFirst();
+
+            // upper wildcard bound
+            AnnotatedType reflectedAnnotatedWildCardBound = reflectedAnnotatedTypeWildCard.getAnnotatedUpperBounds()[0];
+            assertThat(annotatedTypeList.getAnnotatedActualTypeArguments()).hasSize(1);
+            JavaAnnotatedType annotatedWildCardBound = annotatedTypeWildCard.getAnnotatedUpperBounds().stream().findFirst().orElseThrow(IllegalStateException::new);
+            assertThatType(annotatedWildCardBound.getType().toErasure()).matches(ClassWithFieldWithAnnotatedUpperWildCardBoundInner.Inner.class);
+            assertThatAnnotations(annotatedWildCardBound.getAnnotations())
+                    .as("Inner class in bound is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation4.class)
+                    .match(reflectedAnnotatedWildCardBound.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeOuter = reflectedAnnotatedWildCardBound.getAnnotatedOwnerType();
+            assertThat(annotatedWildCardBound.getAnnotatedEnclosingType()).isPresent();
+            JavaAnnotatedType annotatedTypeOuter = annotatedWildCardBound.getAnnotatedEnclosingType().get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldWithAnnotatedUpperWildCardBoundInner.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class of type argument is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation.class);
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
+        }
+
+        @Test
+        void imports_fields_with_annotated_inner_class_usages_wildcard_bound_lower() {
+            JavaField field = new ClassFileImporter().importClass(ClassWithFieldWithAnnotatedLowerWildCardBoundInner.class)
+                    .getField("fieldWithAnnotatedLowerWildCardBoundInner");
+            Field reflectedField = field.reflect();
+            AnnotatedParameterizedType reflectedAnnotatedTypeList = (AnnotatedParameterizedType) reflectedField.getAnnotatedType();
+            assertThat(field.getAnnotatedType()).isInstanceOf(JavaAnnotatedParameterizedType.class);
+            JavaAnnotatedParameterizedType annotatedTypeList = (JavaAnnotatedParameterizedType) field.getAnnotatedType();
+
+            AnnotatedWildcardType reflectedAnnotatedTypeWildCard = (AnnotatedWildcardType) reflectedAnnotatedTypeList.getAnnotatedActualTypeArguments()[0];
+            JavaAnnotatedWildcardType annotatedTypeWildCard = (JavaAnnotatedWildcardType) annotatedTypeList.getAnnotatedActualTypeArguments().getFirst();
+
+            // lower wildcard bound
+            AnnotatedType reflectedAnnotatedWildCardBound = reflectedAnnotatedTypeWildCard.getAnnotatedLowerBounds()[0];
+            assertThat(annotatedTypeList.getAnnotatedActualTypeArguments()).hasSize(1);
+            JavaAnnotatedType annotatedWildCardBound = annotatedTypeWildCard.getAnnotatedLowerBounds().stream().findFirst().orElseThrow(IllegalStateException::new);
+            assertThatType(annotatedWildCardBound.getType().toErasure()).matches(ClassWithFieldWithAnnotatedLowerWildCardBoundInner.Inner.class);
+            assertThatAnnotations(annotatedWildCardBound.getAnnotations())
+                    .as("Inner class in bound is annotated with TypeUseAnnotation")
+                    .matchClasses(TypeUseAnnotation4.class)
+                    .match(reflectedAnnotatedWildCardBound.getAnnotations());
+
+            // java 9+: AnnotatedType reflectedAnnotatedTypeOuter = reflectedAnnotatedWildCardBound.getAnnotatedOwnerType();
+            assertThat(annotatedWildCardBound.getAnnotatedEnclosingType()).isPresent();
+            JavaAnnotatedType annotatedTypeOuter = annotatedWildCardBound.getAnnotatedEnclosingType().get();
+            assertThatType(annotatedTypeOuter.getType().toErasure()).matches(ClassWithFieldWithAnnotatedLowerWildCardBoundInner.class);
+            assertThatAnnotations(annotatedTypeOuter.getAnnotations())
+                    .as("Outer class of type argument is annotated with TypeUseAnnotation2")
+                    .matchClasses(TypeUseAnnotation.class);
+            // java 9+:         .match(reflectedAnnotatedTypeOuter.getAnnotations());
+
+            assertThat(annotatedTypeOuter.getAnnotatedEnclosingType()).isEmpty();
         }
 
         @Test
@@ -1044,4 +1316,5 @@ public class ClassFileImporterAnnotationsTest {
     private @interface ParameterAnnotation {
         Class<?> value();
     }
+
 }

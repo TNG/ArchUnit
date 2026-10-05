@@ -1312,7 +1312,18 @@ public final class DomainBuilders {
         }
 
         public TypePath append(TypePathStep nextStep) {
-            return new TypePath(unmodifiableList(Stream.concat(this.elements.stream(), Stream.of(nextStep)).collect(toList())));
+            return append(Stream.of(nextStep));
+        }
+
+        public TypePath appendInnerTypeRepeated(int count) {
+            if (count == 0) {
+                return this;
+            }
+            return append(IntStream.range(0, count).mapToObj(i -> TypePathStep.INNER_TYPE));
+        }
+
+        public TypePath append(Stream<TypePathStep> nextSteps) {
+            return new TypePath(unmodifiableList(Stream.concat(this.elements.stream(), nextSteps).collect(toList())));
         }
     }
 
@@ -1425,12 +1436,78 @@ public final class DomainBuilders {
 
     private static class JavaAnnotatedTypeBaseImpl<T extends JavaType> implements JavaAnnotatedType {
         private final T type;
+        private final JavaAnnotatedType annotatedEnclosingType;
         private Map<String, JavaAnnotation<JavaAnnotatedType>> annotations = emptyMap();
 
         public JavaAnnotatedTypeBaseImpl(T type, TypePath currentTypePath, Map<TypePath, Set<JavaAnnotationBuilder>> typeAnnotations, ImportedClasses importedClasses) {
             this.type = type;
-            this.annotations = buildAnnotations(this, typeAnnotations.getOrDefault(currentTypePath, emptySet()), importedClasses);
-            // TODO handle INNER_TYPE to correctly place annotations on nested types
+            TypeNesting typeNesting = TypeNesting.of(type);
+            TypePath currentTypePathWithClassNesting = currentTypePath.appendInnerTypeRepeated(typeNesting.depth());
+            this.annotations = buildAnnotations(this, typeAnnotations.getOrDefault(currentTypePathWithClassNesting, emptySet()), importedClasses);
+            if (typeNesting instanceof TypeNesting.Nested) {
+                TypeNesting.Nested nestedType = (TypeNesting.Nested) typeNesting;
+                this.annotatedEnclosingType = annotatedType(nestedType.enclosingType(), currentTypePath, typeAnnotations, importedClasses);
+            } else {
+                annotatedEnclosingType = null;
+            }
+        }
+
+        private interface TypeNesting {
+
+            int depth();
+
+            class Unnested implements TypeNesting {
+                public static Unnested INSTANCE = new Unnested();
+
+                @Override
+                public int depth() {
+                    return 0;
+                }
+            }
+
+            class Nested implements TypeNesting {
+                private final int depth;
+                private final JavaType enclosingType;
+
+                public Nested(int depth, JavaType enclosingType) {
+                    this.depth = depth;
+                    this.enclosingType = enclosingType;
+                }
+
+                @Override
+                public int depth() {
+                    return depth;
+                }
+
+                public JavaType enclosingType() {
+                    return enclosingType;
+                }
+            }
+
+            static TypeNesting of(JavaType type) {
+                if (type instanceof JavaGenericArrayType
+                        || type instanceof JavaClass && ((JavaClass) type).isArray()
+                        || type instanceof JavaTypeVariable
+                        || type instanceof JavaWildcardType
+                ) {
+                    // these types can't be nested types since they are no defined classes
+                    return Unnested.INSTANCE;
+                } else if (type instanceof JavaClass || type instanceof JavaParameterizedType) {
+                    Optional<JavaClass> enclosingClass = type.toErasure().getEnclosingClass();
+                    if (enclosingClass.isPresent()) {
+                        int nestingDepth = getTypeNestingDepth(type.toErasure());
+                        return new Nested(nestingDepth, enclosingClass.get()); // TODO how can I get outer without erasing?
+                    } else {
+                        return Unnested.INSTANCE;
+                    }
+                } else {
+                    throw new AssertionError("unknown subclass of JavaType: " + type.getClass());
+                }
+            }
+
+            static int getTypeNestingDepth(JavaClass clazz) {
+                return clazz.getEnclosingClass().map(enclosingClass -> 1 + getTypeNestingDepth(enclosingClass)).orElse(0);
+            }
         }
 
         @Override
@@ -1440,7 +1517,7 @@ public final class DomainBuilders {
 
         @Override
         public Optional<JavaAnnotatedType> getAnnotatedEnclosingType() {
-            throw new UnsupportedOperationException("not implemented yet");
+            return Optional.ofNullable(annotatedEnclosingType);
         }
 
         @Override
