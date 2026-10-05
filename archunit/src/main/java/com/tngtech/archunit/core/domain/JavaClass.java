@@ -123,7 +123,8 @@ public final class JavaClass
         }
         return ImmutableSet.copyOf(result);
     });
-    private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
+    private Optional<JavaClass> enclosingClass = Optional.empty();
+    private Optional<JavaCodeUnit> enclosingCodeUnit = Optional.empty();
     private final Optional<JavaClass> componentType;
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
@@ -378,7 +379,7 @@ public final class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public boolean isNestedClass() {
-        return enclosingDeclaration.isPresent();
+        return enclosingClass.isPresent();
     }
 
     /**
@@ -739,7 +740,7 @@ public final class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getEnclosingClass() {
-        return enclosingDeclaration.getEnclosingClass();
+        return enclosingClass;
     }
 
     /**
@@ -770,7 +771,7 @@ public final class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaCodeUnit> getEnclosingCodeUnit() {
-        return enclosingDeclaration.getEnclosingCodeUnit();
+        return enclosingCodeUnit;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1456,15 +1457,14 @@ public final class JavaClass
         permittedSubclasses = context.createPermittedSubclasses(this);
     }
 
-    void completeEnclosingDeclarationFrom(ImportContext context) {
-        enclosingDeclaration = createEnclosingDeclaration(context);
-        completionProcess.markEnclosingDeclarationComplete();
+    void completeEnclosingClassFrom(ImportContext context) {
+        enclosingClass = context.createEnclosingClass(this);
+        completionProcess.markEnclosingClassComplete();
     }
 
-    private EnclosingDeclaration createEnclosingDeclaration(ImportContext context) {
-        Optional<JavaCodeUnit> enclosingCodeUnit = context.createEnclosingCodeUnit(this);
-        return enclosingCodeUnit.map(EnclosingDeclaration::ofCodeUnit)
-                .orElseGet(() -> EnclosingDeclaration.ofClass(context.createEnclosingClass(this)));
+    void completeEnclosingCodeUnitFrom(ImportContext context) {
+        enclosingCodeUnit = context.createEnclosingCodeUnit(this);
+        completionProcess.markEnclosingCodeUnitComplete();
     }
 
     void completeTypeParametersFrom(ImportContext context) {
@@ -1594,38 +1594,6 @@ public final class JavaClass
         }
     }
 
-    private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.empty(), Optional.empty());
-
-        private final Optional<JavaCodeUnit> enclosingCodeUnit;
-        private final Optional<JavaClass> enclosingClass;
-
-        private EnclosingDeclaration(Optional<JavaCodeUnit> enclosingCodeUnit, Optional<JavaClass> enclosingClass) {
-            this.enclosingCodeUnit = checkNotNull(enclosingCodeUnit);
-            this.enclosingClass = checkNotNull(enclosingClass);
-        }
-
-        boolean isPresent() {
-            return enclosingClass.isPresent();
-        }
-
-        Optional<JavaClass> getEnclosingClass() {
-            return enclosingClass;
-        }
-
-        Optional<JavaCodeUnit> getEnclosingCodeUnit() {
-            return enclosingCodeUnit;
-        }
-
-        static EnclosingDeclaration ofCodeUnit(JavaCodeUnit codeUnit) {
-            return new EnclosingDeclaration(Optional.of(codeUnit), Optional.of(codeUnit.getOwner()));
-        }
-
-        static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(Optional.empty(), clazz);
-        }
-    }
-
     private abstract static class CompletionProcess {
         private static final CompletionProcess stubCompletionProcess = new CompletionProcess() {
             @Override
@@ -1638,7 +1606,11 @@ public final class JavaClass
             }
 
             @Override
-            public void markEnclosingDeclarationComplete() {
+            public void markEnclosingClassComplete() {
+            }
+
+            @Override
+            public void markEnclosingCodeUnitComplete() {
             }
 
             @Override
@@ -1670,7 +1642,9 @@ public final class JavaClass
 
         public abstract void markClassHierarchyComplete();
 
-        public abstract void markEnclosingDeclarationComplete();
+        public abstract void markEnclosingClassComplete();
+
+        public abstract void markEnclosingCodeUnitComplete();
 
         public abstract void markTypeParametersComplete();
 
@@ -1695,7 +1669,8 @@ public final class JavaClass
 
     private static class FullCompletionProcess extends CompletionProcess {
         private boolean classHierarchyComplete = false;
-        private boolean enclosingDeclarationComplete = false;
+        private boolean enclosingClassComplete = false;
+        private boolean enclosingCodeUnitComplete = false;
         private boolean typeParametersComplete = false;
         private boolean genericSuperclassComplete = false;
         private boolean genericInterfacesComplete = false;
@@ -1706,7 +1681,8 @@ public final class JavaClass
         @Override
         boolean hasFinished() {
             return classHierarchyComplete
-                    && enclosingDeclarationComplete
+                    && enclosingClassComplete
+                    && enclosingCodeUnitComplete
                     && typeParametersComplete
                     && genericSuperclassComplete
                     && genericInterfacesComplete
@@ -1721,8 +1697,13 @@ public final class JavaClass
         }
 
         @Override
-        public void markEnclosingDeclarationComplete() {
-            this.enclosingDeclarationComplete = true;
+        public void markEnclosingClassComplete() {
+            this.enclosingClassComplete = true;
+        }
+
+        @Override
+        public void markEnclosingCodeUnitComplete() {
+            this.enclosingCodeUnitComplete = true;
         }
 
         @Override
