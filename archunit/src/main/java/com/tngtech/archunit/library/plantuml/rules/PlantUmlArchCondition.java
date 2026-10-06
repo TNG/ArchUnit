@@ -57,12 +57,21 @@ import static java.util.stream.Collectors.joining;
  * classes().should(adhereToPlantUmlDiagram(someDiagramUrl, consideringAllDependencies()));
  * </code></pre>
  * The supported diagram syntax uses component diagram stereotypes to associate package patterns
- * (compare {@link PackageMatcher}) with components. An example could look like
+ * (compare {@link PackageMatcher}) with components. Components can be declared using the
+ * short brackets notation or the long {@code component} notation.
  * <pre><code>
  * [Some Source] &lt;&lt;..some.source..&gt;&gt;
  * [Some Target] &lt;&lt;..some.target..&gt;&gt;
  *
  * [Some Source] --&gt; [Some Target]
+ * </code></pre>
+ * For simplicity and to conform to UML, packages can be used instead of components,
+ * and dependencies can use dashed lines instead of solid lines.
+ * <pre><code>
+ * package "Some Source" &lt;&lt;..some.source..&gt;&gt; as source
+ * package "Some Target" &lt;&lt;..some.target..&gt;&gt; as target
+ *
+ * source ..&gt; target
  * </code></pre>
  * Applying such a diagram as an ArchUnit rule would demand dependencies only from <code>..some.source..</code>
  * to <code>..some.target..</code>, but forbid them vice versa.<br>
@@ -83,12 +92,15 @@ import static java.util.stream.Collectors.joining;
  * <br>
  * A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
  * <ol>
- *     <li>Components must have a name</li>
+ *     <li>Components must have a name, using either the short notation, e.g. <code>[Some Component]</code>,
+ *         or the long notation, e.g. <code>component "Some Component"</code>. Alternately, packages can be used
+ *         instead of components, e.g. <code>package "Some Package"</code>.</li>
  *     <li>Components must have at least one stereotype. Each stereotype in the diagram must be unique</li>
  *     <li>Components may have an optional alias</li>
  *     <li>Components may have an optional color</li>
  *     <li>Components must be defined before declaring dependencies</li>
- *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></li>
+ *     <li>Dependencies must use arrows only consisting of dashes, e.g. <code>--&gt;</code>, or points, e
+ *     .g. <code>..&gt;</code></li>
  * </ol>
  */
 @PublicAPI(usage = ACCESS)
