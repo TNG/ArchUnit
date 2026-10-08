@@ -100,15 +100,16 @@ dependencies {
     jdk16testImplementation sourceSets.test.compileClasspath
     jdk25testImplementation sourceSets.test.output
     jdk25testImplementation sourceSets.test.compileClasspath
-
-    runtimeOnly sourceSets.jdk9main.output
+    archTestImplementation sourceSets.jdk9main.output
+    testRuntimeOnly sourceSets.jdk9main.output
 }
 
 compileJdk9mainJava {
     dependsOn(compileJava)
     ext.minimumJavaVersion = JavaVersion.VERSION_1_9
-
-    destinationDirectory.set(compileJava.destinationDirectory.get())
+}
+shadowJar {
+    from sourceSets.jdk9main.output
 }
 javadoc.dependsOn(compileJdk9mainJava)
 spotbugsMain.dependsOn(compileJdk9mainJava)
