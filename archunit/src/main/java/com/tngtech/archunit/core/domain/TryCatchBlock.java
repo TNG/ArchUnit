@@ -29,8 +29,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 @PublicAPI(usage = ACCESS)
-public final class TryCatchBlock implements HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
-    private final JavaCodeUnit owner;
+public final class TryCatchBlock implements HasOwner<JavaCodeUnit<?>>, HasSourceCodeLocation {
+    private final JavaCodeUnit<?> owner;
     private final Set<JavaClass> caughtThrowables;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaAccess<?>> accessesContainedInTryBlock;
@@ -46,7 +46,7 @@ public final class TryCatchBlock implements HasOwner<JavaCodeUnit>, HasSourceCod
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getOwner() {
+    public JavaCodeUnit<?> getOwner() {
         return owner;
     }
 

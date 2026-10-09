@@ -18,7 +18,7 @@ public class JavaAnnotationTest {
     public void description_of_annotation_on_class() {
         JavaClass javaClass = importClasses(SomeAnnotation.class, SomeClass.class).get(SomeClass.class);
 
-        JavaAnnotation<JavaClass> annotation = javaClass.getAnnotationOfType(SomeAnnotation.class.getName());
+        JavaAnnotation<? extends JavaClass> annotation = javaClass.getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.getDescription()).isEqualTo(
                 "Annotation <" + SomeAnnotation.class.getName()
@@ -29,7 +29,7 @@ public class JavaAnnotationTest {
     public void description_of_annotation_on_method() {
         JavaClass javaClass = importClasses(SomeAnnotation.class, SomeClass.class).get(SomeClass.class);
 
-        JavaAnnotation<JavaMethod> annotation = javaClass.getMethod("method").getAnnotationOfType(SomeAnnotation.class.getName());
+        JavaAnnotation<? extends JavaMethod> annotation = javaClass.getMethod("method").getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.getDescription()).isEqualTo(
                 "Annotation <" + SomeAnnotation.class.getName()
@@ -64,7 +64,7 @@ public class JavaAnnotationTest {
         JavaClasses classes = importClasses(
                 AnnotationWithFirstLevelParameters.class, ClassWithAnnotationWithFirstLevelParameters.class,
                 Class1.class, Class2.class, SomeEnum.class);
-        JavaAnnotation<JavaClass> annotation = classes.get(ClassWithAnnotationWithFirstLevelParameters.class)
+        JavaAnnotation<? extends JavaClass> annotation = classes.get(ClassWithAnnotationWithFirstLevelParameters.class)
                 .getAnnotationOfType(AnnotationWithFirstLevelParameters.class.getName());
         Map<Enum<?>, JavaEnumConstant> enumConstants = getEnumConstants(classes.get(SomeEnum.class));
         ParametersStoringVisitor visitor = new ParametersStoringVisitor();
@@ -83,7 +83,7 @@ public class JavaAnnotationTest {
                 AnnotationWithFirstLevelParameters.class, AnnotationWithSecondLevelParameters.class,
                 ClassWithAnnotationWithSecondLevelParameters.class,
                 Class1.class, Class2.class, Class3.class, Class4.class, SomeEnum.class);
-        JavaAnnotation<JavaClass> annotation = classes.get(ClassWithAnnotationWithSecondLevelParameters.class)
+        JavaAnnotation<? extends JavaClass> annotation = classes.get(ClassWithAnnotationWithSecondLevelParameters.class)
                 .getAnnotationOfType(AnnotationWithSecondLevelParameters.class.getName());
         Map<Enum<?>, JavaEnumConstant> enumConstants = getEnumConstants(classes.get(SomeEnum.class));
         ParametersStoringVisitor visitor = new ParametersStoringVisitor();

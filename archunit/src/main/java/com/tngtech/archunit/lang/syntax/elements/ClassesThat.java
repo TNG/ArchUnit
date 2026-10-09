@@ -819,18 +819,18 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION containAnyFieldsThat(DescribedPredicate<? super JavaField> predicate);
 
     /**
-     * Matches classes that contain any {@link JavaCodeUnit code unit} matching the supplied predicate.
+     * Matches classes that contain any {@link JavaCodeUnit<?> code unit} matching the supplied predicate.
      * <br><br>
      * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
-     * {@link JavaCodeUnit} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * {@link JavaCodeUnit<?>} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
      * like {@link JavaMember.Predicates}.
      *
-     * @param predicate A predicate defining matching {@link JavaCodeUnit JavaCodeUnits}
+     * @param predicate A predicate defining matching {@link JavaCodeUnit<?> JavaCodeUnits}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
+    CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate);
 
     /**
      * Matches classes that contain any {@link JavaMethod method} matching the supplied predicate.

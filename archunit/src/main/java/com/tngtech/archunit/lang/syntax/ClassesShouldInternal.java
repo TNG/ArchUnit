@@ -485,7 +485,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+    public ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
         return addCondition(ArchConditions.onlyCallCodeUnitsThat(predicate));
     }
 

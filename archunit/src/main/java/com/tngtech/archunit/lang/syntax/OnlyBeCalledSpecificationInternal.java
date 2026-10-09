@@ -24,7 +24,7 @@ import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeCalledSpecification;
 
-class OnlyBeCalledSpecificationInternal<SHOULD extends AbstractMembersShouldInternal<? extends JavaCodeUnit, SHOULD>> implements OnlyBeCalledSpecification<SHOULD> {
+class OnlyBeCalledSpecificationInternal<SHOULD extends AbstractMembersShouldInternal<? extends JavaCodeUnit<?>, SHOULD>> implements OnlyBeCalledSpecification<SHOULD> {
     private final SHOULD codeUnitsShould;
 
     OnlyBeCalledSpecificationInternal(SHOULD codeUnitsShould) {
@@ -42,7 +42,7 @@ class OnlyBeCalledSpecificationInternal<SHOULD extends AbstractMembersShouldInte
     }
 
     @Override
-    public SHOULD byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+    public SHOULD byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
         return codeUnitsShould.addCondition(ArchConditions.onlyBeCalledByCodeUnitsThat(predicate));
     }
 

@@ -20,7 +20,7 @@ public class JavaTypeVariableTest {
         class ClassWithUnboundTypeParameter<SOME_NAME> {
         }
 
-        JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
 
         assertThat(type.getName()).isEqualTo("SOME_NAME");
     }
@@ -32,7 +32,7 @@ public class JavaTypeVariableTest {
         }
 
         JavaClass javaClass = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class);
-        JavaTypeVariable<JavaClass> type = javaClass.getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = javaClass.getTypeParameters().get(0);
 
         assertThat(type.getOwner()).isSameAs(javaClass);
         assertThat(type.getGenericDeclaration()).isSameAs(javaClass);
@@ -44,7 +44,7 @@ public class JavaTypeVariableTest {
         class ClassWithUnboundTypeParameter<T extends HashMap<Object, Object> & Serializable> {
         }
 
-        JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
 
         assertThatTypeErasuresOf(type.getBounds()).matchExactly(HashMap.class, Serializable.class);
         assertThatTypeErasuresOf(type.getUpperBounds()).matchExactly(HashMap.class, Serializable.class);
@@ -56,7 +56,7 @@ public class JavaTypeVariableTest {
         class ClassWithUnboundTypeParameter<T> {
         }
 
-        JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
 
         assertThatType(type.toErasure()).matches(Object.class);
     }
@@ -67,7 +67,7 @@ public class JavaTypeVariableTest {
         class ClassWithBoundTypeParameterWithSingleClassBound<T extends Serializable> {
         }
 
-        JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleClassBound.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleClassBound.class).getTypeParameters().get(0);
 
         assertThatType(type.toErasure()).matches(Serializable.class);
     }
@@ -78,7 +78,7 @@ public class JavaTypeVariableTest {
         class ClassWithBoundTypeParameterWithSingleGenericClassBound<T extends List<String>> {
         }
 
-        JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleGenericClassBound.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleGenericClassBound.class).getTypeParameters().get(0);
 
         assertThatType(type.toErasure()).matches(List.class);
     }
@@ -89,7 +89,7 @@ public class JavaTypeVariableTest {
         class ClassWithBoundTypeParameterWithMultipleGenericClassAndInterfaceBounds<T extends HashMap<String, String> & Iterable<String> & Serializable> {
         }
 
-        JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithMultipleGenericClassAndInterfaceBounds.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> type = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithMultipleGenericClassAndInterfaceBounds.class).getTypeParameters().get(0);
 
         assertThatType(type.toErasure()).matches(HashMap.class);
     }
@@ -100,7 +100,7 @@ public class JavaTypeVariableTest {
         class ClassWithBoundTypeParameterWithSingleGenericArrayBound<T extends List<Object[]>, U extends List<String[][]>, V extends List<List<?>[][][]>> {
         }
 
-        List<JavaTypeVariable<JavaClass>> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class).getTypeParameters();
+        List<? extends JavaTypeVariable<? extends JavaClass>> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class).getTypeParameters();
 
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(0)).toErasure()).matches(Object[].class);
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(1)).toErasure()).matches(String[][].class);
@@ -113,7 +113,7 @@ public class JavaTypeVariableTest {
         class ClassWithBoundTypeParameterWithGenericArrayBounds<A, B extends String, C extends List<?>, T extends List<A[]>, U extends List<B[][]>, V extends List<C[][][]>> {
         }
 
-        List<JavaTypeVariable<JavaClass>> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithGenericArrayBounds.class).getTypeParameters();
+        List<? extends JavaTypeVariable<? extends JavaClass>> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithGenericArrayBounds.class).getTypeParameters();
 
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(3)).toErasure()).matches(Object[].class);
         assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(4)).toErasure()).matches(String[][].class);
@@ -138,7 +138,7 @@ public class JavaTypeVariableTest {
         class Unbounded<NAME> {
         }
 
-        JavaTypeVariable<JavaClass> typeVariable = new ClassFileImporter().importClass(Unbounded.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> typeVariable = new ClassFileImporter().importClass(Unbounded.class).getTypeParameters().get(0);
 
         assertThat(typeVariable.toString())
                 .contains(JavaTypeVariable.class.getSimpleName())
@@ -152,7 +152,7 @@ public class JavaTypeVariableTest {
         class BoundedBySingleBound<NAME extends String> {
         }
 
-        JavaTypeVariable<JavaClass> typeVariable = new ClassFileImporter().importClass(BoundedBySingleBound.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> typeVariable = new ClassFileImporter().importClass(BoundedBySingleBound.class).getTypeParameters().get(0);
 
         assertThat(typeVariable.toString())
                 .contains(JavaTypeVariable.class.getSimpleName())
@@ -165,14 +165,14 @@ public class JavaTypeVariableTest {
         class BoundedByMultipleBounds<NAME extends String & Serializable> {
         }
 
-        JavaTypeVariable<JavaClass> typeVariable = new ClassFileImporter().importClass(BoundedByMultipleBounds.class).getTypeParameters().get(0);
+        JavaTypeVariable<? extends JavaClass> typeVariable = new ClassFileImporter().importClass(BoundedByMultipleBounds.class).getTypeParameters().get(0);
 
         assertThat(typeVariable.toString())
                 .contains(JavaTypeVariable.class.getSimpleName())
                 .contains("NAME extends java.lang.String & java.io.Serializable");
     }
 
-    private static JavaType getTypeArgumentOfFirstBound(JavaTypeVariable<JavaClass> typeParameter) {
+    private static JavaType getTypeArgumentOfFirstBound(JavaTypeVariable<? extends JavaClass> typeParameter) {
         JavaParameterizedType firstBound = (JavaParameterizedType) typeParameter.getBounds().get(0);
         return firstBound.getActualTypeArguments().get(0);
     }

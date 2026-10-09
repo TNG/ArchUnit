@@ -22,17 +22,17 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 
-class CodeUnitOnlyCallsCondition<T extends JavaAccess<?>> extends AllAttributesMatchCondition<T, JavaCodeUnit> {
-    private final Function<? super JavaCodeUnit, ? extends Collection<? extends T>> getRelevantAccesses;
+class CodeUnitOnlyCallsCondition<T extends JavaAccess<?>> extends AllAttributesMatchCondition<T, JavaCodeUnit<?>> {
+    private final Function<? super JavaCodeUnit<?>, ? extends Collection<? extends T>> getRelevantAccesses;
 
     CodeUnitOnlyCallsCondition(String description, DescribedPredicate<T> predicate,
-            Function<? super JavaCodeUnit, ? extends Collection<? extends T>> getRelevantAccesses) {
+            Function<? super JavaCodeUnit<?>, ? extends Collection<? extends T>> getRelevantAccesses) {
         super(description, new JavaAccessCondition<>(predicate));
         this.getRelevantAccesses = getRelevantAccesses;
     }
 
     @Override
-    Collection<? extends T> relevantAttributes(JavaCodeUnit item) {
+    Collection<? extends T> relevantAttributes(JavaCodeUnit<?> item) {
         return getRelevantAccesses.apply(item);
     }
 }

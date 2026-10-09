@@ -242,9 +242,9 @@ public class TestUtils {
     }
 
     public static class CallRetriever {
-        private final JavaCodeUnit codeUnit;
+        private final JavaCodeUnit<?> codeUnit;
 
-        private CallRetriever(JavaCodeUnit codeUnit) {
+        private CallRetriever(JavaCodeUnit<?> codeUnit) {
             this.codeUnit = codeUnit;
         }
 

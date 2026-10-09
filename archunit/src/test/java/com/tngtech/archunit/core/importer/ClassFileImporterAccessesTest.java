@@ -417,7 +417,7 @@ public class ClassFileImporterAccessesTest {
 
         assertThat(calls).hasSize(2);
 
-        JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperclass
+        JavaCodeUnit<?> callSuperclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSuperclassMethod);
         JavaMethod expectedSuperclassMethod = superclassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
         MethodCallTarget expectedSuperclassCall = newMethodCallTargetBuilder()
@@ -432,7 +432,7 @@ public class ClassFileImporterAccessesTest {
                 .isTo(expectedSuperclassCall)
                 .inLineNumber(CallOfSuperAndSubclassMethod.callSuperclassLineNumber);
 
-        JavaCodeUnit callSubclassMethod = classThatCallsMethodOfSuperclass
+        JavaCodeUnit<?> callSubclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSubclassMethod);
         assertThatCall(getOnlyByCaller(calls, callSubclassMethod))
                 .isFrom(callSubclassMethod)
@@ -460,7 +460,7 @@ public class ClassFileImporterAccessesTest {
                         new ClassFileImporter().importClasses(Parent.class, Child.class)
                                 .get(Child.class)
                 ));
-        JavaCodeUnit bridgeMethod = callFromBridgeMethodToOverriddenOne.getOrigin();
+        JavaCodeUnit<?> bridgeMethod = callFromBridgeMethodToOverriddenOne.getOrigin();
 
         assertThat(bridgeMethod.getName()).isEqualTo("covariantlyOverriddenCausingBridgeMethod");
         assertThatType(bridgeMethod.getRawReturnType()).as("Return type of bridge method").matches(Object.class);
@@ -470,7 +470,7 @@ public class ClassFileImporterAccessesTest {
     @Test
     public void imports_constructor_calls_on_self() {
         JavaClass classThatCallsOwnConstructor = new ClassFileImporter().importUrl(getClass().getResource("testexamples/callimport")).get(CallsOwnConstructor.class);
-        JavaCodeUnit caller = classThatCallsOwnConstructor.getCodeUnitWithParameterTypes("copy");
+        JavaCodeUnit<?> caller = classThatCallsOwnConstructor.getCodeUnitWithParameterTypes("copy");
 
         Set<JavaConstructorCall> calls = classThatCallsOwnConstructor.getConstructorCallsFromSelf();
 
@@ -497,7 +497,7 @@ public class ClassFileImporterAccessesTest {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/callimport"));
         JavaClass classThatCallsOtherConstructor = classes.get(CallsOtherConstructor.class);
         JavaClass otherClass = classes.get(CallsOwnConstructor.class);
-        JavaCodeUnit caller = classThatCallsOtherConstructor.getCodeUnitWithParameterTypes("createOther");
+        JavaCodeUnit<?> caller = classThatCallsOtherConstructor.getCodeUnitWithParameterTypes("createOther");
 
         Set<JavaConstructorCall> calls = classThatCallsOtherConstructor.getConstructorCallsFromSelf();
 
@@ -524,7 +524,7 @@ public class ClassFileImporterAccessesTest {
     @Test
     public void imports_constructor_calls_on_external_class() throws Exception {
         JavaClass classThatCallsOwnConstructor = new ClassFileImporter().importUrl(getClass().getResource("testexamples/callimport")).get(CallsOwnConstructor.class);
-        JavaCodeUnit constructorCallingObjectInit = classThatCallsOwnConstructor.getConstructor(String.class);
+        JavaCodeUnit<?> constructorCallingObjectInit = classThatCallsOwnConstructor.getConstructor(String.class);
 
         JavaConstructorCall objectInitCall = getOnlyElement(constructorCallingObjectInit.getConstructorCallsFromSelf());
 
@@ -545,7 +545,7 @@ public class ClassFileImporterAccessesTest {
         assertConstructorCall(classWithExternalConstructorCall.getCodeUnitWithParameterTypes("newHashMap"), HashMap.class, 13);
     }
 
-    private void assertConstructorCall(JavaCodeUnit call, Class<?> constructorOwner, int lineNumber) {
+    private void assertConstructorCall(JavaCodeUnit<?> call, Class<?> constructorOwner, int lineNumber) {
         JavaConstructorCall callToExternalClass =
                 getOnlyElement(getByTargetOwner(call.getConstructorCallsFromSelf(), constructorOwner));
 
@@ -614,7 +614,7 @@ public class ClassFileImporterAccessesTest {
 
         assertThat(calls).hasSize(2);
 
-        JavaCodeUnit callInterface = classCallingDiamond
+        JavaCodeUnit<?> callInterface = classCallingDiamond
                 .getCodeUnitWithParameterTypes(ClassCallingDiamond.callInterface);
         JavaMethodCall callToInterface = getOnlyByCaller(calls, callInterface);
         assertThatCall(callToInterface)
@@ -626,7 +626,7 @@ public class ClassFileImporterAccessesTest {
         assertThat(callToInterface.getTarget().getRawParameterTypes()).isEmpty();
         assertThat(callToInterface.getTarget().resolveMember().get()).isEquivalentTo(InterfaceB.class, InterfaceB.implementMe);
 
-        JavaCodeUnit callImplementation = classCallingDiamond
+        JavaCodeUnit<?> callImplementation = classCallingDiamond
                 .getCodeUnitWithParameterTypes(ClassCallingDiamond.callImplementation);
         assertThatCall(getOnlyByCaller(calls, callImplementation))
                 .isFrom(callImplementation)
@@ -1289,7 +1289,7 @@ public class ClassFileImporterAccessesTest {
                 .collect(toSet());
     }
 
-    private <T extends HasOwner<JavaCodeUnit>> T getOnlyByCaller(Set<T> calls, JavaCodeUnit caller) {
+    private <T extends HasOwner<JavaCodeUnit<?>>> T getOnlyByCaller(Set<T> calls, JavaCodeUnit<?> caller) {
         return getOnlyElement(getByCaller(calls, caller));
     }
 
@@ -1313,11 +1313,11 @@ public class ClassFileImporterAccessesTest {
         return getBy(calls, input -> targetOwner.equals(input.getTarget().getOwner()));
     }
 
-    private <T extends HasOwner<JavaCodeUnit>> Set<T> getByCaller(Set<T> calls, JavaCodeUnit caller) {
+    private <T extends HasOwner<JavaCodeUnit<?>>> Set<T> getByCaller(Set<T> calls, JavaCodeUnit<?> caller) {
         return getBy(calls, input -> caller.equals(input.getOwner()));
     }
 
-    private <T extends HasOwner<JavaCodeUnit>> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
+    private <T extends HasOwner<JavaCodeUnit<?>>> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
         return calls.stream().filter(predicate).collect(toSet());
     }
 
@@ -1329,5 +1329,5 @@ public class ClassFileImporterAccessesTest {
         return fieldAccesses.stream().map(JavaAccess::getLineNumber).collect(toSet());
     }
 
-    private static final ChainableFunction<JavaAccess<?>, AccessTarget> GET_TARGET = JavaAccess.Functions.Get.target();
+    private static final ChainableFunction<JavaAccess<?>, AccessTarget<?>> GET_TARGET = JavaAccess.Functions.Get.target();
 }

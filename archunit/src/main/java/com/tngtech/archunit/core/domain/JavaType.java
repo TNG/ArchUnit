@@ -231,7 +231,7 @@ class SignatureTraversal implements JavaType.SignatureVisitor {
         // Otherwise, we can only encounter a regular class as a raw type in a type signature.
         // In these cases we don't want to traverse further down, as that would be surprising behavior
         // (consider `class MyClass<T extends Map>`, traversing into the type variables `K` and `V` of `Map` would be surprising).
-        Supplier<Iterable<JavaTypeVariable<JavaClass>>> getFurtherTypesToTraverse = visited.isEmpty() ? type::getTypeParameters : Collections::emptyList;
+        Supplier<? extends Iterable<? extends JavaType>> getFurtherTypesToTraverse = visited.isEmpty() ? type::getTypeParameters : Collections::emptyList;
         return visit(type, delegate::visitClass, getFurtherTypesToTraverse);
     }
 
@@ -255,10 +255,10 @@ class SignatureTraversal implements JavaType.SignatureVisitor {
         return visit(type, delegate::visitWildcardType, () -> Iterables.concat(type.getUpperBounds(), type.getLowerBounds()));
     }
 
-    private <CURRENT extends JavaType, NEXT extends JavaType> Result visit(
+    private <CURRENT extends JavaType> Result visit(
             CURRENT type,
             Function<CURRENT, Result> visitCurrent,
-            Supplier<Iterable<NEXT>> nextTypes
+            Supplier<? extends Iterable<? extends JavaType>> nextTypes
     ) {
         if (visited.contains(type)) {
             // if we've encountered this type already we continue traversing the siblings,

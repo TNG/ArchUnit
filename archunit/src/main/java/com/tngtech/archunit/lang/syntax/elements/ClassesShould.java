@@ -977,7 +977,7 @@ public interface ClassesShould {
     ClassesShouldConjunction onlyAccessMembersThat(DescribedPredicate<? super JavaMember> predicate);
 
     /**
-     * Matches against code unit calls (compare {@link JavaCodeUnit}) where origin (a code unit)
+     * Matches against code unit calls (compare {@link JavaCodeUnit<?>}) where origin (a code unit)
      * and target (a code unit) can be freely restricted by the supplied predicate.
      * <br><br>
      * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
@@ -996,14 +996,14 @@ public interface ClassesShould {
      * <br><br>
      * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
-     * {@link JavaCodeUnit} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * {@link JavaCodeUnit<?>} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
      * like {@link JavaMember.Predicates}.
      *
-     * @param predicate Determines which {@link JavaCodeUnit JavaCodeUnits} match the rule
+     * @param predicate Determines which {@link JavaCodeUnit<?> JavaCodeUnits} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
+    ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate);
 
     /**
      * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat()}).<br>

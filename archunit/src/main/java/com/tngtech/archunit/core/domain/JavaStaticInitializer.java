@@ -40,7 +40,7 @@ import static java.util.Collections.emptySet;
  * </code></pre>
  */
 @PublicAPI(usage = ACCESS)
-public final class JavaStaticInitializer extends JavaCodeUnit {
+public final class JavaStaticInitializer extends JavaCodeUnit<JavaStaticInitializer> {
     @PublicAPI(usage = ACCESS)
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 

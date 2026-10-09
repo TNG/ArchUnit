@@ -74,7 +74,7 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
     }
 
     public JavaTypeVariableOfClassAssertion hasTypeParameter(String name) {
-        JavaTypeVariable<JavaClass> typeVariable = getTypeVariableWithName(name, actualClass().getTypeParameters());
+        JavaTypeVariable<? extends JavaClass> typeVariable = getTypeVariableWithName(name, actualClass().getTypeParameters());
         return new JavaTypeVariableOfClassAssertion(typeVariable);
     }
 
@@ -144,8 +144,8 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         return javaVersion.startsWith("1.7.") || javaVersion.startsWith("1.8.");
     }
 
-    public class JavaTypeVariableOfClassAssertion extends AbstractObjectAssert<JavaTypeVariableOfClassAssertion, JavaTypeVariable<JavaClass>> {
-        private JavaTypeVariableOfClassAssertion(JavaTypeVariable<JavaClass> actual) {
+    public class JavaTypeVariableOfClassAssertion extends AbstractObjectAssert<JavaTypeVariableOfClassAssertion, JavaTypeVariable<? extends JavaClass>> {
+        private JavaTypeVariableOfClassAssertion(JavaTypeVariable<? extends JavaClass> actual) {
             super(actual, JavaTypeVariableOfClassAssertion.class);
         }
 

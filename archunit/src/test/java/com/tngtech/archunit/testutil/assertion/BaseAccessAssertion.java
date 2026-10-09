@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 abstract class BaseAccessAssertion<
         SELF extends BaseAccessAssertion<SELF, ACCESS, TARGET>,
         ACCESS extends JavaAccess<TARGET>,
-        TARGET extends AccessTarget> {
+        TARGET extends AccessTarget<?>> {
 
     ACCESS access;
 
@@ -28,7 +28,7 @@ abstract class BaseAccessAssertion<
         return isFrom(name, parameterTypes);
     }
 
-    public SELF isFrom(JavaCodeUnit codeUnit) {
+    public SELF isFrom(JavaCodeUnit<?> codeUnit) {
         assertThat(access.getOrigin()).as("Origin of access").isEqualTo(codeUnit);
         return newAssertion(access);
     }

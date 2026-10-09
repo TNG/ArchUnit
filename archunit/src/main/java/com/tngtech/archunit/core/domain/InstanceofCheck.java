@@ -25,14 +25,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
+public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit<?>>, HasSourceCodeLocation {
 
-    private final JavaCodeUnit owner;
+    private final JavaCodeUnit<?> owner;
     private final JavaClass type;
     private final boolean declaredInLambda;
     private final SourceCodeLocation sourceCodeLocation;
 
-    private InstanceofCheck(JavaCodeUnit owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
+    private InstanceofCheck(JavaCodeUnit<?> owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
         this.owner = checkNotNull(owner);
         this.type = checkNotNull(type);
         this.declaredInLambda = declaredInLambda;
@@ -53,7 +53,7 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getOwner() {
+    public JavaCodeUnit<?> getOwner() {
         return owner;
     }
 
@@ -82,7 +82,7 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
                 .toString();
     }
 
-    static InstanceofCheck from(JavaCodeUnit owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
+    static InstanceofCheck from(JavaCodeUnit<?> owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
         return new InstanceofCheck(owner, type, lineNumber, declaredInLambda);
     }
 }

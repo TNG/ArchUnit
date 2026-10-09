@@ -149,12 +149,12 @@ class JavaClassDependencies {
                 ));
     }
 
-    private Stream<Dependency> rawParameterTypeDependencies(JavaCodeUnit codeUnit) {
+    private Stream<Dependency> rawParameterTypeDependencies(JavaCodeUnit<?> codeUnit) {
         return codeUnit.getRawParameterTypes().stream()
                 .flatMap(parameter -> Dependency.tryCreateFromParameter(codeUnit, parameter).stream());
     }
 
-    private Stream<Dependency> genericParameterTypeArgumentDependencies(JavaCodeUnit codeUnit) {
+    private Stream<Dependency> genericParameterTypeArgumentDependencies(JavaCodeUnit<?> codeUnit) {
         return codeUnit.getParameterTypes().stream()
                 .filter(parameterType -> parameterType instanceof JavaParameterizedType)
                 .flatMap(parameterType -> dependenciesOfParameterizedType((JavaParameterizedType) parameterType)
@@ -244,7 +244,7 @@ class JavaClassDependencies {
                 .flatMap(JavaClassDependencies::dependenciesOfType);
     }
 
-    private Stream<Dependency> parameterAnnotationDependencies(Set<? extends JavaCodeUnit> codeUnits) {
+    private Stream<Dependency> parameterAnnotationDependencies(Set<? extends JavaCodeUnit<?>> codeUnits) {
         return codeUnits.stream().flatMap(codeUnit -> annotationDependencies(codeUnit.getParameters()));
     }
 

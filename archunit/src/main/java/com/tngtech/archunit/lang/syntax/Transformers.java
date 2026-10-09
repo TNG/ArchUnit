@@ -62,11 +62,11 @@ class Transformers {
         };
     }
 
-    static ClassesTransformer<JavaCodeUnit> codeUnits() {
-        return new AbstractClassesTransformer<JavaCodeUnit>("code units") {
+    static ClassesTransformer<JavaCodeUnit<?>> codeUnits() {
+        return new AbstractClassesTransformer<JavaCodeUnit<?>>("code units") {
             @Override
-            public Iterable<JavaCodeUnit> doTransform(JavaClasses collection) {
-                ImmutableSet.Builder<JavaCodeUnit> result = ImmutableSet.builder();
+            public Iterable<JavaCodeUnit<?>> doTransform(JavaClasses collection) {
+                ImmutableSet.Builder<JavaCodeUnit<?>> result = ImmutableSet.builder();
                 for (JavaClass javaClass : collection) {
                     result.addAll(javaClass.getCodeUnits());
                 }

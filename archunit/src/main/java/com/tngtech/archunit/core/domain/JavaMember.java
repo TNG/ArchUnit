@@ -43,12 +43,11 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 @PublicAPI(usage = ACCESS)
-public abstract class JavaMember implements
-        HasName.AndFullName, HasDescriptor, HasAnnotations<JavaMember>, HasModifiers, HasOwner<JavaClass>, HasSourceCodeLocation {
+public abstract class JavaMember<SELF extends JavaMember<SELF>> implements
+        HasName.AndFullName, HasDescriptor, HasAnnotations<SELF>, HasModifiers, HasOwner<JavaClass>, HasSourceCodeLocation {
 
     private final String name;
     private final String descriptor;
-    private Map<String, JavaAnnotation<JavaMember>> annotations = Collections.emptyMap();
     private final JavaClass owner;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaModifier> modifiers;
@@ -64,7 +63,7 @@ public abstract class JavaMember implements
 
     /**
      * Similar to {@link JavaType#getAllInvolvedRawTypes()}, this method returns all raw types involved in this {@link JavaMember member's} signature.
-     * For more concrete details refer to {@link JavaField#getAllInvolvedRawTypes()} and {@link JavaCodeUnit#getAllInvolvedRawTypes()}.
+     * For more concrete details refer to {@link JavaField#getAllInvolvedRawTypes()} and {@link JavaCodeUnit<?>#getAllInvolvedRawTypes()}.
      *
      * @return All raw types involved in the signature of this member
      */
@@ -73,15 +72,11 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<? extends JavaAnnotation<? extends JavaMember>> getAnnotations() {
+    public Set<? extends JavaAnnotation<? extends SELF>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
     }
 
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public Optional<? extends JavaAnnotation<? extends JavaMember>> tryGetAnnotationOfType(String typeName) {
-        return Optional.ofNullable(annotations.get(typeName));
-    }
+
 
     @Override
     @PublicAPI(usage = ACCESS)
@@ -162,9 +157,21 @@ public abstract class JavaMember implements
     @PublicAPI(usage = ACCESS)
     public abstract Member reflect();
 
+    private Map<String, ? extends JavaAnnotation<? extends SELF>> annotations = Collections.emptyMap();
     void completeAnnotations(ImportContext context) {
-        annotations = context.createAnnotations(this);
+        annotations = context.createAnnotations(self());
     }
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Optional<? extends JavaAnnotation<? extends SELF>> tryGetAnnotationOfType(String typeName) {
+        return Optional.ofNullable(annotations.get(typeName));
+    }
+
+    @SuppressWarnings("unchecked")
+    SELF self() {
+        return (SELF)this;
+    }
+
 
     protected ReverseDependencies getReverseDependencies() {
         return reverseDependencies;

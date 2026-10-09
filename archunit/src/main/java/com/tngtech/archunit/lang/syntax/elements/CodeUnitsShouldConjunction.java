@@ -22,7 +22,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public interface CodeUnitsShouldConjunction<CODE_UNIT extends JavaCodeUnit> extends MembersShouldConjunction<CODE_UNIT> {
+public interface CodeUnitsShouldConjunction<CODE_UNIT extends JavaCodeUnit<?>> extends MembersShouldConjunction<CODE_UNIT> {
 
     @Override
     @PublicAPI(usage = ACCESS)

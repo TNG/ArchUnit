@@ -123,8 +123,8 @@ class RawAccessRecord implements RawCodeUnitDependency<RawAccessRecord.TargetInf
             return declaringClassName;
         }
 
-        JavaCodeUnit resolveFrom(ImportedClasses classes) {
-            for (JavaCodeUnit method : classes.getOrResolve(getDeclaringClassName()).getCodeUnits()) {
+        JavaCodeUnit<?> resolveFrom(ImportedClasses classes) {
+            for (JavaCodeUnit<?> method : classes.getOrResolve(getDeclaringClassName()).getCodeUnits()) {
                 if (is(method)) {
                     return method;
                 }
@@ -133,7 +133,7 @@ class RawAccessRecord implements RawCodeUnitDependency<RawAccessRecord.TargetInf
                     " that matches supposed origin " + this);
         }
 
-        private boolean is(JavaCodeUnit method) {
+        private boolean is(JavaCodeUnit<?> method) {
             return getName().equals(method.getName())
                     && descriptor.equals(method.getDescriptor())
                     && getDeclaringClassName().equals(method.getOwner().getName());

@@ -88,14 +88,14 @@ class ClassGraphCreator implements ImportContext {
     private final ClassFileImportRecord importRecord;
     private final DependencyResolutionProcess dependencyResolutionProcess;
 
-    private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, AccessRecord<MethodReferenceTarget>> processedMethodReferenceRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, ReferencedClassObject> processedReferencedClassObjects = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, InstanceofCheck> processedInstanceofChecks = HashMultimap.create();
-    private final SetMultimap<JavaCodeUnit, TryCatchBlockBuilder> processedTryCatchBlocks = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, AccessRecord<MethodReferenceTarget>> processedMethodReferenceRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, ReferencedClassObject> processedReferencedClassObjects = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, InstanceofCheck> processedInstanceofChecks = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit<?>, TryCatchBlockBuilder> processedTryCatchBlocks = HashMultimap.create();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
@@ -141,14 +141,14 @@ class ClassGraphCreator implements ImportContext {
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
             B rawRecord,
             AccessRecord.Factory<B, T> factory,
-            Multimap<JavaCodeUnit, T> processedAccessRecords) {
+            Multimap<JavaCodeUnit<?>, T> processedAccessRecords) {
 
         T processed = factory.create(rawRecord, classes);
         processedAccessRecords.put(processed.getOrigin(), processed);
     }
 
     private void processReferencedClassObject(RawReferencedClassObject rawReferencedClassObject) {
-        JavaCodeUnit origin = rawReferencedClassObject.getOrigin().resolveFrom(classes);
+        JavaCodeUnit<?> origin = rawReferencedClassObject.getOrigin().resolveFrom(classes);
         ReferencedClassObject referencedClassObject = createReferencedClassObject(
                 origin,
                 classes.getOrResolve(rawReferencedClassObject.getClassName()),
@@ -159,7 +159,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void processInstanceofCheck(RawInstanceofCheck rawInstanceofCheck) {
-        JavaCodeUnit origin = rawInstanceofCheck.getOrigin().resolveFrom(classes);
+        JavaCodeUnit<?> origin = rawInstanceofCheck.getOrigin().resolveFrom(classes);
         InstanceofCheck instanceofCheck = createInstanceofCheck(
                 origin,
                 classes.getOrResolve(rawInstanceofCheck.getTarget().getFullyQualifiedClassName()),
@@ -170,7 +170,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void processTryCatchBlock(RawTryCatchBlock rawTryCatchBlock) {
-        JavaCodeUnit declaringCodeUnit = rawTryCatchBlock.getDeclaringCodeUnit().resolveFrom(classes);
+        JavaCodeUnit<?> declaringCodeUnit = rawTryCatchBlock.getDeclaringCodeUnit().resolveFrom(classes);
         TryCatchBlockBuilder tryCatchBlockBuilder = new TryCatchBlockBuilder()
                 .withCaughtThrowables(
                         rawTryCatchBlock.getCaughtThrowables().stream()
@@ -184,7 +184,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+    public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (FieldAccessRecord record : processedFieldAccessRecords.get(codeUnit)) {
             JavaFieldAccess access = accessBuilderFrom(new JavaFieldAccessBuilder(), record)
@@ -197,7 +197,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+    public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (AccessRecord<MethodCallTarget> record : processedMethodCallRecords.get(codeUnit)) {
             JavaMethodCall call = accessBuilderFrom(new JavaMethodCallBuilder(), record).build();
@@ -208,7 +208,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+    public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (AccessRecord<ConstructorCallTarget> record : processedConstructorCallRecords.get(codeUnit)) {
             JavaConstructorCall call = accessBuilderFrom(new JavaConstructorCallBuilder(), record).build();
@@ -219,7 +219,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+    public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaMethodReference> result = ImmutableSet.builder();
         for (AccessRecord<MethodReferenceTarget> record : processedMethodReferenceRecords.get(codeUnit)) {
             JavaMethodReference methodReference = accessBuilderFrom(new JavaMethodReferenceBuilder(), record).build();
@@ -230,7 +230,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+    public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaConstructorReference> result = ImmutableSet.builder();
         for (AccessRecord<ConstructorReferenceTarget> record : processedConstructorReferenceRecords.get(codeUnit)) {
             JavaConstructorReference constructorReference = accessBuilderFrom(new JavaConstructorReferenceBuilder(), record).build();
@@ -314,7 +314,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
+    public List<? extends JavaTypeVariable<? extends JavaClass>> createTypeParameters(JavaClass owner) {
         JavaClassTypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
         return typeParametersBuilder.build(owner, classes);
     }
@@ -360,16 +360,16 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
+    public Map<String, ? extends JavaAnnotation<? extends JavaClass>> createAnnotations(JavaClass owner) {
         return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
     }
 
     @Override
-    public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+    public <MemberT extends JavaMember<MemberT>> Map<String, ? extends JavaAnnotation<? extends MemberT>> createAnnotations(MemberT owner) {
         return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
     }
 
-    private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+    private <OWNER extends HasDescription> Map<String, ? extends JavaAnnotation<? extends OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
         return buildAnnotations(owner, annotationBuilders, classes);
     }
 
@@ -380,7 +380,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner) {
+    public Optional<JavaCodeUnit<?>> createEnclosingCodeUnit(JavaClass owner) {
         Optional<CodeUnit> enclosingCodeUnit = importRecord.getEnclosingCodeUnitFor(owner.getName());
         if (!enclosingCodeUnit.isPresent()) {
             return Optional.empty();
@@ -392,17 +392,17 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
+    public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit<?> codeUnit) {
         return processedTryCatchBlocks.get(codeUnit);
     }
 
     @Override
-    public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit) {
+    public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit<?> codeUnit) {
         return ImmutableSet.copyOf(processedReferencedClassObjects.get(codeUnit));
     }
 
     @Override
-    public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit) {
+    public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit<?> codeUnit) {
         return ImmutableSet.copyOf(processedInstanceofChecks.get(codeUnit));
     }
 

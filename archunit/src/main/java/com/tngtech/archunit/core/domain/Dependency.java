@@ -119,11 +119,11 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependency(method, "has return type", method.getRawReturnType());
     }
 
-    static Set<Dependency> tryCreateFromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
+    static Set<Dependency> tryCreateFromParameter(JavaCodeUnit<?> codeUnit, JavaClass parameter) {
         return tryCreateDependency(codeUnit, "has parameter of type", parameter);
     }
 
-    static Set<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
+    static Set<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit<?>> declaration) {
         return tryCreateDependency(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
@@ -177,7 +177,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependency(origin, genericDependencyType("return type", origin.getReturnType()), typeArgumentDependency);
     }
 
-    static Set<Dependency> tryCreateFromGenericCodeUnitParameterTypeArgument(JavaCodeUnit origin, JavaType parameterType, JavaClass typeArgumentDependency) {
+    static Set<Dependency> tryCreateFromGenericCodeUnitParameterTypeArgument(JavaCodeUnit<?> origin, JavaType parameterType, JavaClass typeArgumentDependency) {
         return tryCreateDependency(origin, genericDependencyType("parameter type", parameterType), typeArgumentDependency);
     }
 

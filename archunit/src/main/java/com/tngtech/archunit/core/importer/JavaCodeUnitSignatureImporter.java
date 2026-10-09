@@ -50,9 +50,9 @@ class JavaCodeUnitSignatureImporter {
 
     private static class SignatureProcessor extends SignatureVisitor {
         private final DeclarationHandler declarationHandler;
-        private final SignatureTypeParameterProcessor<JavaCodeUnit> typeParameterProcessor;
-        private final GenericMemberTypeProcessor<JavaCodeUnit> genericMethodReturnTypeProcessor;
-        private final List<GenericMemberTypeProcessor<JavaCodeUnit>> genericMethodParameterTypeProcessors = new ArrayList<>();
+        private final SignatureTypeParameterProcessor<JavaCodeUnit<?>> typeParameterProcessor;
+        private final GenericMemberTypeProcessor<JavaCodeUnit<?>> genericMethodReturnTypeProcessor;
+        private final List<GenericMemberTypeProcessor<JavaCodeUnit<?>>> genericMethodParameterTypeProcessors = new ArrayList<>();
 
         SignatureProcessor(DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
@@ -79,7 +79,7 @@ class JavaCodeUnitSignatureImporter {
 
         @Override
         public SignatureVisitor visitParameterType() {
-            GenericMemberTypeProcessor<JavaCodeUnit> parameterTypeProcessor = new GenericMemberTypeProcessor<>(declarationHandler);
+            GenericMemberTypeProcessor<JavaCodeUnit<?>> parameterTypeProcessor = new GenericMemberTypeProcessor<>(declarationHandler);
             genericMethodParameterTypeProcessors.add(parameterTypeProcessor);
             return parameterTypeProcessor;
         }
@@ -90,7 +90,7 @@ class JavaCodeUnitSignatureImporter {
         }
 
         public JavaCodeUnitSignature getParsedSignature() {
-            List<JavaTypeCreationProcess<JavaCodeUnit>> parameterTypes = genericMethodParameterTypeProcessors.stream()
+            List<JavaTypeCreationProcess<JavaCodeUnit<?>>> parameterTypes = genericMethodParameterTypeProcessors.stream()
                     .flatMap(parameterTypeProcessor -> parameterTypeProcessor.getType().map(Stream::of).orElse(Stream.empty()))
                     .collect(toList());
 
@@ -108,29 +108,29 @@ class JavaCodeUnitSignatureImporter {
                 Optional.empty()
         );
 
-        private final List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders;
-        private final List<JavaTypeCreationProcess<JavaCodeUnit>> parameterTypes;
-        private final Optional<JavaTypeCreationProcess<JavaCodeUnit>> returnType;
+        private final List<JavaTypeParameterBuilder<JavaCodeUnit<?>>> typeParameterBuilders;
+        private final List<JavaTypeCreationProcess<JavaCodeUnit<?>>> parameterTypes;
+        private final Optional<JavaTypeCreationProcess<JavaCodeUnit<?>>> returnType;
 
         private JavaCodeUnitSignature(
-                List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders,
-                List<JavaTypeCreationProcess<JavaCodeUnit>> parameterTypes,
-                Optional<JavaTypeCreationProcess<JavaCodeUnit>> returnType
+                List<JavaTypeParameterBuilder<JavaCodeUnit<?>>> typeParameterBuilders,
+                List<JavaTypeCreationProcess<JavaCodeUnit<?>>> parameterTypes,
+                Optional<JavaTypeCreationProcess<JavaCodeUnit<?>>> returnType
         ) {
             this.typeParameterBuilders = checkNotNull(typeParameterBuilders);
             this.parameterTypes = parameterTypes;
             this.returnType = checkNotNull(returnType);
         }
 
-        List<JavaTypeParameterBuilder<JavaCodeUnit>> getTypeParameterBuilders() {
+        List<JavaTypeParameterBuilder<JavaCodeUnit<?>>> getTypeParameterBuilders() {
             return typeParameterBuilders;
         }
 
-        List<JavaTypeCreationProcess<JavaCodeUnit>> getParameterTypes() {
+        List<JavaTypeCreationProcess<JavaCodeUnit<?>>> getParameterTypes() {
             return parameterTypes;
         }
 
-        Optional<JavaTypeCreationProcess<JavaCodeUnit>> getReturnType() {
+        Optional<JavaTypeCreationProcess<JavaCodeUnit<?>>> getReturnType() {
             return returnType;
         }
     }

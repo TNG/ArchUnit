@@ -250,12 +250,12 @@ public class ClassFileImporterAutomaticResolutionTest {
     public void automatically_resolves_meta_annotation_types() {
         JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
                 .importClass(MetaAnnotatedClass.class);
-        JavaAnnotation<JavaClass> someAnnotation = javaClass.getAnnotationOfType(MetaAnnotatedAnnotation.class.getName());
-        JavaAnnotation<JavaClass> someMetaAnnotation = someAnnotation.getRawType()
+        JavaAnnotation<? extends JavaClass> someAnnotation = javaClass.getAnnotationOfType(MetaAnnotatedAnnotation.class.getName());
+        JavaAnnotation<? extends JavaClass> someMetaAnnotation = someAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaAnnotation.class.getName());
-        JavaAnnotation<JavaClass> someMetaMetaAnnotation = someMetaAnnotation.getRawType()
+        JavaAnnotation<? extends JavaClass> someMetaMetaAnnotation = someMetaAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaMetaAnnotation.class.getName());
-        JavaAnnotation<JavaClass> someMetaMetaMetaAnnotation = someMetaMetaAnnotation.getRawType()
+        JavaAnnotation<? extends JavaClass> someMetaMetaMetaAnnotation = someMetaMetaAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaMetaMetaAnnotationWithParameters.class.getName());
 
         assertThatType(someMetaMetaMetaAnnotation.getType()).matches(SomeMetaMetaMetaAnnotationWithParameters.class);
@@ -293,7 +293,7 @@ public class ClassFileImporterAutomaticResolutionTest {
                                 .withAnnotationType(ParameterAnnotation.class)
                                 .withClassProperty("value", SomeAnnotationDefaultParameterType.class));
 
-        JavaAnnotation<JavaClass> metaMetaMetaAnnotation = someAnnotation
+        JavaAnnotation<? extends JavaClass> metaMetaMetaAnnotation = someAnnotation
                 .getRawType().getAnnotationOfType(SomeMetaAnnotation.class.getName())
                 .getRawType().getAnnotationOfType(SomeMetaMetaAnnotation.class.getName())
                 .getRawType().getAnnotationOfType(SomeMetaMetaMetaAnnotationWithParameters.class.getName());

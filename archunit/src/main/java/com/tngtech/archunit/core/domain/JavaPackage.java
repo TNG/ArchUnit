@@ -149,7 +149,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<? extends JavaAnnotation<JavaPackage>> getAnnotations() {
+    public Set<? extends JavaAnnotation<? extends JavaPackage>> getAnnotations() {
         return packageInfo
                 .map(it -> it.getAnnotations().stream().map(withSelfAsOwner).collect(toSet()))
                 .orElse(emptySet());
@@ -168,21 +168,6 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
         return HasAnnotations.super.getAnnotationOfType(type);
-    }
-
-    /**
-     * @return The {@link JavaAnnotation} matching the given type on the {@link #getPackageInfo() package-info.class} of this package
-     *         (for details refer to the <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>).
-     *         Will throw an {@link IllegalArgumentException} if either there is no {@code package-info}
-     *         or the {@code package-info} is not annotated with the respective annotation type.
-     * @see #tryGetAnnotationOfType(String)
-     * @see #getAnnotationOfType(Class)
-     */
-    @Override
-    @PublicAPI(usage = ACCESS)
-    @SuppressWarnings("unchecked") // we know the 'owning' element is this package
-    public JavaAnnotation<JavaPackage> getAnnotationOfType(String typeName) {
-        return (JavaAnnotation<JavaPackage>) HasAnnotations.super.getAnnotationOfType(typeName);
     }
 
     /**
@@ -211,7 +196,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaAnnotation<JavaPackage>> tryGetAnnotationOfType(String typeName) {
+    public Optional<? extends JavaAnnotation<? extends JavaPackage>> tryGetAnnotationOfType(String typeName) {
         return packageInfo.flatMap(it -> it.tryGetAnnotationOfType(typeName).map(withSelfAsOwner));
     }
 
@@ -659,7 +644,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return getClass().getSimpleName() + "[" + getName() + "]";
     }
 
-    private final Function<? super JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner = input -> input.withOwner(JavaPackage.this);
+    private final Function<? super JavaAnnotation<? extends JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner = input -> input.withOwner(JavaPackage.this);
 
     static JavaPackage simple(JavaClass javaClass) {
         String packageName = javaClass.getPackageName();

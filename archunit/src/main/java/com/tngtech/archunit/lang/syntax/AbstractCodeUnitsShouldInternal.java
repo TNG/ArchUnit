@@ -31,7 +31,7 @@ import com.tngtech.archunit.lang.syntax.elements.OnlyBeCalledSpecification;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 
-abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, SELF extends AbstractCodeUnitsShouldInternal<CODE_UNIT, SELF>>
+abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit<?>, SELF extends AbstractCodeUnitsShouldInternal<CODE_UNIT, SELF>>
         extends AbstractMembersShouldInternal<CODE_UNIT, SELF>
         implements CodeUnitsShould<SELF>, CodeUnitsShouldConjunction<CODE_UNIT> {
 
@@ -154,30 +154,30 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
         return new OnlyBeCalledSpecificationInternal<>(self());
     }
 
-    static class CodeUnitsShouldInternal extends AbstractCodeUnitsShouldInternal<JavaCodeUnit, CodeUnitsShouldInternal> {
+    static class CodeUnitsShouldInternal extends AbstractCodeUnitsShouldInternal<JavaCodeUnit<?>, CodeUnitsShouldInternal> {
 
         CodeUnitsShouldInternal(
-                ClassesTransformer<? extends JavaCodeUnit> classesTransformer,
+                ClassesTransformer<? extends JavaCodeUnit<?>> classesTransformer,
                 Priority priority,
-                Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition) {
+                Function<ArchCondition<JavaCodeUnit<?>>, ArchCondition<JavaCodeUnit<?>>> prepareCondition) {
             super(classesTransformer, priority, prepareCondition);
         }
 
         CodeUnitsShouldInternal(
-                ClassesTransformer<? extends JavaCodeUnit> classesTransformer, Priority priority,
-                ArchCondition<JavaCodeUnit> condition,
-                Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition) {
+                ClassesTransformer<? extends JavaCodeUnit<?>> classesTransformer, Priority priority,
+                ArchCondition<JavaCodeUnit<?>> condition,
+                Function<ArchCondition<JavaCodeUnit<?>>, ArchCondition<JavaCodeUnit<?>>> prepareCondition) {
             super(classesTransformer, priority, condition, prepareCondition);
         }
 
-        CodeUnitsShouldInternal(ClassesTransformer<? extends JavaCodeUnit> classesTransformer, Priority priority,
-                ConditionAggregator<JavaCodeUnit> conditionAggregator,
-                Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition) {
+        CodeUnitsShouldInternal(ClassesTransformer<? extends JavaCodeUnit<?>> classesTransformer, Priority priority,
+                ConditionAggregator<JavaCodeUnit<?>> conditionAggregator,
+                Function<ArchCondition<JavaCodeUnit<?>>, ArchCondition<JavaCodeUnit<?>>> prepareCondition) {
             super(classesTransformer, priority, conditionAggregator, prepareCondition);
         }
 
         @Override
-        CodeUnitsShouldInternal copyWithNewCondition(ConditionAggregator<JavaCodeUnit> newCondition) {
+        CodeUnitsShouldInternal copyWithNewCondition(ConditionAggregator<JavaCodeUnit<?>> newCondition) {
             return new CodeUnitsShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
         }
     }

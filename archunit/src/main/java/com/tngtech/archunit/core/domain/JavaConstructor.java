@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -34,7 +33,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 @PublicAPI(usage = ACCESS)
-public final class JavaConstructor extends JavaCodeUnit {
+public final class JavaConstructor extends JavaCodeUnit<JavaConstructor> {
     private final Supplier<Constructor<?>> constructorSupplier;
     private final ThrowsClause<JavaConstructor> throwsClause;
 
@@ -85,18 +84,6 @@ public final class JavaConstructor extends JavaCodeUnit {
     @SuppressWarnings("unchecked") // we know the 'owning' member is this constructor
     public Set<JavaAnnotation<JavaConstructor>> getAnnotations() {
         return (Set<JavaAnnotation<JavaConstructor>>) super.getAnnotations();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this constructor
-    public JavaAnnotation<JavaConstructor> getAnnotationOfType(String typeName) {
-        return (JavaAnnotation<JavaConstructor>) super.getAnnotationOfType(typeName);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this constructor
-    public Optional<JavaAnnotation<JavaConstructor>> tryGetAnnotationOfType(String typeName) {
-        return (Optional<JavaAnnotation<JavaConstructor>>) super.tryGetAnnotationOfType(typeName);
     }
 
     @Override

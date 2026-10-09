@@ -35,7 +35,7 @@ public interface ImportContext {
 
     Optional<Set<JavaClass>> createPermittedSubclasses(JavaClass owner);
 
-    List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner);
+    List<? extends JavaTypeVariable<? extends JavaClass>> createTypeParameters(JavaClass owner);
 
     Set<JavaField> createFields(JavaClass owner);
 
@@ -45,29 +45,29 @@ public interface ImportContext {
 
     Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner);
 
-    Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner);
+    Map<String, ? extends JavaAnnotation<? extends JavaClass>> createAnnotations(JavaClass owner);
 
-    Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner);
+    <SELF extends JavaMember<SELF>> Map<String, ? extends JavaAnnotation<? extends SELF>> createAnnotations(SELF owner);
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
-    Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner);
+    Optional<JavaCodeUnit<?>> createEnclosingCodeUnit(JavaClass owner);
 
-    Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
+    Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
+    Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
+    Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
+    Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
+    Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit);
+    Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit<?> codeUnit);
 
-    Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit);
+    Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit<?> codeUnit);
 
-    Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit);
+    Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit<?> codeUnit);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
 }

@@ -208,7 +208,7 @@ public class DependencyTest {
 
     @ParameterizedTest
     @MethodSource("with_try_catch_block_members")
-    void Dependency_from_simple_catch_clause(JavaCodeUnit memberWithTryCatchBlock, int expectedLineNumber) {
+    void Dependency_from_simple_catch_clause(JavaCodeUnit<?> memberWithTryCatchBlock, int expectedLineNumber) {
         TryCatchBlock tryCatchBlock = getOnlyElement(memberWithTryCatchBlock.getTryCatchBlocks());
 
         Dependency dependency = getOnlyElement(Dependency.tryCreateFromTryCatchBlock(tryCatchBlock));
@@ -217,7 +217,7 @@ public class DependencyTest {
                 .satisfies(catchesType(IOException.class, memberWithTryCatchBlock, expectedLineNumber, ClassWithDependencyOnCaughtException.class));
     }
 
-    private static Consumer<Dependency> catchesType(Class<? extends Throwable> targetClass, JavaCodeUnit javaCodeUnit, int expectedLineNumber, Class<?> originClass) {
+    private static Consumer<Dependency> catchesType(Class<? extends Throwable> targetClass, JavaCodeUnit<?> javaCodeUnit, int expectedLineNumber, Class<?> originClass) {
         return dependency -> Assertions.assertThatDependency(dependency)
                 .matches(originClass, targetClass)
                 .hasDescription(javaCodeUnit.getFullName(), "catches type", targetClass.getName())
@@ -267,7 +267,7 @@ public class DependencyTest {
 
     @ParameterizedTest
     @MethodSource("with_instanceof_check_members")
-    void dependency_from_instanceof_check_in_code_unit(JavaCodeUnit memberWithInstanceofCheck, int expectedLineNumber) {
+    void dependency_from_instanceof_check_in_code_unit(JavaCodeUnit<?> memberWithInstanceofCheck, int expectedLineNumber) {
         InstanceofCheck instanceofCheck = getOnlyElement(memberWithInstanceofCheck.getInstanceofChecks());
 
         Dependency dependency = getOnlyElement(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
@@ -300,7 +300,7 @@ public class DependencyTest {
                 .contains("Class <" + annotatedClass.getName() + "> is annotated with <" + annotationClass.getName() + ">");
     }
 
-    static Stream<JavaMember> annotated_members() {
+    static Stream<JavaMember<?>> annotated_members() {
         JavaClass javaClass = importClassesWithContext(ClassWithAnnotatedMembers.class, SomeAnnotation.class, SomeMemberType.class)
                 .get(ClassWithAnnotatedMembers.class);
 
@@ -312,7 +312,7 @@ public class DependencyTest {
 
     @ParameterizedTest
     @MethodSource("annotated_members")
-    void dependency_from_annotation_on_member(JavaMember annotatedMember) {
+    void dependency_from_annotation_on_member(JavaMember<?> annotatedMember) {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
@@ -359,7 +359,7 @@ public class DependencyTest {
 
     @ParameterizedTest
     @MethodSource("annotated_members")
-    void dependency_from_member_annotation_member(JavaMember annotatedMember) {
+    void dependency_from_member_annotation_member(JavaMember<?> annotatedMember) {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
@@ -561,7 +561,7 @@ public class DependencyTest {
 
     @ParameterizedTest
     @MethodSource
-    void dependency_from_generic_code_unit_parameter_type_arguments(JavaCodeUnit codeUnit, String expectedGenericParameterTypeName) {
+    void dependency_from_generic_code_unit_parameter_type_arguments(JavaCodeUnit<?> codeUnit, String expectedGenericParameterTypeName) {
         JavaType parameterType = getOnlyElement(codeUnit.getParameterTypes());
         JavaClass typeArgumentDependency = (JavaClass) ((JavaParameterizedType) parameterType).getActualTypeArguments().get(0);
 

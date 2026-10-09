@@ -84,7 +84,7 @@ public final class JavaClass
     private final boolean isAnonymousClass;
     private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
-    private List<JavaTypeVariable<JavaClass>> typeParameters = emptyList();
+    private List<? extends JavaTypeVariable<? extends JavaClass>> typeParameters = emptyList();
     private final Supplier<Class<?>> reflectSupplier;
     private JavaClassMembers members = JavaClassMembers.empty(this);
     private Superclass superclass = Superclass.ABSENT;
@@ -123,9 +123,10 @@ public final class JavaClass
         }
         return ImmutableSet.copyOf(result);
     });
-    private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
+    private Optional<JavaClass> enclosingClass = Optional.empty();
+    private Optional<JavaCodeUnit<?>> enclosingCodeUnit = Optional.empty();
     private Optional<JavaClass> componentType = Optional.empty();
-    private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
+    private Map<String, ? extends JavaAnnotation<? extends JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
     private final CompletionProcess completionProcess;
@@ -377,7 +378,7 @@ public final class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public boolean isNestedClass() {
-        return enclosingDeclaration.isPresent();
+        return enclosingClass.isPresent();
     }
 
     /**
@@ -586,15 +587,8 @@ public final class JavaClass
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<JavaAnnotation<JavaClass>> getAnnotations() {
+    public Set<? extends JavaAnnotation<? extends JavaClass>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    @SuppressWarnings("unchecked") // we know the 'owning' element is this class
-    public JavaAnnotation<JavaClass> getAnnotationOfType(String typeName) {
-        return (JavaAnnotation<JavaClass>) HasAnnotations.super.getAnnotationOfType(typeName);
     }
 
     /**
@@ -602,13 +596,13 @@ public final class JavaClass
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
+    public Optional<? extends JavaAnnotation<? extends JavaClass>> tryGetAnnotationOfType(String typeName) {
         return Optional.ofNullable(annotations.get(typeName));
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public List<JavaTypeVariable<JavaClass>> getTypeParameters() {
+    public List<? extends JavaTypeVariable<? extends JavaClass>> getTypeParameters() {
         return typeParameters;
     }
 
@@ -738,11 +732,11 @@ public final class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getEnclosingClass() {
-        return enclosingDeclaration.getEnclosingClass();
+        return enclosingClass;
     }
 
     /**
-     * Returns the enclosing {@link JavaCodeUnit} if this class is declared within the context of a {@link JavaCodeUnit},
+     * Returns the enclosing {@link JavaCodeUnit<?>} if this class is declared within the context of a {@link JavaCodeUnit<?>},
      * e.g. a method or a constructor. Otherwise {@link Optional#empty()}.<br><br>
      * Take for example
      * <pre><code>
@@ -765,11 +759,11 @@ public final class JavaClass
      * {@code void someMethod()}.<br>
      * On the other hand {@code OuterClass.}{@link #getEnclosingCodeUnit()} or
      * {@code InnerClass.}{@link #getEnclosingCodeUnit()} would return {@link Optional#empty()}, since they are
-     * not defined within the context of a {@link JavaCodeUnit}.
+     * not defined within the context of a {@link JavaCodeUnit<?>}.
      */
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaCodeUnit> getEnclosingCodeUnit() {
-        return enclosingDeclaration.getEnclosingCodeUnit();
+    public Optional<JavaCodeUnit<?>> getEnclosingCodeUnit() {
+        return enclosingCodeUnit;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -815,7 +809,7 @@ public final class JavaClass
     }
 
     @PublicAPI(usage = ACCESS)
-    public Set<JavaCodeUnit> getCodeUnits() {
+    public Set<JavaCodeUnit<?>> getCodeUnits() {
         return members.getCodeUnits();
     }
 
@@ -827,7 +821,7 @@ public final class JavaClass
      * @return A code unit (method, constructor or static initializer) with the given signature
      */
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getCodeUnitWithParameterTypes(String name, Class<?>... parameters) {
+    public JavaCodeUnit<?> getCodeUnitWithParameterTypes(String name, Class<?>... parameters) {
         return getCodeUnitWithParameterTypes(name, ImmutableList.copyOf(parameters));
     }
 
@@ -835,7 +829,7 @@ public final class JavaClass
      * Same as {@link #getCodeUnitWithParameterTypes(String, Class[])}, but with parameter signature specified as full class names
      */
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, String... parameters) {
+    public JavaCodeUnit<?> getCodeUnitWithParameterTypeNames(String name, String... parameters) {
         return getCodeUnitWithParameterTypeNames(name, ImmutableList.copyOf(parameters));
     }
 
@@ -843,16 +837,16 @@ public final class JavaClass
      * @see #getCodeUnitWithParameterTypes(String, Class[])
      */
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
+    public JavaCodeUnit<?> getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
         return getCodeUnitWithParameterTypeNames(name, formatNamesOf(parameters));
     }
 
     /**
      * Same as {@link #getCodeUnitWithParameterTypes(String, List)}, but will return {@link Optional#empty()}
-     * if there is no such {@link JavaCodeUnit}.
+     * if there is no such {@link JavaCodeUnit<?>}.
      */
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
+    public Optional<JavaCodeUnit<?>> tryGetCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
         return tryGetCodeUnitWithParameterTypeNames(name, formatNamesOf(parameters));
     }
 
@@ -860,16 +854,16 @@ public final class JavaClass
      * @see #getCodeUnitWithParameterTypeNames(String, String...)
      */
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
+    public JavaCodeUnit<?> getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return members.getCodeUnitWithParameterTypeNames(name, parameters);
     }
 
     /**
      * Same as {@link #getCodeUnitWithParameterTypeNames(String, List)}, but will return {@link Optional#empty()}
-     * if there is no such {@link JavaCodeUnit}.
+     * if there is no such {@link JavaCodeUnit<?>}.
      */
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
+    public Optional<JavaCodeUnit<?>> tryGetCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return members.tryGetCodeUnitWithParameterTypeNames(name, parameters);
     }
 
@@ -1455,15 +1449,14 @@ public final class JavaClass
         permittedSubclasses = context.createPermittedSubclasses(this);
     }
 
-    void completeEnclosingDeclarationFrom(ImportContext context) {
-        enclosingDeclaration = createEnclosingDeclaration(context);
-        completionProcess.markEnclosingDeclarationComplete();
+    void completeEnclosingClassFrom(ImportContext context) {
+        enclosingClass = context.createEnclosingClass(this);
+        completionProcess.markEnclosingClassComplete();
     }
 
-    private EnclosingDeclaration createEnclosingDeclaration(ImportContext context) {
-        Optional<JavaCodeUnit> enclosingCodeUnit = context.createEnclosingCodeUnit(this);
-        return enclosingCodeUnit.map(EnclosingDeclaration::ofCodeUnit)
-                .orElseGet(() -> EnclosingDeclaration.ofClass(context.createEnclosingClass(this)));
+    void completeEnclosingCodeUnitFrom(ImportContext context) {
+        enclosingCodeUnit = context.createEnclosingCodeUnit(this);
+        completionProcess.markEnclosingCodeUnitComplete();
     }
 
     void completeTypeParametersFrom(ImportContext context) {
@@ -1526,9 +1519,9 @@ public final class JavaClass
      *         (e.g. {@code void method() throws SomeException})
      */
     @PublicAPI(usage = ACCESS)
-    public Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarations() {
-        ImmutableSet.Builder<ThrowsDeclaration<? extends JavaCodeUnit>> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : getCodeUnits()) {
+    public Set<ThrowsDeclaration<? extends JavaCodeUnit<?>>> getThrowsDeclarations() {
+        ImmutableSet.Builder<ThrowsDeclaration<? extends JavaCodeUnit<?>>> result = ImmutableSet.builder();
+        for (JavaCodeUnit<?> codeUnit : getCodeUnits()) {
             result.addAll(codeUnit.getThrowsClause());
         }
         return result.build();
@@ -1603,38 +1596,6 @@ public final class JavaClass
         }
     }
 
-    private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.empty(), Optional.empty());
-
-        private final Optional<JavaCodeUnit> enclosingCodeUnit;
-        private final Optional<JavaClass> enclosingClass;
-
-        private EnclosingDeclaration(Optional<JavaCodeUnit> enclosingCodeUnit, Optional<JavaClass> enclosingClass) {
-            this.enclosingCodeUnit = checkNotNull(enclosingCodeUnit);
-            this.enclosingClass = checkNotNull(enclosingClass);
-        }
-
-        boolean isPresent() {
-            return enclosingClass.isPresent();
-        }
-
-        Optional<JavaClass> getEnclosingClass() {
-            return enclosingClass;
-        }
-
-        Optional<JavaCodeUnit> getEnclosingCodeUnit() {
-            return enclosingCodeUnit;
-        }
-
-        static EnclosingDeclaration ofCodeUnit(JavaCodeUnit codeUnit) {
-            return new EnclosingDeclaration(Optional.of(codeUnit), Optional.of(codeUnit.getOwner()));
-        }
-
-        static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(Optional.empty(), clazz);
-        }
-    }
-
     private abstract static class CompletionProcess {
         private static final CompletionProcess stubCompletionProcess = new CompletionProcess() {
             @Override
@@ -1647,7 +1608,11 @@ public final class JavaClass
             }
 
             @Override
-            public void markEnclosingDeclarationComplete() {
+            public void markEnclosingClassComplete() {
+            }
+
+            @Override
+            public void markEnclosingCodeUnitComplete() {
             }
 
             @Override
@@ -1679,7 +1644,9 @@ public final class JavaClass
 
         public abstract void markClassHierarchyComplete();
 
-        public abstract void markEnclosingDeclarationComplete();
+        public abstract void markEnclosingClassComplete();
+
+        public abstract void markEnclosingCodeUnitComplete();
 
         public abstract void markTypeParametersComplete();
 
@@ -1704,7 +1671,8 @@ public final class JavaClass
 
     private static class FullCompletionProcess extends CompletionProcess {
         private boolean classHierarchyComplete = false;
-        private boolean enclosingDeclarationComplete = false;
+        private boolean enclosingClassComplete = false;
+        private boolean enclosingCodeUnitComplete = false;
         private boolean typeParametersComplete = false;
         private boolean genericSuperclassComplete = false;
         private boolean genericInterfacesComplete = false;
@@ -1715,7 +1683,8 @@ public final class JavaClass
         @Override
         boolean hasFinished() {
             return classHierarchyComplete
-                    && enclosingDeclarationComplete
+                    && enclosingClassComplete
+                    && enclosingCodeUnitComplete
                     && typeParametersComplete
                     && genericSuperclassComplete
                     && genericInterfacesComplete
@@ -1730,8 +1699,13 @@ public final class JavaClass
         }
 
         @Override
-        public void markEnclosingDeclarationComplete() {
-            this.enclosingDeclarationComplete = true;
+        public void markEnclosingClassComplete() {
+            this.enclosingClassComplete = true;
+        }
+
+        @Override
+        public void markEnclosingCodeUnitComplete() {
+            this.enclosingCodeUnitComplete = true;
         }
 
         @Override
@@ -1838,10 +1812,10 @@ public final class JavaClass
          * @see #getCodeUnits()
          */
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, Set<JavaCodeUnit>> GET_CODE_UNITS =
-                new ChainableFunction<JavaClass, Set<JavaCodeUnit>>() {
+        public static final ChainableFunction<JavaClass, Set<JavaCodeUnit<?>>> GET_CODE_UNITS =
+                new ChainableFunction<JavaClass, Set<JavaCodeUnit<?>>>() {
                     @Override
-                    public Set<JavaCodeUnit> apply(JavaClass input) {
+                    public Set<JavaCodeUnit<?>> apply(JavaClass input) {
                         return input.getCodeUnits();
                     }
                 };
@@ -2454,14 +2428,14 @@ public final class JavaClass
         }
 
         /**
-         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaCodeUnit code units} matching the supplied predicate.
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaCodeUnit<?> code units} matching the supplied predicate.
          *
          * @param predicate The predicate to check against the {@link JavaClass classes'} code units.
          * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
          * one code unit matching the given predicate.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+        public static DescribedPredicate<JavaClass> containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
             return new ContainAnyMembersThatPredicate<>("code units", GET_CODE_UNITS, predicate);
         }
 

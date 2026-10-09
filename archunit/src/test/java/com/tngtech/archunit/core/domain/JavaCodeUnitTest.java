@@ -82,7 +82,7 @@ public class JavaCodeUnitTest {
                         .build());
     }
 
-    static Stream<JavaCodeUnit> code_units_with_parameters() {
+    static Stream<JavaCodeUnit<?>> code_units_with_parameters() {
         JavaClass javaClass = new ClassFileImporter().importClass(ClassWithVariousCodeUnitParameters.class);
         return Stream.of(
                 javaClass.getConstructor(Object.class, String.class),
@@ -94,7 +94,7 @@ public class JavaCodeUnitTest {
 
     @ParameterizedTest
     @MethodSource("code_units_with_parameters")
-    void creates_parameters(JavaCodeUnit codeUnit) {
+    void creates_parameters(JavaCodeUnit<?> codeUnit) {
         for (int i = 0; i < codeUnit.getParameters().size(); i++) {
             assertThat(codeUnit.getParameters().get(i).getRawType()).isEqualTo(codeUnit.getRawParameterTypes().get(i));
             assertThat(codeUnit.getParameters().get(i).getType()).isEqualTo(codeUnit.getParameterTypes().get(i));
@@ -170,7 +170,7 @@ public class JavaCodeUnitTest {
         }
     }
 
-    static Stream<JavaCodeUnit> code_units_with_four_different_parameters() {
+    static Stream<JavaCodeUnit<?>> code_units_with_four_different_parameters() {
         @SuppressWarnings("unused")
         class SomeClass<T> {
             SomeClass(List<String> first, T second, String third, int fourth) {
@@ -188,7 +188,7 @@ public class JavaCodeUnitTest {
 
     @ParameterizedTest
     @MethodSource("code_units_with_four_different_parameters")
-    void adds_description_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
+    void adds_description_to_parameters_of_code_unit(JavaCodeUnit<?> codeUnit) {
         List<JavaParameter> parameters = codeUnit.getParameters();
 
         assertThat(parameters.get(0).getDescription()).isEqualTo("Parameter <" + List.class.getName() + "<" + String.class.getName() + ">> of " + startWithLowercase(codeUnit.getDescription()));
@@ -199,7 +199,7 @@ public class JavaCodeUnitTest {
 
     @ParameterizedTest
     @MethodSource("code_units_with_four_different_parameters")
-    void adds_index_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
+    void adds_index_to_parameters_of_code_unit(JavaCodeUnit<?> codeUnit) {
         List<JavaParameter> parameters = codeUnit.getParameters();
 
         assertThat(parameters.get(0).getIndex()).isEqualTo(0);
@@ -208,7 +208,7 @@ public class JavaCodeUnitTest {
         assertThat(parameters.get(3).getIndex()).isEqualTo(3);
     }
 
-    static Stream<JavaCodeUnit> adds_owner_to_parameters_of_code_unit() {
+    static Stream<JavaCodeUnit<?>> adds_owner_to_parameters_of_code_unit() {
         @SuppressWarnings("unused")
         class SomeClass {
             SomeClass(String param) {
@@ -225,7 +225,7 @@ public class JavaCodeUnitTest {
 
     @ParameterizedTest
     @MethodSource
-    void adds_owner_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
+    void adds_owner_to_parameters_of_code_unit(JavaCodeUnit<?> codeUnit) {
         for (JavaParameter parameter : codeUnit.getParameters()) {
             assertThat(parameter.getOwner()).isEqualTo(codeUnit);
         }
@@ -301,7 +301,7 @@ public class JavaCodeUnitTest {
         assertThat(annotation.value()).isEqualTo("test");
         assertThatThrownBy(() -> parameter.getAnnotationOfType(Deprecated.class)).isInstanceOf(IllegalArgumentException.class);
 
-        JavaAnnotation<JavaParameter> javaAnnotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class.getName());
+        JavaAnnotation<? extends JavaParameter> javaAnnotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class.getName());
         assertThatAnnotation(javaAnnotation).hasType(SomeParameterAnnotation.class);
         assertThat(javaAnnotation.get("value")).contains("test");
         assertThatThrownBy(() -> parameter.getAnnotationOfType(Deprecated.class.getName())).isInstanceOf(IllegalArgumentException.class);
@@ -330,7 +330,7 @@ public class JavaCodeUnitTest {
         JavaClass someClass = importClassWithContext(SomeClass.class);
         DescribedPredicate<JavaParameter> stringTyped = equivalentTo(String.class).onResultOf(JavaParameter::getRawType);
 
-        DescribedPredicate<JavaCodeUnit> predicate = anyParameterThat(is(stringTyped));
+        DescribedPredicate<JavaCodeUnit<JavaMethod>> predicate = anyParameterThat(is(stringTyped));
 
         assertThat(predicate).hasDescription("any parameter that is equivalent to java.lang.String")
                 .accepts(someClass.getMethod("method", String.class, String.class))
@@ -343,7 +343,7 @@ public class JavaCodeUnitTest {
         JavaClass someClass = importClassWithContext(SomeClass.class);
         DescribedPredicate<JavaParameter> stringTyped = equivalentTo(String.class).onResultOf(JavaParameter::getRawType);
 
-        DescribedPredicate<JavaCodeUnit> predicate = allParameters(are(stringTyped));
+        DescribedPredicate<JavaCodeUnit<JavaMethod>> predicate = allParameters(are(stringTyped));
 
         assertThat(predicate).hasDescription("all parameters are equivalent to java.lang.String")
                 .accepts(someClass.getMethod("method", String.class, String.class))

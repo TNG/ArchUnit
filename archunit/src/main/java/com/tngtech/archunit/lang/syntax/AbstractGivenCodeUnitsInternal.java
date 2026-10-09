@@ -26,7 +26,7 @@ import com.tngtech.archunit.lang.syntax.AbstractCodeUnitsShouldInternal.CodeUnit
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnits;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsConjunction;
 
-abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF extends AbstractGivenCodeUnitsInternal<MEMBER, SELF>>
+abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit<?>, SELF extends AbstractGivenCodeUnitsInternal<MEMBER, SELF>>
         extends AbstractGivenMembersInternal<MEMBER, SELF>
         implements GivenCodeUnits<MEMBER>, GivenCodeUnitsConjunction<MEMBER> {
 
@@ -56,16 +56,16 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
         return new CodeUnitsThatInternal<>(self(), currentPredicate().thatORs());
     }
 
-    static class GivenCodeUnitsInternal extends AbstractGivenCodeUnitsInternal<JavaCodeUnit, GivenCodeUnitsInternal> {
+    static class GivenCodeUnitsInternal extends AbstractGivenCodeUnitsInternal<JavaCodeUnit<?>, GivenCodeUnitsInternal> {
 
-        GivenCodeUnitsInternal(Priority priority, ClassesTransformer<JavaCodeUnit> classesTransformer) {
+        GivenCodeUnitsInternal(Priority priority, ClassesTransformer<JavaCodeUnit<?>> classesTransformer) {
             this(priority, classesTransformer, Function.identity());
         }
 
         GivenCodeUnitsInternal(
                 Priority priority,
-                ClassesTransformer<JavaCodeUnit> classesTransformer,
-                Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition) {
+                ClassesTransformer<JavaCodeUnit<?>> classesTransformer,
+                Function<ArchCondition<JavaCodeUnit<?>>, ArchCondition<JavaCodeUnit<?>>> prepareCondition) {
 
             super(new GivenCodeUnitsFactory(),
                     priority,
@@ -76,11 +76,11 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
         }
 
         private GivenCodeUnitsInternal(
-                Factory<JavaCodeUnit, GivenCodeUnitsInternal> factory,
+                Factory<JavaCodeUnit<?>, GivenCodeUnitsInternal> factory,
                 Priority priority,
-                ClassesTransformer<JavaCodeUnit> classesTransformer,
-                Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition,
-                PredicateAggregator<JavaCodeUnit> relevantObjectsPredicates,
+                ClassesTransformer<JavaCodeUnit<?>> classesTransformer,
+                Function<ArchCondition<JavaCodeUnit<?>>, ArchCondition<JavaCodeUnit<?>>> prepareCondition,
+                PredicateAggregator<JavaCodeUnit<?>> relevantObjectsPredicates,
                 Optional<String> overriddenDescription) {
 
             super(factory, priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
@@ -92,17 +92,17 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
         }
 
         @Override
-        public CodeUnitsShouldInternal should(ArchCondition<? super JavaCodeUnit> condition) {
+        public CodeUnitsShouldInternal should(ArchCondition<? super JavaCodeUnit<?>> condition) {
             return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
         }
 
-        private static class GivenCodeUnitsFactory implements Factory<JavaCodeUnit, GivenCodeUnitsInternal> {
+        private static class GivenCodeUnitsFactory implements Factory<JavaCodeUnit<?>, GivenCodeUnitsInternal> {
             @Override
             public GivenCodeUnitsInternal create(
                     Priority priority,
-                    ClassesTransformer<JavaCodeUnit> classesTransformer,
-                    Function<ArchCondition<JavaCodeUnit>, ArchCondition<JavaCodeUnit>> prepareCondition,
-                    PredicateAggregator<JavaCodeUnit> relevantObjectsPredicates,
+                    ClassesTransformer<JavaCodeUnit<?>> classesTransformer,
+                    Function<ArchCondition<JavaCodeUnit<?>>, ArchCondition<JavaCodeUnit<?>>> prepareCondition,
+                    PredicateAggregator<JavaCodeUnit<?>> relevantObjectsPredicates,
                     Optional<String> overriddenDescription) {
 
                 return new GivenCodeUnitsInternal(this,

@@ -443,7 +443,7 @@ public class JavaPackageTest {
         JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
-        JavaAnnotation<JavaPackage> annotation = getOnlyElement(annotatedPackage.getAnnotations());
+        JavaAnnotation<? extends JavaPackage> annotation = getOnlyElement(annotatedPackage.getAnnotations());
         assertThatType(annotation.getRawType()).matches(PackageLevelAnnotation.class);
         assertThat(annotation.getOwner()).isEqualTo(annotatedPackage);
 

@@ -73,7 +73,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
     CONJUNCTION haveNameNotMatching(String regex);
 
     /**
-     * Asserts that members have a certain full name (compare {@link JavaField#getFullName()} and {@link JavaCodeUnit#getFullName()}).
+     * Asserts that members have a certain full name (compare {@link JavaField#getFullName()} and {@link JavaCodeUnit<?>#getFullName()}).
      *
      * @param fullName The member's full name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -82,7 +82,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
     CONJUNCTION haveFullName(String fullName);
 
     /**
-     * Asserts that members do not have a certain full name (compare {@link JavaField#getFullName()} and {@link JavaCodeUnit#getFullName()}).
+     * Asserts that members do not have a certain full name (compare {@link JavaField#getFullName()} and {@link JavaCodeUnit<?>#getFullName()}).
      *
      * @param fullName The member's full name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -92,7 +92,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
 
     /**
      * Asserts that members have a full name matching a given regular expression (compare {@link JavaField#getFullName()}
-     * and {@link JavaCodeUnit#getFullName()}).
+     * and {@link JavaCodeUnit<?>#getFullName()}).
      *
      * @param regex A regular expression
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -102,7 +102,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
 
     /**
      * Asserts that members have a full name not matching a given regular expression (compare {@link JavaField#getFullName()}
-     * and {@link JavaCodeUnit#getFullName()}).
+     * and {@link JavaCodeUnit<?>#getFullName()}).
      *
      * @param regex A regular expression
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule

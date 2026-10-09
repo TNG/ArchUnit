@@ -35,7 +35,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 @PublicAPI(usage = ACCESS)
-public final class JavaMethod extends JavaCodeUnit {
+public final class JavaMethod extends JavaCodeUnit<JavaMethod> {
     private final Supplier<Method> methodSupplier;
     private final ThrowsClause<JavaMethod> throwsClause;
     private final Optional<Object> annotationDefaultValue;
@@ -92,24 +92,6 @@ public final class JavaMethod extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public Set<JavaCodeUnitAccess<?>> getAccessesToSelf() {
         return union(getCallsOfSelf(), getReferencesToSelf());
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this method
-    public Set<JavaAnnotation<JavaMethod>> getAnnotations() {
-        return (Set<JavaAnnotation<JavaMethod>>) super.getAnnotations();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this method
-    public JavaAnnotation<JavaMethod> getAnnotationOfType(String typeName) {
-        return (JavaAnnotation<JavaMethod>) super.getAnnotationOfType(typeName);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this method
-    public Optional<JavaAnnotation<JavaMethod>> tryGetAnnotationOfType(String typeName) {
-        return (Optional<JavaAnnotation<JavaMethod>>) super.tryGetAnnotationOfType(typeName);
     }
 
     @Override

@@ -208,7 +208,7 @@ class ClassFileImportRecord {
         return annotationsByOwner.get(owner.getName());
     }
 
-    Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
+    <MemberT extends JavaMember<MemberT>> Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember<MemberT> owner) {
         return annotationsByOwner.get(getMemberKey(owner));
     }
 

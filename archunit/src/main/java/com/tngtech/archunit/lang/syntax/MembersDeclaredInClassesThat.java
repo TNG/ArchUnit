@@ -463,7 +463,7 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
     }
 
     @Override
-    public CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+    public CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
         return givenWith(JavaClass.Predicates.containAnyCodeUnitsThat(predicate));
     }
 

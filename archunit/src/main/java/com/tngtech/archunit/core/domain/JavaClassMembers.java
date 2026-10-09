@@ -41,7 +41,7 @@ import static java.util.stream.Collectors.toSet;
 class JavaClassMembers {
     private final JavaClass owner;
     private final Set<JavaField> fields;
-    private final Set<JavaCodeUnit> codeUnits;
+    private final Set<JavaCodeUnit<?>> codeUnits;
     private final Set<JavaMethod> methods;
     private final Set<JavaMember> members;
     private final Set<JavaConstructor> constructors;
@@ -61,7 +61,7 @@ class JavaClassMembers {
         this.methods = methods;
         this.constructors = constructors;
         this.staticInitializer = staticInitializer;
-        this.codeUnits = ImmutableSet.<JavaCodeUnit>builder()
+        this.codeUnits = ImmutableSet.<JavaCodeUnit<?>>builder()
                 .addAll(methods).addAll(constructors).addAll(asSet(staticInitializer))
                 .build();
         this.members = ImmutableSet.<JavaMember>builder()
@@ -125,15 +125,15 @@ class JavaClassMembers {
         return Optional.empty();
     }
 
-    Set<JavaCodeUnit> getCodeUnits() {
+    Set<JavaCodeUnit<?>> getCodeUnits() {
         return codeUnits;
     }
 
-    JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
+    JavaCodeUnit<?> getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
-    Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
+    Optional<JavaCodeUnit<?>> tryGetCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return tryFindMatchingCodeUnit(codeUnits, name, parameters);
     }
 
@@ -185,7 +185,7 @@ class JavaClassMembers {
 
     Set<InstanceofCheck> getInstanceofChecks() {
         ImmutableSet.Builder<InstanceofCheck> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getInstanceofChecks());
         }
         return result.build();
@@ -193,7 +193,7 @@ class JavaClassMembers {
 
     Set<TryCatchBlock> getTryCatchBlocks() {
         ImmutableSet.Builder<TryCatchBlock> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getTryCatchBlocks());
         }
         return result.build();
@@ -201,7 +201,7 @@ class JavaClassMembers {
 
     Set<ReferencedClassObject> getReferencedClassObjects() {
         ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getReferencedClassObjects());
         }
         return result.build();
@@ -209,7 +209,7 @@ class JavaClassMembers {
 
     Set<JavaFieldAccess> getFieldAccessesFromSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getFieldAccesses());
         }
         return result.build();
@@ -217,7 +217,7 @@ class JavaClassMembers {
 
     Set<JavaMethodCall> getMethodCallsFromSelf() {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getMethodCallsFromSelf());
         }
         return result.build();
@@ -225,7 +225,7 @@ class JavaClassMembers {
 
     Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getConstructorCallsFromSelf());
         }
         return result.build();
@@ -233,7 +233,7 @@ class JavaClassMembers {
 
     Set<JavaMethodReference> getMethodReferencesFromSelf() {
         ImmutableSet.Builder<JavaMethodReference> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getMethodReferencesFromSelf());
         }
         return result.build();
@@ -241,7 +241,7 @@ class JavaClassMembers {
 
     Set<JavaConstructorReference> getConstructorReferencesFromSelf() {
         ImmutableSet.Builder<JavaConstructorReference> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             result.addAll(codeUnit.getConstructorReferencesFromSelf());
         }
         return result.build();
@@ -287,7 +287,7 @@ class JavaClassMembers {
         return result.build();
     }
 
-    private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
+    private <T extends JavaCodeUnit<?>> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         Optional<T> codeUnit = tryFindMatchingCodeUnit(codeUnits, name, parameters);
         if (!codeUnit.isPresent()) {
             throw new IllegalArgumentException(
@@ -297,7 +297,7 @@ class JavaClassMembers {
         return codeUnit.get();
     }
 
-    private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
+    private <T extends JavaCodeUnit<?>> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         Set<T> matching = findCodeUnitsWithMatchingNameAndParameters(codeUnits, name, parameters);
 
         if (matching.isEmpty()) {
@@ -313,7 +313,7 @@ class JavaClassMembers {
         }
     }
 
-    private <T extends JavaCodeUnit> Set<T> findCodeUnitsWithMatchingNameAndParameters(Set<T> codeUnits, String name, List<String> parameters) {
+    private <T extends JavaCodeUnit<?>> Set<T> findCodeUnitsWithMatchingNameAndParameters(Set<T> codeUnits, String name, List<String> parameters) {
         return codeUnits.stream()
                 .filter(codeUnit -> name.equals(codeUnit.getName()))
                 .filter(codeUnit -> parameters.equals(namesOf(codeUnit.getRawParameterTypes())))
@@ -327,7 +327,7 @@ class JavaClassMembers {
     }
 
     void completeFrom(ImportContext context) {
-        for (JavaCodeUnit codeUnit : codeUnits) {
+        for (JavaCodeUnit<?> codeUnit : codeUnits) {
             codeUnit.completeFrom(context);
         }
     }
@@ -338,7 +338,7 @@ class JavaClassMembers {
         }
     }
 
-    private static final Comparator<JavaCodeUnit> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME =
+    private static final Comparator<JavaCodeUnit<?>> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME =
             (codeUnit1, codeUnit2) -> ComparisonChain.start()
                     .compareTrueFirst(!codeUnit1.getModifiers().contains(SYNTHETIC), !codeUnit2.getModifiers().contains(SYNTHETIC))
                     .compare(codeUnit1.getFullName(), codeUnit2.getFullName())

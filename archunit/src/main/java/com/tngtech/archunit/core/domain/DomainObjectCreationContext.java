@@ -77,7 +77,8 @@ public class DomainObjectCreationContext {
     }
 
     public static void completeEnclosingDeclaration(JavaClass javaClass, ImportContext importContext) {
-        javaClass.completeEnclosingDeclarationFrom(importContext);
+        javaClass.completeEnclosingClassFrom(importContext);
+        javaClass.completeEnclosingCodeUnitFrom(importContext);
     }
 
     public static void completeTypeParameters(JavaClass javaClass, ImportContext importContext) {
@@ -172,15 +173,15 @@ public class DomainObjectCreationContext {
         return new Source(uri, sourceFileName, md5InClassSourcesEnabled);
     }
 
-    public static ReferencedClassObject createReferencedClassObject(JavaCodeUnit codeUnit, JavaClass javaClass, int lineNumber, boolean declaredInLambda) {
+    public static ReferencedClassObject createReferencedClassObject(JavaCodeUnit<?> codeUnit, JavaClass javaClass, int lineNumber, boolean declaredInLambda) {
         return ReferencedClassObject.from(codeUnit, javaClass, lineNumber, declaredInLambda);
     }
 
-    public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {
+    public static <CODE_UNIT extends JavaCodeUnit<?>> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {
         return ThrowsClause.from(codeUnit, types);
     }
 
-    public static InstanceofCheck createInstanceofCheck(JavaCodeUnit codeUnit, JavaClass type, int lineNumber, boolean declaredInLambda) {
+    public static InstanceofCheck createInstanceofCheck(JavaCodeUnit<?> codeUnit, JavaClass type, int lineNumber, boolean declaredInLambda) {
         return InstanceofCheck.from(codeUnit, type, lineNumber, declaredInLambda);
     }
 

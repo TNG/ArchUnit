@@ -239,9 +239,9 @@ public final class DomainBuilders {
 
     @Internal
     public abstract static class JavaCodeUnitBuilder<OUTPUT, SELF extends JavaCodeUnitBuilder<OUTPUT, SELF>> extends JavaMemberBuilder<OUTPUT, SELF> {
-        private Optional<JavaTypeCreationProcess<JavaCodeUnit>> genericReturnType;
+        private Optional<JavaTypeCreationProcess<JavaCodeUnit<?>>> genericReturnType;
         private JavaClassDescriptor rawReturnType;
-        private List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes;
+        private List<JavaTypeCreationProcess<JavaCodeUnit<?>>> genericParameterTypes;
         private List<JavaClassDescriptor> rawParameterTypes;
         private SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
@@ -250,13 +250,13 @@ public final class DomainBuilders {
         private JavaCodeUnitBuilder() {
         }
 
-        SELF withReturnType(Optional<JavaTypeCreationProcess<JavaCodeUnit>> genericReturnType, JavaClassDescriptor rawReturnType) {
+        SELF withReturnType(Optional<JavaTypeCreationProcess<JavaCodeUnit<?>>> genericReturnType, JavaClassDescriptor rawReturnType) {
             this.genericReturnType = genericReturnType;
             this.rawReturnType = rawReturnType;
             return self();
         }
 
-        SELF withParameterTypes(List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes, List<JavaClassDescriptor> rawParameterTypes) {
+        SELF withParameterTypes(List<JavaTypeCreationProcess<JavaCodeUnit<?>>> genericParameterTypes, List<JavaClassDescriptor> rawParameterTypes) {
             this.genericParameterTypes = genericParameterTypes;
             this.rawParameterTypes = rawParameterTypes;
             return self();
@@ -267,7 +267,7 @@ public final class DomainBuilders {
             return self();
         }
 
-        SELF withTypeParameters(List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders) {
+        SELF withTypeParameters(List<JavaTypeParameterBuilder<JavaCodeUnit<?>>> typeParameterBuilders) {
             this.typeParametersBuilder = new JavaCodeUnitTypeParametersBuilder(typeParameterBuilders);
             return self();
         }
@@ -289,13 +289,13 @@ public final class DomainBuilders {
             return get(rawReturnType.getFullyQualifiedClassName());
         }
 
-        public JavaType getGenericReturnType(JavaCodeUnit codeUnit) {
+        public JavaType getGenericReturnType(JavaCodeUnit<?> codeUnit) {
             return genericReturnType.isPresent()
                     ? genericReturnType.get().finish(codeUnit, allTypeParametersInContextOf(codeUnit), importedClasses)
                     : getRawReturnType();
         }
 
-        private Iterable<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaCodeUnit codeUnit) {
+        private Iterable<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaCodeUnit<?> codeUnit) {
             return FluentIterable.from(getTypeParametersOf(codeUnit)).append(allTypeParametersInEnclosingContextOf(codeUnit));
         }
 
@@ -303,23 +303,23 @@ public final class DomainBuilders {
             return asJavaClasses(rawParameterTypes);
         }
 
-        public List<JavaType> getGenericParameterTypes(JavaCodeUnit codeUnit) {
+        public List<JavaType> getGenericParameterTypes(JavaCodeUnit<?> codeUnit) {
             return build(genericParameterTypes, codeUnit);
         }
 
-        private List<JavaType> build(List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypeBuilders, JavaCodeUnit codeUnit) {
+        private List<JavaType> build(List<JavaTypeCreationProcess<JavaCodeUnit<?>>> genericParameterTypeBuilders, JavaCodeUnit<?> codeUnit) {
             ImmutableList.Builder<JavaType> result = ImmutableList.builder();
-            for (JavaTypeCreationProcess<JavaCodeUnit> parameterTypeBuilder : genericParameterTypeBuilders) {
+            for (JavaTypeCreationProcess<JavaCodeUnit<?>> parameterTypeBuilder : genericParameterTypeBuilders) {
                 result.add(parameterTypeBuilder.finish(codeUnit, allTypeParametersInContextOf(codeUnit), importedClasses));
             }
             return result.build();
         }
 
-        public List<JavaTypeVariable<JavaCodeUnit>> getTypeParameters(JavaCodeUnit owner) {
+        public <CODE_UNIT extends JavaCodeUnit<CODE_UNIT>> List<? extends JavaTypeVariable<? extends CODE_UNIT>> getTypeParameters(CODE_UNIT owner) {
             return typeParametersBuilder.build(owner, importedClasses);
         }
 
-        public <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
+        public <CODE_UNIT extends JavaCodeUnit<CODE_UNIT>> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
             return createThrowsClause(codeUnit, asJavaClasses(this.throwsDeclarations));
         }
 
@@ -709,7 +709,7 @@ public final class DomainBuilders {
             this.typeParameterBuilders = typeParameterBuilders;
         }
 
-        final List<JavaTypeVariable<OWNER>> build(OWNER owner, ImportedClasses ImportedClasses) {
+        final List<? extends JavaTypeVariable<? extends OWNER>> build(OWNER owner, ImportedClasses ImportedClasses) {
             if (typeParameterBuilders.isEmpty()) {
                 return emptyList();
             }
@@ -740,18 +740,18 @@ public final class DomainBuilders {
         }
     }
 
-    static class JavaCodeUnitTypeParametersBuilder extends AbstractTypeParametersBuilder<JavaCodeUnit> {
-        JavaCodeUnitTypeParametersBuilder(List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders) {
+    static class JavaCodeUnitTypeParametersBuilder<SELF extends JavaCodeUnit<SELF>> extends AbstractTypeParametersBuilder<JavaCodeUnit<SELF>> {
+        JavaCodeUnitTypeParametersBuilder(List<JavaTypeParameterBuilder<JavaCodeUnit<SELF>>> typeParameterBuilders) {
             super(typeParameterBuilders);
         }
 
         @Override
-        Set<JavaTypeVariable<?>> typeParametersFromEnclosingContextOf(JavaCodeUnit codeUnit) {
+        Set<JavaTypeVariable<?>> typeParametersFromEnclosingContextOf(JavaCodeUnit<SELF> codeUnit) {
             return allTypeParametersInEnclosingContextOf(codeUnit);
         }
     }
 
-    private static Set<JavaTypeVariable<?>> allTypeParametersInEnclosingContextOf(JavaCodeUnit codeUnit) {
+    private static <SELF extends JavaCodeUnit<SELF>> Set<JavaTypeVariable<?>> allTypeParametersInEnclosingContextOf(JavaCodeUnit<SELF> codeUnit) {
         JavaClass declaringClass = codeUnit.getOwner();
         return FluentIterable.from(getTypeParametersOf(declaringClass))
                 .append(allTypeParametersInEnclosingContextOf(declaringClass))
@@ -899,7 +899,7 @@ public final class DomainBuilders {
     public static class TryCatchBlockBuilder {
         private Set<JavaClass> caughtThrowables;
         private int lineNumber;
-        private JavaCodeUnit owner;
+        private JavaCodeUnit<?> owner;
         private final Set<JavaAccess<?>> accessesContainedInTryBlock = new HashSet<>();
         private Set<RawAccessRecord> rawAccessesContainedInTryBlock;
         private boolean declaredInLambda;
@@ -933,12 +933,12 @@ public final class DomainBuilders {
             return this;
         }
 
-        public TryCatchBlock build(JavaCodeUnit owner) {
+        public TryCatchBlock build(JavaCodeUnit<?> owner) {
             this.owner = owner;
             return createTryCatchBlock(this);
         }
 
-        public JavaCodeUnit getOwner() {
+        public JavaCodeUnit<?> getOwner() {
             return owner;
         }
 
@@ -961,7 +961,7 @@ public final class DomainBuilders {
 
     @Internal
     public abstract static class JavaAccessBuilder<TARGET extends AccessTarget, SELF extends JavaAccessBuilder<TARGET, SELF>> {
-        private JavaCodeUnit origin;
+        private JavaCodeUnit<?> origin;
         private TARGET target;
         private int lineNumber;
         private boolean declaredInLambda;
@@ -969,7 +969,7 @@ public final class DomainBuilders {
         private JavaAccessBuilder() {
         }
 
-        SELF withOrigin(JavaCodeUnit origin) {
+        SELF withOrigin(JavaCodeUnit<?> origin) {
             this.origin = origin;
             return self();
         }
@@ -989,7 +989,7 @@ public final class DomainBuilders {
             return self();
         }
 
-        public JavaCodeUnit getOrigin() {
+        public JavaCodeUnit<?> getOrigin() {
             return origin;
         }
 
@@ -1147,7 +1147,7 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public static class CodeUnitAccessTargetBuilder<CODE_UNIT extends JavaCodeUnit, ACCESS_TARGET extends CodeUnitAccessTarget>
+    public static class CodeUnitAccessTargetBuilder<CODE_UNIT extends JavaCodeUnit<?>, ACCESS_TARGET extends CodeUnitAccessTarget>
             extends AccessTargetBuilder<CODE_UNIT, ACCESS_TARGET, CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET>> {
         private List<JavaClass> parameters;
         private JavaClass returnType;

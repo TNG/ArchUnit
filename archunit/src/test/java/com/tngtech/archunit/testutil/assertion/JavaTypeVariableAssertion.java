@@ -26,9 +26,9 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
     }
 
     @SuppressWarnings("unchecked") // cast is okay because Optional and JavaTypeVariable are covariant
-    static <OWNER extends HasDescription> JavaTypeVariable<OWNER> getTypeVariableWithName(String name, List<? extends JavaTypeVariable<? extends OWNER>> typeVariables) {
+    static <OWNER extends HasDescription> JavaTypeVariable<? extends OWNER> getTypeVariableWithName(String name, List<? extends JavaTypeVariable<? extends OWNER>> typeVariables) {
         Optional<? extends JavaTypeVariable<? extends OWNER>> variable = typeVariables.stream().filter(name(name)).findFirst();
         assertThat(variable).as("Type variable with name '%s'", name).isPresent();
-        return (JavaTypeVariable<OWNER>) variable.get();
+        return variable.get();
     }
 }

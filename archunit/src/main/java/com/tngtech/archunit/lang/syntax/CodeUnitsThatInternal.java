@@ -30,7 +30,7 @@ import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predic
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class CodeUnitsThatInternal<
-        CODE_UNIT extends JavaCodeUnit,
+        CODE_UNIT extends JavaCodeUnit<?>,
         CONJUNCTION extends AbstractGivenCodeUnitsInternal<CODE_UNIT, CONJUNCTION>
         >
         extends MembersThatInternal<CODE_UNIT, CONJUNCTION>

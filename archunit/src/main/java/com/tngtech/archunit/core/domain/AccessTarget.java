@@ -42,7 +42,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilde
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.throwsClause;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
@@ -68,7 +67,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
  * possible.<br><br>
  * To determine the respective member targeted by a {@link JavaAccess} ArchUnit follows the logic of the Reflection API
  * (e.g. {@link Class#getMethod(String, Class[])}). This only applies to <b>how</b> members are located, not what members are located
- * (e.g. ArchUnit <b>will</b> find a {@link JavaCodeUnit} with name {@value com.tngtech.archunit.core.domain.JavaConstructor#CONSTRUCTOR_NAME},
+ * (e.g. ArchUnit <b>will</b> find a {@link JavaCodeUnit<?>} with name {@value com.tngtech.archunit.core.domain.JavaConstructor#CONSTRUCTOR_NAME},
  * even if the Reflection API explicitly excludes this bytecode-only method and represents the constructor as a method with the simple class
  * name instead).
  * <br><br>
@@ -83,13 +82,13 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
  * @see #resolveMember()
  */
 @PublicAPI(usage = ACCESS)
-public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass>, HasDescription {
+public abstract class AccessTarget<MEMBER extends JavaMember<?>> implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass>, HasDescription {
     private final String name;
     private final JavaClass owner;
     private final String fullName;
-    private final Supplier<? extends Optional<? extends JavaMember>> member;
+    private final Supplier<? extends Optional<? extends MEMBER>> member;
 
-    AccessTarget(AccessTargetBuilder<?, ?, ?> builder) {
+    AccessTarget(AccessTargetBuilder<? extends MEMBER, ?, ?> builder) {
         this.name = checkNotNull(builder.getName());
         this.owner = checkNotNull(builder.getOwner());
         this.fullName = checkNotNull(builder.getFullName());
@@ -131,7 +130,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @return The member that matches the access target or empty if it was not imported
      */
     @PublicAPI(usage = ACCESS)
-    public Optional<? extends JavaMember> resolveMember() {
+    public Optional<? extends MEMBER> resolveMember() {
         return member.get();
     }
 
@@ -251,7 +250,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * {@link FieldAccessTarget FieldAccessTarget} from {@link JavaField}, refer to the documentation at {@link AccessTarget}.
      */
     @PublicAPI(usage = ACCESS)
-    public static final class FieldAccessTarget extends AccessTarget implements HasType {
+    public static final class FieldAccessTarget extends AccessTarget<JavaField> implements HasType {
         private final JavaClass type;
 
         FieldAccessTarget(FieldAccessTargetBuilder builder) {
@@ -338,10 +337,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     /**
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
-     * {@link CodeUnitAccessTarget CodeUnitAccessTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget}.
+     * {@link CodeUnitAccessTarget CodeUnitAccessTarget} from {@link JavaCodeUnit<?>}, refer to the documentation at {@link AccessTarget}.
      */
     @PublicAPI(usage = ACCESS)
-    public abstract static class CodeUnitAccessTarget extends AccessTarget
+    public abstract static class CodeUnitAccessTarget extends AccessTarget<JavaCodeUnit<?>>
             implements HasParameterTypes, HasReturnType, HasThrowsClause<CodeUnitAccessTarget> {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
@@ -379,26 +378,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         @PublicAPI(usage = ACCESS)
         public ThrowsClause<? extends CodeUnitAccessTarget> getThrowsClause() {
-            Optional<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = resolveMember().map(throwsClause());
+            Optional<List<JavaClass>> resolvedThrowsClauses = resolveMember().map(member -> member.getThrowsClause().getTypes());
 
             if (resolvedThrowsClauses.isPresent()) {
-                return ThrowsClause.from(this, resolvedThrowsClauses.get().getTypes());
+                return ThrowsClause.from(this, resolvedThrowsClauses.get());
             } else {
                 return ThrowsClause.empty(this);
             }
-        }
-
-        /**
-         * Tries to resolve the targeted method or constructor.
-         *
-         * @see ConstructorCallTarget#resolveMember()
-         * @see MethodCallTarget#resolveMember()
-         */
-        @Override
-        @PublicAPI(usage = ACCESS)
-        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaCodeUnit if present
-        public Optional<? extends JavaCodeUnit> resolveMember() {
-            return (Optional<? extends JavaCodeUnit>) super.resolveMember();
         }
 
         /**
@@ -410,12 +396,12 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitAccessTarget, Optional<JavaCodeUnit>> RESOLVE_MEMBER =
-                    new ChainableFunction<CodeUnitAccessTarget, Optional<JavaCodeUnit>>() {
+            public static final ChainableFunction<CodeUnitAccessTarget, Optional<JavaCodeUnit<?>>> RESOLVE_MEMBER =
+                    new ChainableFunction<CodeUnitAccessTarget, Optional<JavaCodeUnit<?>>>() {
                         @SuppressWarnings("unchecked") // Optional is covariant
                         @Override
-                        public Optional<JavaCodeUnit> apply(CodeUnitAccessTarget input) {
-                            return (Optional<JavaCodeUnit>) input.resolveMember();
+                        public Optional<JavaCodeUnit<?>> apply(CodeUnitAccessTarget input) {
+                            return (Optional<JavaCodeUnit<?>>) input.resolveMember();
                         }
                     };
         }
@@ -423,7 +409,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     /**
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
-     * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit} refer to the documentation at {@link AccessTarget}.
+     * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit<?>} refer to the documentation at {@link AccessTarget}.
      */
     @PublicAPI(usage = ACCESS)
     public abstract static class CodeUnitCallTarget extends CodeUnitAccessTarget {
@@ -441,7 +427,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     /**
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
-     * {@link CodeUnitReferenceTarget CodeUnitReferenceTarget} from {@link JavaCodeUnit} refer to the documentation at {@link AccessTarget}.
+     * {@link CodeUnitReferenceTarget CodeUnitReferenceTarget} from {@link JavaCodeUnit<?>} refer to the documentation at {@link AccessTarget}.
      */
     @PublicAPI(usage = ACCESS)
     public abstract static class CodeUnitReferenceTarget extends CodeUnitAccessTarget {

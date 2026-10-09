@@ -272,10 +272,10 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+    public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
         ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE_MEMBER)
-                .is(optionalContains(predicate.<JavaCodeUnit>forSubtype()).or(optionalEmpty()));
+                .is(optionalContains(predicate.<JavaCodeUnit<?>>forSubtype()).or(optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CODE_UNIT_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
     }
@@ -296,7 +296,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> accessClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
+        ChainableFunction<JavaAccess<?>, AccessTarget<?>> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.owner()).is(predicate);
         return new ClassAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
                 .as("access classes that " + predicate.getDescription());
@@ -304,7 +304,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyAccessClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
+        ChainableFunction<JavaAccess<?>, AccessTarget<?>> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.owner()).is(predicate);
         return new AllAccessesCondition("only access classes that", accessPredicate, GET_ACCESSES_FROM_SELF);
     }
@@ -1233,77 +1233,77 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(Class<?>... parameterTypes) {
+    public static ArchCondition<JavaCodeUnit<?>> haveRawParameterTypes(Class<?>... parameterTypes) {
         return have(rawParameterTypes(parameterTypes));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(String... parameterTypeNames) {
+    public static ArchCondition<JavaCodeUnit<?>> haveRawParameterTypes(String... parameterTypeNames) {
         return have(rawParameterTypes(parameterTypeNames));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
+    public static ArchCondition<JavaCodeUnit<?>> haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
         return have(rawParameterTypes(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawReturnType(Class<?> type) {
+    public static ArchCondition<JavaCodeUnit<?>> haveRawReturnType(Class<?> type) {
         return have(rawReturnType(type));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawReturnType(String typeName) {
+    public static ArchCondition<JavaCodeUnit<?>> haveRawReturnType(String typeName) {
         return have(rawReturnType(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
+    public static ArchCondition<JavaCodeUnit<?>> haveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
         return have(rawReturnType(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> declareThrowableOfType(Class<? extends Throwable> type) {
+    public static ArchCondition<JavaCodeUnit<?>> declareThrowableOfType(Class<? extends Throwable> type) {
         return declareThrowableOfType(equivalentTo(type).as(type.getName()));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> declareThrowableOfType(String typeName) {
+    public static ArchCondition<JavaCodeUnit<?>> declareThrowableOfType(String typeName) {
         return declareThrowableOfType(name(typeName).as(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
+    public static ArchCondition<JavaCodeUnit<?>> declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
         DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType = throwsClauseContainingType(predicate)
                 .as("declare throwable of type " + predicate.getDescription());
         return does(declareThrowableOfType);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        ChainableFunction<JavaAccess<?>, JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+    public static ArchCondition<JavaCodeUnit<?>> onlyBeCalledByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        ChainableFunction<JavaAccess<?>, JavaCodeUnit<?>> origin = JavaAccess.Functions.Get.origin();
         ChainableFunction<HasOwner<JavaClass>, JavaClass> owner = Get.owner();
         return new CodeUnitOnlyCallsCondition<>("only be called by classes that " + predicate.getDescription(),
                 origin.then(owner).is(predicate), GET_CALLS_OF_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
-        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+    public static ArchCondition<JavaCodeUnit<?>> onlyBeCalledByCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
+        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit<?>> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by code units that " + predicate.getDescription(),
                 origin.is(predicate), GET_CALLS_OF_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
-        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+    public static ArchCondition<JavaCodeUnit<?>> onlyBeCalledByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit<?>> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by methods that " + predicate.getDescription(),
                 origin.is(matching(JavaMethod.class, predicate)), GET_CALLS_OF_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
-        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+    public static ArchCondition<JavaCodeUnit<?>> onlyBeCalledByConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
+        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit<?>> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
                 origin.is(matching(JavaConstructor.class, predicate)), GET_CALLS_OF_SELF);
     }

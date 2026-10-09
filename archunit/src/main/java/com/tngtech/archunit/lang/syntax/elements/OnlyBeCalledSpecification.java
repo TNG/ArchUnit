@@ -36,7 +36,7 @@ public interface OnlyBeCalledSpecification<CONJUNCTION> {
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate Restricts which classes the call should originate from. Every class that calls the respective {@link JavaCodeUnit} must match the predicate.
+     * @param predicate Restricts which classes the call should originate from. Every class that calls the respective {@link JavaCodeUnit<?>} must match the predicate.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
@@ -53,14 +53,14 @@ public interface OnlyBeCalledSpecification<CONJUNCTION> {
      * <br><br>
      * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
-     * {@link JavaCodeUnit} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * {@link JavaCodeUnit<?>} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
      * like {@link JavaMember.Predicates}.
      *
      * @param predicate Restricts which code units the call should originate from
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
+    CONJUNCTION byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate);
 
     /**
      * Restricts allowed origins of calls to methods matching the supplied {@link DescribedPredicate}.

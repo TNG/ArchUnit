@@ -34,10 +34,10 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 
 @PublicAPI(usage = ACCESS)
-public abstract class JavaAccess<TARGET extends AccessTarget>
-        implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasSourceCodeLocation, Convertible {
+public abstract class JavaAccess<TARGET extends AccessTarget<?>>
+        implements HasName, HasDescription, HasOwner<JavaCodeUnit<?>>, HasSourceCodeLocation, Convertible {
 
-    private final JavaCodeUnit origin;
+    private final JavaCodeUnit<?> origin;
     private final TARGET target;
     private final SourceCodeLocation sourceCodeLocation;
     private final boolean declaredInLambda;
@@ -56,7 +56,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getOrigin() {
+    public JavaCodeUnit<?> getOrigin() {
         return origin;
     }
 
@@ -82,7 +82,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getOwner() {
+    public JavaCodeUnit<?> getOwner() {
         return getOrigin();
     }
 
@@ -157,7 +157,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit> predicate) {
+        public static DescribedPredicate<JavaAccess<?>> origin(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
             return predicate.onResultOf(Functions.Get.origin()).as("origin " + predicate.getDescription());
         }
 
@@ -172,8 +172,8 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaAccess<?>> target(DescribedPredicate<? super AccessTarget> predicate) {
-            return new TargetPredicate<>(predicate);
+        public static DescribedPredicate<JavaAccess<?>> target(DescribedPredicate<? super AccessTarget<?>> predicate) {
+            return new TargetPredicate<JavaAccess<?>, AccessTarget<?>>(predicate);
         }
 
         private static class OriginOwnerEqualsTargetOwnerPredicate extends DescribedPredicate<JavaAccess<?>> {
@@ -187,7 +187,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
             }
         }
 
-        static class TargetPredicate<ACCESS extends JavaAccess<? extends TARGET>, TARGET extends AccessTarget> extends DescribedPredicate<ACCESS> {
+        static class TargetPredicate<ACCESS extends JavaAccess<? extends TARGET>, TARGET extends AccessTarget<?>> extends DescribedPredicate<ACCESS> {
             private final DescribedPredicate<? super TARGET> predicate;
 
             TargetPredicate(DescribedPredicate<? super TARGET> predicate) {
@@ -222,17 +222,17 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
             }
 
             @PublicAPI(usage = ACCESS)
-            public static ChainableFunction<JavaAccess<?>, JavaCodeUnit> origin() {
-                return new ChainableFunction<JavaAccess<?>, JavaCodeUnit>() {
+            public static ChainableFunction<JavaAccess<?>, JavaCodeUnit<?>> origin() {
+                return new ChainableFunction<JavaAccess<?>, JavaCodeUnit<?>>() {
                     @Override
-                    public JavaCodeUnit apply(JavaAccess<?> input) {
+                    public JavaCodeUnit<?> apply(JavaAccess<?> input) {
                         return input.getOrigin();
                     }
                 };
             }
 
             @PublicAPI(usage = ACCESS)
-            public static <A extends JavaAccess<? extends T>, T extends AccessTarget> ChainableFunction<A, T> target() {
+            public static <A extends JavaAccess<? extends T>, T extends AccessTarget<?>> ChainableFunction<A, T> target() {
                 return new ChainableFunction<A, T>() {
                     @Override
                     public T apply(A input) {

@@ -35,7 +35,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * there would be one {@link ThrowsDeclaration} representing <code>FirstException</code> and one representing
  * <code>SecondException</code>
  *
- * @param <LOCATION> Represents the 'location' where this {@link ThrowsDeclaration} is declared. This can be a {@link JavaCodeUnit}, i.e.
+ * @param <LOCATION> Represents the 'location' where this {@link ThrowsDeclaration} is declared. This can be a {@link JavaCodeUnit<?>}, i.e.
  *                   a method or constructor. It can also be a {@link CodeUnitCallTarget CodeUnitCallTarget}
  *                   where the resolution process resolved this
  *                   {@link ThrowsDeclaration} on all resolved targets.<br>
@@ -77,7 +77,7 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
     }
 
     /**
-     * @return The 'location' where this {@link ThrowsDeclaration} is declared. Can be either {@link JavaCodeUnit}
+     * @return The 'location' where this {@link ThrowsDeclaration} is declared. Can be either {@link JavaCodeUnit<?>}
      *         or {@link CodeUnitCallTarget}. Compare docs at {@link ThrowsDeclaration}.
      */
     @PublicAPI(usage = ACCESS)

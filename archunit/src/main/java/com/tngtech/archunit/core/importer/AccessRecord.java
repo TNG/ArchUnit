@@ -48,7 +48,7 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 
 interface AccessRecord<TARGET extends AccessTarget> {
-    JavaCodeUnit getOrigin();
+    JavaCodeUnit<?> getOrigin();
 
     TARGET getTarget();
 
@@ -240,7 +240,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             private final ImportedClasses classes;
             private final JavaClass targetOwner;
             private final AccessTargetFactory<TARGET> accessTargetFactory;
-            private final Supplier<JavaCodeUnit> originSupplier;
+            private final Supplier<JavaCodeUnit<?>> originSupplier;
 
             RawAccessRecordProcessed(RawAccessRecord record, ImportedClasses classes, AccessTargetFactory<TARGET> accessTargetFactory) {
                 this.record = record;
@@ -251,7 +251,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
 
             @Override
-            public JavaCodeUnit getOrigin() {
+            public JavaCodeUnit<?> getOrigin() {
                 return originSupplier.get();
             }
 
@@ -290,7 +290,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static Supplier<JavaCodeUnit> createOriginSupplier(CodeUnit origin, ImportedClasses classes) {
+        private static Supplier<JavaCodeUnit<?>> createOriginSupplier(CodeUnit origin, ImportedClasses classes) {
             return Suppliers.memoize(() -> origin.resolveFrom(classes));
         }
 

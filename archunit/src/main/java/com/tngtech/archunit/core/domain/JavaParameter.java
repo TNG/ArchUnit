@@ -38,20 +38,20 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 /**
- * A parameter of a {@link JavaCodeUnit}, i.e. encapsulates the raw parameter type, the (possibly) generic
+ * A parameter of a {@link JavaCodeUnit<?>}, i.e. encapsulates the raw parameter type, the (possibly) generic
  * parameter type and any annotations this parameter has.
  */
 @PublicAPI(usage = ACCESS)
-public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, HasAnnotations<JavaParameter> {
+public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit<?>>, HasAnnotations<JavaParameter> {
     private static final ChainableFunction<HasType, String> GET_ANNOTATION_TYPE_NAME = GET_RAW_TYPE.then(GET_NAME);
 
-    private final JavaCodeUnit owner;
+    private final JavaCodeUnit<?> owner;
     private final int index;
     private final JavaType type;
     private final JavaClass rawType;
     private final Map<String, JavaAnnotation<JavaParameter>> annotations;
 
-    JavaParameter(JavaCodeUnit owner, DomainBuilders.JavaCodeUnitBuilder.ParameterAnnotationsBuilder builder, int index, JavaType type) {
+    JavaParameter(JavaCodeUnit<?> owner, DomainBuilders.JavaCodeUnitBuilder.ParameterAnnotationsBuilder builder, int index, JavaType type) {
         this.owner = owner;
         this.index = index;
         this.type = type;
@@ -66,7 +66,7 @@ public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, Has
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getOwner() {
+    public JavaCodeUnit<?> getOwner() {
         return owner;
     }
 
@@ -120,12 +120,6 @@ public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, Has
     @Override
     public Set<JavaAnnotation<JavaParameter>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.values());
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' element is this parameter
-    public JavaAnnotation<JavaParameter> getAnnotationOfType(String typeName) {
-        return (JavaAnnotation<JavaParameter>) HasAnnotations.super.getAnnotationOfType(typeName);
     }
 
     @Override

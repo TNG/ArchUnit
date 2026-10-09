@@ -26,13 +26,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
-    private final JavaCodeUnit owner;
+public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUnit<?>>, HasSourceCodeLocation {
+    private final JavaCodeUnit<?> owner;
     private final JavaClass value;
     private final SourceCodeLocation sourceCodeLocation;
     private final boolean declaredInLambda;
 
-    private ReferencedClassObject(JavaCodeUnit owner, JavaClass value, int lineNumber, boolean declaredInLambda) {
+    private ReferencedClassObject(JavaCodeUnit<?> owner, JavaClass value, int lineNumber, boolean declaredInLambda) {
         this.owner = checkNotNull(owner);
         this.value = checkNotNull(value);
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
@@ -53,7 +53,7 @@ public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUn
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaCodeUnit getOwner() {
+    public JavaCodeUnit<?> getOwner() {
         return owner;
     }
 
@@ -88,7 +88,7 @@ public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUn
                 .toString();
     }
 
-    static ReferencedClassObject from(JavaCodeUnit owner, JavaClass javaClass, int lineNumber, boolean declaredInLambda) {
+    static ReferencedClassObject from(JavaCodeUnit<?> owner, JavaClass javaClass, int lineNumber, boolean declaredInLambda) {
         return new ReferencedClassObject(owner, javaClass, lineNumber, declaredInLambda);
     }
 

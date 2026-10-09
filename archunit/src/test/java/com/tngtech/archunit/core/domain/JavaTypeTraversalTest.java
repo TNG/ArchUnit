@@ -159,7 +159,7 @@ public class JavaTypeTraversalTest {
 
         JavaClass classWithComplexSignature = new ClassFileImporter().importClass(SomeClass.class);
 
-        List<JavaTypeVariable<JavaClass>> typeParameters = classWithComplexSignature.getTypeParameters();
+        List<? extends JavaTypeVariable<? extends JavaClass>> typeParameters = classWithComplexSignature.getTypeParameters();
 
         ExpectedTypes types = new ExpectedTypes();
         types.expect(classWithComplexSignature);

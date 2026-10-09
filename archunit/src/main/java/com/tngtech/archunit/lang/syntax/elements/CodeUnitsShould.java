@@ -30,7 +30,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<?>> extends MembersShould<CONJUNCTION> {
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} have the specified raw parameter types.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} have the specified raw parameter types.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -44,14 +44,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param parameterTypes Parameter types {@link JavaCodeUnit JavaCodeUnits} should have
+     * @param parameterTypes Parameter types {@link JavaCodeUnit<?> JavaCodeUnits} should have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawParameterTypes(Class<?>... parameterTypes);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not have the specified raw parameter types.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not have the specified raw parameter types.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -65,7 +65,7 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param parameterTypes Parameter types {@link JavaCodeUnit JavaCodeUnits} should not have
+     * @param parameterTypes Parameter types {@link JavaCodeUnit<?> JavaCodeUnits} should not have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
@@ -85,7 +85,7 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
     OnlyBeCalledSpecification<CONJUNCTION> onlyBeCalled();
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} have the specified fully qualified raw parameter type names.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} have the specified fully qualified raw parameter type names.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -99,14 +99,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param parameterTypeNames Fully qualified names of parameter types {@link JavaCodeUnit JavaCodeUnits} should have
+     * @param parameterTypeNames Fully qualified names of parameter types {@link JavaCodeUnit<?> JavaCodeUnits} should have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawParameterTypes(String... parameterTypeNames);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not have the specified fully qualified raw parameter type names.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not have the specified fully qualified raw parameter type names.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -120,14 +120,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param parameterTypeNames Fully qualified names of parameter types {@link JavaCodeUnit JavaCodeUnits} should not have
+     * @param parameterTypeNames Fully qualified names of parameter types {@link JavaCodeUnit<?> JavaCodeUnits} should not have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawParameterTypes(String... parameterTypeNames);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} have raw parameter types matching the given predicate.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} have raw parameter types matching the given predicate.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -146,14 +146,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw parameter types
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit<?> JavaCodeUnits} match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not have raw parameter types matching the given predicate.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not have raw parameter types matching the given predicate.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -172,14 +172,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw parameter types
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit<?> JavaCodeUnits} do not match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} have the specified raw return type.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} have the specified raw return type.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -193,14 +193,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param type Return type {@link JavaCodeUnit JavaCodeUnits} should have
+     * @param type Return type {@link JavaCodeUnit<?> JavaCodeUnits} should have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawReturnType(Class<?> type);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not have the specified raw return type.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not have the specified raw return type.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -214,14 +214,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param type Return type {@link JavaCodeUnit JavaCodeUnits} should not have
+     * @param type Return type {@link JavaCodeUnit<?> JavaCodeUnits} should not have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawReturnType(Class<?> type);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} have the specified fully qualified raw return type name.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} have the specified fully qualified raw return type name.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -235,14 +235,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param typeName Fully qualified name of a return type {@link JavaCodeUnit JavaCodeUnits} should have
+     * @param typeName Fully qualified name of a return type {@link JavaCodeUnit<?> JavaCodeUnits} should have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawReturnType(String typeName);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not have the specified fully qualified raw return type name.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not have the specified fully qualified raw return type name.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -256,14 +256,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param typeName Fully qualified name of a return type {@link JavaCodeUnit JavaCodeUnits} should not have
+     * @param typeName Fully qualified name of a return type {@link JavaCodeUnit<?> JavaCodeUnits} should not have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawReturnType(String typeName);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} have raw return types matching the given predicate.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} have raw return types matching the given predicate.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -282,14 +282,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw return types
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit<?> JavaCodeUnits} match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawReturnType(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not have raw return types matching the given predicate.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not have raw return types matching the given predicate.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -308,14 +308,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw return types
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit<?> JavaCodeUnits} do not match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawReturnType(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} declare a {@link Throwable} of the specified type in their throws clause.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} declare a {@link Throwable} of the specified type in their throws clause.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -329,14 +329,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param type Type of a declared {@link Throwable} {@link JavaCodeUnit JavaCodeUnits} should have
+     * @param type Type of a declared {@link Throwable} {@link JavaCodeUnit<?> JavaCodeUnits} should have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION declareThrowableOfType(Class<? extends Throwable> type);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not declare a {@link Throwable} of the specified type in their throws clause.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not declare a {@link Throwable} of the specified type in their throws clause.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -350,14 +350,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param type Type of a declared {@link Throwable} {@link JavaCodeUnit JavaCodeUnits} should not have
+     * @param type Type of a declared {@link Throwable} {@link JavaCodeUnit<?> JavaCodeUnits} should not have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notDeclareThrowableOfType(Class<? extends Throwable> type);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -371,14 +371,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param typeName Fully qualified name of a type of a declared {@link Throwable} {@link JavaCodeUnit JavaCodeUnits} should have
+     * @param typeName Fully qualified name of a type of a declared {@link Throwable} {@link JavaCodeUnit<?> JavaCodeUnits} should have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION declareThrowableOfType(String typeName);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -392,14 +392,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
-     * @param typeName Fully qualified name of a type of a declared {@link Throwable} {@link JavaCodeUnit JavaCodeUnits} should not have
+     * @param typeName Fully qualified name of a type of a declared {@link Throwable} {@link JavaCodeUnit<?> JavaCodeUnits} should not have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notDeclareThrowableOfType(String typeName);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} declare a {@link Throwable} which matches the given predicate.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} declare a {@link Throwable} which matches the given predicate.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -418,14 +418,14 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their declared {@link Throwable}
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit<?> JavaCodeUnits} match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Asserts that {@link JavaCodeUnit JavaCodeUnits} do not declare a {@link Throwable} which matches the given predicate.
+     * Asserts that {@link JavaCodeUnit<?> JavaCodeUnits} do not declare a {@link Throwable} which matches the given predicate.
      * <br><br>
      * E.g.
      * <pre><code>
@@ -444,7 +444,7 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
      * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
-     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their declared {@link Throwable}
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit<?> JavaCodeUnits} do not match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)

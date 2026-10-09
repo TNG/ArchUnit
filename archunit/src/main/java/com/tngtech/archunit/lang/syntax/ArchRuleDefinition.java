@@ -121,12 +121,12 @@ public final class ArchRuleDefinition {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static GivenCodeUnits<JavaCodeUnit> codeUnits() {
+    public static GivenCodeUnits<JavaCodeUnit<?>> codeUnits() {
         return priority(MEDIUM).codeUnits();
     }
 
     @PublicAPI(usage = ACCESS)
-    public static GivenCodeUnits<JavaCodeUnit> noCodeUnits() {
+    public static GivenCodeUnits<JavaCodeUnit<?>> noCodeUnits() {
         return priority(MEDIUM).noCodeUnits();
     }
 
@@ -198,12 +198,12 @@ public final class ArchRuleDefinition {
         }
 
         @PublicAPI(usage = ACCESS)
-        public GivenCodeUnits<JavaCodeUnit> codeUnits() {
+        public GivenCodeUnits<JavaCodeUnit<?>> codeUnits() {
             return new GivenCodeUnitsInternal(priority, Transformers.codeUnits());
         }
 
         @PublicAPI(usage = ACCESS)
-        public GivenCodeUnits<JavaCodeUnit> noCodeUnits() {
+        public GivenCodeUnits<JavaCodeUnit<?>> noCodeUnits() {
             return new GivenCodeUnitsInternal(
                     priority,
                     Transformers.codeUnits().as("no " + Transformers.codeUnits().getDescription()),

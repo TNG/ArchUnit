@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -31,7 +30,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public final class JavaField extends JavaMember implements HasType {
+public final class JavaField extends JavaMember<JavaField> implements HasType {
     private final JavaType type;
     private final Supplier<Field> fieldSupplier;
 
@@ -81,18 +80,6 @@ public final class JavaField extends JavaMember implements HasType {
     @SuppressWarnings("unchecked") // we know the 'owning' member is this field
     public Set<JavaAnnotation<JavaField>> getAnnotations() {
         return (Set<JavaAnnotation<JavaField>>) super.getAnnotations();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this field
-    public JavaAnnotation<JavaField> getAnnotationOfType(String typeName) {
-        return (JavaAnnotation<JavaField>) super.getAnnotationOfType(typeName);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked") // we know the 'owning' member is this field
-    public Optional<JavaAnnotation<JavaField>> tryGetAnnotationOfType(String typeName) {
-        return (Optional<JavaAnnotation<JavaField>>) super.tryGetAnnotationOfType(typeName);
     }
 
     @Override

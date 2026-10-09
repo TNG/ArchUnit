@@ -392,7 +392,7 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+        public <SELF extends JavaMember<SELF>> Map<String, ? extends JavaAnnotation<? extends SELF>> createAnnotations(SELF owner) {
             return emptyMap();
         }
 
@@ -402,47 +402,47 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner) {
+        public Optional<JavaCodeUnit<?>> createEnclosingCodeUnit(JavaClass owner) {
             return Optional.empty();
         }
 
         @Override
-        public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+        public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+        public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+        public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+        public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+        public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit<?> codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
+        public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit<?> codeUnit) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit) {
+        public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit<?> codeUnit) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit) {
+        public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit<?> codeUnit) {
             return Collections.emptySet();
         }
 

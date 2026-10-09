@@ -463,7 +463,7 @@ public final class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJU
     }
 
     @Override
-    public CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+    public CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit<?>> predicate) {
         return givenWith(JavaClass.Predicates.containAnyCodeUnitsThat(predicate));
     }
 
