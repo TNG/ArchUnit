@@ -152,20 +152,7 @@ public class TestResultTest {
         }
 
         void assertMatchWith(GivenTestClasses givenTestClasses) {
-            Set<SingleTest> onlyGiven = difference(givenTestClasses.tests, failedArchitectureTests);
-            assertThat(onlyGiven).as("Tests that were expected to fail, but didn't").isEmpty();
-            Set<SingleTest> onlyFailed = difference(failedArchitectureTests, givenTestClasses.tests);
-            assertThat(onlyFailed).as("Tests that unexpectedly failed").isEmpty();
-        }
-
-        private <T> Set<T> difference(Set<T> set, Set<T> toSubtract) {
-            Set<T> result = new HashSet<>();
-            for (T elem : set) {
-                if (!toSubtract.contains(elem)) {
-                    result.add(elem);
-                }
-            }
-            return result;
+            assertThat(failedArchitectureTests).as("actual failures").hasSameElementsAs(givenTestClasses.tests);
         }
 
         void markProcessed(List<File> testReports) {
