@@ -55,7 +55,9 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
 
     @Override
     public void visitInnerClassType(String name) {
-        updateType(parameterizedType.forInnerClass(name));
+        JavaParameterizedTypeBuilder<T> innerClass = parameterizedType.forInnerClass(name);
+        updateType(innerClass);
+        declarationHandler.onDeclaredGenericSignatureType(innerClass.getTypeName());
     }
 
     @Override

@@ -1,18 +1,26 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass;
 import org.assertj.core.api.AbstractObjectAssert;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -29,13 +37,63 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         super(javaType, JavaTypeAssertion.class);
     }
 
-    public void matches(java.lang.reflect.Type type) {
-        checkArgument(type instanceof Class<?>, "Only %s implemented so far, please extend", Class.class.getName());
-        matches((Class<?>) type);
+    public void matches(Type type) {
+        matchesType(actual, type);
     }
 
     public void matches(Class<?> clazz) {
-        JavaClass javaClass = actualClass();
+        matchesClass(actualClass(), clazz);
+    }
+
+    private void matchesType(JavaType javaType, Type type) {
+        if (type instanceof Class) {
+            Class<?> reflectionClass = (Class<?>) type;
+            assertThat(javaType).isInstanceOfSatisfying(JavaClass.class, clazz -> matchesClass(clazz, reflectionClass));
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType reflectionParameterizedType = (ParameterizedType) type;
+            Class<?> rawReflectedType = (Class<?>) reflectionParameterizedType.getRawType();
+            Optional<Type> enclosingType = Optional.ofNullable(reflectionParameterizedType.getOwnerType());
+            assertThat(javaType)
+                    .as(describeAssertion("representation of " + type.getTypeName()))
+                    .isInstanceOfSatisfying(JavaParameterizedType.class, parameterizedType -> {
+                        matchesType(parameterizedType.toErasure(), rawReflectedType);
+                        assertThat(parameterizedType.getActualTypeArguments()).hasSameSizeAs(reflectionParameterizedType.getActualTypeArguments())
+                                .as(describeAssertion("all type arguments"))
+                                .zipSatisfy(Arrays.asList(reflectionParameterizedType.getActualTypeArguments()), this::matchesType);
+                        assertThat(parameterizedType.getEnclosingType().isPresent()).as("has enclosingType").isEqualTo(enclosingType.isPresent());
+                        if (parameterizedType.getEnclosingType().isPresent() && enclosingType.isPresent()) {
+                            matchesType(parameterizedType.getEnclosingType().get(), enclosingType.get());
+                        }
+                    });
+            assertThat(javaType.toErasure().isEquivalentTo(rawReflectedType)).as(describeAssertion(String.format("raw class %s is equivalent", javaType.toErasure()))).isTrue();
+        } else if (type instanceof TypeVariable) {
+            assertThat(javaType).as(describeAssertion("type variable")).isInstanceOfSatisfying(JavaTypeVariable.class, typeVariable ->
+                    assertThat(typeVariable.getName()).as(describeAssertion("type variable name")).isEqualTo(((TypeVariable<?>) type).getName()));
+        } else if (type instanceof GenericArrayType) {
+            assertThat(javaType).as(describeAssertion("generic array")).isInstanceOfSatisfying(JavaGenericArrayType.class, genericArrayType ->
+                    matchesType(genericArrayType.getComponentType(), ((GenericArrayType) type).getGenericComponentType()));
+        } else if (type instanceof WildcardType) {
+            WildcardType reflectionWildCardType = (WildcardType) type;
+            assertThat(javaType).as(describeAssertion("wildcard")).isInstanceOfSatisfying(JavaWildcardType.class, wildCardType -> {
+                        Type[] upperBounds = reflectionWildCardType.getUpperBounds();
+                        // wildcard with implicit and explicit upper bound to Object look different in ArchUnit, but not in reflection API
+                        if (upperBounds.length == 1 && upperBounds[0] == Object.class && wildCardType.getUpperBounds().isEmpty()) {
+                            upperBounds = new Type[]{};
+                        }
+                        assertThat(wildCardType.getUpperBounds()).hasSameSizeAs(upperBounds)
+                                .as(describeAssertion("all upper bounds"))
+                                .zipSatisfy(Arrays.asList(upperBounds), this::matchesType);
+                        assertThat(wildCardType.getLowerBounds()).hasSameSizeAs(reflectionWildCardType.getLowerBounds())
+                                .as(describeAssertion("all upper bounds"))
+                                .zipSatisfy(Arrays.asList(reflectionWildCardType.getLowerBounds()), this::matchesType);
+                    }
+            );
+        } else {
+            throw new IllegalArgumentException("unknown type variant: " + type.getClass());
+        }
+    }
+
+    private void matchesClass(JavaClass javaClass, Class<?> clazz) {
 
         assertThat(javaClass.getName()).as(describeAssertion("Name of " + javaClass))
                 .isEqualTo(clazz.getName());

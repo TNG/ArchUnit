@@ -83,6 +83,7 @@ class SignatureTypeParameterProcessor<OWNER extends HasDescription> extends Sign
     @Override
     public void visitInnerClassType(String name) {
         currentBound = currentBound.forInnerClass(name);
+        declarationHandler.onDeclaredGenericSignatureType(currentBound.getTypeName());
     }
 
     @Override
