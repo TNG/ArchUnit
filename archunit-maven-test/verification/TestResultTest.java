@@ -115,23 +115,20 @@ public class TestResultTest {
             for (File report : testReports) {
                 Match document = $($(report).document());
 
-                failedArchitectureTests.addAll(getFailedTests(document.find("testcase")));
+                failedArchitectureTests.addAll(getFailedTests(document));
             }
             markProcessed(testReports);
         }
 
-        Set<SingleTest> getFailedTests(Match testCaseTags) {
+        Set<SingleTest> getFailedTests(Match document) {
+            String testClass = toSimpleClassName(document.xpath("/testsuite").attr("name"));
+            Match testCaseTags = document.find("testcase");
+
             validateAllArchitectureFailures(testCaseTags);
 
-            List<String> classNames = testCaseTags.attrs("classname");
-            List<String> testNames = testCaseTags.attrs("name");
-            if (classNames.size() != testNames.size()) {
-                throw new RuntimeException("Unexpected attrs mismatch, expected the same size: " + classNames + " <-> " + testNames);
-            }
-
             Set<SingleTest> result = new HashSet<>();
-            for (int i = 0; i < classNames.size(); i++) {
-                result.add(new SingleTest(toSimpleClassName(classNames.get(i)), testNames.get(i)));
+            for (String testName : testCaseTags.attrs("name")) {
+                result.add(new SingleTest(testClass, testName));
             }
             return result;
         }
