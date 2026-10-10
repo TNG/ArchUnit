@@ -37,6 +37,8 @@ interface DeclarationHandler {
 
     void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder, String fieldTypeName);
 
+    void onDeclaredRecordComponent(DomainBuilders.JavaRecordComponentBuilder fieldBuilder, String fieldTypeName);
+
     void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames);
 
     void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName);
@@ -46,6 +48,8 @@ interface DeclarationHandler {
     void onDeclaredClassAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders);
 
     void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
+
+    void onDeclaredRecordComponentAnnotations(String componentName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
 
     void onDeclaredAnnotationValueType(String valueTypeName);
 

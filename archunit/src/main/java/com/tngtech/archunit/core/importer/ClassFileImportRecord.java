@@ -32,15 +32,18 @@ import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
+import com.tngtech.archunit.core.domain.JavaBaseMember;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaRecordComponent;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaRecordComponentBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.MemberSignature;
@@ -72,10 +75,12 @@ class ClassFileImportRecord {
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final Map<String, List<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaRecordComponentBuilder> recordComponentBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
+    private final SetMultimap<String, JavaAnnotationBuilder> recordComponentAnnotationsByOwner = HashMultimap.create();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
 
@@ -122,6 +127,10 @@ class ClassFileImportRecord {
         fieldBuildersByOwner.put(ownerName, fieldBuilder);
     }
 
+    void addRecordComponent(String ownerName, JavaRecordComponentBuilder recordComponentBuilder) {
+        recordComponentBuildersByOwner.put(ownerName, recordComponentBuilder);
+    }
+
     void addMethod(String ownerName, JavaMethodBuilder methodBuilder) {
         methodBuildersByOwner.put(ownerName, methodBuilder);
     }
@@ -143,6 +152,10 @@ class ClassFileImportRecord {
 
     void addMemberAnnotations(String declaringClassName, String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
         this.annotationsByOwner.putAll(getMemberKey(declaringClassName, memberName, descriptor), annotations);
+    }
+
+    void addRecordComponentAnnotations(String declaringClassName, String componentName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
+        this.recordComponentAnnotationsByOwner.putAll(getMemberKey(declaringClassName, componentName, descriptor), annotations);
     }
 
     void addAnnotationDefaultValue(String declaringClassName, String methodName, String descriptor, JavaAnnotationBuilder.ValueBuilder valueBuilder) {
@@ -192,6 +205,10 @@ class ClassFileImportRecord {
         return fieldBuildersByOwner.get(ownerName);
     }
 
+    Set<JavaRecordComponentBuilder> getRecordComponentBuildersFor(String ownerName) {
+        return recordComponentBuildersByOwner.get(ownerName);
+    }
+
     Set<JavaMethodBuilder> getMethodBuildersFor(String ownerName) {
         return methodBuildersByOwner.get(ownerName);
     }
@@ -210,6 +227,10 @@ class ClassFileImportRecord {
 
     Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
         return annotationsByOwner.get(getMemberKey(owner));
+    }
+
+    Set<JavaAnnotationBuilder> getRecordComponentAnnotationsFor(JavaRecordComponent owner) {
+        return recordComponentAnnotationsByOwner.get(getMemberKey(owner));
     }
 
     Optional<JavaAnnotationBuilder.ValueBuilder> getAnnotationDefaultValueBuilderFor(JavaMethod method) {
@@ -372,7 +393,7 @@ class ClassFileImportRecord {
         return getMemberKey(member.getDeclaringClassName(), member.getName(), member.getDescriptor());
     }
 
-    private static String getMemberKey(JavaMember member) {
+    private static String getMemberKey(JavaBaseMember member) {
         return getMemberKey(member.getOwner().getName(), member.getName(), member.getDescriptor());
     }
 

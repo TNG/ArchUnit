@@ -32,6 +32,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaRecordComponent;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -372,6 +373,9 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Set<JavaRecordComponent> createRecordComponents(JavaClass owner) { return Collections.emptySet(); }
+
+        @Override
         public Set<JavaMethod> createMethods(JavaClass owner) {
             return Collections.emptySet();
         }
@@ -393,6 +397,11 @@ public class ImportTestUtils {
 
         @Override
         public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+            return emptyMap();
+        }
+
+        @Override
+        public Map<String, JavaAnnotation<JavaRecordComponent>> createAnnotations(JavaRecordComponent owner) {
             return emptyMap();
         }
 
