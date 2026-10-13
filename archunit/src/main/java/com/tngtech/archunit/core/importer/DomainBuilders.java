@@ -285,6 +285,10 @@ public final class DomainBuilders {
             return rawParameterTypes.isEmpty();
         }
 
+        int getNumberOfParameters() {
+            return genericParameterTypes.isEmpty() ? rawParameterTypes.size() : genericParameterTypes.size();
+        }
+
         public JavaClass getRawReturnType() {
             return get(rawReturnType.getFullyQualifiedClassName());
         }
