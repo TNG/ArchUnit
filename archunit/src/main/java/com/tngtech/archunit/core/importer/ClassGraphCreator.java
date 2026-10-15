@@ -53,6 +53,7 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
+import com.tngtech.archunit.core.domain.TypeSwitchCheck;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
@@ -77,6 +78,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.compl
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeSwitchCheck;
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.importer.DomainBuilders.buildAnnotations;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
@@ -95,6 +97,7 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, ReferencedClassObject> processedReferencedClassObjects = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, InstanceofCheck> processedInstanceofChecks = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, TypeSwitchCheck> processedTypeSwitchChecks = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, TryCatchBlockBuilder> processedTryCatchBlocks = HashMultimap.create();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
@@ -135,6 +138,7 @@ class ClassGraphCreator implements ImportContext {
                 tryProcess(record, AccessRecord.Factory.forConstructorReferenceRecord(), processedConstructorReferenceRecords));
         importRecord.forEachRawReferencedClassObject(this::processReferencedClassObject);
         importRecord.forEachRawInstanceofCheck(this::processInstanceofCheck);
+        importRecord.forEachRawTypeSwitchCheck(this::processTypeSwitchCheck);
         importRecord.forEachRawTryCatchBlock(this::processTryCatchBlock);
     }
 
@@ -167,6 +171,17 @@ class ClassGraphCreator implements ImportContext {
                 rawInstanceofCheck.isDeclaredInLambda()
         );
         processedInstanceofChecks.put(origin, instanceofCheck);
+    }
+
+    private void processTypeSwitchCheck(RawTypeSwitchCheck rawTypeSwitchCheck) {
+        JavaCodeUnit origin = rawTypeSwitchCheck.getOrigin().resolveFrom(classes);
+        TypeSwitchCheck typeSwitchCheck = createTypeSwitchCheck(
+                origin,
+                classes.getOrResolve(rawTypeSwitchCheck.getTarget().getFullyQualifiedClassName()),
+                rawTypeSwitchCheck.getLineNumber(),
+                rawTypeSwitchCheck.isDeclaredInLambda()
+        );
+        processedTypeSwitchChecks.put(origin, typeSwitchCheck);
     }
 
     private void processTryCatchBlock(RawTryCatchBlock rawTryCatchBlock) {
@@ -404,6 +419,11 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit) {
         return ImmutableSet.copyOf(processedInstanceofChecks.get(codeUnit));
+    }
+
+    @Override
+    public Set<TypeSwitchCheck> createTypeSwitchChecksFor(JavaCodeUnit codeUnit) {
+        return ImmutableSet.copyOf(processedTypeSwitchChecks.get(codeUnit));
     }
 
     @Override

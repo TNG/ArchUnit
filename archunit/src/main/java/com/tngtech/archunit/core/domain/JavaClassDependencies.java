@@ -50,6 +50,7 @@ class JavaClassDependencies {
                         tryCatchBlockDependenciesFromSelf(),
                         annotationDependenciesFromSelf(),
                         instanceofCheckDependenciesFromSelf(),
+                        typeSwitchCheckDependenciesFromSelf(),
                         referencedClassObjectDependenciesFromSelf(),
                         typeParameterDependenciesFromSelf()
                 ).collect(toImmutableSet())
@@ -186,6 +187,11 @@ class JavaClassDependencies {
     private Stream<Dependency> instanceofCheckDependenciesFromSelf() {
         return javaClass.getInstanceofChecks().stream()
                 .flatMap(instanceofCheck -> Dependency.tryCreateFromInstanceofCheck(instanceofCheck).stream());
+    }
+
+    private Stream<Dependency> typeSwitchCheckDependenciesFromSelf() {
+        return javaClass.getTypeSwitchChecks().stream()
+                .flatMap(typeSwitchCheck -> Dependency.tryCreateFromTypeSwitchCheck(typeSwitchCheck).stream());
     }
 
     private Stream<Dependency> referencedClassObjectDependenciesFromSelf() {
