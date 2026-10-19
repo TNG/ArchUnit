@@ -210,6 +210,11 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction haveOnlyFinalNonSyntheticFields() {
+        return addCondition(ArchConditions.haveOnlyFinalNonSyntheticFields());
+    }
+
+    @Override
     public ClassesShouldConjunction haveOnlyPrivateConstructors() {
         return addCondition(ArchConditions.haveOnlyPrivateConstructors());
     }

@@ -1,5 +1,9 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,6 +13,7 @@ import java.util.stream.Stream;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
@@ -17,6 +22,8 @@ import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
@@ -33,8 +40,14 @@ import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locati
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.V1_8;
 
 public class GivenClassShouldTest {
 
@@ -709,6 +722,47 @@ public class GivenClassShouldTest {
                         quote(ClassWithFinalFields.class.getName()),
                         locationPattern(getClass())))
                 .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
+    }
+
+    static Stream<ArchRule> classes_should_haveOnlyFinalFields_rules() {
+        return Stream.of(
+                classes().should().haveOnlyFinalFields(),
+                classes().should(ArchConditions.haveOnlyFinalFields()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("classes_should_haveOnlyFinalFields_rules")
+    void classes_should_haveOnlyFinalFields_reports_synthetic_fields(ArchRule rule) {
+        JavaClasses classes = GeneratedClassWithNonFinalSyntheticField.importIntoArchUnit();
+
+        assertThatRule(rule).checking(classes)
+                .hasOnlyViolations(
+                        String.format("Field <%s.%s> is not final in (%s.java:0)",
+                                GeneratedClassWithNonFinalSyntheticField.NAME,
+                                GeneratedClassWithNonFinalSyntheticField.NON_FINAL_SYNTHETIC_FIELD_NAME,
+                                GeneratedClassWithNonFinalSyntheticField.SIMPLE_NAME),
+                        String.format("Field <%s.%s> is not final in (%s.java:0)",
+                                GeneratedClassWithNonFinalSyntheticField.NAME,
+                                GeneratedClassWithNonFinalSyntheticField.NON_FINAL_FIELD_NAME,
+                                GeneratedClassWithNonFinalSyntheticField.SIMPLE_NAME));
+    }
+
+    static Stream<ArchRule> classes_should_haveOnlyFinalNonSyntheticFields_rules() {
+        return Stream.of(
+                classes().should().haveOnlyFinalNonSyntheticFields(),
+                classes().should(ArchConditions.haveOnlyFinalNonSyntheticFields()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("classes_should_haveOnlyFinalNonSyntheticFields_rules")
+    void classes_should_haveOnlyFinalNonSyntheticFields_ignores_synthetic_fields(ArchRule rule) {
+        assertThatRule(rule)
+                .hasDescriptionContaining("classes should have only final non synthetic fields")
+                .checking(GeneratedClassWithNonFinalSyntheticField.importIntoArchUnit())
+                .hasOnlyViolations(String.format("Field <%s.%s> is not final in (%s.java:0)",
+                        GeneratedClassWithNonFinalSyntheticField.NAME,
+                        GeneratedClassWithNonFinalSyntheticField.NON_FINAL_FIELD_NAME,
+                        GeneratedClassWithNonFinalSyntheticField.SIMPLE_NAME));
     }
 
     static Stream<ArchRule> classes_should_have_only_private_constructor_rules() {
@@ -1467,6 +1521,50 @@ public class GivenClassShouldTest {
         }
 
         private ClassWithPrivateConstructors(String foo) {
+        }
+    }
+
+    /**
+     * Compilers may generate non-final synthetic fields, e.g. the Eclipse compiler creates a {@code $SWITCH_TABLE$...} field
+     * for every switch over an enum. Since javac never emits such a field, we generate the class file for this case directly.
+     */
+    private static class GeneratedClassWithNonFinalSyntheticField {
+        static final String SIMPLE_NAME = "ClassWithNonFinalSyntheticField";
+        static final String NAME = GivenClassShouldTest.class.getPackage().getName() + "." + SIMPLE_NAME;
+        static final String NON_FINAL_SYNTHETIC_FIELD_NAME = "$SWITCH_TABLE$SomeEnum";
+        static final String NON_FINAL_FIELD_NAME = "nonFinalField";
+
+        static JavaClasses importIntoArchUnit() {
+            Path classpathRoot = newTemporaryFolder().toPath();
+            writeClassFile(classpathRoot.resolve(internalName() + ".class"));
+            return new ClassFileImporter().importPath(classpathRoot);
+        }
+
+        private static void writeClassFile(Path classFile) {
+            try {
+                Files.createDirectories(classFile.getParent());
+                Files.write(classFile, bytecode());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        private static byte[] bytecode() {
+            ClassWriter classWriter = new ClassWriter(0);
+            classWriter.visit(V1_8, ACC_PUBLIC, internalName(), null, Type.getInternalName(Object.class), null);
+            classWriter.visitSource(SIMPLE_NAME + ".java", null);
+            addField(classWriter, ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, NON_FINAL_SYNTHETIC_FIELD_NAME, int[].class);
+            addField(classWriter, ACC_PRIVATE, NON_FINAL_FIELD_NAME, int.class);
+            classWriter.visitEnd();
+            return classWriter.toByteArray();
+        }
+
+        private static void addField(ClassWriter classWriter, int accessFlags, String name, Class<?> type) {
+            classWriter.visitField(accessFlags, name, Type.getDescriptor(type), null, null).visitEnd();
+        }
+
+        private static String internalName() {
+            return NAME.replace('.', '/');
         }
     }
 }
