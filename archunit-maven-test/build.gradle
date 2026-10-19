@@ -206,7 +206,6 @@ def addMavenTest = { IntegrationTestConfig config ->
             }
         }
 
-        // Run cleanUp even if task fails
         [prepareMavenTest, verifyRules, executeRules].each { taskProvider ->
             taskProvider.configure { finalizedBy cleanUpMavenTest }
         }
