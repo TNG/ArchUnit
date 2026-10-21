@@ -544,12 +544,14 @@ public class ClassFileImporterAnnotationsTest {
             assertThat(parameterAnnotations).as("parameter annotations").hasSize(3);
             assertThatAnnotations(parameterAnnotations.get(0)).isEmpty();
             assertThatAnnotations(parameterAnnotations.get(1)).isEmpty();
-            assertThatAnnotations(parameterAnnotations.get(2)).isNotEmpty();
+            // we can't compare to Reflection here, because on JDK 8 Constructor.getParameterAnnotations() suffers from the same bug (JDK-8074977)
+            JavaAnnotation<JavaParameter> annotation = getOnlyElement(parameterAnnotations.get(2));
+            assertThatType(annotation.getRawType()).matches(ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation.class);
+            assertThat(annotation.get("value")).contains("test");
 
             List<JavaParameter> parameters = constructor.getParameters();
             for (int i = 0; i < parameterAnnotations.size(); i++) {
                 assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
-                assertThatAnnotations(parameterAnnotations.get(i)).match(constructor.reflect().getParameterAnnotations()[i]);
             }
         }
 
