@@ -1317,7 +1317,7 @@ public final class ArchConditions {
                         .filter(access -> access.getOrigin() instanceof JavaMethod)
                         .forEach(access -> {
                             boolean satisfied = predicate.test((JavaMethod) access.getOrigin());
-                            events.add(new SimpleConditionEvent(field, satisfied, access.getDescription()));
+                            events.add(new LazyMessageConditionEvent(field, satisfied, access::getDescription));
                         });
             }
         };
