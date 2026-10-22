@@ -143,8 +143,16 @@ public final class FreezingArchRule implements ArchRule {
         log.trace("Found frozen result for rule '{}'", delegate.getDescription());
         List<String> knownViolations = store.getViolations(delegate);
         CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
-        removeObsoleteViolationsFromStore(categorizedViolations);
-        return filterOutKnownViolations(result, categorizedViolations.getKnownActualViolations());
+        EvaluationResult filteredResult = filterOutKnownViolations(result, categorizedViolations.getKnownActualViolations());
+        try {
+            removeObsoleteViolationsFromStore(categorizedViolations);
+        } catch (StoreUpdateFailedException e) {
+            if (!filteredResult.hasViolation()) {
+                throw e;
+            }
+            log.warn("Failed to remove obsolete violations of rule '{}' from the store", delegate.getDescription(), e);
+        }
+        return filteredResult;
     }
 
     private void removeObsoleteViolationsFromStore(CategorizedViolations categorizedViolations) {
