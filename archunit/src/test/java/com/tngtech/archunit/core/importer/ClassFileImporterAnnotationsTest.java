@@ -26,6 +26,9 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.Clas
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.SimpleAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
+import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters.ClassRetentionParameterAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.EnumWithAnnotatedConstructorParameter;
+import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.EnumWithAnnotatedGenericConstructorParameter;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.FieldAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
@@ -524,6 +527,94 @@ public class ClassFileImporterAnnotationsTest {
                 assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
                 assertThatAnnotations(parameterAnnotations.get(i)).match(constructor.reflect().getParameterAnnotations()[i]);
             }
+        }
+
+        @SuppressWarnings("unused")
+        class InnerClassThusSyntheticFirstConstructorParameter {
+            InnerClassThusSyntheticFirstConstructorParameter(Object notAnnotated, @ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation("test") String annotated) {
+            }
+        }
+
+        @Test
+        void imports_parameter_annotations_correctly_for_synthetic_constructor_parameter_without_generic_signature() {
+            JavaConstructor constructor = importOnlyConstructor(InnerClassThusSyntheticFirstConstructorParameter.class);
+
+            List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = constructor.getParameterAnnotations();
+
+            assertThat(parameterAnnotations).as("parameter annotations").hasSize(3);
+            assertThatAnnotations(parameterAnnotations.get(0)).isEmpty();
+            assertThatAnnotations(parameterAnnotations.get(1)).isEmpty();
+            assertThatAnnotations(parameterAnnotations.get(2)).isNotEmpty();
+            assertThat(constructor.getParameters()).extracting(JavaParameter::getAnnotations)
+                    .containsExactlyElementsOf(parameterAnnotations);
+
+            // on JDK 8 Constructor.getParameterAnnotations() suffers from the same bug (JDK-8074977), so we can't compare to Reflection there
+            if (!System.getProperty("java.specification.version").equals("1.8")) {
+                for (int i = 0; i < parameterAnnotations.size(); i++) {
+                    assertThatAnnotations(parameterAnnotations.get(i)).match(constructor.reflect().getParameterAnnotations()[i]);
+                }
+            }
+        }
+
+        @SuppressWarnings("unused")
+        class InnerClassThusSyntheticFirstConstructorParameterWithClassRetentionAnnotation {
+            InnerClassThusSyntheticFirstConstructorParameterWithClassRetentionAnnotation(Object notAnnotated, @ClassRetentionParameterAnnotation String annotated) {
+            }
+        }
+
+        @Test
+        void imports_class_retention_parameter_annotations_correctly_for_synthetic_constructor_parameter_without_generic_signature() {
+            JavaConstructor constructor = importOnlyConstructor(InnerClassThusSyntheticFirstConstructorParameterWithClassRetentionAnnotation.class);
+
+            assertOnlyParameterAnnotatedWith(constructor, 3, 2, ClassRetentionParameterAnnotation.class);
+        }
+
+        @SuppressWarnings("unused")
+        class InnerClassThusSyntheticFirstConstructorParameterWithGenericSignature {
+            InnerClassThusSyntheticFirstConstructorParameterWithGenericSignature(Object notAnnotated, @ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation("test") List<String> annotated) {
+            }
+        }
+
+        @Test
+        void imports_parameter_annotations_correctly_for_synthetic_constructor_parameter_with_generic_signature() {
+            JavaConstructor constructor = importOnlyConstructor(InnerClassThusSyntheticFirstConstructorParameterWithGenericSignature.class);
+
+            // the generic signature does not contain the synthetic parameter
+            assertOnlyParameterAnnotatedWith(constructor, 2, 1, ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation.class);
+        }
+
+        @Test
+        void imports_parameter_annotations_correctly_for_enum_constructor_without_generic_parameter() {
+            JavaConstructor constructor = importOnlyConstructor(EnumWithAnnotatedConstructorParameter.class);
+
+            // javac emits a generic signature for enum constructors, which does not contain the synthetic parameters (name and ordinal)
+            assertOnlyParameterAnnotatedWith(constructor, 2, 1, ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation.class);
+        }
+
+        @Test
+        void imports_parameter_annotations_correctly_for_enum_constructor_with_generic_parameter() {
+            JavaConstructor constructor = importOnlyConstructor(EnumWithAnnotatedGenericConstructorParameter.class);
+
+            assertOnlyParameterAnnotatedWith(constructor, 2, 1, ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation.class);
+        }
+
+        private JavaConstructor importOnlyConstructor(Class<?> owner) {
+            return getOnlyElement(new ClassFileImporter().importClasses(owner).get(owner).getConstructors());
+        }
+
+        private void assertOnlyParameterAnnotatedWith(JavaConstructor constructor, int expectedNumberOfParameters, int expectedAnnotatedParameterIndex, Class<? extends Annotation> annotationType) {
+            List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = constructor.getParameterAnnotations();
+
+            assertThat(parameterAnnotations).as("parameter annotations").hasSize(expectedNumberOfParameters);
+            for (int i = 0; i < expectedNumberOfParameters; i++) {
+                if (i == expectedAnnotatedParameterIndex) {
+                    assertThatType(getOnlyElement(parameterAnnotations.get(i)).getRawType()).as("annotation of parameter %d", i).matches(annotationType);
+                } else {
+                    assertThatAnnotations(parameterAnnotations.get(i)).as("annotations of parameter %d", i).isEmpty();
+                }
+            }
+            assertThat(constructor.getParameters()).extracting(JavaParameter::getAnnotations)
+                    .containsExactlyElementsOf(parameterAnnotations);
         }
     }
 

@@ -328,6 +328,8 @@ class JavaClassProcessor extends ClassVisitor {
         private final DeclarationHandler declarationHandler;
         private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
         private final SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
+        private int visibleParameterAnnotationsIndexOffset;
+        private int invisibleParameterAnnotationsIndexOffset;
         private int actualLineNumber;
 
         MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
@@ -344,9 +346,25 @@ class JavaClassProcessor extends ClassVisitor {
             actualLineNumber = 0;
         }
 
+        // The number of annotable parameters might differ from the number of parameters we derive, because the latter
+        // might contain leading synthetic parameters (e.g. the reference to the outer class of an inner class)
+        // if there is no generic signature, while the compiler might only count the formal parameters as annotable
+        // (and vice versa). We thus align the parameter annotations to the last parameters. Annotations of leading
+        // parameters we don't derive (i.e. with a negative index) are dropped.
+        @Override
+        public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
+            int indexOffset = codeUnitBuilder.getNumberOfParameters() - parameterCount;
+            if (visible) {
+                visibleParameterAnnotationsIndexOffset = indexOffset;
+            } else {
+                invisibleParameterAnnotationsIndexOffset = indexOffset;
+            }
+        }
+
         @Override
         public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, parameter), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            int index = parameter + (visible ? visibleParameterAnnotationsIndexOffset : invisibleParameterAnnotationsIndexOffset);
+            return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, index), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
