@@ -118,4 +118,9 @@ public class ClassWithMethodWithAnnotatedParameters {
     public @interface OtherParameterAnnotation {
         Class<?> value();
     }
+
+    // implicitly has retention CLASS, i.e. the annotation is not visible at runtime
+    @Target(ElementType.PARAMETER)
+    public @interface ClassRetentionParameterAnnotation {
+    }
 }

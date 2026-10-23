@@ -346,12 +346,14 @@ class JavaClassProcessor extends ClassVisitor {
             actualLineNumber = 0;
         }
 
-        // The compiler might only count the formal parameters as annotable (e.g. for the constructor of an inner class).
-        // If there is no generic signature, our parameters are derived from the descriptor, which also contains leading
-        // synthetic parameters (e.g. the reference to the outer class), so we have to shift the parameter annotations accordingly.
+        // The number of annotable parameters might differ from the number of parameters we derive, because the latter
+        // might contain leading synthetic parameters (e.g. the reference to the outer class of an inner class)
+        // if there is no generic signature, while the compiler might only count the formal parameters as annotable
+        // (and vice versa). We thus align the parameter annotations to the last parameters. Annotations of leading
+        // parameters we don't derive (i.e. with a negative index) are dropped.
         @Override
         public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
-            int indexOffset = Math.max(codeUnitBuilder.getNumberOfParameters() - parameterCount, 0);
+            int indexOffset = codeUnitBuilder.getNumberOfParameters() - parameterCount;
             if (visible) {
                 visibleParameterAnnotationsIndexOffset = indexOffset;
             } else {
