@@ -584,6 +584,25 @@ public class ClassFileImporterAnnotationsTest {
         }
 
         @Test
+        void imports_parameter_annotations_correctly_for_trailing_synthetic_constructor_parameter_of_captured_variable() {
+            int capturedVariable = 42;
+            @SuppressWarnings("unused")
+            class LocalClassThusSyntheticTrailingConstructorParameter {
+                LocalClassThusSyntheticTrailingConstructorParameter(Object notAnnotated, @ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation("test") String annotated) {
+                }
+
+                int captureVariable() {
+                    return capturedVariable;
+                }
+            }
+
+            JavaConstructor constructor = importOnlyConstructor(LocalClassThusSyntheticTrailingConstructorParameter.class);
+
+            // javac emits a generic signature for this constructor, which contains neither the leading nor the trailing synthetic parameter
+            assertOnlyParameterAnnotatedWith(constructor, 2, 1, ClassWithMethodWithAnnotatedParameters.SimpleParameterAnnotation.class);
+        }
+
+        @Test
         void imports_parameter_annotations_correctly_for_enum_constructor_without_generic_parameter() {
             JavaConstructor constructor = importOnlyConstructor(EnumWithAnnotatedConstructorParameter.class);
 

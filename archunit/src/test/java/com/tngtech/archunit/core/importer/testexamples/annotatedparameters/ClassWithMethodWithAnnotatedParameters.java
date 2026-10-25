@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @SuppressWarnings("unused")
@@ -119,8 +120,8 @@ public class ClassWithMethodWithAnnotatedParameters {
         Class<?> value();
     }
 
-    // implicitly has retention CLASS, i.e. the annotation is not visible at runtime
     @Target(ElementType.PARAMETER)
+    @Retention(CLASS)
     public @interface ClassRetentionParameterAnnotation {
     }
 }
