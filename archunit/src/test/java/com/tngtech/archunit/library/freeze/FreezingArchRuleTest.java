@@ -491,9 +491,13 @@ public class FreezingArchRuleTest {
         ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
         FreezingArchRule frozenRule = freeze(someRule.withViolations("remaining", "new violation").create());
 
-        assertThatRule(frozenRule)
-                .checking(importClasses(getClass()))
-                .hasOnlyViolations("new violation");
+        assertThatThrownBy(() -> frozenRule.check(importClasses(getClass())))
+                .isInstanceOf(StoreUpdateFailedException.class)
+                .hasMessageContaining("Updating frozen violations is disabled (enable by configuration " + ALLOW_STORE_UPDATE_PROPERTY_NAME + "=true)")
+                .hasMessageContaining("Furthermore, new violations were reported:")
+                .hasMessageContaining("Rule 'some description' was violated (1 times):")
+                .hasMessageContaining("new violation")
+                .hasCauseInstanceOf(StoreUpdateFailedException.class);
     }
 
     @Test

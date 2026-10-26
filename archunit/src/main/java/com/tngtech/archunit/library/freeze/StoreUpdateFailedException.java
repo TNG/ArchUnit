@@ -15,12 +15,27 @@
  */
 package com.tngtech.archunit.library.freeze;
 
-class StoreUpdateFailedException extends RuntimeException {
-    StoreUpdateFailedException(String message) {
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.lang.ArchRule;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+/**
+ * Signals that a {@link ViolationStore} could not be updated, i.e. that storing the current state of
+ * violations of an {@link ArchRule} failed, for example because the store is configured to be read-only
+ * or because of an I/O error.
+ */
+@PublicAPI(usage = ACCESS)
+public class StoreUpdateFailedException extends RuntimeException {
+    public StoreUpdateFailedException(String message) {
         super(message);
     }
 
-    StoreUpdateFailedException(Throwable cause) {
+    public StoreUpdateFailedException(Throwable cause) {
         super(cause);
+    }
+
+    public StoreUpdateFailedException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
