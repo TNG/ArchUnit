@@ -27,14 +27,17 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 @PublicAPI(usage = ACCESS)
 public final class StoreUpdateFailedException extends RuntimeException {
+    @PublicAPI(usage = ACCESS)
     public StoreUpdateFailedException(String message) {
         super(message);
     }
 
+    @PublicAPI(usage = ACCESS)
     public StoreUpdateFailedException(Throwable cause) {
         super(cause);
     }
 
+    @PublicAPI(usage = ACCESS)
     public StoreUpdateFailedException(String message, Throwable cause) {
         super(message, cause);
     }
