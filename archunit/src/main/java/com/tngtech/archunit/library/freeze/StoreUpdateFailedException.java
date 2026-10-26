@@ -26,7 +26,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * or because of an I/O error.
  */
 @PublicAPI(usage = ACCESS)
-public class StoreUpdateFailedException extends RuntimeException {
+public final class StoreUpdateFailedException extends RuntimeException {
     public StoreUpdateFailedException(String message) {
         super(message);
     }
