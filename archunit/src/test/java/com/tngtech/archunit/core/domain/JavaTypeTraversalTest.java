@@ -102,6 +102,7 @@ public class JavaTypeTraversalTest {
 
         assertThat(traversedTypes).containsOnly(parameterizedType);
     }
+    //TODO also travers parameterized owner
 
     @Test
     public void traverses_wildcard_type() {
