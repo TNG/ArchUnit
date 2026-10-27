@@ -56,6 +56,7 @@ import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.library.modules.ArchModule.Identifier.ignore;
 import static java.util.Collections.singleton;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 
@@ -102,11 +103,21 @@ public final class ArchModules<DESCRIPTOR extends ArchModule.Descriptor> extends
                 .collect(toCollection(TreeSet::new));
 
         if (!duplicateKeys.isEmpty()) {
-            throw new IllegalArgumentException(String.format("Found multiple modules with the same %s: %s", keyName, duplicateKeys));
+            String duplicates = duplicateKeys.stream()
+                    .map(key -> String.format("'%s' (modules with identifiers %s)", key, joinSortedIdentifiers(modulesByKey.get(key))))
+                    .collect(joining(", "));
+            throw new IllegalArgumentException(String.format("Found multiple modules with the same %s: %s", keyName, duplicates));
         }
 
         return modulesByKey.entrySet().stream()
                 .collect(toMap(Map.Entry::getKey, entry -> getOnlyElement(entry.getValue())));
+    }
+
+    private static String joinSortedIdentifiers(Collection<? extends ArchModule<?>> modules) {
+        return modules.stream()
+                .map(module -> module.getIdentifier().toString())
+                .sorted()
+                .collect(joining(", "));
     }
 
     private ImmutableSet<ModuleDependency<DESCRIPTOR>> createModuleDependencies(ArchModule<DESCRIPTOR> origin, Set<ArchModule<DESCRIPTOR>> modules) {
