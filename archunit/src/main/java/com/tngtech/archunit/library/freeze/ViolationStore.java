@@ -64,6 +64,8 @@ public interface ViolationStore {
      *
      * @param rule An {@link ArchRule} to store violations for
      * @param violations A list of lines of violations of an {@link ArchRule}
+     * @throws StoreUpdateFailedException If storing the passed violations fails, e.g. because the store
+     * is configured to be read-only or because of an I/O error
      */
     void save(ArchRule rule, List<String> violations);
 

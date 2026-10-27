@@ -481,6 +481,26 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void reports_new_violations_when_obsolete_violations_cannot_be_removed_from_the_store() throws IOException {
+        useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+
+        RuleCreator someRule = rule("some description");
+        freeze(someRule.withViolations("remaining", "will be solved").create()).check(importClasses(getClass()));
+
+        ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
+        FreezingArchRule frozenRule = freeze(someRule.withViolations("remaining", "new violation").create());
+
+        assertThatThrownBy(() -> frozenRule.check(importClasses(getClass())))
+                .isInstanceOf(StoreUpdateFailedException.class)
+                .hasMessageContaining("Updating frozen violations is disabled (enable by configuration " + ALLOW_STORE_UPDATE_PROPERTY_NAME + "=true)")
+                .hasMessageContaining("Furthermore, new violations were reported:")
+                .hasMessageContaining("Rule 'some description' was violated (1 times):")
+                .hasMessageContaining("new violation")
+                .hasCauseInstanceOf(StoreUpdateFailedException.class);
+    }
+
+    @Test
     public void allows_to_adjust_default_store_file_names_via_delegation() throws IOException {
         // GIVEN
         File storeFolder = useTemporaryDefaultStorePath();
