@@ -311,13 +311,22 @@ public final class Architectures {
         }
 
         private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
-            ArchCondition<JavaClass> satisfyLayerDependenciesCondition = specification.constraint == LayerDependencyConstraint.ORIGIN
-                    ? onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers))
-                    : onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers));
             return classes().that(layerDefinitions.containsPredicateFor(specification.layerName))
-                    .should(satisfyLayerDependenciesCondition)
+                    .should(satisfyLayerDependenciesCondition(specification))
                     .allowEmptyShould(true)
                     .evaluate(classes);
+        }
+
+        private ArchCondition<JavaClass> satisfyLayerDependenciesCondition(LayerDependencySpecification specification) {
+            if (!specification.forbiddenLayers.isEmpty()) {
+                DescribedPredicate<JavaClass> inForbiddenLayers = layerDefinitions.containsPredicateFor(specification.forbiddenLayers);
+                return specification.constraint == LayerDependencyConstraint.ORIGIN
+                        ? onlyHaveDependentsWhere(ifDependencyIsRelevant(not(dependencyOrigin(inForbiddenLayers))))
+                        : onlyHaveDependenciesWhere(ifDependencyIsRelevant(not(dependencyTarget(inForbiddenLayers))));
+            }
+            return specification.constraint == LayerDependencyConstraint.ORIGIN
+                    ? onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers))
+                    : onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers));
         }
 
         private DescribedPredicate<Dependency> originMatchesIfDependencyIsRelevant(String ownLayer, Set<String> allowedAccessors) {
@@ -587,6 +596,7 @@ public final class Architectures {
         public final class LayerDependencySpecification {
             private final String layerName;
             private final Set<String> allowedLayers = new LinkedHashSet<>();
+            private final Set<String> forbiddenLayers = new LinkedHashSet<>();
             private LayerDependencyConstraint constraint;
             private String descriptionSuffix;
 
@@ -614,6 +624,21 @@ public final class Architectures {
             }
 
             /**
+             * Forbids {@link Dependency dependencies} from the specified layers to this layer.
+             * Accesses from all other layers, as well as from classes outside of any layer, stay allowed.
+             * <br><br>
+             * Note that it is usually safer to define which layers may access this layer
+             * via {@link #mayOnlyBeAccessedByLayers(String...)}, since this method will not detect
+             * any indirect access through classes of other layers or outside of any layer.
+             * @param layerNames the names of other layers (as specified by {@link #layer(String)}) that may not access this layer
+             * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture mayNotBeAccessedByLayers(String... layerNames) {
+                return forbidLayers(LayerDependencyConstraint.ORIGIN, layerNames, "may not be accessed by layers [%s]");
+            }
+
+            /**
              * Forbids any {@link Dependency dependency} from this layer to any other layer.
              * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
              */
@@ -632,8 +657,24 @@ public final class Architectures {
                 return restrictLayers(LayerDependencyConstraint.TARGET, layerNames, "may only access layers [%s]");
             }
 
+            /**
+             * Forbids {@link Dependency dependencies} from this layer to the specified layers.
+             * Dependencies to all other layers, as well as to classes outside of any layer, stay allowed.
+             * <br><br>
+             * Note that it is usually safer to define which layers this layer may access
+             * via {@link #mayOnlyAccessLayers(String...)}, since this method will not detect
+             * any indirect access through classes of other layers or outside of any layer.
+             * @param layerNames the names of other layers (as specified by {@link #layer(String)}) that this layer may not access
+             * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture mayNotAccessLayers(String... layerNames) {
+                return forbidLayers(LayerDependencyConstraint.TARGET, layerNames, "may not access layers [%s]");
+            }
+
             private LayeredArchitecture denyLayerAccess(LayerDependencyConstraint constraint, String description) {
                 allowedLayers.clear();
+                forbiddenLayers.clear();
                 this.constraint = constraint;
                 descriptionSuffix = description;
                 return LayeredArchitecture.this.addDependencySpecification(this);
@@ -643,6 +684,16 @@ public final class Architectures {
                 checkArgument(layerNames.length > 0, "At least 1 layer name must be provided.");
                 checkLayerNamesExist(layerNames);
                 allowedLayers.addAll(asList(layerNames));
+                this.constraint = constraint;
+                descriptionSuffix = String.format(descriptionTemplate, joinSingleQuoted(layerNames));
+                return LayeredArchitecture.this.addDependencySpecification(this);
+            }
+
+            private LayeredArchitecture forbidLayers(LayerDependencyConstraint constraint, String[] layerNames, String descriptionTemplate) {
+                checkArgument(layerNames.length > 0, "At least 1 layer name must be provided.");
+                checkLayerNamesExist(layerNames);
+                checkArgument(!asList(layerNames).contains(layerName), "Layer '%s' cannot forbid accesses to or from itself.", layerName);
+                forbiddenLayers.addAll(asList(layerNames));
                 this.constraint = constraint;
                 descriptionSuffix = String.format(descriptionTemplate, joinSingleQuoted(layerNames));
                 return LayeredArchitecture.this.addDependencySpecification(this);
