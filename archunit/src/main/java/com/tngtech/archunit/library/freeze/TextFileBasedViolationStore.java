@@ -73,6 +73,10 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     private static final String ALLOW_STORE_CREATION_DEFAULT = "false";
     private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "default.allowStoreUpdate";
     private static final String ALLOW_STORE_UPDATE_DEFAULT = "true";
+    private static final String DELETE_EMPTY_RULE_VIOLATION_PROPERTY_NAME = "default.deleteEmptyRuleViolation";
+    private static final String DELETE_EMPTY_RULE_VIOLATION_DEFAULT = "false";
+    private static final String WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME = "default.warnEmptyRuleViolation";
+    private static final String WARN_EMPTY_RULE_VIOLATION_DEFAULT = "false";
 
     private static final ConcurrentHashMap<String, FileSyncedProperties> STORED_RULES_BY_PATH = new ConcurrentHashMap<>();
 
@@ -80,6 +84,8 @@ public final class TextFileBasedViolationStore implements ViolationStore {
 
     private boolean storeCreationAllowed;
     private boolean storeUpdateAllowed;
+    private boolean deleteEmptyRule;
+    private boolean warnEmptyRuleViolation;
     private File storeFolder;
     private FileSyncedProperties storedRules;
 
@@ -105,6 +111,8 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     public void initialize(Properties properties) {
         storeCreationAllowed = Boolean.parseBoolean(properties.getProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, ALLOW_STORE_CREATION_DEFAULT));
         storeUpdateAllowed = Boolean.parseBoolean(properties.getProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, ALLOW_STORE_UPDATE_DEFAULT));
+        deleteEmptyRule = Boolean.parseBoolean(properties.getProperty(DELETE_EMPTY_RULE_VIOLATION_PROPERTY_NAME, DELETE_EMPTY_RULE_VIOLATION_DEFAULT));
+        warnEmptyRuleViolation = Boolean.parseBoolean(properties.getProperty(WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME, WARN_EMPTY_RULE_VIOLATION_DEFAULT));
         String path = properties.getProperty(STORE_PATH_PROPERTY_NAME, STORE_PATH_DEFAULT);
         storeFolder = new File(path);
         File storedRulesFile = getStoredRulesFile();
@@ -145,13 +153,36 @@ public final class TextFileBasedViolationStore implements ViolationStore {
     @Override
     public void save(ArchRule rule, List<String> violations) {
         log.trace("Storing evaluated rule '{}' with {} violations: {}", rule.getDescription(), violations.size(), violations);
+        if (violations.isEmpty() && warnEmptyRuleViolation) {
+            throw new StoreEmptyException(String.format("Saving empty violations for freezing rule is disabled (enable by configuration %s.%s=true)",
+                    ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME, WARN_EMPTY_RULE_VIOLATION_PROPERTY_NAME));
+        }
+        if (violations.isEmpty() && deleteEmptyRule && !contains(rule)) {
+            // do nothing, new rule file should not be created
+            return;
+        }
         if (!storeUpdateAllowed) {
             throw new StoreUpdateFailedException(String.format(
                     "Updating frozen violations is disabled (enable by configuration %s.%s=true)",
                     ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME, ALLOW_STORE_UPDATE_PROPERTY_NAME));
         }
+        if (violations.isEmpty() && deleteEmptyRule) {
+            deleteRuleFile(rule);
+            return;
+        }
+
         String ruleFileName = ensureRuleFileName(rule);
         write(violations, new File(storeFolder, ruleFileName));
+    }
+
+    private void deleteRuleFile(ArchRule rule) {
+        try {
+            String ruleFileName = storedRules.getProperty(rule.getDescription());
+            Files.delete(storeFolder.toPath().resolve(ruleFileName));
+        } catch (IOException e) {
+            throw new StoreUpdateFailedException(e);
+        }
+        storedRules.removeProperty(rule.getDescription());
     }
 
     private void write(List<String> violations, File ruleDetails) {
@@ -271,6 +302,11 @@ public final class TextFileBasedViolationStore implements ViolationStore {
             loadedProperties.setProperty(normalizedKey, ensureUnixLineBreaks(value));
             syncFileSystem();
             return null;
+        }
+
+        void removeProperty(String propertyName) {
+            loadedProperties.remove(ensureUnixLineBreaks(propertyName));
+            syncFileSystem();
         }
 
         private void syncFileSystem() {
