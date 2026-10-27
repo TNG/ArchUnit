@@ -48,6 +48,19 @@ class JavaClassDescriptorImporter {
         return value instanceof Type;
     }
 
+    static boolean isAsmClassType(Object value) {
+        if (!(value instanceof Type)) {
+            return false;
+        }
+        int sort = ((Type) value).getSort();
+        return sort == Type.OBJECT || sort == Type.ARRAY;
+    }
+
+    static boolean isTypeSwitchBootstrapMethod(Handle bootstrapMethodHandle) {
+        return bootstrapMethodHandle.getOwner().equals("java/lang/runtime/SwitchBootstraps")
+                && bootstrapMethodHandle.getName().equals("typeSwitch");
+    }
+
     static boolean isAsmMethodHandle(Object value) {
         return value instanceof Handle && isAsmMethodHandle((Handle) value);
     }
