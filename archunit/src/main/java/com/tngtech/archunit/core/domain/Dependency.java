@@ -364,21 +364,19 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
             return super.convertTo(type);
         }
 
+        /**
+         * Equality is deliberately value-based like for any other {@link Dependency} and does not consider the wrapped {@link JavaAccess}.
+         * Compilers may duplicate byte code (e.g. of {@code finally} blocks), so a single access in the source code can result in
+         * several {@link JavaAccess accesses} with the same origin, target and line number. Those must still form a single dependency.
+         */
         @Override
-        public int hashCode() {
-            return access.hashCode();
+        public boolean equals(Object obj) {
+            return super.equals(obj);
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final FromAccess other = (FromAccess) obj;
-            return Objects.equals(this.access, other.access);
+        public int hashCode() {
+            return super.hashCode();
         }
 
         @Override
