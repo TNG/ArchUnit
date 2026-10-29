@@ -31,8 +31,9 @@ import static java.util.Collections.singletonList;
 public final class SimpleConditionEvent implements ConditionEvent {
     private final Object correspondingObject;
     private final boolean conditionSatisfied;
-    // exactly one of these is non-null
-    private final String message;
+    // the message is computed lazily, if a supplier was given. Since the supplier must be deterministic and String is immutable,
+    // it's fine (and cheaper than synchronization) if concurrent threads race to compute and cache the message.
+    private String message;
     private final Supplier<String> messageSupplier;
 
     public SimpleConditionEvent(Object correspondingObject, boolean conditionSatisfied, String message) {
@@ -45,7 +46,8 @@ public final class SimpleConditionEvent implements ConditionEvent {
      * requested (e.g. to report a violation). This avoids the cost of creating messages for events
      * that are never reported, which can be significant if a condition is evaluated against a lot of objects.
      * <br><br>
-     * The supplier may be called multiple times and must always return the same message.
+     * The supplier is called at most once per event in the absence of concurrent access (the message is cached),
+     * but may be called again for events derived by {@link #invert()} and must always return the same message.
      * In contrast to the {@code String} variant, an empty message of a violation can't be rejected
      * when the event is created. So it is rejected (by an {@link IllegalArgumentException}) as soon as the message is requested.
      *
@@ -65,12 +67,13 @@ public final class SimpleConditionEvent implements ConditionEvent {
     }
 
     private String message() {
-        if (message != null) {
-            return message;
+        String result = message;
+        if (result == null) {
+            result = messageSupplier.get();
+            checkNonEmptyIfViolation(result);
+            message = result;
         }
-        String suppliedMessage = messageSupplier.get();
-        checkNonEmptyIfViolation(suppliedMessage);
-        return suppliedMessage;
+        return result;
     }
 
     private void checkNonEmptyIfViolation(String messageToCheck) {
@@ -84,8 +87,9 @@ public final class SimpleConditionEvent implements ConditionEvent {
 
     @Override
     public ConditionEvent invert() {
-        return message != null
-                ? new SimpleConditionEvent(correspondingObject, !conditionSatisfied, message)
+        String alreadyComputed = message;
+        return alreadyComputed != null
+                ? new SimpleConditionEvent(correspondingObject, !conditionSatisfied, alreadyComputed)
                 : new SimpleConditionEvent(correspondingObject, !conditionSatisfied, messageSupplier);
     }
 

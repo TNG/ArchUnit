@@ -56,6 +56,23 @@ public class SimpleConditionEventTest {
     }
 
     @Test
+    public void supplied_message_is_computed_only_once() {
+        AtomicInteger supplied = new AtomicInteger();
+        ConditionEvent event = SimpleConditionEvent.violated("obj", () -> {
+            supplied.incrementAndGet();
+            return "message";
+        });
+
+        event.getDescriptionLines();
+        event.handleWith((objects, message) -> { });
+        String ignored = event.toString();
+        ConditionEvent inverted = event.invert();
+        inverted.getDescriptionLines();
+
+        assertThat(supplied).hasValue(1);
+    }
+
+    @Test
     public void events_with_supplied_and_with_constant_message_behave_the_same() {
         for (boolean satisfied : new boolean[]{true, false}) {
             ConditionEvent constant = new SimpleConditionEvent("obj", satisfied, "message");
