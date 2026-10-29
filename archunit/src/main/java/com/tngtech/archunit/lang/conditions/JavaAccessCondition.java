@@ -19,6 +19,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class JavaAccessCondition<T extends JavaAccess<?>> extends ArchCondition<T> {
     private final DescribedPredicate<? super T> predicate;
@@ -30,6 +31,6 @@ class JavaAccessCondition<T extends JavaAccess<?>> extends ArchCondition<T> {
 
     @Override
     public void check(T item, ConditionEvents events) {
-        events.add(new LazyMessageConditionEvent(item, predicate.test(item), item::getDescription));
+        events.add(new SimpleConditionEvent(item, predicate.test(item), item::getDescription));
     }
 }
