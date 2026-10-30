@@ -149,6 +149,26 @@ public class GraphTest {
         assertThatCycles(graph.findCycles()).isNotEmpty();
     }
 
+    // Node 0 lies on no cycle itself, but leads to the cycle 3 <-> 4.
+    // The cycle 1 <-> 2 is not reachable from node 0 and must not be skipped because of its lower nodes.
+    @Test
+    public void cycle_with_lower_nodes_is_detected_if_a_node_outside_of_any_cycle_leads_to_a_cycle_with_higher_nodes() {
+        Graph<Integer, Edge<Integer>> graph = new Graph<>();
+        graph.addNodes(ImmutableSet.of(0, 1, 2, 3, 4));
+
+        graph.addEdges(ImmutableSet.of(
+                newEdge(0, 3),
+                newEdge(1, 2),
+                newEdge(2, 1),
+                newEdge(3, 4),
+                newEdge(4, 3)
+        ));
+
+        assertThatCycles(graph.findCycles()).containsOnly(
+                createCycle(ImmutableList.of(1, 2, 1)),
+                createCycle(ImmutableList.of(3, 4, 3)));
+    }
+
     // This test covers some edge cases, e.g. if too many nodes stay blocked
     @Test
     public void finds_cycles_in_real_life_graph() {
