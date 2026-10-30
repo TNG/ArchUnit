@@ -103,7 +103,7 @@ public final class PackageMatcher {
         validate(packageIdentifier);
 
         this.packageIdentifier = packageIdentifier;
-        this.packagePattern = Pattern.compile(convertToRegex(packageIdentifier));
+        this.packagePattern = Pattern.compile(convertToRegex(packageIdentifier), Pattern.UNICODE_CHARACTER_CLASS);
     }
 
     private void validate(String packageIdentifier) {
