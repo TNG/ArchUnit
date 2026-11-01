@@ -1,7 +1,9 @@
 package com.tngtech.archunit.core.importer;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,10 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.importer.ConstructorParametersAssertion.assertThatParametersOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.TestUtils.currentJavaMajorVersion;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 
@@ -73,11 +75,13 @@ public class ClassFileImporterRecordsTest {
 
     // The following tests document the constructor parameters of records for #1772: the compiler never adds parameters
     // to the canonical constructor (records are implicitly static and cannot capture local variables), so all three views
-    // on the parameters agree with each other and with the Reflection API. Note that javac 21+ nevertheless flags the
-    // parameters of the canonical constructor as 'mandated' in the MethodParameters attribute, while listing them
-    // in the Signature attribute (compare JDK-8320575).
+    // on the parameters agree with each other and with the Reflection API. The only trace the compiler leaves is the 'mandated'
+    // flag that javac 21+ writes into the MethodParameters attribute for the parameters of a compact canonical constructor
+    // (compare JDK-8320575), which the Reflection API reports via Parameter.isImplicit(); javac 16 to 20 write no flags at all.
 
+    // the annotation is applicable to parameters, so it is propagated from the record component to the parameter of the canonical constructor
     @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.RECORD_COMPONENT, ElementType.PARAMETER})
     @interface SomeComponentAnnotation {
     }
 
@@ -93,65 +97,63 @@ public class ClassFileImporterRecordsTest {
         }
     }
 
-    @Test
-    public void imports_parameters_of_canonical_constructor_like_Reflection_API() {
-        JavaConstructor constructor = importOnlyConstructor(SimpleRecord.class);
+    record RecordWithExplicitCanonicalConstructor(String component) {
+        RecordWithExplicitCanonicalConstructor(String component) {
+            this.component = Objects.requireNonNull(component);
+        }
+    }
 
-        assertThatTypes(constructor.getRawParameterTypes()).matchExactly(String.class, int.class);
-        assertThatTypes(constructor.getParameterTypes()).matchExactly(String.class, int.class);
-        assertThat(constructor.getParameters()).hasSize(2);
-        assertThat(constructor.getParameters()).hasSize(constructor.reflect().getParameterCount());
+    @Test
+    public void imports_parameters_of_implicit_canonical_constructor_like_Reflection_API() {
+        assertThatParametersOf(SimpleRecord.class)
+                .haveRawTypes(String.class, int.class)
+                .haveTypes(concreteClass(String.class), concreteClass(int.class))
+                .haveCount(2)
+                .haveSameCountAsReflection()
+                .reflectionReportsParametersAsImplicit(false, false);
     }
 
     @Test
     public void imports_parameters_of_canonical_constructor_with_generic_signature_like_Reflection_API() {
-        JavaConstructor constructor = importOnlyConstructor(RecordWithGenericComponent.class);
-
-        assertThatTypes(constructor.getRawParameterTypes()).matchExactly(List.class);
-        assertThatTypes(constructor.getParameterTypes()).matchExactly(parameterizedType(List.class).withTypeArguments(String.class));
-        assertThat(constructor.getParameters()).hasSize(1);
-        assertThat(constructor.getParameters()).hasSize(constructor.reflect().getParameterCount());
-
-        // the annotation of the record component is propagated to the parameter of the canonical constructor
-        assertThatType(getOnlyElement(constructor.getParameters().get(0).getAnnotations()).getRawType()).matches(SomeComponentAnnotation.class);
-        assertThat(constructor.reflect().getParameterAnnotations()[0]).hasSize(1);
+        assertThatParametersOf(RecordWithGenericComponent.class)
+                .haveRawTypes(List.class)
+                .haveTypes(parameterizedType(List.class).withTypeArguments(String.class))
+                .haveCount(1)
+                .haveSameCountAsReflection()
+                .haveAnnotationOnlyOnParameter(0, SomeComponentAnnotation.class)
+                .haveAnnotationOnlyOnParameterLikeReflection(0);
     }
 
     @Test
-    public void imports_parameters_of_canonical_constructor_of_generic_record() {
-        JavaConstructor constructor = importOnlyConstructor(GenericRecord.class);
-
-        assertThatTypes(constructor.getRawParameterTypes()).matchExactly(Object.class);
-        assertThatTypes(constructor.getParameterTypes()).matchExactly(typeVariable("T"));
-        assertThat(constructor.getParameters()).hasSize(1);
-        assertThat(constructor.getParameters()).hasSize(constructor.reflect().getParameterCount());
+    public void imports_parameters_of_canonical_constructor_of_generic_record_like_Reflection_API() {
+        assertThatParametersOf(GenericRecord.class)
+                .haveRawTypes(Object.class)
+                .haveTypes(typeVariable("T"))
+                .haveCount(1)
+                .haveSameCountAsReflection();
     }
 
     @Test
     public void imports_parameters_of_compact_canonical_constructor_like_Reflection_API() {
-        JavaConstructor constructor = importOnlyConstructor(RecordWithCompactCanonicalConstructor.class);
+        // the tests are compiled and run with the same JDK; javac 21+ flags the parameters of a compact canonical constructor
+        // as mandated, while javac 16 to 20 write no flags at all
+        boolean compactConstructorParametersAreFlaggedMandated = currentJavaMajorVersion() >= 21;
 
-        assertThatTypes(constructor.getRawParameterTypes()).matchExactly(String.class);
-        assertThatTypes(constructor.getParameterTypes()).matchExactly(String.class);
-        assertThat(constructor.getParameters()).hasSize(1);
-        assertThat(constructor.getParameters()).hasSize(constructor.reflect().getParameterCount());
+        assertThatParametersOf(RecordWithCompactCanonicalConstructor.class)
+                .haveRawTypes(String.class)
+                .haveTypes(concreteClass(String.class))
+                .haveCount(1)
+                .haveSameCountAsReflection()
+                .reflectionReportsParametersAsImplicit(compactConstructorParametersAreFlaggedMandated);
     }
 
     @Test
-    public void imports_parameters_of_canonical_constructor_of_local_record_without_enclosing_instance() {
-        String notCapturable = "local records cannot capture local variables";
-        record LocalRecord(String component) {
-        }
-
-        JavaConstructor constructor = importOnlyConstructor(LocalRecord.class);
-
-        assertThatTypes(constructor.getRawParameterTypes()).matchExactly(String.class);
-        assertThatTypes(constructor.getParameterTypes()).matchExactly(String.class);
-        assertThat(constructor.getParameters()).hasSize(1);
-        assertThat(constructor.getParameters()).hasSize(constructor.reflect().getParameterCount());
-    }
-
-    private static JavaConstructor importOnlyConstructor(Class<?> owner) {
-        return getOnlyElement(new ClassFileImporter().importClass(owner).getConstructors());
+    public void imports_parameters_of_explicit_canonical_constructor_like_Reflection_API() {
+        assertThatParametersOf(RecordWithExplicitCanonicalConstructor.class)
+                .haveRawTypes(String.class)
+                .haveTypes(concreteClass(String.class))
+                .haveCount(1)
+                .haveSameCountAsReflection()
+                .reflectionReportsParametersAsImplicit(false);
     }
 }

@@ -1,30 +1,26 @@
 package com.tngtech.archunit.core.importer;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
 
-import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
-import com.tngtech.archunit.core.domain.JavaParameter;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.testutil.assertion.ExpectedConcreteType;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.AnonymousClassExamples;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.ClassRetentionParameterAnnotation;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.ClassWithCapturingAnonymousClassInInstanceMethod;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.ClassWithCapturingLambdaInInstanceMethod;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.ClassWithConstructorParameter;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.LocalClassExamples;
+import com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.SomeParameterAnnotation;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.importer.ConstructorParametersAssertion.assertThatParametersOf;
+import static com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.LocalClassExamples.LOCAL_CLASS_IN_STATIC_INITIALIZER;
+import static com.tngtech.archunit.core.importer.testexamples.compileraddedparameters.LocalClassExamples.LOCAL_CLASS_IN_STATIC_INITIALIZER_CAPTURING_VARIABLE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.TestUtils.currentJavaMajorVersion;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
@@ -40,8 +36,8 @@ import static java.util.stream.Collectors.toList;
  * The class file lists all parameters in the method descriptor, but only the declared ones in the generic
  * {@code Signature} attribute. {@code javac} writes a {@code Signature} attribute if the constructor has
  * a generic parameter type, or if it has compiler-added parameters other than the enclosing instance
- * (i.e. enum name and ordinal or captured variables). It never writes one for the implicit constructor
- * of an anonymous class. {@code getRawParameterTypes()} is derived from the descriptor,
+ * (i.e. enum name and ordinal or captured variables). For the implicit constructor of an anonymous class it writes
+ * at most an empty one that lists no parameters at all. {@code getRawParameterTypes()} is derived from the descriptor,
  * while {@code getParameterTypes()} and {@code getParameters()} are derived from the {@code Signature} attribute if present
  * and from the descriptor otherwise (also if the {@code Signature} attribute is present, but lists no parameters at all).
  * Thus, the latter two sometimes contain the compiler-added parameters and sometimes not,
@@ -49,24 +45,18 @@ import static java.util.stream.Collectors.toList;
  * <p>
  * The Reflection API, in contrast, always reports all parameters from the descriptor via {@link Constructor#getParameters()},
  * while {@link Constructor#getGenericParameterTypes()} follows the same logic as {@code getParameterTypes()}.
+ * <p>
+ * Records are covered by {@code ClassFileImporterRecordsTest}, static contexts inside of inner classes (Java 16+)
+ * by {@code ClassFileImporterConstructorParametersNewerJavaVersionTest} and classes declared before the
+ * {@code super(...)} call of a constructor (Java 25+) by {@code ClassFileImporterConstructorParametersFlexibleConstructorBodiesTest}.
  */
 public class ClassFileImporterConstructorParametersTest {
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.PARAMETER)
-    public @interface SomeParameterAnnotation {
-    }
-
-    @Retention(RetentionPolicy.CLASS)
-    @Target(ElementType.PARAMETER)
-    public @interface ClassRetentionParameterAnnotation {
-    }
 
     @Nested
     class StaticNestedClasses {
         @Test
         void constructor_without_generic_signature() {
-            assertThatParametersOf(StaticNestedClassWithoutGenerics.class)
+            assertThatParametersOf(StaticNestedClassWithoutGenericParameter.class)
                     .haveRawTypes(String.class)
                     .haveTypes(concreteClass(String.class))
                     .haveCount(1)
@@ -77,7 +67,7 @@ public class ClassFileImporterConstructorParametersTest {
 
         @Test
         void constructor_with_generic_signature() {
-            assertThatParametersOf(StaticNestedClassWithGenerics.class)
+            assertThatParametersOf(StaticNestedClassWithGenericParameter.class)
                     .haveRawTypes(List.class)
                     .haveTypes(parameterizedType(List.class).withTypeArguments(String.class))
                     .haveCount(1)
@@ -93,7 +83,7 @@ public class ClassFileImporterConstructorParametersTest {
         void constructor_without_generic_signature_has_enclosing_instance_as_first_parameter() {
             // the descriptor is (Outer, String) and there is no Signature attribute,
             // so the enclosing instance appears in all three views
-            assertThatParametersOf(Outer.InnerWithoutGenerics.class)
+            assertThatParametersOf(Outer.InnerWithoutGenericParameter.class)
                     .haveRawTypes(Outer.class, String.class)
                     .haveTypes(concreteClass(Outer.class), concreteClass(String.class))
                     .haveCount(2)
@@ -115,7 +105,7 @@ public class ClassFileImporterConstructorParametersTest {
         @Test
         void constructor_with_generic_signature_omits_enclosing_instance_from_parameters() {
             // the descriptor is (Outer, List), but the Signature attribute is (List<String>)
-            assertThatParametersOf(Outer.InnerWithGenerics.class)
+            assertThatParametersOf(Outer.InnerWithGenericParameter.class)
                     .haveRawTypes(Outer.class, List.class)
                     .haveTypes(parameterizedType(List.class).withTypeArguments(String.class))
                     .haveCount(1)
@@ -134,8 +124,29 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_inner_class_of_generic_class_with_generic_signature() {
-            assertThatParametersOf(GenericOuter.InnerWithGenericParameter.class)
+        void constructor_of_generic_inner_class_with_type_variable_parameter_omits_enclosing_instance_from_parameters() {
+            // the descriptor is (Outer, Object), but the Signature attribute is (T)
+            assertThatParametersOf(Outer.GenericInnerWithTypeVariableParameter.class)
+                    .haveRawTypes(Outer.class, Object.class)
+                    .haveTypes(typeVariable("T"))
+                    .haveCount(1)
+                    .haveFewerParametersThanReflection(1);
+        }
+
+        @Test
+        void constructor_of_generic_inner_class_without_type_variable_parameter_has_enclosing_instance_as_first_parameter() {
+            // javac only writes a Signature attribute for a method whose own type differs from its erasure,
+            // so it does not matter that the class declares a type parameter
+            assertThatParametersOf(Outer.GenericInnerWithoutTypeVariableParameter.class)
+                    .haveRawTypes(Outer.class, String.class)
+                    .haveTypes(concreteClass(Outer.class), concreteClass(String.class))
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructor_of_inner_class_of_generic_class_using_type_parameter_of_enclosing_class_omits_enclosing_instance_from_parameters() {
+            assertThatParametersOf(GenericOuter.InnerUsingOuterTypeParameter.class)
                     .haveRawTypes(GenericOuter.class, List.class)
                     .haveTypes(parameterizedType(List.class).withTypeArguments(typeVariable("T")))
                     .haveCount(1)
@@ -143,10 +154,10 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_inner_class_of_generic_class_without_generic_signature_has_raw_enclosing_instance() {
+        void constructor_of_inner_class_of_generic_class_not_using_type_parameter_of_enclosing_class_has_raw_enclosing_instance() {
             // the Signature attribute never mentions the enclosing instance, so there is no generic type GenericOuter<T>
             // for it anywhere in the class file (compare #1773)
-            assertThatParametersOf(GenericOuter.InnerWithoutGenericParameter.class)
+            assertThatParametersOf(GenericOuter.InnerNotUsingOuterTypeParameter.class)
                     .haveRawTypes(GenericOuter.class, String.class)
                     .haveTypes(concreteClass(GenericOuter.class), concreteClass(String.class))
                     .haveCount(2)
@@ -155,9 +166,9 @@ public class ClassFileImporterConstructorParametersTest {
 
         @Test
         void constructor_of_inner_class_of_inner_class_has_immediately_enclosing_instance_as_first_parameter() {
-            assertThatParametersOf(Outer.Inner.Innermost.class)
-                    .haveRawTypes(Outer.Inner.class, String.class)
-                    .haveTypes(concreteClass(Outer.Inner.class), concreteClass(String.class))
+            assertThatParametersOf(Outer.Middle.Inner.class)
+                    .haveRawTypes(Outer.Middle.class, String.class)
+                    .haveTypes(concreteClass(Outer.Middle.class), concreteClass(String.class))
                     .haveCount(2)
                     .haveSameCountAsReflection();
         }
@@ -165,17 +176,13 @@ public class ClassFileImporterConstructorParametersTest {
 
     @Nested
     class LocalClasses {
-        @Test
-        void constructor_of_local_class_in_instance_method_without_generic_signature() {
-            @SuppressWarnings("unused")
-            class LocalClass {
-                LocalClass(@SomeParameterAnnotation String param) {
-                }
-            }
+        private final LocalClassExamples examples = new LocalClassExamples();
 
-            assertThatParametersOf(LocalClass.class)
-                    .haveRawTypes(getClass(), String.class)
-                    .haveTypes(concreteClass(getClass()), concreteClass(String.class))
+        @Test
+        void constructor_of_local_class_in_instance_method_has_enclosing_instance_as_first_parameter() {
+            assertThatParametersOf(examples.localClassInInstanceMethod())
+                    .haveRawTypes(LocalClassExamples.class, String.class)
+                    .haveTypes(concreteClass(LocalClassExamples.class), concreteClass(String.class))
                     .haveCount(2)
                     .haveSameCountAsReflection()
                     // compare #1088, same as for inner classes
@@ -185,15 +192,9 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_local_class_in_instance_method_with_generic_signature() {
-            @SuppressWarnings("unused")
-            class LocalClass {
-                LocalClass(@SomeParameterAnnotation List<String> param) {
-                }
-            }
-
-            assertThatParametersOf(LocalClass.class)
-                    .haveRawTypes(getClass(), List.class)
+        void constructor_of_local_class_in_instance_method_with_generic_signature_omits_enclosing_instance_from_parameters() {
+            assertThatParametersOf(examples.localClassInInstanceMethodWithGenericParameter())
+                    .haveRawTypes(LocalClassExamples.class, List.class)
                     .haveTypes(parameterizedType(List.class).withTypeArguments(String.class))
                     .haveCount(1)
                     .haveFewerParametersThanReflection(1)
@@ -202,22 +203,11 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_local_class_in_instance_method_capturing_variable_has_trailing_captured_parameter() {
-            int captured = 42;
-            @SuppressWarnings("unused")
-            class LocalClass {
-                LocalClass(@SomeParameterAnnotation String param) {
-                }
-
-                int captured() {
-                    return captured;
-                }
-            }
-
-            // the descriptor is (Outer, String, int); javac writes a Signature attribute (String) because of the captured variable,
+        void constructor_of_local_class_in_instance_method_capturing_variable_omits_enclosing_instance_and_captured_variable_from_parameters() {
+            // the descriptor is (LocalClassExamples, String, int); javac writes a Signature attribute (String) because of the captured variable,
             // even though there is no generic type involved
-            assertThatParametersOf(LocalClass.class)
-                    .haveRawTypes(getClass(), String.class, int.class)
+            assertThatParametersOf(examples.localClassInInstanceMethodCapturingVariable())
+                    .haveRawTypes(LocalClassExamples.class, String.class, int.class)
                     .haveTypes(concreteClass(String.class))
                     .haveCount(1)
                     .haveFewerParametersThanReflection(2)
@@ -226,8 +216,37 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
+        void constructor_of_local_class_in_instance_method_capturing_generic_variable_only_has_erased_type_of_captured_variable() {
+            // the captured List<String> only appears as List in the descriptor; the Signature attribute does not list it,
+            // so its generic type is not recoverable from the class file
+            assertThatParametersOf(examples.localClassInInstanceMethodCapturingGenericVariable())
+                    .haveRawTypes(LocalClassExamples.class, String.class, List.class)
+                    .haveTypes(concreteClass(String.class))
+                    .haveCount(1)
+                    .haveFewerParametersThanReflection(2);
+        }
+
+        @Test
+        void constructor_of_local_class_in_instance_initializer_has_enclosing_instance_as_first_parameter() {
+            assertThatParametersOf(examples.localClassInInstanceInitializer)
+                    .haveRawTypes(LocalClassExamples.class, String.class)
+                    .haveTypes(concreteClass(LocalClassExamples.class), concreteClass(String.class))
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructor_of_local_class_in_constructor_has_enclosing_instance_as_first_parameter() {
+            assertThatParametersOf(examples.localClassInConstructor)
+                    .haveRawTypes(LocalClassExamples.class, String.class)
+                    .haveTypes(concreteClass(LocalClassExamples.class), concreteClass(String.class))
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
         void constructor_of_local_class_in_static_method_has_no_enclosing_instance() {
-            assertThatParametersOf(localClassInStaticMethod())
+            assertThatParametersOf(LocalClassExamples.localClassInStaticMethod())
                     .haveRawTypes(String.class)
                     .haveTypes(concreteClass(String.class))
                     .haveCount(1)
@@ -237,9 +256,9 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_local_class_in_static_method_capturing_variable_has_trailing_captured_parameter() {
+        void constructor_of_local_class_in_static_method_capturing_variable_omits_captured_variable_from_parameters() {
             // the descriptor is (String, int) and the Signature attribute is (String)
-            assertThatParametersOf(localClassInStaticMethodCapturingVariable())
+            assertThatParametersOf(LocalClassExamples.localClassInStaticMethodCapturingVariable())
                     .haveRawTypes(String.class, int.class)
                     .haveTypes(concreteClass(String.class))
                     .haveCount(1)
@@ -249,10 +268,8 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_local_class_capturing_generic_variable_only_has_erased_type_of_captured_variable() {
-            // the captured List<String> only appears as List in the descriptor; the Signature attribute does not list it,
-            // so its generic type is not recoverable from the class file
-            assertThatParametersOf(localClassInStaticMethodCapturingGenericVariable())
+        void constructor_of_local_class_in_static_method_capturing_generic_variable_only_has_erased_type_of_captured_variable() {
+            assertThatParametersOf(LocalClassExamples.localClassInStaticMethodCapturingGenericVariable())
                     .haveRawTypes(String.class, List.class)
                     .haveTypes(concreteClass(String.class))
                     .haveCount(1)
@@ -260,73 +277,110 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_local_class_in_lambda_in_instance_method_has_enclosing_instance() {
-            Supplier<Class<?>> localClass = () -> {
-                @SuppressWarnings("unused")
-                class LocalClassInLambda {
-                    LocalClassInLambda(String param) {
-                    }
-                }
-                return LocalClassInLambda.class;
-            };
+        void constructor_of_local_class_in_static_initializer_has_no_enclosing_instance() {
+            assertThatParametersOf(LOCAL_CLASS_IN_STATIC_INITIALIZER)
+                    .haveRawTypes(String.class)
+                    .haveTypes(concreteClass(String.class))
+                    .haveCount(1)
+                    .haveSameCountAsReflection()
+                    .haveAnnotationOnlyOnParameter(0, SomeParameterAnnotation.class)
+                    .haveAnnotationOnlyOnParameterLikeReflection(0);
+        }
 
-            assertThatParametersOf(localClass.get())
-                    .haveRawTypes(getClass(), String.class)
-                    .haveTypes(concreteClass(getClass()), concreteClass(String.class))
+        @Test
+        void constructor_of_local_class_in_static_initializer_capturing_variable_omits_captured_variable_from_parameters() {
+            assertThatParametersOf(LOCAL_CLASS_IN_STATIC_INITIALIZER_CAPTURING_VARIABLE)
+                    .haveRawTypes(String.class, int.class)
+                    .haveTypes(concreteClass(String.class))
+                    .haveCount(1)
+                    .haveFewerParametersThanReflection(1)
+                    .haveAnnotationOnlyOnParameter(0, SomeParameterAnnotation.class)
+                    .reflectionReportsAnnotationsForDeclaredParametersOnly(1);
+        }
+
+        @Test
+        void constructor_of_local_class_in_lambda_in_instance_method_has_enclosing_instance_as_first_parameter() {
+            assertThatParametersOf(examples.localClassInLambdaInInstanceMethod())
+                    .haveRawTypes(LocalClassExamples.class, String.class)
+                    .haveTypes(concreteClass(LocalClassExamples.class), concreteClass(String.class))
                     .haveCount(2)
                     .haveSameCountAsReflection();
         }
 
         @Test
         void constructor_of_local_class_in_lambda_in_static_method_has_no_enclosing_instance() {
-            assertThatParametersOf(localClassInLambdaInStaticMethod())
+            assertThatParametersOf(LocalClassExamples.localClassInLambdaInStaticMethod())
                     .haveRawTypes(String.class)
                     .haveTypes(concreteClass(String.class))
                     .haveCount(1)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructor_of_local_class_in_anonymous_class_in_static_method_has_anonymous_class_as_enclosing_instance() {
+            Class<?> localClass = LocalClassExamples.localClassInAnonymousClassInStaticMethod();
+            Class<?> anonymousClass = localClass.getEnclosingClass();
+
+            // the context is static, but the local class is declared inside a method of the anonymous class,
+            // so the instance of the anonymous class is its enclosing instance
+            assertThat(anonymousClass.isAnonymousClass()).as("enclosing class is anonymous").isTrue();
+            assertThatParametersOf(localClass)
+                    .haveRawTypes(anonymousClass, String.class)
+                    .haveTypes(concreteClass(anonymousClass), concreteClass(String.class))
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructors_of_local_class_and_its_anonymous_subclass_both_have_all_captured_variables_as_parameters() {
+            List<Class<?>> classes = LocalClassExamples.localClassWithAnonymousSubclassCapturingDifferentVariablesInStaticMethod();
+            Class<?> localClass = classes.get(0);
+            Class<?> anonymousSubclass = classes.get(1);
+
+            // each class captures only one of the two variables, but the anonymous subclass has to pass on the variable captured
+            // by its superclass, so javac gives both constructors parameters for both variables;
+            // the local class gets a Signature attribute (String) because of the captured variables, the anonymous subclass never does
+            assertThatParametersOf(localClass)
+                    .haveRawTypes(String.class, int.class, int.class)
+                    .haveTypes(concreteClass(String.class))
+                    .haveCount(1)
+                    .haveFewerParametersThanReflection(2);
+            assertThatParametersOf(anonymousSubclass)
+                    .haveRawTypes(localClass, String.class, int.class, int.class)
+                    .haveTypes(concreteClass(localClass), concreteClass(String.class), concreteClass(int.class), concreteClass(int.class))
+                    .haveCount(4)
                     .haveSameCountAsReflection();
         }
     }
 
     @Nested
     class AnonymousClasses {
-        @Test
-        void constructor_of_anonymous_class_in_instance_method_has_enclosing_instance() {
-            Class<?> anonymousClass = new Object() {
-            }.getClass();
+        private final AnonymousClassExamples examples = new AnonymousClassExamples();
 
-            assertThatParametersOf(anonymousClass)
-                    .haveRawTypes(getClass())
-                    .haveTypes(concreteClass(getClass()))
+        @Test
+        void constructor_of_anonymous_class_in_instance_method_has_enclosing_instance_as_parameter() {
+            assertThatParametersOf(examples.anonymousClassInInstanceMethod())
+                    .haveRawTypes(AnonymousClassExamples.class)
+                    .haveTypes(concreteClass(AnonymousClassExamples.class))
                     .haveCount(1)
                     .haveSameCountAsReflection();
         }
 
         @Test
-        void constructor_of_anonymous_class_in_instance_method_forwards_superclass_constructor_arguments() {
-            Class<?> anonymousClass = new BaseClassWithConstructorParameter("param") {
-            }.getClass();
-
-            assertThatParametersOf(anonymousClass)
-                    .haveRawTypes(getClass(), String.class)
-                    .haveTypes(concreteClass(getClass()), concreteClass(String.class))
+        void constructor_of_anonymous_class_in_instance_method_forwards_superclass_constructor_argument_after_enclosing_instance() {
+            assertThatParametersOf(examples.anonymousClassInInstanceMethodForwardingSuperclassConstructorArgument())
+                    .haveRawTypes(AnonymousClassExamples.class, String.class)
+                    .haveTypes(concreteClass(AnonymousClassExamples.class), concreteClass(String.class))
                     .haveCount(2)
                     .haveSameCountAsReflection();
         }
 
         @Test
-        void constructor_of_anonymous_class_in_instance_method_capturing_variable_has_trailing_captured_parameter() {
-            int captured = 42;
-            Class<?> anonymousClass = new BaseClassWithConstructorParameter("param") {
-                @Override
-                int captured() {
-                    return captured;
-                }
-            }.getClass();
-
+        void constructor_of_anonymous_class_in_instance_method_capturing_variable_has_trailing_captured_variable_as_parameter() {
             // anonymous constructors never have a Signature attribute, so the captured variable appears in all three views
-            assertThatParametersOf(anonymousClass)
-                    .haveRawTypes(getClass(), String.class, int.class)
-                    .haveTypes(concreteClass(getClass()), concreteClass(String.class), concreteClass(int.class))
+            assertThatParametersOf(examples.anonymousClassInInstanceMethodCapturingVariable())
+                    .haveRawTypes(AnonymousClassExamples.class, String.class, int.class)
+                    .haveTypes(concreteClass(AnonymousClassExamples.class), concreteClass(String.class), concreteClass(int.class))
                     .haveCount(3)
                     .haveSameCountAsReflection();
         }
@@ -334,8 +388,8 @@ public class ClassFileImporterConstructorParametersTest {
         @Test
         void constructor_of_anonymous_class_in_static_method_capturing_variable_has_no_enclosing_instance() {
             // the descriptor is (String, int), where String is forwarded to the superclass constructor and int is the captured variable;
-            // nothing in the class file distinguishes the two
-            assertThatParametersOf(anonymousClassInStaticMethodCapturingVariable())
+            // neither the descriptor nor a Signature attribute distinguishes the two
+            assertThatParametersOf(AnonymousClassExamples.anonymousClassInStaticMethodCapturingVariable())
                     .haveRawTypes(String.class, int.class)
                     .haveTypes(concreteClass(String.class), concreteClass(int.class))
                     .haveCount(2)
@@ -343,11 +397,76 @@ public class ClassFileImporterConstructorParametersTest {
         }
 
         @Test
-        void constructor_of_anonymous_subclass_of_inner_class_in_static_method_forwards_enclosing_instance_of_superclass() {
-            assertThatParametersOf(anonymousSubclassOfInnerClassInStaticMethod())
+        void constructor_of_anonymous_class_capturing_generic_variable_only_has_erased_type_of_captured_variable() {
+            assertThatParametersOf(AnonymousClassExamples.anonymousClassInStaticMethodCapturingGenericVariable())
+                    .haveRawTypes(String.class, List.class)
+                    .haveTypes(concreteClass(String.class), concreteClass(List.class))
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructors_of_nested_anonymous_classes_have_parameters_for_all_captured_variables_of_the_nesting() {
+            ClassWithConstructorParameter outerAnonymousInstance =
+                    AnonymousClassExamples.anonymousClassWithNestedAnonymousClassInStaticMethod("param");
+            Class<?> outerAnonymousClass = outerAnonymousInstance.getClass();
+            Class<?> nestedAnonymousClass = outerAnonymousInstance.nestedAnonymousClass();
+
+            // the outer anonymous class forwards the String to its superclass constructor and captures the int it uses itself
+            // as well as the String and the double that the nested anonymous class uses, since it has to pass them on
+            assertThatParametersOf(outerAnonymousClass)
+                    .haveRawTypes(String.class, int.class, String.class, double.class)
+                    .haveTypes(concreteClass(String.class), concreteClass(int.class), concreteClass(String.class), concreteClass(double.class))
+                    .haveCount(4)
+                    .haveSameCountAsReflection();
+            // the nested anonymous class has the outer anonymous class as enclosing instance and forwards the String
+            // to its superclass constructor; whether it captures the double itself depends on the compiler: javac 25 adds
+            // a parameter for it, while javac 11 to 23 read it from the field of the enclosing instance
+            // (the tests are compiled and run with the same JDK)
+            if (currentJavaMajorVersion() >= 25) {
+                assertThatParametersOf(nestedAnonymousClass)
+                        .haveRawTypes(outerAnonymousClass, String.class, double.class)
+                        .haveTypes(concreteClass(outerAnonymousClass), concreteClass(String.class), concreteClass(double.class))
+                        .haveCount(3)
+                        .haveSameCountAsReflection();
+            } else {
+                assertThatParametersOf(nestedAnonymousClass)
+                        .haveRawTypes(outerAnonymousClass, String.class)
+                        .haveTypes(concreteClass(outerAnonymousClass), concreteClass(String.class))
+                        .haveCount(2)
+                        .haveSameCountAsReflection();
+            }
+        }
+
+        @Test
+        void constructor_of_anonymous_subclass_of_inner_class_in_static_method_has_enclosing_instance_of_superclass_as_parameter() {
+            // the anonymous class itself has no enclosing instance, but it has to pass the explicitly qualified enclosing instance
+            // ('outer.new InnerWithoutParameters() {}') on to the superclass constructor
+            assertThatParametersOf(Outer.anonymousSubclassOfInnerWithoutParametersInStaticMethod())
                     .haveRawTypes(Outer.class)
                     .haveTypes(concreteClass(Outer.class))
                     .haveCount(1)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructor_of_anonymous_subclass_of_inner_class_in_instance_method_of_outer_class_has_shared_enclosing_instance_as_parameter() {
+            // the enclosing instance of the anonymous class is at the same time the enclosing instance of its superclass
+            assertThatParametersOf(new Outer().anonymousSubclassOfInnerWithoutGenericParameterInInstanceMethod())
+                    .haveRawTypes(Outer.class, String.class)
+                    .haveTypes(concreteClass(Outer.class), concreteClass(String.class))
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
+        }
+
+        @Test
+        void constructor_of_anonymous_subclass_of_inner_class_in_other_inner_class_has_only_its_own_enclosing_instance_as_parameter() {
+            // the superclass constructor has the descriptor (Outer, String), but the anonymous constructor takes the Outer instance
+            // from the this$0 field of its own enclosing instance (OtherInner) instead of from a parameter
+            assertThatParametersOf(new Outer().new OtherInner().anonymousSubclassOfInnerWithoutGenericParameter())
+                    .haveRawTypes(Outer.OtherInner.class, String.class)
+                    .haveTypes(concreteClass(Outer.OtherInner.class), concreteClass(String.class))
+                    .haveCount(2)
                     .haveSameCountAsReflection();
         }
     }
@@ -404,159 +523,50 @@ public class ClassFileImporterConstructorParametersTest {
     class Lambdas {
         @Test
         void synthetic_lambda_methods_with_captured_parameters_are_not_imported_as_code_units() {
-            JavaClass javaClass = new ClassFileImporter().importClass(ClassWithCapturingLambda.class);
+            JavaClass javaClass = new ClassFileImporter().importClass(ClassWithCapturingLambdaInInstanceMethod.class);
 
             assertThat(javaClass.getCodeUnits().stream().map(JavaCodeUnit::getName).collect(toList()))
                     .containsOnly(JavaConstructor.CONSTRUCTOR_NAME, "supplier");
         }
-    }
 
-    private static ConstructorParametersAssertion assertThatParametersOf(Class<?> owner) {
-        JavaClass javaClass = new ClassFileImporter().importClass(owner);
-        return new ConstructorParametersAssertion(getOnlyElement(javaClass.getConstructors()));
-    }
+        @Test
+        void constructor_of_equivalent_anonymous_class_has_enclosing_instance_and_captured_variable_as_parameters() {
+            Class<?> anonymousClass = new ClassWithCapturingAnonymousClassInInstanceMethod().supplier("captured").getClass();
 
-    private static class ConstructorParametersAssertion {
-        private static final int JAVA_VERSION = javaSpecificationVersion();
-
-        private final JavaConstructor constructor;
-        private final Constructor<?> reflected;
-
-        ConstructorParametersAssertion(JavaConstructor constructor) {
-            this.constructor = constructor;
-            this.reflected = constructor.reflect();
-        }
-
-        ConstructorParametersAssertion haveRawTypes(Class<?>... types) {
-            assertThatTypes(constructor.getRawParameterTypes()).as("raw parameter types").matchExactly(types);
-            // the raw parameter types always reflect the descriptor, like the Reflection API
-            assertThatTypes(constructor.getRawParameterTypes()).as("raw parameter types").matchExactly(reflected.getParameterTypes());
-            return this;
-        }
-
-        ConstructorParametersAssertion haveTypes(ExpectedConcreteType... types) {
-            assertThatTypes(constructor.getParameterTypes()).as("parameter types").matchExactly(types);
-            // at the moment the parameter types mirror Constructor.getGenericParameterTypes(),
-            // which omits compiler-added parameters whenever a Signature attribute is present
-            assertThat(namesOf(constructor.getParameterTypes())).as("parameter types")
-                    .containsExactlyElementsOf(typeNamesOf(reflected.getGenericParameterTypes()));
-            return this;
-        }
-
-        ConstructorParametersAssertion haveTypesWhileReflectionReportsNoGenericParameterTypes(ExpectedConcreteType... types) {
-            assertThatTypes(constructor.getParameterTypes()).as("parameter types").matchExactly(types);
-            assertThat(reflected.getGenericParameterTypes()).as("generic parameter types from Reflection").isEmpty();
-            return this;
-        }
-
-        ConstructorParametersAssertion haveCount(int count) {
-            List<JavaParameter> parameters = constructor.getParameters();
-            assertThat(parameters).as("parameters").hasSize(count);
-            // the parameters always follow getParameterTypes()
-            assertThat(parameters).as("parameters").hasSameSizeAs(constructor.getParameterTypes());
-            for (int i = 0; i < parameters.size(); i++) {
-                JavaParameter parameter = parameters.get(i);
-                assertThat(parameter.getIndex()).as("index of parameter " + i).isEqualTo(i);
-                assertThat(parameter.getOwner()).as("owner of parameter " + i).isEqualTo(constructor);
-                assertThat(parameter.getType().getName()).as("type of parameter " + i)
-                        .isEqualTo(constructor.getParameterTypes().get(i).getName());
-                assertThatType(parameter.getRawType()).as("raw type of parameter " + i)
-                        .matches(constructor.getParameterTypes().get(i).toErasure().reflect());
+            ConstructorParametersAssertion assertion = assertThatParametersOf(anonymousClass)
+                    .haveRawTypes(ClassWithCapturingAnonymousClassInInstanceMethod.class, String.class);
+            // javac 17+ (but not javac 11) writes a Signature attribute () that lists no parameters for the constructor
+            // of an anonymous class that implements an interface and captures variables (it does not for an anonymous subclass
+            // of a class). The importer treats it like a missing one (compare the implicit enum constructor),
+            // while Constructor.getGenericParameterTypes() returns an empty array. The tests are compiled and run with the same JDK.
+            if (currentJavaMajorVersion() >= 17) {
+                assertion.haveTypesWhileReflectionReportsNoGenericParameterTypes(
+                        concreteClass(ClassWithCapturingAnonymousClassInInstanceMethod.class), concreteClass(String.class));
+            } else {
+                assertion.haveTypes(concreteClass(ClassWithCapturingAnonymousClassInInstanceMethod.class), concreteClass(String.class));
             }
-            return this;
-        }
-
-        ConstructorParametersAssertion haveSameCountAsReflection() {
-            assertThat(constructor.getParameters()).as("parameters").hasSize(reflected.getParameterCount());
-            return this;
-        }
-
-        ConstructorParametersAssertion haveFewerParametersThanReflection(int difference) {
-            assertThat(constructor.getParameters()).as("parameters").hasSize(reflected.getParameterCount() - difference);
-            return this;
-        }
-
-        ConstructorParametersAssertion haveAnnotationOnlyOnParameter(int index, Class<? extends Annotation> annotationType) {
-            List<JavaParameter> parameters = constructor.getParameters();
-            List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = constructor.getParameterAnnotations();
-            assertThat(parameterAnnotations).as("parameter annotations").hasSameSizeAs(parameters);
-            for (int i = 0; i < parameters.size(); i++) {
-                assertThat(parameters.get(i).getAnnotations()).as("annotations of parameter " + i).isEqualTo(parameterAnnotations.get(i));
-                if (i == index) {
-                    JavaAnnotation<JavaParameter> annotation = getOnlyElement(parameterAnnotations.get(i));
-                    assertThatType(annotation.getRawType()).as("annotation of parameter " + i).matches(annotationType);
-                    assertThat(annotation.getOwner()).as("owner of annotation of parameter " + i).isEqualTo(parameters.get(i));
-                } else {
-                    assertThat(parameterAnnotations.get(i)).as("annotations of parameter " + i).isEmpty();
-                }
-            }
-            return this;
-        }
-
-        ConstructorParametersAssertion haveAnnotationOnlyOnParameterLikeReflection(int index) {
-            Annotation[][] reflectedAnnotations = reflected.getParameterAnnotations();
-            assertThat(reflectedAnnotations).as("parameter annotations from Reflection").hasNumberOfRows(reflected.getParameterCount());
-            for (int i = 0; i < reflectedAnnotations.length; i++) {
-                assertThat(reflectedAnnotations[i]).as("annotations from Reflection of parameter " + i).hasSize(i == index ? 1 : 0);
-            }
-            return this;
-        }
-
-        /**
-         * The Reflection API only accounts for compiler-added parameters when aligning parameter annotations
-         * since JDK 9 for the enclosing instance of inner classes (compare JDK-8074977)
-         * and since JDK 17 for name and ordinal of enums (compare JDK-8263763).
-         * On older JDKs {@link Constructor#getParameterAnnotations()} just has one entry per declared parameter.
-         */
-        ConstructorParametersAssertion haveAnnotationOnlyOnParameterLikeReflectionSinceJava(int javaVersion, int index) {
-            if (JAVA_VERSION < javaVersion) {
-                assertThat(reflected.getParameterAnnotations().length).as("number of parameter annotations from Reflection")
-                        .isLessThan(reflected.getParameterCount());
-                return this;
-            }
-            return haveAnnotationOnlyOnParameterLikeReflection(index);
-        }
-
-        /**
-         * For local classes the Reflection API gives up aligning parameter annotations with parameters
-         * ("Can't do reliable parameter counting" in {@code Constructor.handleParameterNumberMismatch}, compare JDK-8303112),
-         * so {@link Constructor#getParameterAnnotations()} only has one entry per declared parameter.
-         */
-        ConstructorParametersAssertion reflectionReportsAnnotationsForDeclaredParametersOnly(int numberOfDeclaredParameters) {
-            assertThat(reflected.getParameterAnnotations()).as("parameter annotations from Reflection").hasNumberOfRows(numberOfDeclaredParameters);
-            return this;
-        }
-
-        private static int javaSpecificationVersion() {
-            String version = System.getProperty("java.specification.version");
-            return Integer.parseInt(version.startsWith("1.") ? version.substring(2) : version);
-        }
-
-        private static List<String> namesOf(List<JavaType> types) {
-            return types.stream().map(JavaType::getName).collect(toList());
-        }
-
-        private static List<String> typeNamesOf(Type[] types) {
-            return java.util.Arrays.stream(types).map(Type::getTypeName).collect(toList());
+            assertion
+                    .haveCount(2)
+                    .haveSameCountAsReflection();
         }
     }
 
     @SuppressWarnings("unused")
-    static class StaticNestedClassWithoutGenerics {
-        StaticNestedClassWithoutGenerics(@SomeParameterAnnotation String param) {
+    static class StaticNestedClassWithoutGenericParameter {
+        StaticNestedClassWithoutGenericParameter(@SomeParameterAnnotation String param) {
         }
     }
 
     @SuppressWarnings("unused")
-    static class StaticNestedClassWithGenerics {
-        StaticNestedClassWithGenerics(@SomeParameterAnnotation List<String> param) {
+    static class StaticNestedClassWithGenericParameter {
+        StaticNestedClassWithGenericParameter(@SomeParameterAnnotation List<String> param) {
         }
     }
 
     @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
     static class Outer {
-        class InnerWithoutGenerics {
-            InnerWithoutGenerics(@SomeParameterAnnotation String param) {
+        class InnerWithoutGenericParameter {
+            InnerWithoutGenericParameter(@SomeParameterAnnotation String param) {
             }
         }
 
@@ -565,42 +575,60 @@ public class ClassFileImporterConstructorParametersTest {
             }
         }
 
-        class InnerWithGenerics {
-            InnerWithGenerics(@SomeParameterAnnotation List<String> param) {
+        class InnerWithGenericParameter {
+            InnerWithGenericParameter(@SomeParameterAnnotation List<String> param) {
             }
         }
 
         class InnerWithoutParameters {
         }
 
-        class Inner {
-            class Innermost {
-                Innermost(String param) {
+        class GenericInnerWithTypeVariableParameter<T> {
+            GenericInnerWithTypeVariableParameter(T param) {
+            }
+        }
+
+        class GenericInnerWithoutTypeVariableParameter<T> {
+            GenericInnerWithoutTypeVariableParameter(String param) {
+            }
+        }
+
+        class Middle {
+            class Inner {
+                Inner(String param) {
                 }
             }
+        }
+
+        class OtherInner {
+            Class<?> anonymousSubclassOfInnerWithoutGenericParameter() {
+                return new InnerWithoutGenericParameter("param") {
+                }.getClass();
+            }
+        }
+
+        Class<?> anonymousSubclassOfInnerWithoutGenericParameterInInstanceMethod() {
+            return new InnerWithoutGenericParameter("param") {
+            }.getClass();
+        }
+
+        static Class<?> anonymousSubclassOfInnerWithoutParametersInStaticMethod() {
+            Outer outer = new Outer();
+            return outer.new InnerWithoutParameters() {
+            }.getClass();
         }
     }
 
     @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
     static class GenericOuter<T> {
-        class InnerWithGenericParameter {
-            InnerWithGenericParameter(List<T> param) {
+        class InnerUsingOuterTypeParameter {
+            InnerUsingOuterTypeParameter(List<T> param) {
             }
         }
 
-        class InnerWithoutGenericParameter {
-            InnerWithoutGenericParameter(String param) {
+        class InnerNotUsingOuterTypeParameter {
+            InnerNotUsingOuterTypeParameter(String param) {
             }
-        }
-    }
-
-    @SuppressWarnings("unused")
-    static class BaseClassWithConstructorParameter {
-        BaseClassWithConstructorParameter(String param) {
-        }
-
-        int captured() {
-            return 0;
         }
     }
 
@@ -631,77 +659,5 @@ public class ClassFileImporterConstructorParametersTest {
                 return "constant with class body";
             }
         }
-    }
-
-    @SuppressWarnings("unused")
-    static class ClassWithCapturingLambda {
-        Supplier<String> supplier(String captured) {
-            return () -> captured;
-        }
-    }
-
-    private static Class<?> localClassInStaticMethod() {
-        @SuppressWarnings("unused")
-        class LocalClassInStaticMethod {
-            LocalClassInStaticMethod(@SomeParameterAnnotation String param) {
-            }
-        }
-        return LocalClassInStaticMethod.class;
-    }
-
-    private static Class<?> localClassInStaticMethodCapturingVariable() {
-        int captured = 42;
-        @SuppressWarnings("unused")
-        class LocalClassInStaticMethodCapturingVariable {
-            LocalClassInStaticMethodCapturingVariable(@SomeParameterAnnotation String param) {
-            }
-
-            int captured() {
-                return captured;
-            }
-        }
-        return LocalClassInStaticMethodCapturingVariable.class;
-    }
-
-    private static Class<?> localClassInStaticMethodCapturingGenericVariable() {
-        List<String> captured = emptyList();
-        @SuppressWarnings("unused")
-        class LocalClassInStaticMethodCapturingGenericVariable {
-            LocalClassInStaticMethodCapturingGenericVariable(String param) {
-            }
-
-            List<String> captured() {
-                return captured;
-            }
-        }
-        return LocalClassInStaticMethodCapturingGenericVariable.class;
-    }
-
-    private static Class<?> localClassInLambdaInStaticMethod() {
-        Supplier<Class<?>> localClass = () -> {
-            @SuppressWarnings("unused")
-            class LocalClassInLambdaInStaticMethod {
-                LocalClassInLambdaInStaticMethod(String param) {
-                }
-            }
-            return LocalClassInLambdaInStaticMethod.class;
-        };
-        return localClass.get();
-    }
-
-    private static Class<?> anonymousClassInStaticMethodCapturingVariable() {
-        int captured = 42;
-        return new BaseClassWithConstructorParameter("param") {
-            @Override
-            int captured() {
-                return captured;
-            }
-        }.getClass();
-    }
-
-    private static Class<?> anonymousSubclassOfInnerClassInStaticMethod() {
-        Outer outer = new Outer();
-        return outer.new InnerWithoutParameters() {
-        }.getClass();
     }
 }
