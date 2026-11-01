@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Java
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
@@ -54,12 +54,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Build JDK
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
       - name: Set up Test JDK
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.test_java_version }}
@@ -104,12 +104,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Build JDK
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: 'zulu'
           java-version: ${{ env.build_java_version }}
       - name: Set up Test JDK
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.test_java_version }}
@@ -138,3 +138,15 @@ jobs:
         run: ./gradlew runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} "-Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}"
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
+      - name: Upload Maven integration test verification results
+        id: upload-results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: maven-test-results-${{ matrix.os }}-java${{ matrix.test_java_version }}
+          path: archunit-maven-test/verification-results/
+          if-no-files-found: ignore
+      - name: Report artifact location
+        if: always() && steps.upload-results.outputs.artifact-url
+        run: |
+          echo "::notice title=Maven test results (logs & surefire XML)::${{ steps.upload-results.outputs.artifact-url }}"
