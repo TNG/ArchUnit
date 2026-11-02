@@ -2309,6 +2309,73 @@ public final class JavaClass
         }
 
         /**
+         * Method-style equivalent of {@link #INTERFACES}, matching {@link JavaClass#isInterface()}.
+         * <br><br>
+         * Both return the same predicate, but read naturally in different contexts:
+         * the constant {@link #INTERFACES} reads naturally within the rule syntax, e.g. {@code classes().that(are(INTERFACES))}
+         * (described as "classes that are interfaces"), while this method reads naturally when composing predicates, e.g.
+         * <pre><code>
+         * DescribedPredicate&lt;JavaClass&gt; repositories = isInterface().and(simpleNameEndingWith("Repository"));
+         * </code></pre>
+         *
+         * @return a {@link DescribedPredicate} that returns {@code true} if the tested {@link JavaClass} is an interface
+         *
+         * @see #INTERFACES
+         * @see #interfaceAssignableTo(Class)
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> isInterface() {
+            return INTERFACES;
+        }
+
+        /**
+         * @param type the interface type to check for
+         * @return a {@link DescribedPredicate} that returns {@code true} if the tested {@link JavaClass} is an interface
+         *         that is assignable to the supplied interface {@code type}, i.e. it is either {@code type} itself
+         *         or an interface extending {@code type} (directly or transitively).
+         *         For example {@code interfaceAssignableTo(Collection.class)} matches {@code Collection} and {@code List},
+         *         but not {@code ArrayList}.<br>
+         *         This is the counterpart of {@link #implement(Class)}, which only matches classes.
+         * @throws InvalidSyntaxUsageException if {@code type} is not an interface
+         *
+         * @see #interfaceAssignableTo(String)
+         * @see #interfaceAssignableTo(DescribedPredicate)
+         * @see #isInterface()
+         * @see #assignableTo(Class)
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> interfaceAssignableTo(Class<?> type) {
+            if (!type.isInterface()) {
+                throw new InvalidSyntaxUsageException(String.format(
+                        "interfaceAssignableTo(type) can only ever be true, if type is an interface, but type %s is not. "
+                                + "Do you maybe want to use the more generic assignableTo(type)?", type.getName()));
+            }
+            return interfaceAssignableTo(type.getName());
+        }
+
+        /**
+         * Same as {@link #interfaceAssignableTo(Class)} but takes a fully qualified class name as an argument instead of a class object.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> interfaceAssignableTo(String typeName) {
+            return interfaceAssignableTo(GET_NAME.is(equalTo(typeName)).as(typeName));
+        }
+
+        /**
+         * Same as {@link #interfaceAssignableTo(Class)} but returns {@code true} whenever the tested {@link JavaClass}
+         * is an interface that is assignable to a type matching the supplied predicate.
+         *
+         * @see #interfaceAssignableTo(Class)
+         * @see #interfaceAssignableTo(String)
+         * @see #assignableTo(DescribedPredicate)
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> interfaceAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
+            return INTERFACES.and(assignableTo(predicate))
+                    .as("interface assignable to " + predicate.getDescription());
+        }
+
+        /**
          * Offers a syntax to identify packages similar to AspectJ. In particular '*' stands for any sequence of
          * characters, '..' stands for any sequence of packages.
          * For further details see {@link PackageMatcher}.

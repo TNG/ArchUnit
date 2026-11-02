@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -79,6 +80,8 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyMe
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyStaticInitializersThat;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.interfaceAssignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.isInterface;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
@@ -111,6 +114,7 @@ import static java.util.regex.Pattern.quote;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 @SuppressWarnings("SameParameterValue")
@@ -1959,6 +1963,70 @@ public class JavaClassTest {
     }
 
     @Test
+    public void predicate_isInterface_without_parameter() {
+        assertThat(isInterface())
+                .accepts(importClassWithContext(Serializable.class))
+                .rejects(importClassWithContext(Object.class))
+                .hasDescription("interfaces");
+    }
+
+    static Stream<Arguments> predicate_interfaceAssignableTo_matches() {
+        return Stream.of(
+                argumentSet("reflexive", interfaceAssignableTo(Collection.class), classWithHierarchy(Collection.class)),
+                argumentSet("direct extension", interfaceAssignableTo(Collection.class), classWithHierarchy(List.class)),
+                argumentSet("transitive extension", interfaceAssignableTo(Collection.class), classWithHierarchy(SortedSet.class)),
+                argumentSet("reflexive", interfaceAssignableTo(Collection.class.getName()), classWithHierarchy(Collection.class)),
+                argumentSet("direct extension", interfaceAssignableTo(Collection.class.getName()), classWithHierarchy(List.class)),
+                argumentSet("transitive extension", interfaceAssignableTo(Collection.class.getName()), classWithHierarchy(SortedSet.class)),
+                argumentSet("reflexive", interfaceAssignableTo(name(Collection.class.getName())), classWithHierarchy(Collection.class)),
+                argumentSet("direct extension", interfaceAssignableTo(name(Collection.class.getName())), classWithHierarchy(List.class)),
+                argumentSet("transitive extension", interfaceAssignableTo(name(Collection.class.getName())), classWithHierarchy(SortedSet.class)));
+    }
+
+    @ParameterizedTest(name = "[{index}] {argumentSetName}: {arguments}")
+    @MethodSource
+    void predicate_interfaceAssignableTo_matches(DescribedPredicate<JavaClass> expectedMatch, JavaClass input) {
+        assertThat(expectedMatch).accepts(input);
+    }
+
+    static Stream<Arguments> predicate_interfaceAssignableTo_rejects() {
+        return Stream.of(
+                argumentSet("an implementing class", interfaceAssignableTo(Collection.class), classWithHierarchy(ArrayList.class)),
+                argumentSet("an unrelated interface", interfaceAssignableTo(Collection.class), importClassWithContext(Serializable.class)),
+                argumentSet("a super-interface", interfaceAssignableTo(List.class), classWithHierarchy(Collection.class)),
+                argumentSet("an implementing class", interfaceAssignableTo(Collection.class.getName()), classWithHierarchy(ArrayList.class)),
+                argumentSet("an unrelated interface", interfaceAssignableTo(Collection.class.getName()), importClassWithContext(Serializable.class)),
+                argumentSet("a super-interface", interfaceAssignableTo(List.class.getName()), classWithHierarchy(Collection.class)),
+                argumentSet("an implementing class", interfaceAssignableTo(name(Collection.class.getName())), classWithHierarchy(ArrayList.class)),
+                argumentSet("an unrelated interface", interfaceAssignableTo(name(Collection.class.getName())), importClassWithContext(Serializable.class)),
+                argumentSet("a super-interface", interfaceAssignableTo(name(List.class.getName())), classWithHierarchy(Collection.class)),
+                argumentSet("a non-interface matching the type", interfaceAssignableTo(name(String.class.getName())), importClassWithContext(String.class)));
+    }
+
+    @ParameterizedTest(name = "[{index}] {argumentSetName}: {arguments}")
+    @MethodSource
+    void predicate_interfaceAssignableTo_rejects(DescribedPredicate<JavaClass> expectedMismatch, JavaClass input) {
+        assertThat(expectedMismatch).rejects(input);
+    }
+
+    @Test
+    public void interfaceAssignableTo_rejects_non_interface_types() {
+        interfaceAssignableTo(Serializable.class);
+
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> interfaceAssignableTo(AbstractList.class));
+    }
+
+    @Test
+    public void predicate_interfaceAssignableTo_descriptions() {
+        assertThat(interfaceAssignableTo(Collection.class))
+                .hasDescription("interface assignable to " + Collection.class.getName());
+        assertThat(interfaceAssignableTo(Collection.class.getName()))
+                .hasDescription("interface assignable to " + Collection.class.getName());
+        assertThat(interfaceAssignableTo(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")))
+                .hasDescription("interface assignable to custom");
+    }
+
+    @Test
     public void predicate_reside_in_a_package() {
         JavaClass clazz = importClassWithContext(getClass());
 
@@ -2153,7 +2221,7 @@ public class JavaClassTest {
         }));
     }
 
-    private JavaClass classWithHierarchy(Class<?> clazz) {
+    private static JavaClass classWithHierarchy(Class<?> clazz) {
         Set<Class<?>> classesToImport = getHierarchy(clazz);
         return importClasses(classesToImport.toArray(new Class<?>[0])).get(clazz);
     }
