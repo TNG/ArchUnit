@@ -546,6 +546,9 @@ propOne=valueOne
 propTwo=valueTwo
 ----
 
+If storing violations fails, for example because the store is read-only or an I/O error occurs,
+implementations should throw a `com.tngtech.archunit.library.freeze.StoreUpdateFailedException`.
+
 ===== Violation Line Matcher
 
 The `ViolationLineMatcher` compares lines from occurred violations with lines from the store.
