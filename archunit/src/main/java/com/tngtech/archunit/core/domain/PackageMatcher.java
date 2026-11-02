@@ -158,6 +158,7 @@ public final class PackageMatcher {
 
     private String convertToRegex(String packageIdentifier) {
         return packageIdentifier
+                .replace("$", "\\$") // '$' is a valid java identifier part, but a regex anchor
                 .replaceAll("\\[(.*?)]", "(?:$1)") // replacing all '[..|..]' with '(?:..|..)'
                 .replace(TWO_STAR_CAPTURE_LITERAL, TWO_STAR_REGEX_MARKER)
                 .replace("*", JAVA_IDENTIFIER_PART + "+")

@@ -58,6 +58,10 @@ public class PackageMatcherTest {
             "some..pkg          , some.a$b.€.pkg                 , true",
             "..pkg              , $.pkg                          , true",
             "some..             , some.€                         , true",
+            "some.a$b           , some.a$b                       , true",
+            "$..                , $.pkg                          , true",
+            "..[a$|b].pkg       , some.a$.pkg                    , true",
+            "some.pkg$          , some.pkg                       , false",
     })
     public void match(String matcher, String target, boolean matches) {
         assertThat(PackageMatcher.of(matcher).matches(target))
