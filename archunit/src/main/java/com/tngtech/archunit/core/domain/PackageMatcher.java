@@ -78,13 +78,14 @@ import static java.util.stream.Collectors.toList;
  */
 @PublicAPI(usage = ACCESS)
 public final class PackageMatcher {
-    private static final String OPT_LETTERS_AT_START = "(?:^\\w*)?";
-    private static final String OPT_LETTERS_AT_END = "(?:\\w*$)?";
-    private static final String ARBITRARY_PACKAGES = "\\.(?:\\w+\\.)*";
+    private static final String JAVA_IDENTIFIER_PART = "\\p{javaJavaIdentifierPart}";
+    private static final String OPT_LETTERS_AT_START = "(?:^" + JAVA_IDENTIFIER_PART + "*)?";
+    private static final String OPT_LETTERS_AT_END = "(?:" + JAVA_IDENTIFIER_PART + "*$)?";
+    private static final String ARBITRARY_PACKAGES = "\\.(?:" + JAVA_IDENTIFIER_PART + "+\\.)*";
     private static final String TWO_DOTS_REGEX = String.format("(?:%s%s%s)?", OPT_LETTERS_AT_START, ARBITRARY_PACKAGES, OPT_LETTERS_AT_END);
 
     private static final String TWO_STAR_CAPTURE_LITERAL = "(**)";
-    private static final String TWO_STAR_CAPTURE_REGEX = "(\\w+(?:\\.\\w+)*)";
+    private static final String TWO_STAR_CAPTURE_REGEX = "(" + JAVA_IDENTIFIER_PART + "+(?:\\." + JAVA_IDENTIFIER_PART + "+)*)";
     static final String TWO_STAR_REGEX_MARKER = "#%#%#";
 
     private static final Pattern ILLEGAL_ALTERNATION_PATTERN = Pattern.compile("\\[[^|]*]");
@@ -103,7 +104,7 @@ public final class PackageMatcher {
         validate(packageIdentifier);
 
         this.packageIdentifier = packageIdentifier;
-        this.packagePattern = Pattern.compile(convertToRegex(packageIdentifier), Pattern.UNICODE_CHARACTER_CLASS);
+        this.packagePattern = Pattern.compile(convertToRegex(packageIdentifier));
     }
 
     private void validate(String packageIdentifier) {
@@ -159,7 +160,7 @@ public final class PackageMatcher {
         return packageIdentifier
                 .replaceAll("\\[(.*?)]", "(?:$1)") // replacing all '[..|..]' with '(?:..|..)'
                 .replace(TWO_STAR_CAPTURE_LITERAL, TWO_STAR_REGEX_MARKER)
-                .replace("*", "\\w+")
+                .replace("*", JAVA_IDENTIFIER_PART + "+")
                 .replace(".", "\\.")
                 .replace(TWO_STAR_REGEX_MARKER, TWO_STAR_CAPTURE_REGEX)
                 .replace("\\.\\.", TWO_DOTS_REGEX);
