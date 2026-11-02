@@ -337,6 +337,73 @@ public class LayeredArchitectureTest {
     }
 
     @Test
+    public void layered_architecture_gathers_may_not_access_layers_violations() {
+        LayeredArchitecture architecture = layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Allowed").definedBy("..library.testclasses.mayonlyaccesslayers.allowed..")
+                .layer("Forbidden").definedBy("..library.testclasses.mayonlyaccesslayers.forbidden..")
+                .layer("Origin").definedBy("..library.testclasses.mayonlyaccesslayers.origin..")
+                .whereLayer("Origin").mayNotAccessLayers("Forbidden");
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        assertThat(architecture.getDescription()).endsWith("where layer 'Origin' may not access layers ['Forbidden']");
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                ImmutableSet.of(
+                        expectedAccessViolationPattern(
+                                MayOnlyAccessLayersOriginClass.class, "call", MayOnlyAccessLayersForbiddenClass.class, "callMe"),
+                        expectedFieldTypePattern(MayOnlyAccessLayersOriginClass.class, "illegalTarget", MayOnlyAccessLayersForbiddenClass.class)));
+    }
+
+    @Test
+    public void layered_architecture_gathers_may_not_be_accessed_by_layers_violations() {
+        // MayOnlyAccessLayersAllowedClass is not part of any layer, so its access to the origin layer stays allowed
+        LayeredArchitecture architecture = layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Forbidden").definedBy("..library.testclasses.mayonlyaccesslayers.forbidden..")
+                .layer("Origin").definedBy("..library.testclasses.mayonlyaccesslayers.origin..")
+                .whereLayer("Origin").mayNotBeAccessedByLayers("Forbidden");
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        assertThat(architecture.getDescription()).endsWith("where layer 'Origin' may not be accessed by layers ['Forbidden']");
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                ImmutableSet.of(
+                        expectedAccessViolationPattern(
+                                MayOnlyAccessLayersForbiddenClass.class, "callMe", MayOnlyAccessLayersOriginClass.class, CONSTRUCTOR_NAME)));
+    }
+
+    @Test
+    public void layered_architecture_rejects_invalid_forbidden_layers() {
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Some").definedBy("any")
+                .whereLayer("Some").mayNotAccessLayers("NotThere")
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no layer")
+                .hasMessageContaining("NotThere");
+
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Some").definedBy("any")
+                .whereLayer("Some").mayNotBeAccessedByLayers()
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("At least 1 layer name must be provided");
+
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Some").definedBy("any")
+                .whereLayer("Some").mayNotAccessLayers("Some")
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Layer 'Some' cannot forbid accesses to or from itself");
+    }
+
+    @Test
     public void layered_architecture_supports_dependency_setting_considering_all_dependencies() {
         LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
                 layeredArchitecture().consideringAllDependencies());
