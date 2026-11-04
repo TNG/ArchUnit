@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -1435,6 +1436,13 @@ public final class JavaClass
         completionProcess.markClassHierarchyComplete();
     }
 
+    void completePackageInfoFrom(ImportContext context) {
+        this.javaPackage = JavaPackage.from(Arrays.asList(
+                this,
+                context.resolveClass(this.getPackageName() + ".package-info")));
+        completionProcess.markPackageComplete();
+    }
+
     private void completeSuperclassFrom(ImportContext context) {
         Optional<JavaClass> rawSuperclass = context.createSuperclass(this);
         if (rawSuperclass.isPresent()) {
@@ -1673,6 +1681,10 @@ public final class JavaClass
             @Override
             public void markDependenciesComplete() {
             }
+
+            @Override
+            public void markPackageComplete() {
+            }
         };
 
         abstract boolean hasFinished();
@@ -1693,6 +1705,8 @@ public final class JavaClass
 
         public abstract void markDependenciesComplete();
 
+        public abstract void markPackageComplete();
+
         static CompletionProcess start() {
             return new FullCompletionProcess();
         }
@@ -1711,6 +1725,7 @@ public final class JavaClass
         private boolean membersComplete = false;
         private boolean annotationsComplete = false;
         private boolean dependenciesComplete = false;
+        private boolean packageComplete = false;
 
         @Override
         boolean hasFinished() {
@@ -1721,7 +1736,8 @@ public final class JavaClass
                     && genericInterfacesComplete
                     && membersComplete
                     && annotationsComplete
-                    && dependenciesComplete;
+                    && dependenciesComplete
+                    && packageComplete;
         }
 
         @Override
@@ -1762,6 +1778,11 @@ public final class JavaClass
         @Override
         public void markDependenciesComplete() {
             this.dependenciesComplete = true;
+        }
+
+        @Override
+        public void markPackageComplete() {
+            this.packageComplete = true;
         }
     }
 
