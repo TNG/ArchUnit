@@ -74,6 +74,7 @@ public abstract class JavaCodeUnit
     private Set<TryCatchBlock> tryCatchBlocks = Collections.emptySet();
     private Set<ReferencedClassObject> referencedClassObjects;
     private Set<InstanceofCheck> instanceofChecks;
+    private Set<TypeSwitchCheck> typeSwitchChecks;
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
@@ -225,6 +226,15 @@ public abstract class JavaCodeUnit
         return instanceofChecks;
     }
 
+    /**
+     * Returns the class labels checked by type-switch bytecode instructions in this code unit.
+     * Source code locations refer to the instructions, not to individual source-level case labels.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<TypeSwitchCheck> getTypeSwitchChecks() {
+        return typeSwitchChecks;
+    }
+
     @PublicAPI(usage = ACCESS)
     public Set<TryCatchBlock> getTryCatchBlocks() {
         return tryCatchBlocks;
@@ -299,6 +309,7 @@ public abstract class JavaCodeUnit
                 .collect(toImmutableSet());
         referencedClassObjects = context.createReferencedClassObjectsFor(this);
         instanceofChecks = context.createInstanceofChecksFor(this);
+        typeSwitchChecks = context.createTypeSwitchChecksFor(this);
     }
 
     @ResolvesTypesViaReflection
