@@ -124,7 +124,7 @@ public final class JavaClass
         return ImmutableSet.copyOf(result);
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
-    private Optional<JavaClass> componentType = Optional.empty();
+    private final Optional<JavaClass> componentType;
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
@@ -140,6 +140,7 @@ public final class JavaClass
         isAnonymousClass = builder.isAnonymousClass();
         isMemberClass = builder.isMemberClass();
         modifiers = immutableEnumSet(builder.getModifiers());
+        componentType = builder.getComponentType();
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
         sourceCodeLocation = SourceCodeLocation.of(this);
         javaPackage = JavaPackage.simple(this);
@@ -1495,19 +1496,9 @@ public final class JavaClass
     }
 
     JavaClassDependencies completeFrom(ImportContext context) {
-        completeComponentType(context);
         members.completeFrom(context);
         javaClassDependencies = new JavaClassDependencies(this);
         return javaClassDependencies;
-    }
-
-    private void completeComponentType(ImportContext context) {
-        JavaClass current = this;
-        while (current.isArray() && !current.componentType.isPresent()) {
-            JavaClass componentType = context.resolveClass(current.descriptor.tryGetComponentType().get().getFullyQualifiedClassName());
-            current.componentType = Optional.of(componentType);
-            current = componentType;
-        }
     }
 
     void setReverseDependencies(ReverseDependencies reverseDependencies) {
