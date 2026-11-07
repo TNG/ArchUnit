@@ -119,6 +119,7 @@ class JavaClassSignatureImporter {
             @Override
             public void visitInnerClassType(String name) {
                 superclass = superclass.forInnerClass(name);
+                declarationHandler.onDeclaredGenericSignatureType(superclass.getTypeName());
             }
 
             @Override

@@ -36,6 +36,11 @@ public class ClassWithInnerClass {
         }
     }
 
+    public class GenericInner<T> {
+        T member;
+        ClassWithInnerClass that = ClassWithInnerClass.this;
+    }
+
     public static class NestedStatic implements CanBeCalled {
         private CalledClass calledClass;
 

@@ -827,9 +827,16 @@ public final class DomainBuilders {
     static class JavaParameterizedTypeBuilder<OWNER extends HasDescription> implements JavaTypeBuilder<OWNER> {
         private final JavaClassDescriptor type;
         private final List<JavaTypeCreationProcess<OWNER>> typeArgumentCreationProcesses = new ArrayList<>();
+        private Optional<JavaParameterizedTypeBuilder<OWNER>> enclosingTypeBuilder;
 
         JavaParameterizedTypeBuilder(JavaClassDescriptor type) {
             this.type = type;
+            this.enclosingTypeBuilder = Optional.empty();
+        }
+
+        JavaParameterizedTypeBuilder(JavaClassDescriptor type, JavaParameterizedTypeBuilder<OWNER> enclosingTypeBuilder) {
+            this.type = type;
+            this.enclosingTypeBuilder = Optional.of(enclosingTypeBuilder);
         }
 
         void addTypeArgument(JavaTypeCreationProcess<OWNER> typeCreationProcess) {
@@ -838,10 +845,25 @@ public final class DomainBuilders {
 
         @Override
         public JavaType build(OWNER owner, Iterable<? extends JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes) {
+            JavaClass erasure = classes.getOrResolve(type.getFullyQualifiedClassName());
             List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, owner, allTypeParametersInContext, classes);
-            return typeArguments.isEmpty()
-                    ? classes.getOrResolve(type.getFullyQualifiedClassName())
-                    : new ImportedParameterizedType(classes.getOrResolve(type.getFullyQualifiedClassName()), typeArguments);
+            Optional<JavaType> enclosingType = resolveEnclosingType(erasure, typeArguments, owner, allTypeParametersInContext, classes);
+            return typeArguments.isEmpty() && !enclosingType.isPresent()
+                    ? erasure
+                    : new ImportedParameterizedType(erasure, typeArguments, enclosingType);
+        }
+
+        private Optional<JavaType> resolveEnclosingType(
+                JavaClass erasure, List<JavaType> typeArguments, OWNER owner, Iterable<? extends JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes
+        ) {
+
+            if (enclosingTypeBuilder.isPresent()) {
+                return enclosingTypeBuilder.map(builder -> builder.build(owner, allTypeParametersInContext, classes));
+            }
+            if (!typeArguments.isEmpty() && erasure.isInnerClass()) {
+                return erasure.getEnclosingClass().map(enclosingClass -> (JavaType) enclosingClass);
+            }
+            return Optional.empty();
         }
 
         String getTypeName() {
@@ -849,8 +871,10 @@ public final class DomainBuilders {
         }
 
         JavaParameterizedTypeBuilder<OWNER> forInnerClass(String simpleInnerClassName) {
-            return new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(
-                    type.getFullyQualifiedClassName() + '$' + simpleInnerClassName));
+            return new JavaParameterizedTypeBuilder<>(
+                    JavaClassDescriptorImporter.createFromAsmObjectTypeName(type.getFullyQualifiedClassName() + '$' + simpleInnerClassName),
+                    this
+            );
         }
     }
 
@@ -1198,18 +1222,20 @@ public final class DomainBuilders {
     private static class ImportedParameterizedType implements JavaParameterizedType {
         private final JavaType type;
         private final List<JavaType> typeArguments;
+        private final Optional<JavaType> enclosingType;
 
-        ImportedParameterizedType(JavaType type, List<JavaType> typeArguments) {
-            checkArgument(typeArguments.size() > 0,
-                    "Parameterized type cannot be created without type arguments. This is likely a bug.");
+        ImportedParameterizedType(JavaType type, List<JavaType> typeArguments, Optional<JavaType> enclosingType) {
+            checkArgument(typeArguments.size() > 0 || enclosingType.isPresent(),
+                    "Parameterized type cannot be created without type arguments or enclosing type. This is likely a bug.");
 
             this.type = type;
             this.typeArguments = typeArguments;
+            this.enclosingType = enclosingType;
         }
 
         @Override
         public String getName() {
-            return type.getName() + formatTypeArguments();
+            return enclosingType.map(enclosing -> enclosing.getName() + "$" + type.getSimpleName()).orElse(type.getName()) + formatTypeArguments();
         }
 
         @Override
@@ -1223,11 +1249,19 @@ public final class DomainBuilders {
         }
 
         @Override
+        public Optional<JavaType> getEnclosingType() {
+            return enclosingType;
+        }
+
+        @Override
         public String toString() {
             return getClass().getSimpleName() + "{" + getName() + '}';
         }
 
         private String formatTypeArguments() {
+            if (typeArguments.isEmpty()) {
+                return "";
+            }
             return typeArguments.stream()
                     .map(typeArgument -> ensureCanonicalArrayTypeName(typeArgument.getName()))
                     .collect(joining(", ", "<", ">"));

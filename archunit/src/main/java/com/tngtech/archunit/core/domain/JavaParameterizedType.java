@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.tngtech.archunit.PublicAPI;
 
@@ -40,4 +41,7 @@ public interface JavaParameterizedType extends JavaType {
     default void traverseSignature(SignatureVisitor visitor) {
         SignatureTraversal.from(visitor).visitParameterizedType(this);
     }
+
+    // TODO add javadoc
+    Optional<JavaType> getEnclosingType();
 }
