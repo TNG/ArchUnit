@@ -1,10 +1,14 @@
 package com.tngtech.archunit.lang.conditions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import org.junit.Test;
 
@@ -49,6 +53,38 @@ public class JavaAccessConditionTest {
         assertThatOnlyAccessToSomeClassFor(clazz, new JavaAccessCondition<>(alwaysFalse()))
                 .haveOneViolationMessageContaining(ClassCallingMethod.class.getSimpleName() + ".call()")
                 .haveOneViolationMessageContaining(SomeClass.class.getSimpleName() + ".method");
+    }
+
+    @Test
+    public void events_are_equivalent_to_SimpleConditionEvents() {
+        JavaClass clazz = importToCheck(ClassAccessingField.class);
+        JavaAccess<?> access = filterByTarget(clazz.getAccessesFromSelf(), SomeClass.class).iterator().next();
+
+        for (boolean satisfied : new boolean[]{true, false}) {
+            ViolatedAndSatisfiedConditionEvents events = new ViolatedAndSatisfiedConditionEvents();
+            new JavaAccessCondition<>(satisfied ? alwaysTrue() : alwaysFalse()).check(access, events);
+            ConditionEvent actual = (satisfied ? events.getAllowed() : events.getViolating()).iterator().next();
+            ConditionEvent expected = new SimpleConditionEvent(access, satisfied, access.getDescription());
+
+            assertEquivalent(actual, expected);
+            assertEquivalent(actual.invert(), expected.invert());
+        }
+    }
+
+    private void assertEquivalent(ConditionEvent actual, ConditionEvent expected) {
+        assertThat(actual.isViolation()).isEqualTo(expected.isViolation());
+        assertThat(actual.getDescriptionLines()).isEqualTo(expected.getDescriptionLines());
+        assertThat(actual.toString()).contains(expected.getDescriptionLines().get(0));
+        assertThat(handled(actual)).isEqualTo(handled(expected));
+    }
+
+    private List<Object> handled(ConditionEvent event) {
+        List<Object> result = new ArrayList<>();
+        event.handleWith((correspondingObjects, message) -> {
+            result.add(correspondingObjects);
+            result.add(message);
+        });
+        return result;
     }
 
     @Test
