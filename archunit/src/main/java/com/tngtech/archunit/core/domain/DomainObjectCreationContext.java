@@ -42,6 +42,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaRecordComponentBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
@@ -108,6 +109,9 @@ public class DomainObjectCreationContext {
         return new JavaField(builder);
     }
 
+    public static JavaRecordComponent createJavaRecordComponent(JavaRecordComponentBuilder builder) {
+        return new JavaRecordComponent(builder);
+    }
     public static TryCatchBlock createTryCatchBlock(TryCatchBlockBuilder builder) {
         return new TryCatchBlock(builder);
     }

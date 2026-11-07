@@ -49,6 +49,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
+import com.tngtech.archunit.core.domain.JavaRecordComponent;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -325,6 +326,11 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public Set<JavaRecordComponent> createRecordComponents(JavaClass owner) {
+        return build(importRecord.getRecordComponentBuildersFor(owner.getName()), owner, classes);
+    }
+
+    @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
         Stream<JavaMethodBuilder> methodBuilders = getNonSyntheticMethodBuildersFor(owner);
         if (owner.isAnnotation()) {
@@ -367,6 +373,11 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
         return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
+    }
+
+    @Override
+    public Map<String, JavaAnnotation<JavaRecordComponent>> createAnnotations(JavaRecordComponent owner) {
+        return createAnnotations(owner, importRecord.getRecordComponentAnnotationsFor(owner));
     }
 
     private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
