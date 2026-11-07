@@ -36,6 +36,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.newMethodCall;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -664,6 +665,23 @@ public class DependencyTest {
                 .satisfiesStandardConventions()
                 .isPossibleToSingleElement(JavaAccess.class, it -> assertThat(it).isEqualTo(call))
                 .isPossibleToSingleElement(JavaMethodCall.class, it -> assertThat(it).isEqualTo(call));
+    }
+
+    @Test
+    public void dependencies_from_indistinguishable_accesses_are_equal() {
+        // Compilers may duplicate byte code (e.g. of finally blocks), so that a single access in the source code
+        // results in several JavaAccess objects with the same origin, target and line number
+        JavaMethod origin = importClassWithContext(getClass()).getMethod("toString");
+        JavaMethod target = importClassWithContext(Object.class).getMethod("toString");
+        int lineNumber = 7;
+        JavaMethodCall firstCall = newMethodCall(origin, target, lineNumber);
+        JavaMethodCall secondCall = newMethodCall(origin, target, lineNumber);
+
+        Dependency firstDependency = getOnlyElement(Dependency.tryCreateFromAccess(firstCall));
+        Dependency secondDependency = getOnlyElement(Dependency.tryCreateFromAccess(secondCall));
+
+        assertThat(firstDependency).isEqualTo(secondDependency);
+        assertThat(firstDependency).hasSameHashCodeAs(secondDependency);
     }
 
     @Test

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -187,6 +188,16 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingPublicClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThatTypes(classes).matchInAnyOrder(ClassAccessingPublicClass.class);
+    }
+
+    @Test
+    void dependOnClassesThat_reports_dependency_from_access_duplicated_by_the_compiler_only_once() {
+        ArchRule rule = noClasses().should().dependOnClassesThat().resideInAPackage("java.lang.reflect..");
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassCallingMethodInFinallyBlock.class);
+
+        assertThatRule(rule).checking(classes)
+                .hasOnlyOneViolationMatching(String.format(".*<%s\\.callInFinallyBlock\\(.*\\)> calls method <%s\\.setBoolean\\(.*\\)> in .*",
+                        quote(ClassCallingMethodInFinallyBlock.class.getName()), quote(Field.class.getName())));
     }
 
     @ParameterizedTest
@@ -1846,6 +1857,19 @@ public class ShouldClassesThatTest {
         @SuppressWarnings("unused")
         void call(Iterable<?> iterable) {
             iterable.iterator();
+        }
+    }
+
+    private static class ClassCallingMethodInFinallyBlock {
+        @SuppressWarnings({"ConstantConditions", "unused"})
+        String callInFinallyBlock(String input) throws Exception {
+            try {
+                return input;
+            } finally {
+                // javac duplicates the byte code of the finally block for the regular and the exceptional path
+                Field field = null;
+                field.setBoolean(null, false);
+            }
         }
     }
 
