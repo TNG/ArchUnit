@@ -124,16 +124,93 @@ noClasses().that(resideInAPackageService)
 
 Thus, if the predefined API does not allow to express some concept,
 it is possible to extend it in any custom way.
+A `DescribedPredicate` answers one yes-or-no question about a single object.
+`ArchConditions.have` and `ArchConditions.be` turn that answer into an `ArchCondition`.
+They prefix the predicate description, so that description has to stay grammatical
+after `have` or `be` and must not repeat those words.
+A noun phrase fits `have`; an adjective phrase fits `be`.
+The methods can be called qualified, as in `ArchConditions.have(..)`, or statically imported:
+
+[source,java,options="nowrap"]
+----
+import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
+
+DescribedPredicate<JavaClass> aFieldAnnotatedWithPayload =
+    new DescribedPredicate<JavaClass>("a field annotated with @Payload") {
+        @Override
+        public boolean test(JavaClass input) {
+            for (JavaField field : input.getFields()) {
+                if (field.isAnnotatedWith(Payload.class)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+classes().should(have(aFieldAnnotatedWithPayload));
+
+DescribedPredicate<JavaClass> annotatedWithEntity =
+    new DescribedPredicate<JavaClass>("annotated with @Entity") {
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isAnnotatedWith(Entity.class);
+        }
+    };
+
+classes().should(be(annotatedWithEntity));
+----
+
+The first rule text is _"classes should have a field annotated with @Payload"_.
+`have` records one event per class.
+A class that has such a field is reported as
+
+[source]
+----
+Class <com.example.Order> has a field annotated with @Payload in (Order.java:0)
+----
+
+and a class that has no such field as
+
+[source]
+----
+Class <com.example.Order> does not have a field annotated with @Payload in (Order.java:0)
+----
+
+The second rule text is _"classes should be annotated with @Entity"_.
+A matching class is reported as
+_"Class <com.example.Order> is annotated with @Entity in (Order.java:0)"_,
+and a class that does not match as
+_"Class <com.example.Order> is not annotated with @Entity in (Order.java:0)"_.
+`ArchConditions.not` inverts this single event and keeps the message,
+so a class that matches is then reported with the satisfied wording
+(_"has a field annotated with @Payload"_ or _"is annotated with @Entity"_).
+
+A predicate, and a condition created from it with `have` or `be`, still judges the object as a whole
+and therefore records one event.
+A hand-written `ArchCondition` can record several events, for example one per incoming method call.
+Negation, whether through `ArchConditions.not` or through `noClasses()`, inverts every recorded event
+and leaves the message text untouched: a satisfied event becomes a violation, and a violated event becomes allowed.
+An event that was never added stays invisible, which is why both outcomes have to be recorded.
+Inverting those events one by one does not restate the condition as
+_"every incoming call must be unsecured"_.
+A class with no incoming calls still produces no event; negation does not invent one.
+
 For example:
 
 [source,java,options="nowrap"]
 ----
 DescribedPredicate<JavaClass> haveAFieldAnnotatedWithPayload =
-    new DescribedPredicate<JavaClass>("have a field annotated with @Payload"){
+    new DescribedPredicate<JavaClass>("have a field annotated with @Payload") {
         @Override
         public boolean test(JavaClass input) {
-            boolean someFieldAnnotatedWithPayload = // iterate fields and check for @Payload
-            return someFieldAnnotatedWithPayload;
+            for (JavaField field : input.getFields()) {
+                if (field.isAnnotatedWith(Payload.class)) {
+                    return true;
+                }
+            }
+            return false;
         }
     };
 
@@ -142,17 +219,31 @@ ArchCondition<JavaClass> onlyBeAccessedBySecuredMethods =
         @Override
         public void check(JavaClass item, ConditionEvents events) {
             for (JavaMethodCall call : item.getMethodCallsToSelf()) {
-                if (!call.getOrigin().isAnnotatedWith(Secured.class)) {
-                    String message = String.format(
-                        "Method %s is not @Secured", call.getOrigin().getFullName());
-                    events.add(SimpleConditionEvent.violated(call, message));
-                }
+                boolean conditionSatisfied = call.getOrigin().isAnnotatedWith(Secured.class);
+                String message = conditionSatisfied
+                        ? String.format("Method %s is @Secured", call.getOrigin().getFullName())
+                        : String.format("Method %s is not @Secured", call.getOrigin().getFullName());
+                events.add(new SimpleConditionEvent(call, conditionSatisfied, message));
             }
         }
     };
 
 classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods);
 ----
+
+The loop adds one `SimpleConditionEvent` for every incoming call.
+`conditionSatisfied` is the origin annotation check, and the message names that same state:
+_"Method <full name> is @Secured"_ when the origin is annotated, and
+_"Method <full name> is not @Secured"_ when it is not.
+After inversion the message still describes the annotation that is actually present,
+so a secured call is reported as a violation of the negated condition,
+while an unsecured call is no longer a violation.
+Calls on the same class are inverted independently.
+If `getMethodCallsToSelf()` is empty, the loop adds nothing.
+
+The description passed to `.that(..)` is inserted after "that".
+`haveAFieldAnnotatedWithPayload` therefore starts with "have", which would be repeated
+if that same description were passed to `ArchConditions.have`.
 
 If the rule fails, the error message will be built from the supplied descriptions. In the
 example above, it would be
