@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,7 +70,8 @@ import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeAnnotations;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingDeclaration;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingCodeUnit;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericInterfaces;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericSuperclass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
@@ -111,9 +113,14 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void completeClasses() {
-        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
+        // use the same list twice to avoid including classes in the second loop which might be added in the first loop
+        Collection<JavaClass> allClassesWithOuterBeforeInnerClasses = classes.getAllWithOuterClassesSortedBeforeInnerClasses();
+        for (JavaClass javaClass : allClassesWithOuterBeforeInnerClasses) {
             completeClassHierarchy(javaClass, this);
-            completeEnclosingDeclaration(javaClass, this);
+            completeEnclosingClass(javaClass, this);
+        }
+        for (JavaClass javaClass : allClassesWithOuterBeforeInnerClasses) {
+            completeEnclosingCodeUnit(javaClass, this);
             completeTypeParameters(javaClass, this);
             completeGenericSuperclass(javaClass, this);
             completeGenericInterfaces(javaClass, this);
