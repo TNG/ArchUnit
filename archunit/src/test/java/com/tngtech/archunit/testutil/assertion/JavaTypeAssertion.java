@@ -124,10 +124,10 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         if (clazz.isAnonymousClass() && runsOnPreJava9Vm()) {
             // anonymous classes have been a shady section of the JLS. At some point they are defined as "implicitly final"
             // in a later JLS as "never final", and the bytecode contains something different than the Reflection API returns
-            // (possibly FINAL if declared in non-public classes, but not STATIC, while the Reflection API returns STATIC but not FINAL).
+            // (possibly FINAL if declared in non-public classes or in a static context, but not STATIC, while the Reflection API returns STATIC but not FINAL).
             // We will ignore this and stick to the bytecode, since it's a corner case and being consistent with the bytecode is the easiest
-            result.remove(JavaModifier.STATIC);
-            if (clazz.getEnclosingMethod() == null || (clazz.getEnclosingClass() != null && isPrivate(clazz.getEnclosingClass().getModifiers()))) {
+            boolean declaredInStaticContext = result.remove(JavaModifier.STATIC);
+            if (declaredInStaticContext || clazz.getEnclosingMethod() == null || (clazz.getEnclosingClass() != null && isPrivate(clazz.getEnclosingClass().getModifiers()))) {
                 result.add(JavaModifier.FINAL);
             }
         }
