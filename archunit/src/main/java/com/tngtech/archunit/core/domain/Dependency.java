@@ -55,6 +55,7 @@ import static java.util.Collections.singleton;
  * <li>a class references another class in a {@code catch} clause</li>
  * <li>a class references another class object (e.g. {@code Example.class})</li>
  * <li>a class references another class in an {@code instanceof} check</li>
+ * <li>a class references another class as a class label of a type-switch instruction</li>
  * </ul>
  * Note that a {@link Dependency} will by definition never be a self-reference,
  * i.e. <code>origin</code> will never be equal to <code>target</code>.
@@ -137,6 +138,12 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependency(
                 instanceofCheck.getOwner(), "checks instanceof",
                 instanceofCheck.getRawType(), instanceofCheck.getSourceCodeLocation());
+    }
+
+    static Set<Dependency> tryCreateFromTypeSwitchCheck(TypeSwitchCheck typeSwitchCheck) {
+        return tryCreateDependency(
+                typeSwitchCheck.getOwner(), "checks type in switch",
+                typeSwitchCheck.getRawType(), typeSwitchCheck.getSourceCodeLocation());
     }
 
     static Set<Dependency> tryCreateFromReferencedClassObject(ReferencedClassObject referencedClassObject) {

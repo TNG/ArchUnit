@@ -196,6 +196,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredTypeSwitchCheck(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
+
+        @Override
         public void onDeclaredCaughtThrowable(String typeName) {
             dependencyResolutionProcess.registerAccessToType(typeName);
         }
@@ -303,6 +308,16 @@ class ClassFileProcessor {
             importRecord.registerInstanceofCheck(new RawInstanceofCheck.Builder()
                     .withOrigin(codeUnit)
                     .withTarget(instanceOfCheckType)
+                    .withLineNumber(lineNumber)
+                    .withDeclaredInLambda(false)
+                    .build());
+        }
+
+        @Override
+        public void handleTypeSwitchCheck(JavaClassDescriptor type, int lineNumber) {
+            importRecord.registerTypeSwitchCheck(new RawTypeSwitchCheck.Builder()
+                    .withOrigin(codeUnit)
+                    .withTarget(type)
                     .withLineNumber(lineNumber)
                     .withDeclaredInLambda(false)
                     .build());
