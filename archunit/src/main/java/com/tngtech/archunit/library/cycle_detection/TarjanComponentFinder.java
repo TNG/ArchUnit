@@ -38,8 +38,10 @@ import static java.util.Comparator.comparing;
  * <br><br>
  * Note that we keep track of all Tarjan specific state within {@link #graph}.
  * <br><br>
- * Also note that we always only need to find the strongly connected component containing the next unvisited node in ascending order.
- * Thus we do not need to find all strongly connected components, but only the next relevant one to apply Johnson's algorithm to.
+ * Also note that Johnson's algorithm needs the strongly connected component with the lowest node index among all nodes
+ * above a given lower bound. This component is not necessarily reachable from the lowest node above the bound,
+ * e.g. if that node does not lie on any cycle itself, but leads to a cycle of nodes with higher indexes.
+ * Thus we search from every unvisited node above the bound and pick the component with the lowest node index in the end.
  */
 class TarjanComponentFinder {
     static final int[] NO_COMPONENT_FOUND = new int[0];
@@ -57,7 +59,7 @@ class TarjanComponentFinder {
     }
 
     /**
-     * Returns a strongly connected component containing the next node larger than or equal to {@code lowerIndexBound}.<br>
+     * Returns the non-trivial strongly connected component containing the lowest node index larger than or equal to {@code lowerIndexBound}.<br>
      * The returned strongly connected component will only contain nodes with a node index larger than or equal to {@code lowerIndexBound}.<br>
      * If no such strongly connected component can be found {@link #NO_COMPONENT_FOUND} will be returned.<br>
      * Note that the returned array of node indexes is guaranteed to be sorted in ascending order.
@@ -69,15 +71,13 @@ class TarjanComponentFinder {
     }
 
     private int[] findNonTrivialLowestStronglyConnectedComponentInSubGraphInducedByLowerBound(int lowerIndexBound) {
+        List<int[]> components = new ArrayList<>();
         for (int j = lowerIndexBound; j < graph.getSize(); j++) {
             if (graph.isVisitationIndexUnset(j)) {
-                List<int[]> components = findNonTrivialStronglyConnectedComponents(j, lowerIndexBound);
-                if (!components.isEmpty()) {
-                    return findComponentWithLowestNode(components);
-                }
+                components.addAll(findNonTrivialStronglyConnectedComponents(j, lowerIndexBound));
             }
         }
-        return NO_COMPONENT_FOUND;
+        return components.isEmpty() ? NO_COMPONENT_FOUND : findComponentWithLowestNode(components);
     }
 
     private List<int[]> findNonTrivialStronglyConnectedComponents(int nodeToVisit, int lowerIndexBound) {
