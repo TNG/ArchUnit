@@ -38,6 +38,15 @@ public class TestUtils {
         return folder;
     }
 
+    /**
+     * @return The major version of the running JVM, e.g. 8 for Java 1.8 and 17 for Java 17
+     */
+    public static int currentJavaMajorVersion() {
+        // up to Java 8 the specification version is "1.x", from Java 9 on it is just the major version
+        String version = System.getProperty("java.specification.version");
+        return Integer.parseInt(version.startsWith("1.") ? version.substring(2) : version);
+    }
+
     public static Object invoke(Method method, Object owner, Object... params) {
         try {
             method.setAccessible(true);
