@@ -149,7 +149,21 @@ public class ArchModulesTest {
                         .modularize(testExamples)
         )
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Found multiple modules with the same name: [" + duplicateName + "]");
+                .hasMessageContaining("Found multiple modules with the same name: '" + duplicateName + "'")
+                .hasMessageContaining("[module1, sub1], [module1, sub2], [module2, sub1], [module2, sub2]");
+    }
+
+    @Test
+    public void rejects_multiple_modules_with_empty_name_by_annotations() {
+        assertThatThrownBy(
+                () -> ArchModules
+                        .defineByAnnotation(MyModule.class, __ -> "")
+                        .modularize(testExamples)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Found multiple modules with the same name: ''")
+                .hasMessageContaining(ModuleOneDescriptor.class.getPackage().getName())
+                .hasMessageContaining(ModuleTwoDescriptor.class.getPackage().getName());
     }
 
     @Test
