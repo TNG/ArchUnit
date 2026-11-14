@@ -191,6 +191,14 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<TypeSwitchCheck> getTypeSwitchChecks() {
+        ImmutableSet.Builder<TypeSwitchCheck> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getTypeSwitchChecks());
+        }
+        return result.build();
+    }
+
     Set<TryCatchBlock> getTryCatchBlocks() {
         ImmutableSet.Builder<TryCatchBlock> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {

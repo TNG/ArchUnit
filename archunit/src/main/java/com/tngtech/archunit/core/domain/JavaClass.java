@@ -617,6 +617,14 @@ public final class JavaClass
         return members.getInstanceofChecks();
     }
 
+    /**
+     * Returns the class labels checked by type-switch bytecode instructions in the code units of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<TypeSwitchCheck> getTypeSwitchChecks() {
+        return members.getTypeSwitchChecks();
+    }
+
     @PublicAPI(usage = ACCESS)
     public Set<TryCatchBlock> getTryCatchBlocks() {
         return members.getTryCatchBlocks();
