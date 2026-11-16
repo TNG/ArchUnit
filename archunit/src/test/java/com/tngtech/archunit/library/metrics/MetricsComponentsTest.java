@@ -10,6 +10,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg1.SomeTestClass1;
 import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg1.sub.SomeSubTestClass;
 import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg2.SomeTestClass2;
+import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg3.SomeTestClass3;
 import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -48,6 +49,22 @@ public class MetricsComponentsTest {
         component = components.tryGetComponent(SomeTestClass2.class.getPackage().getName()).get();
         assertThatTypes(component).as("elements of component " + component.getIdentifier())
                 .matchInAnyOrder(SomeTestClass2.class);
+    }
+
+    @Test
+    public void creates_components_from_Java_packages_excluding_package_info() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SomeTestClass3.class);
+        Set<JavaPackage> packages = ImmutableSet.of(classes.get(SomeTestClass3.class).getPackage());
+
+        MetricsComponents<JavaClass> components = MetricsComponents.fromPackages(packages);
+
+        assertThat(components)
+                .as("components contain concrete classes, but not 'package info' class")
+                .hasSize(1);
+
+        MetricsComponent<JavaClass> component = components.tryGetComponent(SomeTestClass3.class.getPackage().getName()).get();
+        assertThatTypes(component).as("elements of component " + component.getIdentifier())
+                .matchInAnyOrder(SomeTestClass3.class);
     }
 
     @Test

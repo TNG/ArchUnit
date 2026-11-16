@@ -76,6 +76,10 @@ public class DomainObjectCreationContext {
         javaClass.completeClassHierarchyFrom(importContext);
     }
 
+    public static void completePackage(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completePackageInfoFrom(importContext);
+    }
+
     public static void completeEnclosingDeclaration(JavaClass javaClass, ImportContext importContext) {
         javaClass.completeEnclosingDeclarationFrom(importContext);
     }

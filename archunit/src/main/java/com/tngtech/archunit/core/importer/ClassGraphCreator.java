@@ -73,6 +73,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.compl
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericInterfaces;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericSuperclass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completePackage;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeParameters;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
@@ -119,6 +120,7 @@ class ClassGraphCreator implements ImportContext {
             completeGenericInterfaces(javaClass, this);
             completeMembers(javaClass, this);
             completeAnnotations(javaClass, this);
+            completePackage(javaClass, this);
         }
     }
 
