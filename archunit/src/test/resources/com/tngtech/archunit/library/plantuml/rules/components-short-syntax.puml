@@ -1,0 +1,8 @@
+@startuml
+[Web API] <<..web>>
+[Use Cases] <<..usecase>>
+[Persistence] <<..persistence>>
+
+[Web API] --> [Use Cases]
+[Use Cases] --> [Persistence]
+@enduml
