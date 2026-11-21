@@ -814,6 +814,15 @@ public final class JavaClass
         return members.tryGetField(name);
     }
 
+    /**
+     * Mirrors {@link Class#getRecordComponents()}.
+     * @return the set of record components, or {@link Optional#empty()} if this class is not a record.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<Set<JavaRecordComponent>> getRecordComponents() {
+        return isRecord ? Optional.of(members.getRecordComponents()) : Optional.empty();
+    }
+
     @PublicAPI(usage = ACCESS)
     public Set<JavaCodeUnit> getCodeUnits() {
         return members.getCodeUnits();

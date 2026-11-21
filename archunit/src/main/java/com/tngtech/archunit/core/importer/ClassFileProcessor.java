@@ -129,6 +129,12 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredRecordComponent(DomainBuilders.JavaRecordComponentBuilder fieldBuilder, String fieldTypeName) {
+            importRecord.addRecordComponent(ownerName, fieldBuilder);
+            dependencyResolutionProcess.registerMemberType(fieldTypeName);
+        }
+
+        @Override
         public void onDeclaredConstructor(JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames) {
             importRecord.addConstructor(ownerName, constructorBuilder);
             dependencyResolutionProcess.registerMemberTypes(rawParameterTypeNames);
@@ -155,6 +161,12 @@ class ClassFileProcessor {
         @Override
         public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotationBuilders) {
             importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotationBuilders);
+            registerAnnotationTypesToResolve(annotationBuilders);
+        }
+
+        @Override
+        public void onDeclaredRecordComponentAnnotations(String componentName, String descriptor, Set<JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addRecordComponentAnnotations(ownerName, componentName, descriptor, annotationBuilders);
             registerAnnotationTypesToResolve(annotationBuilders);
         }
 
