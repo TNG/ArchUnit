@@ -50,6 +50,18 @@ public class PackageMatcherTest {
             "..[a|b*].pk*..     , some.arbitrary.pkg.whatever    , false",
             "..[*c*|*d*].pk*..  , some.anydinside.pkg.whatever   , true",
             "..[*c*|*d*].pk*..  , some.nofit.pkg.whatever        , false",
+            "some.*.pkg         , some.übersicht.pkg             , true",
+            "some..pkg          , some.übersicht.pkg             , true",
+            "..pkg              , über.pkg                       , true",
+            "some..             , some.übersicht                 , true",
+            "some.*.pkg         , some.$¢€.pkg                   , true",
+            "some..pkg          , some.a$b.€.pkg                 , true",
+            "..pkg              , $.pkg                          , true",
+            "some..             , some.€                         , true",
+            "some.a$b           , some.a$b                       , true",
+            "$..                , $.pkg                          , true",
+            "..[a$|b].pkg       , some.a$.pkg                    , true",
+            "some.pkg$          , some.pkg                       , false",
     })
     public void match(String matcher, String target, boolean matches) {
         assertThat(PackageMatcher.of(matcher).matches(target))
@@ -86,7 +98,11 @@ public class PackageMatcherTest {
             "..[application|domain.*|infrastructure].(*).. , com.example.application.a.http , a",
             "..[application|domain.*|infrastructure].(*).. , com.example.domain.api.a , a",
             "..[application|domain.*|infrastructure].(*).. , com.example.domain.logic.a , a",
-            "..[application|domain.*|infrastructure].(*).. , com.example.infrastructure.a.file , a"
+            "..[application|domain.*|infrastructure].(*).. , com.example.infrastructure.a.file , a",
+            "some.(*).pkg , some.übersicht.pkg , übersicht",
+            "some.(**) , some.übersicht.änderungen , übersicht.änderungen",
+            "some.(*).pkg , some.€uro.pkg , €uro",
+            "some.(**) , some.a$b.€ , a$b.€"
     })
     public void capture_groups(String matcher, String target, String groupString) {
         Optional<Result> match = PackageMatcher.of(matcher).match(target);
