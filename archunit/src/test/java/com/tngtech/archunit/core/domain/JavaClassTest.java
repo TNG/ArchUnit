@@ -136,6 +136,35 @@ public class JavaClassTest {
     }
 
     @Test
+    public void finds_array_type_multi_dimensional_and_recursive() {
+        @SuppressWarnings("unused")
+        class IsArrayTestClass {
+            IsArrayTestClass[][][] anArray() {
+                return null;
+            }
+        }
+
+        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
+        JavaClass arrayType3d = method.getRawReturnType();
+
+        assertThat(arrayType3d.isArray()).isTrue();
+        assertThatType(arrayType3d.tryGetComponentType().get())
+                .isSameAs(arrayType3d.getComponentType())
+                .matches(IsArrayTestClass[][].class);
+        JavaClass arrayType2d = arrayType3d.getComponentType();
+        assertThatType(arrayType2d.tryGetComponentType().get())
+                .isSameAs(arrayType2d.getComponentType())
+                .matches(IsArrayTestClass[].class);
+        JavaClass arrayType1d = arrayType2d.getComponentType();
+        assertThatType(arrayType1d.tryGetComponentType().get())
+                .isSameAs(arrayType1d.getComponentType())
+                .isSameAs(arrayType1d.getBaseComponentType())
+                .isSameAs(arrayType2d.getBaseComponentType())
+                .isSameAs(arrayType3d.getBaseComponentType())
+                .matches(IsArrayTestClass.class);
+    }
+
+    @Test
     public void finds_non_array_type() {
         @SuppressWarnings("unused")
         class IsArrayTestClass {

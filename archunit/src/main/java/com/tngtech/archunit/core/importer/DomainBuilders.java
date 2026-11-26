@@ -401,6 +401,7 @@ public final class DomainBuilders {
         private boolean isAnonymousClass;
         private boolean isMemberClass;
         private Set<JavaModifier> modifiers = new HashSet<>();
+        private Optional<JavaClass> componentType = Optional.empty();
 
         JavaClassBuilder() {
             this(false);
@@ -465,6 +466,11 @@ public final class DomainBuilders {
             return this;
         }
 
+        JavaClassBuilder withComponentType(JavaClass componentType) {
+            this.componentType = Optional.of(componentType);
+            return this;
+        }
+
         JavaClassBuilder withSimpleName(String simpleName) {
             this.descriptor = descriptor.withSimpleClassName(simpleName);
             return this;
@@ -512,6 +518,10 @@ public final class DomainBuilders {
 
         public Set<JavaModifier> getModifiers() {
             return modifiers;
+        }
+
+        public Optional<JavaClass> getComponentType() {
+            return componentType;
         }
 
         public boolean isStub() {
