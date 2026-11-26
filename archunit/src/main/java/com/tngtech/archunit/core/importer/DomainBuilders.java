@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -764,9 +765,11 @@ public final class DomainBuilders {
 
     private static Set<JavaTypeVariable<?>> allTypeParametersInEnclosingContextOf(JavaCodeUnit codeUnit) {
         JavaClass declaringClass = codeUnit.getOwner();
+        // Declaring parameters first, then enclosing classes from inner to outer.
+        // Name lookup returns the first match, so this selects the innermost type variable.
         return FluentIterable.from(getTypeParametersOf(declaringClass))
                 .append(allTypeParametersInEnclosingContextOf(declaringClass))
-                .toSet();
+                .copyInto(new LinkedHashSet<>());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -776,7 +779,9 @@ public final class DomainBuilders {
     }
 
     private static Set<JavaTypeVariable<?>> allTypeParametersInEnclosingContextOf(JavaClass javaClass) {
-        Set<JavaTypeVariable<?>> result = new HashSet<>();
+        // Enclosing classes are visited from inner to outer. Keep that order:
+        // name lookup returns the first match and must select the innermost type variable.
+        Set<JavaTypeVariable<?>> result = new LinkedHashSet<>();
         while (javaClass.getEnclosingClass().isPresent()) {
             if (javaClass.getEnclosingCodeUnit().isPresent()) {
                 // Note that there can't be a case where we could have an enclosing code unit without an enclosing class,
