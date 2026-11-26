@@ -16,9 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -124,6 +122,46 @@ public final class JavaMethod extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Method <" + getFullName() + ">";
+    }
+
+    @PublicAPI(usage = ACCESS) public boolean isOverridden() {
+        JavaClass superClass;
+        for (Optional<JavaType> superClassOpt =
+             getOwner().getSuperclass(); superClassOpt.isPresent();
+             superClassOpt = superClass.getSuperclass()) {
+            JavaParameterizedType superClassType = (JavaParameterizedType) superClassOpt.get();
+            superClass = superClassType.toErasure();
+            List<JavaTypeVariable<JavaClass>> superClassTypeParameters =
+                    superClass.getTypeParameters();
+            Map<JavaType/*Variable<JavaClass>*/, JavaType> typeParametersToOverridenTypes =
+                    new HashMap<>();
+            for (int i = 0; i < superClassTypeParameters.size(); i++) {
+                typeParametersToOverridenTypes.put(superClassTypeParameters.get(i),
+                        superClassType.getActualTypeArguments().get(i));
+            }
+
+            for (JavaMethod superMethod : superClass.getAllMethods()) {
+                if (!superMethod.getName().equals(getName())) {
+                    return false;
+                }
+
+                List<JavaParameter> parameterTypes = getParameters();
+                List<JavaParameter> superMethodParameterTypes = superMethod.getParameters();
+                if (parameterTypes.size() != superMethodParameterTypes.size()) {
+                    return false;
+                }
+                for (int i = 0; i < parameterTypes.size(); i++) {
+                    JavaParameter parameter = parameterTypes.get(i);
+                    JavaParameter superParameter = superMethodParameterTypes.get(i);
+                    if (!parameter.equals(superParameter) && !typeParametersToOverridenTypes.get(
+                            superParameter.getType()).equals(parameter.getType())) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     @ResolvesTypesViaReflection
