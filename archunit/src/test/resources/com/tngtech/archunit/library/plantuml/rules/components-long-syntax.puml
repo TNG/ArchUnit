@@ -1,0 +1,9 @@
+@startuml
+component "Web API" <<..web>> as web
+component "Use Cases" <<..usecase>> as usecase
+component "Persistence" <<..persistence>> as persistence
+
+web --> usecase
+usecase --> persistence
+
+@enduml
