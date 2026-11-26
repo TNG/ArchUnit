@@ -1666,16 +1666,98 @@ noClasses().that(resideInAPackageService)
 <div class="paragraph">
 <p>Thus, if the predefined API does not allow to express some concept,
 it is possible to extend it in any custom way.
-For example:</p>
+A <code>DescribedPredicate</code> answers one yes-or-no question about a single object.
+<code>ArchConditions.have</code> and <code>ArchConditions.be</code> turn that answer into an <code>ArchCondition</code>.
+They prefix the predicate description, so that description has to stay grammatical
+after <code>have</code> or <code>be</code> and must not repeat those words.
+A noun phrase fits <code>have</code>; an adjective phrase fits <code>be</code>.
+The methods can be called qualified, as in <code>ArchConditions.have(..)</code>, or statically imported:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
+
+DescribedPredicate&lt;JavaClass&gt; aFieldAnnotatedWithPayload =
+    new DescribedPredicate&lt;JavaClass&gt;("a field annotated with @Payload") {
+        @Override
+        public boolean test(JavaClass input) {
+            for (JavaField field : input.getFields()) {
+                if (field.isAnnotatedWith(Payload.class)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+classes().should(have(aFieldAnnotatedWithPayload));
+
+DescribedPredicate&lt;JavaClass&gt; annotatedWithEntity =
+    new DescribedPredicate&lt;JavaClass&gt;("annotated with @Entity") {
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isAnnotatedWith(Entity.class);
+        }
+    };
+
+classes().should(be(annotatedWithEntity));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first rule text is <em>"classes should have a field annotated with @Payload"</em>.
+<code>have</code> records one event per class.
+A class that has such a field is reported as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">Class &lt;com.example.Order&gt; has a field annotated with @Payload in (Order.java:0)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and a class that has no such field as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">Class &lt;com.example.Order&gt; does not have a field annotated with @Payload in (Order.java:0)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The second rule text is <em>"classes should be annotated with @Entity"</em>.
+A matching class is reported as
+<em>"Class &lt;com.example.Order&gt; is annotated with @Entity in (Order.java:0)"</em>,
+and a class that does not match as
+<em>"Class &lt;com.example.Order&gt; is not annotated with @Entity in (Order.java:0)"</em>.
+<code>ArchConditions.not</code> inverts this single event and keeps the message,
+so a class that matches is then reported with the satisfied wording
+(<em>"has a field annotated with @Payload"</em> or <em>"is annotated with @Entity"</em>).</p>
+</div>
+<div class="paragraph">
+<p>A predicate, and a condition created from it with <code>have</code> or <code>be</code>, still judges the object as a whole
+and therefore records one event.
+A hand-written <code>ArchCondition</code> can record several events, for example one per incoming method call.
+Negation, whether through <code>ArchConditions.not</code> or through <code>noClasses()</code>, inverts every recorded event
+and leaves the message text untouched: a satisfied event becomes a violation, and a violated event becomes allowed.
+An event that was never added stays invisible, which is why both outcomes have to be recorded.
+Inverting those events one by one does not restate the condition as
+<em>"every incoming call must be unsecured"</em>.
+A class with no incoming calls still produces no event; negation does not invent one.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">DescribedPredicate&lt;JavaClass&gt; haveAFieldAnnotatedWithPayload =
-    new DescribedPredicate&lt;JavaClass&gt;("have a field annotated with @Payload"){
+    new DescribedPredicate&lt;JavaClass&gt;("have a field annotated with @Payload") {
         @Override
         public boolean test(JavaClass input) {
-            boolean someFieldAnnotatedWithPayload = // iterate fields and check for @Payload
-            return someFieldAnnotatedWithPayload;
+            for (JavaField field : input.getFields()) {
+                if (field.isAnnotatedWith(Payload.class)) {
+                    return true;
+                }
+            }
+            return false;
         }
     };
 
@@ -1684,17 +1766,33 @@ ArchCondition&lt;JavaClass&gt; onlyBeAccessedBySecuredMethods =
         @Override
         public void check(JavaClass item, ConditionEvents events) {
             for (JavaMethodCall call : item.getMethodCallsToSelf()) {
-                if (!call.getOrigin().isAnnotatedWith(Secured.class)) {
-                    String message = String.format(
-                        "Method %s is not @Secured", call.getOrigin().getFullName());
-                    events.add(SimpleConditionEvent.violated(call, message));
-                }
+                boolean conditionSatisfied = call.getOrigin().isAnnotatedWith(Secured.class);
+                String message = conditionSatisfied
+                        ? String.format("Method %s is @Secured", call.getOrigin().getFullName())
+                        : String.format("Method %s is not @Secured", call.getOrigin().getFullName());
+                events.add(new SimpleConditionEvent(call, conditionSatisfied, message));
             }
         }
     };
 
 classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods);</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>The loop adds one <code>SimpleConditionEvent</code> for every incoming call.
+<code>conditionSatisfied</code> is the origin annotation check, and the message names that same state:
+<em>"Method &lt;full name&gt; is @Secured"</em> when the origin is annotated, and
+<em>"Method &lt;full name&gt; is not @Secured"</em> when it is not.
+After inversion the message still describes the annotation that is actually present,
+so a secured call is reported as a violation of the negated condition,
+while an unsecured call is no longer a violation.
+Calls on the same class are inverted independently.
+If <code>getMethodCallsToSelf()</code> is empty, the loop adds nothing.</p>
+</div>
+<div class="paragraph">
+<p>The description passed to <code>.that(..)</code> is inserted after "that".
+<code>haveAFieldAnnotatedWithPayload</code> therefore starts with "have", which would be repeated
+if that same description were passed to <code>ArchConditions.have</code>.</p>
 </div>
 <div class="paragraph">
 <p>If the rule fails, the error message will be built from the supplied descriptions. In the
