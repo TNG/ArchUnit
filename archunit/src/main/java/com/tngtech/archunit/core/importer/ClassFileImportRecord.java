@@ -86,6 +86,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
     private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
     private final Set<RawInstanceofCheck> rawInstanceofChecks = new HashSet<>();
+    private final Set<RawTypeSwitchCheck> rawTypeSwitchChecks = new HashSet<>();
     private final Set<RawTryCatchBlock> rawTryCatchBlocks = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
@@ -262,6 +263,10 @@ class ClassFileImportRecord {
         rawInstanceofChecks.add(instanceofCheck);
     }
 
+    void registerTypeSwitchCheck(RawTypeSwitchCheck typeSwitchCheck) {
+        rawTypeSwitchChecks.add(typeSwitchCheck);
+    }
+
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
         resolveSyntheticOrigins(rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD, syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder)
                 .forEach(doWithRecord);
@@ -295,6 +300,11 @@ class ClassFileImportRecord {
     void forEachRawInstanceofCheck(Consumer<RawInstanceofCheck> doWithInstanceofCheck) {
         resolveSyntheticOrigins(rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK, syntheticLambdaAccessRecorder)
                 .forEach(doWithInstanceofCheck);
+    }
+
+    void forEachRawTypeSwitchCheck(Consumer<RawTypeSwitchCheck> doWithTypeSwitchCheck) {
+        resolveSyntheticOrigins(rawTypeSwitchChecks, COPY_RAW_TYPE_SWITCH_CHECK, syntheticLambdaAccessRecorder)
+                .forEach(doWithTypeSwitchCheck);
     }
 
     public void forEachRawTryCatchBlock(Consumer<RawTryCatchBlock> doWithTryCatchBlock) {
@@ -340,6 +350,9 @@ class ClassFileImportRecord {
 
     private static final Function<RawInstanceofCheck, RawInstanceofCheck.Builder> COPY_RAW_INSTANCEOF_CHECK =
             instanceofCheck -> copyInto(new RawInstanceofCheck.Builder(), instanceofCheck);
+
+    private static final Function<RawTypeSwitchCheck, RawTypeSwitchCheck.Builder> COPY_RAW_TYPE_SWITCH_CHECK =
+            typeSwitchCheck -> copyInto(new RawTypeSwitchCheck.Builder(), typeSwitchCheck);
 
     private static final Function<RawTryCatchBlock, RawTryCatchBlock.Builder> COPY_RAW_TRY_CATCH_BLOCK = RawTryCatchBlock.Builder::from;
 

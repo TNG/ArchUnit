@@ -59,6 +59,8 @@ interface DeclarationHandler {
 
     void onDeclaredInstanceofCheck(String typeName);
 
+    void onDeclaredTypeSwitchCheck(String typeName);
+
     void onDeclaredCaughtThrowable(String typeName);
 
     void onDeclaredThrowsClause(Collection<String> exceptionTypeNames);

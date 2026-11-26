@@ -67,9 +67,11 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isAsmClassType;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isAsmMethodHandle;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isTypeSwitchBootstrapMethod;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -424,6 +426,14 @@ class JavaClassProcessor extends ClassVisitor {
                 if (isAsmMethodHandle(methodHandleCandidate)) {
                     processLambdaMetafactoryMethodHandleArgument((Handle) methodHandleCandidate);
                 }
+            } else if (isTypeSwitchBootstrapMethod(bootstrapMethodHandle)) {
+                for (Object argument : bootstrapMethodArguments) {
+                    if (isAsmClassType(argument)) {
+                        JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(argument);
+                        accessHandler.handleTypeSwitchCheck(type, actualLineNumber);
+                        declarationHandler.onDeclaredTypeSwitchCheck(type.getFullyQualifiedClassName());
+                    }
+                }
             }
         }
 
@@ -540,6 +550,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber);
 
+        void handleTypeSwitchCheck(JavaClassDescriptor type, int lineNumber);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -582,6 +594,10 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber) {
+            }
+
+            @Override
+            public void handleTypeSwitchCheck(JavaClassDescriptor type, int lineNumber) {
             }
 
             @Override

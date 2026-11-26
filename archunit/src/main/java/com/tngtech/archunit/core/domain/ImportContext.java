@@ -69,5 +69,7 @@ public interface ImportContext {
 
     Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit);
 
+    Set<TypeSwitchCheck> createTypeSwitchChecksFor(JavaCodeUnit codeUnit);
+
     JavaClass resolveClass(String fullyQualifiedClassName);
 }
