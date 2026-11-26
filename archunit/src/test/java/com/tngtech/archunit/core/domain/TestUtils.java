@@ -28,7 +28,6 @@ import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
-import static com.tngtech.archunit.core.importer.ImportTestUtils.newMethodCall;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
@@ -99,6 +98,10 @@ public class TestUtils {
 
     static JavaMethodCallBuilder newMethodCallBuilder(JavaMethod origin, MethodCallTarget target, int lineNumber) {
         return ImportTestUtils.newMethodCallBuilder(origin, target, lineNumber);
+    }
+
+    public static JavaMethodCall newMethodCall(JavaMethod origin, JavaMethod target, int lineNumber) {
+        return ImportTestUtils.newMethodCall(origin, resolvedTargetFrom(target), lineNumber);
     }
 
     public static AccessesSimulator simulateCall() {
@@ -198,7 +201,7 @@ public class TestUtils {
         private JavaMethodCall to(MethodCallTarget methodCallTarget) {
             targets.add(methodCallTarget);
             ImportContext context = mock(ImportContext.class);
-            Set<JavaMethodCall> calls = targets.stream().map(target -> newMethodCall(method, target, lineNumber)).collect(toSet());
+            Set<JavaMethodCall> calls = targets.stream().map(target -> ImportTestUtils.newMethodCall(method, target, lineNumber)).collect(toSet());
             when(context.createMethodCallsFor(eq(method), anySet())).thenReturn(ImmutableSet.copyOf(calls));
             method.completeFrom(context);
             return getCallToTarget(methodCallTarget);
